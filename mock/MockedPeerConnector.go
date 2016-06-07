@@ -13,8 +13,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
-package core
 
-type StateStorage interface {
-	GetAllKnownPeers() []Peer
+package mock
+
+import (
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
+)
+
+type MockedPeerConnector struct {
+	mock.Mock
+}
+
+func (m *MockedPeerConnector) Startup() {
+	m.Called()
+}
+
+func (m *MockedPeerConnector) Connect(peer peer.Connector) {
+	m.Called(peer)
+}
+
+func (m *MockedPeerConnector) Push(data peer.Data) {
+	m.Called(data)
 }

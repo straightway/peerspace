@@ -13,13 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
-package straightway
+
+package test
 
 import (
 	"testing"
 
-	"github.com/straightway/straightway/core"
 	"github.com/straightway/straightway/mock"
+	"github.com/straightway/straightway/peer"
 	tmock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -28,8 +29,8 @@ import (
 
 type PeerNodeSendingTest struct {
 	suite.Suite
-	sut          *core.PeerNode
-	peers        []*mock.MockedPeer
+	sut          peer.Node
+	peers        []*mock.MockedPeerConnector
 	stateStorage *mock.MockedStateStorage
 }
 
@@ -39,8 +40,8 @@ func TestPeerNodeSending(t *testing.T) {
 
 func (suite *PeerNodeSendingTest) SetupTest() {
 	suite.createSut()
-	suite.peers = []*mock.MockedPeer{createMockedPeer()}
-	peerInterfaces := make([]core.Peer, len(suite.peers))
+	suite.peers = []*mock.MockedPeerConnector{createMockedPeerConnector()}
+	peerInterfaces := make([]peer.Connector, len(suite.peers))
 	for i, peer := range suite.peers {
 		peerInterfaces[i] = peer
 	}
@@ -55,7 +56,7 @@ func (suite *PeerNodeSendingTest) TearDownTest() {
 // Send data
 
 func (suite *PeerNodeSendingTest) Test_PushedData_IsForwarded() {
-	data := core.Data{0x2, 0x3, 0x5, 0x7, 0x11}
+	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
 	suite.sut.Push(data)
 	targetPeer := suite.peers[0]
 	targetPeer.AssertNumberOfCalls(suite.T(), "Push", 1)
@@ -65,13 +66,12 @@ func (suite *PeerNodeSendingTest) Test_PushedData_IsForwarded() {
 // Private
 
 func (suite *PeerNodeSendingTest) createSut() {
-	suite.sut = new(core.PeerNode)
 	suite.stateStorage = new(mock.MockedStateStorage)
-	suite.sut.SetStateStorage(suite.stateStorage)
+	suite.sut = peer.NewNode(suite.stateStorage)
 }
 
-func createMockedPeer() *mock.MockedPeer {
-	mockedPeer := new(mock.MockedPeer)
-	mockedPeer.On("Push", tmock.AnythingOfTypeArgument("core.Data"))
+func createMockedPeerConnector() *mock.MockedPeerConnector {
+	mockedPeer := new(mock.MockedPeerConnector)
+	mockedPeer.On("Push", tmock.AnythingOfTypeArgument("peer.Data"))
 	return mockedPeer
 }

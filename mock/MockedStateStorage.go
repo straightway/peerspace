@@ -13,10 +13,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
+
 package mock
 
 import (
-	"github.com/straightway/straightway/core"
+	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -24,7 +25,7 @@ type MockedStateStorage struct {
 	mock.Mock
 }
 
-func (m *MockedStateStorage) GetAllKnownPeers() []core.Peer {
+func (m *MockedStateStorage) GetAllKnownPeers() []peer.Connector {
 	args := m.Called()
-	return args.Get(0).([]core.Peer)
+	return args.Get(0).([]peer.Connector)
 }

@@ -14,14 +14,11 @@
    limitations under the License.
 ****************************************************************************/
 
-package main
+package peer
 
-import (
-	"fmt"
+type Data []byte
 
-	"github.com/straightway/straightway"
-)
-
-func main() {
-	fmt.Printf("%v", straightway.PeerNode{})
+type Connector interface {
+	Connect(peer Connector)
+	Push(data Data)
 }

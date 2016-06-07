@@ -13,13 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
-package straightway
+
+package test
 
 import (
 	"testing"
 
-	"github.com/straightway/straightway/core"
 	"github.com/straightway/straightway/mock"
+	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -27,9 +28,9 @@ import (
 
 type PeerNodeTest struct {
 	suite.Suite
-	sut          *core.PeerNode
+	sut          peer.Node
 	stateStorage *mock.MockedStateStorage
-	knownPeers   []core.Peer
+	knownPeers   []peer.Connector
 }
 
 func TestPeerNode(t *testing.T) {
@@ -37,7 +38,7 @@ func TestPeerNode(t *testing.T) {
 }
 
 func (suite *PeerNodeTest) SetupTest() {
-	suite.knownPeers = make([]core.Peer, 0)
+	suite.knownPeers = make([]peer.Connector, 0)
 	suite.createSut()
 }
 
@@ -54,16 +55,15 @@ func (suite *PeerNodeTest) Test_Startup_NonNilNode() {
 }
 
 func (suite *PeerNodeTest) Test_Startup_NilNodePanics() {
-	var nilSut *core.PeerNode
+	var nilSut peer.Node
 	suite.Assert().Panics(func() {
 		nilSut.Startup()
 	})
 }
 
-func (suite *PeerNodeTest) Test_Startup_WithoutStateStoragePanics() {
-	suite.sut = new(core.PeerNode)
+func (suite *PeerNodeTest) Test_NewNode_WithoutStateStoragePanics() {
 	suite.Assert().Panics(func() {
-		suite.sut.Startup()
+		suite.sut = peer.NewNode(nil)
 	})
 }
 
@@ -73,7 +73,7 @@ func (suite *PeerNodeTest) Test_Startup_GetsPeersFromStateStorage() {
 }
 
 func (suite *PeerNodeTest) Test_Startup_ConnectsToPeers() {
-	peer := mock.MockedPeer{}
+	peer := mock.MockedPeerConnector{}
 	suite.knownPeers = append(suite.knownPeers, &peer)
 	suite.createSut()
 	peer.On("Connect", suite.sut).Return()
@@ -81,26 +81,10 @@ func (suite *PeerNodeTest) Test_Startup_ConnectsToPeers() {
 	peer.AssertNumberOfCalls(suite.T(), "Connect", 1)
 }
 
-// Set state storage
-
-func (suite *PeerNodeTest) Test_SetStateStorage_NilPanics() {
-	suite.Assert().Panics(func() {
-		suite.sut.SetStateStorage(nil)
-	})
-}
-
-func (suite *PeerNodeTest) Test_SetStateStorage_TwicePanics() {
-	stateStorage := mock.MockedStateStorage{}
-	suite.Assert().Panics(func() {
-		suite.sut.SetStateStorage(&stateStorage)
-	})
-}
-
 // Private
 
 func (suite *PeerNodeTest) createSut() {
-	suite.sut = new(core.PeerNode)
 	suite.stateStorage = new(mock.MockedStateStorage)
 	suite.stateStorage.On("GetAllKnownPeers").Return(suite.knownPeers)
-	suite.sut.SetStateStorage(suite.stateStorage)
+	suite.sut = peer.NewNode(suite.stateStorage)
 }

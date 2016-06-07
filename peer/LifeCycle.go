@@ -13,24 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
-package mock
 
-import (
-	"fmt"
+package peer
 
-	"github.com/straightway/straightway/core"
-	"github.com/stretchr/testify/mock"
-)
-
-type MockedPeer struct {
-	mock.Mock
-}
-
-func (m *MockedPeer) Connect(peer core.Peer) {
-	m.Called(peer)
-}
-
-func (m *MockedPeer) Push(data core.Data) {
-	m.Called(data)
-	fmt.Println("Mocked peer", m, "called")
+type LifeCycle interface {
+	Startup()
 }

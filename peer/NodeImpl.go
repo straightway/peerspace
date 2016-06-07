@@ -14,14 +14,33 @@
    limitations under the License.
 ****************************************************************************/
 
-package main
+package peer
 
-import (
-	"fmt"
+import "fmt"
 
-	"github.com/straightway/straightway"
-)
+type node struct {
+	stateStorage StateStorage
+}
 
-func main() {
-	fmt.Printf("%v", straightway.PeerNode{})
+func NewNode(s StateStorage) Node {
+	if s == nil {
+		panic("nil StateStorage")
+	}
+	return &node{stateStorage: s}
+}
+
+func (node *node) Startup() {
+	peers := node.stateStorage.GetAllKnownPeers()
+	for _, peer := range peers {
+		peer.Connect(node)
+	}
+}
+
+func (node *node) Connect(peer Connector) {
+	fmt.Printf("Connecting %v to $v", node, peer)
+}
+
+func (node *node) Push(data Data) {
+	firstKnownPeer := node.stateStorage.GetAllKnownPeers()[0]
+	firstKnownPeer.Push(data)
 }

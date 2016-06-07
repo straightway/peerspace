@@ -13,37 +13,10 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
-package core
 
-import "fmt"
+package peer
 
-type PeerNode struct {
-	stateStorage StateStorage
-}
-
-func (peerNode *PeerNode) Startup() {
-	peers := peerNode.stateStorage.GetAllKnownPeers()
-	for _, peer := range peers {
-		peer.Connect(peerNode)
-	}
-}
-
-func (peerNode *PeerNode) SetStateStorage(stateStorage StateStorage) {
-	if stateStorage == nil {
-		panic("nil stateStorage")
-	}
-	if peerNode.stateStorage != nil {
-		panic("stateStorage already set")
-	}
-
-	peerNode.stateStorage = stateStorage
-}
-
-func (peerNode *PeerNode) Connect(peer Peer) {
-	fmt.Printf("Connecting %v to $v", peerNode, peer)
-}
-
-func (peerNode *PeerNode) Push(data Data) {
-	firstKnownPeer := peerNode.stateStorage.GetAllKnownPeers()[0]
-	firstKnownPeer.Push(data)
+type Node interface {
+	LifeCycle
+	Connector
 }

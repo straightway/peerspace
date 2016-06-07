@@ -13,11 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ****************************************************************************/
-package core
 
-type Data []byte
+package peer
 
-type Peer interface {
-	Connect(peer Peer)
-	Push(data Data)
+type StateStorage interface {
+	GetAllKnownPeers() []Connector
 }

@@ -26,7 +26,7 @@ import (
 
 // Test suite
 
-type PeerNodeTest struct {
+type Node_init_Test struct {
 	suite.Suite
 	sut          peer.Node
 	stateStorage *mock.MockedStateStorage
@@ -34,45 +34,41 @@ type PeerNodeTest struct {
 }
 
 func TestPeerNode(t *testing.T) {
-	suite.Run(t, new(PeerNodeTest))
+	suite.Run(t, new(Node_init_Test))
 }
 
-func (suite *PeerNodeTest) SetupTest() {
+func (suite *Node_init_Test) SetupTest() {
 	suite.knownPeers = make([]peer.Connector, 0)
 	suite.createSut()
 }
 
-func (suite *PeerNodeTest) TearDownTest() {
+func (suite *Node_init_Test) TearDownTest() {
 	suite.sut = nil
+}
+
+// Construction
+
+func (suite *Node_init_Test) Test_NewNode_WithoutStateStoragePanics() {
+	suite.Assert().Panics(func() {
+		suite.sut = peer.NewNode(nil, &mock.MockedForwardStrategy{})
+	})
 }
 
 // Startup
 
-func (suite *PeerNodeTest) Test_Startup_NonNilNode() {
-	suite.Assert().NotPanics(func() {
-		suite.sut.Startup()
-	})
-}
-
-func (suite *PeerNodeTest) Test_Startup_NilNodePanics() {
+func (suite Node_init_Test) Test_Startup_NilNodePanics() {
 	var nilSut peer.Node
 	suite.Assert().Panics(func() {
 		nilSut.Startup()
 	})
 }
 
-func (suite *PeerNodeTest) Test_NewNode_WithoutStateStoragePanics() {
-	suite.Assert().Panics(func() {
-		suite.sut = peer.NewNode(nil)
-	})
-}
-
-func (suite *PeerNodeTest) Test_Startup_GetsPeersFromStateStorage() {
+func (suite *Node_init_Test) Test_Startup_GetsPeersFromStateStorage() {
 	suite.sut.Startup()
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
 }
 
-func (suite *PeerNodeTest) Test_Startup_ConnectsToPeers() {
+func (suite *Node_init_Test) Test_Startup_ConnectsToPeers() {
 	peer := mock.MockedPeerConnector{}
 	suite.knownPeers = append(suite.knownPeers, &peer)
 	suite.createSut()
@@ -83,8 +79,8 @@ func (suite *PeerNodeTest) Test_Startup_ConnectsToPeers() {
 
 // Private
 
-func (suite *PeerNodeTest) createSut() {
+func (suite *Node_init_Test) createSut() {
 	suite.stateStorage = new(mock.MockedStateStorage)
 	suite.stateStorage.On("GetAllKnownPeers").Return(suite.knownPeers)
-	suite.sut = peer.NewNode(suite.stateStorage)
+	suite.sut = peer.NewNode(suite.stateStorage, &mock.MockedForwardStrategy{})
 }

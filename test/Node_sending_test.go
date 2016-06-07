@@ -27,20 +27,24 @@ import (
 
 // Test suite
 
-type PeerNodeSendingTest struct {
+type NodeSendingTest struct {
 	suite.Suite
-	sut          peer.Node
-	peers        []*mock.MockedPeerConnector
-	stateStorage *mock.MockedStateStorage
+	sut             peer.Node
+	peers           []*mock.MockedPeerConnector
+	stateStorage    *mock.MockedStateStorage
+	forwardStrategy *mock.MockedForwardStrategy
 }
 
 func TestPeerNodeSending(t *testing.T) {
-	suite.Run(t, new(PeerNodeSendingTest))
+	suite.Run(t, new(NodeSendingTest))
 }
 
-func (suite *PeerNodeSendingTest) SetupTest() {
+func (suite *NodeSendingTest) SetupTest() {
 	suite.createSut()
-	suite.peers = []*mock.MockedPeerConnector{createMockedPeerConnector()}
+	suite.peers = []*mock.MockedPeerConnector{
+		createMockedPeerConnector(),
+		createMockedPeerConnector(),
+	}
 	peerInterfaces := make([]peer.Connector, len(suite.peers))
 	for i, peer := range suite.peers {
 		peerInterfaces[i] = peer
@@ -49,25 +53,30 @@ func (suite *PeerNodeSendingTest) SetupTest() {
 	suite.stateStorage.On("GetAllKnownPeers").Return(peerInterfaces)
 }
 
-func (suite *PeerNodeSendingTest) TearDownTest() {
+func (suite *NodeSendingTest) TearDownTest() {
 	suite.peers = nil
 }
 
 // Send data
 
-func (suite *PeerNodeSendingTest) Test_PushedData_IsForwarded() {
+func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
+	targetPeer := suite.peers[1]
+	var targetConnector peer.Connector = targetPeer
+	suite.forwardStrategy.On("ForwardedPeer", tmock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnector)
 	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
 	suite.sut.Push(data)
-	targetPeer := suite.peers[0]
 	targetPeer.AssertNumberOfCalls(suite.T(), "Push", 1)
 	targetPeer.AssertCalled(suite.T(), "Push", data)
 }
 
 // Private
 
-func (suite *PeerNodeSendingTest) createSut() {
+func (suite *NodeSendingTest) createSut() {
 	suite.stateStorage = new(mock.MockedStateStorage)
-	suite.sut = peer.NewNode(suite.stateStorage)
+	suite.forwardStrategy = new(mock.MockedForwardStrategy)
+	suite.sut = peer.NewNode(
+		suite.stateStorage,
+		suite.forwardStrategy)
 }
 
 func createMockedPeerConnector() *mock.MockedPeerConnector {

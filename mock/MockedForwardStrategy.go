@@ -14,33 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package mock
 
-import "fmt"
+import (
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
+)
 
-type node struct {
-	stateStorage StateStorage
+type MockedForwardStrategy struct {
+	mock.Mock
 }
 
-func NewNode(s StateStorage) Node {
-	if s == nil {
-		panic("nil StateStorage")
-	}
-	return &node{stateStorage: s}
-}
-
-func (node *node) Startup() {
-	peers := node.stateStorage.GetAllKnownPeers()
-	for _, peer := range peers {
-		peer.Connect(node)
-	}
-}
-
-func (node *node) Connect(peer Connector) {
-	fmt.Printf("Connecting %v to $v", node, peer)
-}
-
-func (node *node) Push(data Data) {
-	firstKnownPeer := node.stateStorage.GetAllKnownPeers()[0]
-	firstKnownPeer.Push(data)
+func (m *MockedForwardStrategy) ForwardedPeer(allPeers []peer.Connector) peer.Connector {
+	args := m.Called(allPeers)
+	return args.Get(0).(peer.Connector)
 }

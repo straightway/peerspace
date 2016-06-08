@@ -25,7 +25,7 @@ type MockedForwardStrategy struct {
 	mock.Mock
 }
 
-func (m *MockedForwardStrategy) ForwardedPeer(allPeers []peer.Connector) peer.Connector {
+func (m *MockedForwardStrategy) ForwardedPeer(allPeers []peer.Connector) []peer.Connector {
 	args := m.Called(allPeers)
-	return args.Get(0).(peer.Connector)
+	return args.Get(0).([]peer.Connector)
 }

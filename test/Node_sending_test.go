@@ -44,6 +44,8 @@ func (suite *NodeSendingTest) SetupTest() {
 	suite.peers = []*mock.MockedPeerConnector{
 		createMockedPeerConnector(),
 		createMockedPeerConnector(),
+		createMockedPeerConnector(),
+		createMockedPeerConnector(),
 	}
 	peerInterfaces := make([]peer.Connector, len(suite.peers))
 	for i, peer := range suite.peers {
@@ -60,13 +62,15 @@ func (suite *NodeSendingTest) TearDownTest() {
 // Send data
 
 func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
-	targetPeer := suite.peers[1]
-	var targetConnector peer.Connector = targetPeer
-	suite.forwardStrategy.On("ForwardedPeer", tmock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnector)
+	targetPeers := []*mock.MockedPeerConnector{suite.peers[1], suite.peers[2]}
+	var targetConnectors []peer.Connector = []peer.Connector{targetPeers[0], targetPeers[1]}
+	suite.forwardStrategy.On("ForwardedPeer", tmock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnectors)
 	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
 	suite.sut.Push(data)
-	targetPeer.AssertNumberOfCalls(suite.T(), "Push", 1)
-	targetPeer.AssertCalled(suite.T(), "Push", data)
+	for _, p := range targetPeers {
+		p.AssertNumberOfCalls(suite.T(), "Push", 1)
+		p.AssertCalled(suite.T(), "Push", data)
+	}
 }
 
 // Private

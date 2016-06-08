@@ -17,5 +17,5 @@
 package peer
 
 type ForwardStrategy interface {
-	ForwardedPeer(allPeers []Connector) Connector
+	ForwardedPeer(allPeers []Connector) []Connector
 }

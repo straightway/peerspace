@@ -42,6 +42,8 @@ func (node *node) Connect(peer Connector) {
 }
 
 func (node *node) Push(data Data) {
-	firstKnownPeer := node.forwardStrategy.ForwardedPeer(node.stateStorage.GetAllKnownPeers())
-	firstKnownPeer.Push(data)
+	forwardPeers := node.forwardStrategy.ForwardedPeer(node.stateStorage.GetAllKnownPeers())
+	for _, p := range forwardPeers {
+		p.Push(data)
+	}
 }

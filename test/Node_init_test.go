@@ -19,7 +19,7 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/mock"
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
@@ -52,25 +52,25 @@ func (suite *Node_init_Test) Test_NewNode_WithoutStateStoragePanics() {
 	suite.Assert().Panics(func() {
 		suite.node = peer.NewNode(
 			nil,
-			&mock.ConnectorSelector{},
-			&mock.ConnectorSelector{})
+			&mocked.ConnectorSelector{},
+			&mocked.ConnectorSelector{})
 	})
 }
 
 func (suite *Node_init_Test) Test_NewNode_WithoutForwardStrategyPanics() {
 	suite.Assert().Panics(func() {
 		suite.node = peer.NewNode(
-			&mock.StateStorage{},
+			&mocked.StateStorage{},
 			nil,
-			&mock.ConnectorSelector{})
+			&mocked.ConnectorSelector{})
 	})
 }
 
 func (suite *Node_init_Test) Test_NewNode_WithoutConnectionStrategyPanics() {
 	suite.Assert().Panics(func() {
 		suite.node = peer.NewNode(
-			&mock.StateStorage{},
-			&mock.ConnectorSelector{},
+			&mocked.StateStorage{},
+			&mocked.ConnectorSelector{},
 			nil)
 	})
 }

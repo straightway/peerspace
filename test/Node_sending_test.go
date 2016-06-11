@@ -19,9 +19,9 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/mock"
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	tmock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -53,9 +53,9 @@ func (suite *NodeSendingTest) TearDownTest() {
 // Send data
 
 func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
-	targetPeers := []*mock.PeerConnector{suite.connectedPeers[1], suite.connectedPeers[2]}
+	targetPeers := []*mocked.PeerConnector{suite.connectedPeers[1], suite.connectedPeers[2]}
 	var targetConnectors []peer.Connector = []peer.Connector{targetPeers[0], targetPeers[1]}
-	suite.forwardStrategy.On("SelectedConnectors", tmock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnectors)
+	suite.forwardStrategy.On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnectors)
 	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
 	suite.node.Push(data)
 	for _, p := range targetPeers {
@@ -67,16 +67,16 @@ func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
 // Private
 
 func (suite *NodeSendingTest) createSut() {
-	suite.stateStorage = &mock.StateStorage{}
-	suite.forwardStrategy = &mock.ConnectorSelector{}
+	suite.stateStorage = &mocked.StateStorage{}
+	suite.forwardStrategy = &mocked.ConnectorSelector{}
 	suite.node = peer.NewNode(
 		suite.stateStorage,
 		suite.forwardStrategy,
-		&mock.ConnectorSelector{})
+		&mocked.ConnectorSelector{})
 }
 
-func createMockedPeerConnector() *mock.PeerConnector {
-	mockedPeer := new(mock.PeerConnector)
-	mockedPeer.On("Push", tmock.AnythingOfTypeArgument("peer.Data"))
+func createMockedPeerConnector() *mocked.PeerConnector {
+	mockedPeer := new(mocked.PeerConnector)
+	mockedPeer.On("Push", mock.AnythingOfTypeArgument("peer.Data"))
 	return mockedPeer
 }

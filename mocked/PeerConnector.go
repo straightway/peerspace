@@ -14,18 +14,25 @@
    limitations under the License.
 ****************************************************************************/
 
-package mock
+package mocked
 
 import (
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
 
-type ConnectorSelector struct {
+type PeerConnector struct {
 	mock.Mock
 }
 
-func (m *ConnectorSelector) SelectedConnectors(allPeers []peer.Connector) []peer.Connector {
-	args := m.Called(allPeers)
-	return args.Get(0).([]peer.Connector)
+func (m *PeerConnector) Startup() {
+	m.Called()
+}
+
+func (m *PeerConnector) Connect(peer peer.Connector) {
+	m.Called(peer)
+}
+
+func (m *PeerConnector) Push(data peer.Data) {
+	m.Called(data)
 }

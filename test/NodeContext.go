@@ -17,19 +17,19 @@
 package test
 
 import (
-	"github.com/straightway/straightway/mock"
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 )
 
 type NodeContext struct {
 	node                    peer.Node
-	stateStorage            *mock.StateStorage
-	connectionStrategy      *mock.ConnectorSelector
-	forwardStrategy         *mock.ConnectorSelector
+	stateStorage            *mocked.StateStorage
+	connectionStrategy      *mocked.ConnectorSelector
+	forwardStrategy         *mocked.ConnectorSelector
 	knownPeers              []peer.Connector
 	connectedPeerInterfaces []peer.Connector
-	connectedPeers          []*mock.PeerConnector
-	notConnectedPeers       []*mock.PeerConnector
+	connectedPeers          []*mocked.PeerConnector
+	notConnectedPeers       []*mocked.PeerConnector
 }
 
 // Construction
@@ -37,10 +37,10 @@ type NodeContext struct {
 func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
 		knownPeers:         make([]peer.Connector, 0),
-		connectionStrategy: &mock.ConnectorSelector{},
-		forwardStrategy:    &mock.ConnectorSelector{},
-		connectedPeers:     []*mock.PeerConnector{},
-		notConnectedPeers:  []*mock.PeerConnector{},
+		connectionStrategy: &mocked.ConnectorSelector{},
+		forwardStrategy:    &mocked.ConnectorSelector{},
+		connectedPeers:     []*mocked.PeerConnector{},
+		notConnectedPeers:  []*mocked.PeerConnector{},
 	}
 
 	return newNodeContext
@@ -48,17 +48,17 @@ func NewNodeContext() *NodeContext {
 
 // Public
 
-func (this *NodeContext) AddKnownUnconnectedPeer(peer *mock.PeerConnector) {
+func (this *NodeContext) AddKnownUnconnectedPeer(peer *mocked.PeerConnector) {
 	if peer == nil {
-		peer = &mock.PeerConnector{}
+		peer = &mocked.PeerConnector{}
 	}
 	this.knownPeers = append(this.knownPeers, peer)
 	this.notConnectedPeers = append(this.notConnectedPeers, peer)
 }
 
-func (this *NodeContext) AddKnownConnectedPeer(peer *mock.PeerConnector) {
+func (this *NodeContext) AddKnownConnectedPeer(peer *mocked.PeerConnector) {
 	if peer == nil {
-		peer = &mock.PeerConnector{}
+		peer = &mocked.PeerConnector{}
 	}
 	this.knownPeers = append(this.knownPeers, peer)
 	this.connectedPeers = append(this.connectedPeers, peer)
@@ -77,7 +77,7 @@ func (this *NodeContext) setupPeers() {
 }
 
 func (this *NodeContext) createSut() {
-	this.stateStorage = &mock.StateStorage{}
+	this.stateStorage = &mocked.StateStorage{}
 	this.stateStorage.On("GetAllKnownPeers").Return(this.knownPeers)
 	this.node = peer.NewNode(
 		this.stateStorage,

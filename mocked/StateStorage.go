@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package mock
+package mocked
 
 import (
 	"github.com/straightway/straightway/peer"

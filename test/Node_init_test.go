@@ -19,7 +19,6 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
@@ -37,8 +36,8 @@ func TestPeerNode(t *testing.T) {
 
 func (suite *Node_init_Test) SetupTest() {
 	suite.NodeContext = NewNodeContext()
-	suite.AddKnownConnectedPeer(nil)
-	suite.AddKnownUnconnectedPeer(nil)
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.AddKnownUnconnectedPeer()
 	suite.SetUp()
 }
 
@@ -46,36 +45,27 @@ func (suite *Node_init_Test) TearDownTest() {
 	suite.NodeContext = nil
 }
 
-// Construction
-
-func (suite *Node_init_Test) Test_NewNode_WithoutStateStoragePanics() {
-	suite.Assert().Panics(func() {
-		suite.node = peer.NewNode(
-			nil,
-			&mocked.ConnectorSelector{},
-			&mocked.ConnectorSelector{})
-	})
-}
-
-func (suite *Node_init_Test) Test_NewNode_WithoutForwardStrategyPanics() {
-	suite.Assert().Panics(func() {
-		suite.node = peer.NewNode(
-			&mocked.StateStorage{},
-			nil,
-			&mocked.ConnectorSelector{})
-	})
-}
-
-func (suite *Node_init_Test) Test_NewNode_WithoutConnectionStrategyPanics() {
-	suite.Assert().Panics(func() {
-		suite.node = peer.NewNode(
-			&mocked.StateStorage{},
-			&mocked.ConnectorSelector{},
-			nil)
-	})
-}
-
 // Startup
+
+func (suite *Node_init_Test) Test_Startup_WithoutStateStoragePanics() {
+	suite.node.StateStorage = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_init_Test) Test_Startup_WithoutForwardStrategyPanics() {
+	suite.node.ForwardStrategy = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_init_Test) Test_Startup_WithoutConnectionStrategyPanics() {
+	suite.node.ConnectionStrategy = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_init_Test) Test_Startup_WithoutDataStoragePanics() {
+	suite.node.DataStorage = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
 
 func (suite Node_init_Test) Test_Startup_NilNodePanics() {
 	var nilSut peer.Node

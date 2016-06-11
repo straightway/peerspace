@@ -19,13 +19,13 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 // Test suite
+
+var data peer.Data = peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
 
 type NodeSendingTest struct {
 	suite.Suite
@@ -38,37 +38,37 @@ func TestPeerNodeSending(t *testing.T) {
 
 func (suite *NodeSendingTest) SetupTest() {
 	suite.NodeContext = NewNodeContext()
-	for i := 0; i < 4; i++ {
-		suite.AddKnownConnectedPeer(createMockedPeerConnector())
-	}
-	suite.SetUp()
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
 }
 
 func (suite *NodeSendingTest) TearDownTest() {
 	suite.NodeContext = nil
 }
 
-// Send data
+// Tests
 
 func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
-	targetPeers := []*mocked.PeerConnector{suite.connectedPeers[1], suite.connectedPeers[2]}
-	suite.forwardStrategy.
-		On("SelectedConnectors", suite.knownPeers).
-		Return(mocked.IPeerConnectors(targetPeers))
-	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
-
 	suite.node.Push(data)
 
-	for _, p := range targetPeers {
+	for _, p := range suite.forwarsPeers {
 		p.AssertNumberOfCalls(suite.T(), "Push", 1)
 		p.AssertCalled(suite.T(), "Push", data)
 	}
 }
 
-// Private
+func (suite *NodeSendingTest) Test_PushedData_IsHandedToDataStorage() {
+	suite.node.Push(data)
 
-func createMockedPeerConnector() *mocked.PeerConnector {
-	mockedPeer := new(mocked.PeerConnector)
-	mockedPeer.On("Push", mock.AnythingOfTypeArgument("peer.Data"))
-	return mockedPeer
+	suite.dataStorage.AssertNumberOfCalls(suite.T(), "ConsiderStorage", 1)
+	suite.dataStorage.AssertCalled(suite.T(), "ConsiderStorage", data)
+}
+
+func (suite *NodeSendingTest) Test_Push_DoesNotQueryStateStorage() {
+	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
+	suite.node.Push(data)
+	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
 }

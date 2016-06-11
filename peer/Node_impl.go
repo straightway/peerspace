@@ -19,30 +19,42 @@ package peer
 import "fmt"
 
 type node struct {
-	stateStorage    StateStorage
-	forwardStrategy ForwardStrategy
+	stateStorage       StateStorage
+	forwardStrategy    ForwardStrategy
+	connectionStrategy ConnectionStrategy
 }
 
-func NewNode(s StateStorage, fs ForwardStrategy) Node {
+func NewNode(s StateStorage, fs ForwardStrategy, cs ConnectionStrategy) Node {
 	if s == nil {
 		panic("nil StateStorage")
 	}
-	return &node{stateStorage: s, forwardStrategy: fs}
+	if fs == nil {
+		panic("nil ForwardStrategy")
+	}
+	if cs == nil {
+		panic("nil ConnectionStrategy")
+	}
+
+	return &node{
+		stateStorage:       s,
+		forwardStrategy:    fs,
+		connectionStrategy: cs}
 }
 
 func (node *node) Startup() {
-	peers := node.stateStorage.GetAllKnownPeers()
+	allPeers := node.stateStorage.GetAllKnownPeers()
+	peers := node.connectionStrategy.SelectedConnectors(allPeers)
 	for _, peer := range peers {
 		peer.Connect(node)
 	}
 }
 
 func (node *node) Connect(peer Connector) {
-	fmt.Printf("Connecting %v to $v", node, peer)
+	fmt.Printf("Connecting %v to %v", node, peer)
 }
 
 func (node *node) Push(data Data) {
-	forwardPeers := node.forwardStrategy.ForwardedPeer(node.stateStorage.GetAllKnownPeers())
+	forwardPeers := node.forwardStrategy.SelectedConnectors(node.stateStorage.GetAllKnownPeers())
 	for _, p := range forwardPeers {
 		p.Push(data)
 	}

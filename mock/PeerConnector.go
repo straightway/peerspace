@@ -21,11 +21,18 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockedStateStorage struct {
+type PeerConnector struct {
 	mock.Mock
 }
 
-func (m *MockedStateStorage) GetAllKnownPeers() []peer.Connector {
-	args := m.Called()
-	return args.Get(0).([]peer.Connector)
+func (m *PeerConnector) Startup() {
+	m.Called()
+}
+
+func (m *PeerConnector) Connect(peer peer.Connector) {
+	m.Called(peer)
+}
+
+func (m *PeerConnector) Push(data peer.Data) {
+	m.Called(data)
 }

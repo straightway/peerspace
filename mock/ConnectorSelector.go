@@ -21,11 +21,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockedForwardStrategy struct {
+type ConnectorSelector struct {
 	mock.Mock
 }
 
-func (m *MockedForwardStrategy) ForwardedPeer(allPeers []peer.Connector) []peer.Connector {
+func (m *ConnectorSelector) SelectedConnectors(allPeers []peer.Connector) []peer.Connector {
 	args := m.Called(allPeers)
 	return args.Get(0).([]peer.Connector)
 }

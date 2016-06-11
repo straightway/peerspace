@@ -28,9 +28,7 @@ import (
 
 type Node_init_Test struct {
 	suite.Suite
-	sut          peer.Node
-	stateStorage *mock.MockedStateStorage
-	knownPeers   []peer.Connector
+	*NodeContext
 }
 
 func TestPeerNode(t *testing.T) {
@@ -38,19 +36,42 @@ func TestPeerNode(t *testing.T) {
 }
 
 func (suite *Node_init_Test) SetupTest() {
-	suite.knownPeers = make([]peer.Connector, 0)
-	suite.createSut()
+	suite.NodeContext = NewNodeContext()
+	suite.AddKnownConnectedPeer(nil)
+	suite.AddKnownUnconnectedPeer(nil)
+	suite.SetUp()
 }
 
 func (suite *Node_init_Test) TearDownTest() {
-	suite.sut = nil
+	suite.NodeContext = nil
 }
 
 // Construction
 
 func (suite *Node_init_Test) Test_NewNode_WithoutStateStoragePanics() {
 	suite.Assert().Panics(func() {
-		suite.sut = peer.NewNode(nil, &mock.MockedForwardStrategy{})
+		suite.node = peer.NewNode(
+			nil,
+			&mock.ConnectorSelector{},
+			&mock.ConnectorSelector{})
+	})
+}
+
+func (suite *Node_init_Test) Test_NewNode_WithoutForwardStrategyPanics() {
+	suite.Assert().Panics(func() {
+		suite.node = peer.NewNode(
+			&mock.StateStorage{},
+			nil,
+			&mock.ConnectorSelector{})
+	})
+}
+
+func (suite *Node_init_Test) Test_NewNode_WithoutConnectionStrategyPanics() {
+	suite.Assert().Panics(func() {
+		suite.node = peer.NewNode(
+			&mock.StateStorage{},
+			&mock.ConnectorSelector{},
+			nil)
 	})
 }
 
@@ -64,23 +85,14 @@ func (suite Node_init_Test) Test_Startup_NilNodePanics() {
 }
 
 func (suite *Node_init_Test) Test_Startup_GetsPeersFromStateStorage() {
-	suite.sut.Startup()
+	suite.node.Startup()
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
 }
 
-func (suite *Node_init_Test) Test_Startup_ConnectsToPeers() {
-	peer := mock.MockedPeerConnector{}
-	suite.knownPeers = append(suite.knownPeers, &peer)
-	suite.createSut()
-	peer.On("Connect", suite.sut).Return()
-	suite.sut.Startup()
-	peer.AssertNumberOfCalls(suite.T(), "Connect", 1)
-}
+func (suite *Node_init_Test) Test_Startup_ConnectsToPeersAccordingToStrategy() {
+	suite.node.Startup()
 
-// Private
-
-func (suite *Node_init_Test) createSut() {
-	suite.stateStorage = new(mock.MockedStateStorage)
-	suite.stateStorage.On("GetAllKnownPeers").Return(suite.knownPeers)
-	suite.sut = peer.NewNode(suite.stateStorage, &mock.MockedForwardStrategy{})
+	for _, p := range suite.connectedPeers {
+		p.AssertNumberOfCalls(suite.T(), "Connect", 1)
+	}
 }

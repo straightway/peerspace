@@ -14,12 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package main
+package mock
 
 import (
-	"fmt"
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
 )
 
-func main() {
-	fmt.Println("straightway")
+type StateStorage struct {
+	mock.Mock
+}
+
+func (m *StateStorage) GetAllKnownPeers() []peer.Connector {
+	args := m.Called()
+	return args.Get(0).([]peer.Connector)
 }

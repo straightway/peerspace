@@ -14,12 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package main
+package peer
 
-import (
-	"fmt"
-)
-
-func main() {
-	fmt.Println("straightway")
+type ConnectorSelector interface {
+	SelectedConnectors(allPeers []Connector) []Connector
 }

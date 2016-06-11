@@ -14,25 +14,6 @@
    limitations under the License.
 ****************************************************************************/
 
-package mock
+package peer
 
-import (
-	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
-)
-
-type MockedPeerConnector struct {
-	mock.Mock
-}
-
-func (m *MockedPeerConnector) Startup() {
-	m.Called()
-}
-
-func (m *MockedPeerConnector) Connect(peer peer.Connector) {
-	m.Called(peer)
-}
-
-func (m *MockedPeerConnector) Push(data peer.Data) {
-	m.Called(data)
-}
+type ConnectionStrategy ConnectorSelector

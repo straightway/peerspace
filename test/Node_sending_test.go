@@ -29,10 +29,7 @@ import (
 
 type NodeSendingTest struct {
 	suite.Suite
-	sut             peer.Node
-	peers           []*mock.MockedPeerConnector
-	stateStorage    *mock.MockedStateStorage
-	forwardStrategy *mock.MockedForwardStrategy
+	*NodeContext
 }
 
 func TestPeerNodeSending(t *testing.T) {
@@ -40,33 +37,27 @@ func TestPeerNodeSending(t *testing.T) {
 }
 
 func (suite *NodeSendingTest) SetupTest() {
-	suite.createSut()
-	suite.peers = []*mock.MockedPeerConnector{
-		createMockedPeerConnector(),
-		createMockedPeerConnector(),
-		createMockedPeerConnector(),
-		createMockedPeerConnector(),
-	}
-	peerInterfaces := make([]peer.Connector, len(suite.peers))
-	for i, peer := range suite.peers {
-		peerInterfaces[i] = peer
-	}
-
-	suite.stateStorage.On("GetAllKnownPeers").Return(peerInterfaces)
+	suite.NodeContext = NewNodeContext()
+	suite.AddKnownConnectedPeer(createMockedPeerConnector())
+	suite.AddKnownConnectedPeer(createMockedPeerConnector())
+	suite.AddKnownConnectedPeer(createMockedPeerConnector())
+	suite.AddKnownConnectedPeer(createMockedPeerConnector())
+	suite.SetUp()
+	suite.stateStorage.On("GetAllKnownPeers").Return(suite.knownPeers)
 }
 
 func (suite *NodeSendingTest) TearDownTest() {
-	suite.peers = nil
+	suite.NodeContext = nil
 }
 
 // Send data
 
 func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
-	targetPeers := []*mock.MockedPeerConnector{suite.peers[1], suite.peers[2]}
+	targetPeers := []*mock.PeerConnector{suite.connectedPeers[1], suite.connectedPeers[2]}
 	var targetConnectors []peer.Connector = []peer.Connector{targetPeers[0], targetPeers[1]}
-	suite.forwardStrategy.On("ForwardedPeer", tmock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnectors)
+	suite.forwardStrategy.On("SelectedConnectors", tmock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnectors)
 	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
-	suite.sut.Push(data)
+	suite.node.Push(data)
 	for _, p := range targetPeers {
 		p.AssertNumberOfCalls(suite.T(), "Push", 1)
 		p.AssertCalled(suite.T(), "Push", data)
@@ -76,15 +67,16 @@ func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
 // Private
 
 func (suite *NodeSendingTest) createSut() {
-	suite.stateStorage = new(mock.MockedStateStorage)
-	suite.forwardStrategy = new(mock.MockedForwardStrategy)
-	suite.sut = peer.NewNode(
+	suite.stateStorage = &mock.StateStorage{}
+	suite.forwardStrategy = &mock.ConnectorSelector{}
+	suite.node = peer.NewNode(
 		suite.stateStorage,
-		suite.forwardStrategy)
+		suite.forwardStrategy,
+		&mock.ConnectorSelector{})
 }
 
-func createMockedPeerConnector() *mock.MockedPeerConnector {
-	mockedPeer := new(mock.MockedPeerConnector)
+func createMockedPeerConnector() *mock.PeerConnector {
+	mockedPeer := new(mock.PeerConnector)
 	mockedPeer.On("Push", tmock.AnythingOfTypeArgument("peer.Data"))
 	return mockedPeer
 }

@@ -38,12 +38,10 @@ func TestPeerNodeSending(t *testing.T) {
 
 func (suite *NodeSendingTest) SetupTest() {
 	suite.NodeContext = NewNodeContext()
-	suite.AddKnownConnectedPeer(createMockedPeerConnector())
-	suite.AddKnownConnectedPeer(createMockedPeerConnector())
-	suite.AddKnownConnectedPeer(createMockedPeerConnector())
-	suite.AddKnownConnectedPeer(createMockedPeerConnector())
+	for i := 0; i < 4; i++ {
+		suite.AddKnownConnectedPeer(createMockedPeerConnector())
+	}
 	suite.SetUp()
-	suite.stateStorage.On("GetAllKnownPeers").Return(suite.knownPeers)
 }
 
 func (suite *NodeSendingTest) TearDownTest() {
@@ -54,10 +52,13 @@ func (suite *NodeSendingTest) TearDownTest() {
 
 func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
 	targetPeers := []*mocked.PeerConnector{suite.connectedPeers[1], suite.connectedPeers[2]}
-	var targetConnectors []peer.Connector = []peer.Connector{targetPeers[0], targetPeers[1]}
-	suite.forwardStrategy.On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).Return(targetConnectors)
+	suite.forwardStrategy.
+		On("SelectedConnectors", suite.knownPeers).
+		Return(mocked.IPeerConnectors(targetPeers))
 	data := peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
+
 	suite.node.Push(data)
+
 	for _, p := range targetPeers {
 		p.AssertNumberOfCalls(suite.T(), "Push", 1)
 		p.AssertCalled(suite.T(), "Push", data)
@@ -65,15 +66,6 @@ func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
 }
 
 // Private
-
-func (suite *NodeSendingTest) createSut() {
-	suite.stateStorage = &mocked.StateStorage{}
-	suite.forwardStrategy = &mocked.ConnectorSelector{}
-	suite.node = peer.NewNode(
-		suite.stateStorage,
-		suite.forwardStrategy,
-		&mocked.ConnectorSelector{})
-}
 
 func createMockedPeerConnector() *mocked.PeerConnector {
 	mockedPeer := new(mocked.PeerConnector)

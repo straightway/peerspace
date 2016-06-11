@@ -22,14 +22,13 @@ import (
 )
 
 type NodeContext struct {
-	node                    peer.Node
-	stateStorage            *mocked.StateStorage
-	connectionStrategy      *mocked.ConnectorSelector
-	forwardStrategy         *mocked.ConnectorSelector
-	knownPeers              []peer.Connector
-	connectedPeerInterfaces []peer.Connector
-	connectedPeers          []*mocked.PeerConnector
-	notConnectedPeers       []*mocked.PeerConnector
+	node               peer.Node
+	stateStorage       *mocked.StateStorage
+	connectionStrategy *mocked.ConnectorSelector
+	forwardStrategy    *mocked.ConnectorSelector
+	knownPeers         []peer.Connector
+	connectedPeers     []*mocked.PeerConnector
+	notConnectedPeers  []*mocked.PeerConnector
 }
 
 // Construction
@@ -62,7 +61,6 @@ func (this *NodeContext) AddKnownConnectedPeer(peer *mocked.PeerConnector) {
 	}
 	this.knownPeers = append(this.knownPeers, peer)
 	this.connectedPeers = append(this.connectedPeers, peer)
-	this.connectedPeerInterfaces = append(this.connectedPeerInterfaces, peer)
 }
 
 func (this *NodeContext) SetUp() {
@@ -73,12 +71,16 @@ func (this *NodeContext) SetUp() {
 // Private
 
 func (this *NodeContext) setupPeers() {
-	this.connectionStrategy.On("SelectedConnectors", this.knownPeers).Return(this.connectedPeerInterfaces)
+	this.stateStorage = &mocked.StateStorage{}
+	this.stateStorage.
+		On("GetAllKnownPeers").
+		Return(this.knownPeers)
+	this.connectionStrategy.
+		On("SelectedConnectors", this.knownPeers).
+		Return(mocked.IPeerConnectors(this.connectedPeers))
 }
 
 func (this *NodeContext) createSut() {
-	this.stateStorage = &mocked.StateStorage{}
-	this.stateStorage.On("GetAllKnownPeers").Return(this.knownPeers)
 	this.node = peer.NewNode(
 		this.stateStorage,
 		this.forwardStrategy,

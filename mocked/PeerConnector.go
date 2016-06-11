@@ -36,3 +36,11 @@ func (m *PeerConnector) Connect(peer peer.Connector) {
 func (m *PeerConnector) Push(data peer.Data) {
 	m.Called(data)
 }
+
+func IPeerConnectors(cs []*PeerConnector) []peer.Connector {
+	result := make([]peer.Connector, len(cs))
+	for i, peer := range cs {
+		result[i] = peer
+	}
+	return result
+}

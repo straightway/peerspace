@@ -19,6 +19,7 @@ package peer
 type Data []byte
 
 type Connector interface {
-	Connect(peer Connector)
+	RequestConnectionWith(peer Connector)
+	CloseConnectionWith(peer Connector)
 	Push(data Data)
 }

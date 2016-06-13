@@ -33,7 +33,7 @@ type NodeContext struct {
 	knownPeers         []peer.Connector
 	connectedPeers     []*mocked.PeerConnector
 	notConnectedPeers  []*mocked.PeerConnector
-	forwarsPeers       []*mocked.PeerConnector
+	forwardPeers       []*mocked.PeerConnector
 }
 
 // Construction
@@ -60,12 +60,11 @@ func (this *NodeContext) AddKnownUnconnectedPeer() {
 }
 
 func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) {
-	peer := &mocked.PeerConnector{}
-	peer.On("Push", mock.AnythingOfTypeArgument("peer.Data"))
+	peer := mocked.CreatePeerConnector()
 	this.knownPeers = append(this.knownPeers, peer)
 	this.connectedPeers = append(this.connectedPeers, peer)
 	if bool(forward) {
-		this.forwarsPeers = append(this.forwarsPeers, peer)
+		this.forwardPeers = append(this.forwardPeers, peer)
 	}
 	this.SetUp()
 }
@@ -75,6 +74,12 @@ func (this *NodeContext) SetUp() {
 	this.createSut()
 }
 
+func (this *NodeContext) ShutDownNode() {
+	if this.node != nil {
+		this.node.ShutDown()
+	}
+}
+
 // Private
 
 func (this *NodeContext) setupPeers() {
@@ -82,12 +87,14 @@ func (this *NodeContext) setupPeers() {
 	this.stateStorage.
 		On("GetAllKnownPeers").
 		Return(this.knownPeers)
+	this.connectionStrategy.ExpectedCalls = nil
 	this.connectionStrategy.
-		On("SelectedConnectors", this.knownPeers).
+		On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).
 		Return(mocked.IPeerConnectors(this.connectedPeers))
+	this.forwardStrategy.ExpectedCalls = nil
 	this.forwardStrategy.
-		On("SelectedConnectors", this.knownPeers).
-		Return(mocked.IPeerConnectors(this.forwarsPeers))
+		On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).
+		Return(mocked.IPeerConnectors(this.forwardPeers))
 }
 
 func (this *NodeContext) createSut() {
@@ -102,6 +109,6 @@ func (this *NodeContext) createSut() {
 		ConnectionStrategy: this.connectionStrategy}
 
 	for _, p := range this.connectedPeers {
-		p.On("Connect", this.node).Return()
+		p.On("RequestConnectionWith", this.node).Return()
 	}
 }

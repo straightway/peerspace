@@ -18,4 +18,5 @@ package peer
 
 type LifeCycle interface {
 	Startup()
+	ShutDown()
 }

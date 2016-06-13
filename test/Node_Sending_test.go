@@ -19,6 +19,7 @@ package test
 import (
 	"testing"
 
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
@@ -27,16 +28,16 @@ import (
 
 var data peer.Data = peer.Data{0x2, 0x3, 0x5, 0x7, 0x11}
 
-type NodeSendingTest struct {
+type Node_Sending_Test struct {
 	suite.Suite
 	*NodeContext
 }
 
 func TestPeerNodeSending(t *testing.T) {
-	suite.Run(t, new(NodeSendingTest))
+	suite.Run(t, new(Node_Sending_Test))
 }
 
-func (suite *NodeSendingTest) SetupTest() {
+func (suite *Node_Sending_Test) SetupTest() {
 	suite.NodeContext = NewNodeContext()
 	suite.AddKnownConnectedPeer(DoForward(false))
 	suite.AddKnownConnectedPeer(DoForward(true))
@@ -45,30 +46,43 @@ func (suite *NodeSendingTest) SetupTest() {
 	suite.node.Startup()
 }
 
-func (suite *NodeSendingTest) TearDownTest() {
+func (suite *Node_Sending_Test) TearDownTest() {
 	suite.NodeContext = nil
 }
 
 // Tests
 
-func (suite *NodeSendingTest) Test_PushedData_IsForwardedToProperPeer() {
+func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
 	suite.node.Push(data)
 
-	for _, p := range suite.forwarsPeers {
+	for _, p := range suite.forwardPeers {
 		p.AssertNumberOfCalls(suite.T(), "Push", 1)
 		p.AssertCalled(suite.T(), "Push", data)
 	}
 }
 
-func (suite *NodeSendingTest) Test_PushedData_IsHandedToDataStorage() {
+func (suite *Node_Sending_Test) Test_PushedData_IsHandedToDataStorage() {
 	suite.node.Push(data)
 
 	suite.dataStorage.AssertNumberOfCalls(suite.T(), "ConsiderStorage", 1)
 	suite.dataStorage.AssertCalled(suite.T(), "ConsiderStorage", data)
 }
 
-func (suite *NodeSendingTest) Test_Push_DoesNotQueryStateStorage() {
+func (suite *Node_Sending_Test) Test_Push_DoesNotQueryStateStorage() {
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
 	suite.node.Push(data)
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
+}
+
+func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
+	suite.NodeContext = NewNodeContext()
+	suite.SetUp()
+	suite.node.Startup()
+	connectedPeer := mocked.CreatePeerConnector()
+	connectedPeers := make([]peer.Connector, 1)
+	connectedPeers[0] = connectedPeer
+	suite.node.RequestConnectionWith(connectedPeer)
+	suite.node.Push(data)
+	suite.forwardStrategy.AssertNumberOfCalls(suite.T(), "SelectedConnectors", 1)
+	suite.forwardStrategy.AssertCalled(suite.T(), "SelectedConnectors", connectedPeers)
 }

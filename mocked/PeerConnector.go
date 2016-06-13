@@ -25,11 +25,22 @@ type PeerConnector struct {
 	mock.Mock
 }
 
+func CreatePeerConnector() *PeerConnector {
+	peer := &PeerConnector{}
+	peer.On("Push", mock.AnythingOfTypeArgument("peer.Data"))
+	peer.On("CloseConnectionWith", mock.Anything)
+	return peer
+}
+
 func (m *PeerConnector) Startup() {
 	m.Called()
 }
 
-func (m *PeerConnector) Connect(peer peer.Connector) {
+func (m *PeerConnector) RequestConnectionWith(peer peer.Connector) {
+	m.Called(peer)
+}
+
+func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 

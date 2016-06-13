@@ -16,8 +16,6 @@
 
 package peer
 
-import "fmt"
-
 type NodeImpl struct {
 	StateStorage       StateStorage
 	DataStorage        DataStorage
@@ -27,35 +25,45 @@ type NodeImpl struct {
 	connectedPeers []Connector
 }
 
-func (node *NodeImpl) Startup() {
-	if node.StateStorage == nil {
+func (this *NodeImpl) Startup() {
+	if this.StateStorage == nil {
 		panic("No StateStorage")
 	}
-	if node.DataStorage == nil {
+	if this.DataStorage == nil {
 		panic("No DataStorage")
 	}
-	if node.ForwardStrategy == nil {
+	if this.ForwardStrategy == nil {
 		panic("No ForwardStrategy")
 	}
-	if node.ConnectionStrategy == nil {
+	if this.ConnectionStrategy == nil {
 		panic("No ConnectionStrategy")
 	}
 
-	allPeers := node.StateStorage.GetAllKnownPeers()
-	node.connectedPeers = node.ConnectionStrategy.SelectedConnectors(allPeers)
-	for _, peer := range node.connectedPeers {
-		peer.Connect(node)
+	allPeers := this.StateStorage.GetAllKnownPeers()
+	this.connectedPeers = this.ConnectionStrategy.SelectedConnectors(allPeers)
+	for _, peer := range this.connectedPeers {
+		peer.RequestConnectionWith(this)
 	}
 }
 
-func (node *NodeImpl) Connect(peer Connector) {
-	fmt.Printf("Connecting %v to %v", node, peer)
+func (this *NodeImpl) ShutDown() {
+	for _, peer := range this.connectedPeers {
+		peer.CloseConnectionWith(this)
+	}
 }
 
-func (node *NodeImpl) Push(data Data) {
-	forwardPeers := node.ForwardStrategy.SelectedConnectors(node.connectedPeers)
+func (this *NodeImpl) RequestConnectionWith(peer Connector) {
+	this.connectedPeers = append(this.connectedPeers, peer)
+}
+
+func (this *NodeImpl) CloseConnectionWith(peer Connector) {
+	panic("Not implemented")
+}
+
+func (this *NodeImpl) Push(data Data) {
+	forwardPeers := this.ForwardStrategy.SelectedConnectors(this.connectedPeers)
 	for _, p := range forwardPeers {
 		p.Push(data)
 	}
-	node.DataStorage.ConsiderStorage(data)
+	this.DataStorage.ConsiderStorage(data)
 }

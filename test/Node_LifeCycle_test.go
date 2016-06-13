@@ -25,64 +25,76 @@ import (
 
 // Test suite
 
-type Node_init_Test struct {
+type Node_LifeCycle_Test struct {
 	suite.Suite
 	*NodeContext
 }
 
 func TestPeerNode(t *testing.T) {
-	suite.Run(t, new(Node_init_Test))
+	suite.Run(t, new(Node_LifeCycle_Test))
 }
 
-func (suite *Node_init_Test) SetupTest() {
+func (suite *Node_LifeCycle_Test) SetupTest() {
 	suite.NodeContext = NewNodeContext()
 	suite.AddKnownConnectedPeer(DoForward(false))
 	suite.AddKnownUnconnectedPeer()
 	suite.SetUp()
 }
 
-func (suite *Node_init_Test) TearDownTest() {
+func (suite *Node_LifeCycle_Test) TearDownTest() {
+	suite.ShutDownNode()
 	suite.NodeContext = nil
 }
 
 // Startup
 
-func (suite *Node_init_Test) Test_Startup_WithoutStateStoragePanics() {
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutStateStoragePanics() {
 	suite.node.StateStorage = nil
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
-func (suite *Node_init_Test) Test_Startup_WithoutForwardStrategyPanics() {
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutForwardStrategyPanics() {
 	suite.node.ForwardStrategy = nil
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
-func (suite *Node_init_Test) Test_Startup_WithoutConnectionStrategyPanics() {
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutConnectionStrategyPanics() {
 	suite.node.ConnectionStrategy = nil
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
-func (suite *Node_init_Test) Test_Startup_WithoutDataStoragePanics() {
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutDataStoragePanics() {
 	suite.node.DataStorage = nil
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
-func (suite Node_init_Test) Test_Startup_NilNodePanics() {
+func (suite Node_LifeCycle_Test) Test_Startup_NilNodePanics() {
 	var nilSut peer.Node
 	suite.Assert().Panics(func() {
 		nilSut.Startup()
 	})
 }
 
-func (suite *Node_init_Test) Test_Startup_GetsPeersFromStateStorage() {
+func (suite *Node_LifeCycle_Test) Test_Startup_GetsPeersFromStateStorage() {
 	suite.node.Startup()
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
 }
 
-func (suite *Node_init_Test) Test_Startup_ConnectsToPeersAccordingToStrategy() {
+func (suite *Node_LifeCycle_Test) Test_Startup_ConnectsToPeersAccordingToStrategy() {
 	suite.node.Startup()
 
 	for _, p := range suite.connectedPeers {
-		p.AssertNumberOfCalls(suite.T(), "Connect", 1)
+		p.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
+		p.AssertCalled(suite.T(), "RequestConnectionWith", suite.node)
+	}
+}
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ClosesAllOpenConnections() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+
+	for _, p := range suite.connectedPeers {
+		p.AssertNumberOfCalls(suite.T(), "CloseConnectionWith", 1)
+		p.AssertCalled(suite.T(), "CloseConnectionWith", suite.node)
 	}
 }

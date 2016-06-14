@@ -30,7 +30,7 @@ type Node_LifeCycle_Test struct {
 	*NodeContext
 }
 
-func TestPeerNode(t *testing.T) {
+func TestNodeLifeCycle(t *testing.T) {
 	suite.Run(t, new(Node_LifeCycle_Test))
 }
 

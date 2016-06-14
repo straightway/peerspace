@@ -33,7 +33,7 @@ type Node_Sending_Test struct {
 	*NodeContext
 }
 
-func TestPeerNodeSending(t *testing.T) {
+func TestNodeSending(t *testing.T) {
 	suite.Run(t, new(Node_Sending_Test))
 }
 
@@ -78,11 +78,13 @@ func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
 	suite.NodeContext = NewNodeContext()
 	suite.SetUp()
 	suite.node.Startup()
-	connectedPeer := mocked.CreatePeerConnector()
-	connectedPeers := make([]peer.Connector, 1)
-	connectedPeers[0] = connectedPeer
-	suite.node.RequestConnectionWith(connectedPeer)
+
+	connectedPeers := [...]*mocked.PeerConnector{mocked.CreatePeerConnector()}
+
+	suite.node.RequestConnectionWith(connectedPeers[0])
 	suite.node.Push(data)
+
 	suite.forwardStrategy.AssertNumberOfCalls(suite.T(), "SelectedConnectors", 1)
-	suite.forwardStrategy.AssertCalled(suite.T(), "SelectedConnectors", connectedPeers)
+	suite.forwardStrategy.AssertCalled(
+		suite.T(), "SelectedConnectors", mocked.IPeerConnectors(connectedPeers[:]))
 }

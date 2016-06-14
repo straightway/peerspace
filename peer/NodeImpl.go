@@ -54,6 +54,11 @@ func (this *NodeImpl) ShutDown() {
 
 func (this *NodeImpl) RequestConnectionWith(peer Connector) {
 	this.connectedPeers = append(this.connectedPeers, peer)
+	peer.NotifyConnectionAck(this)
+}
+
+func (m *NodeImpl) NotifyConnectionAck(peer Connector) {
+	panic("Not implemented")
 }
 
 func (this *NodeImpl) CloseConnectionWith(peer Connector) {

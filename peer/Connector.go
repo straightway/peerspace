@@ -21,5 +21,6 @@ type Data []byte
 type Connector interface {
 	RequestConnectionWith(peer Connector)
 	CloseConnectionWith(peer Connector)
+	NotifyConnectionAck(peer Connector)
 	Push(data Data)
 }

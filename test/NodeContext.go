@@ -28,7 +28,7 @@ type NodeContext struct {
 	node               *peer.NodeImpl
 	dataStorage        *mocked.DataStorage
 	stateStorage       *mocked.StateStorage
-	connectionStrategy *mocked.ConnectorSelector
+	connectionStrategy *mocked.ConnectionStrategy
 	forwardStrategy    *mocked.ConnectorSelector
 	knownPeers         []peer.Connector
 	connectedPeers     []*mocked.PeerConnector
@@ -41,7 +41,7 @@ type NodeContext struct {
 func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
 		knownPeers:         make([]peer.Connector, 0),
-		connectionStrategy: &mocked.ConnectorSelector{},
+		connectionStrategy: mocked.NewConnectionStrategy(),
 		forwardStrategy:    &mocked.ConnectorSelector{},
 		connectedPeers:     []*mocked.PeerConnector{},
 		notConnectedPeers:  []*mocked.PeerConnector{},
@@ -87,21 +87,20 @@ func (this *NodeContext) setupPeers() {
 	this.stateStorage.
 		On("GetAllKnownPeers").
 		Return(this.knownPeers)
-	this.connectionStrategy.ExpectedCalls = nil
+	this.connectionStrategy = mocked.NewConnectionStrategy()
 	this.connectionStrategy.
 		On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).
 		Return(mocked.IPeerConnectors(this.connectedPeers))
-	this.forwardStrategy.ExpectedCalls = nil
+	this.forwardStrategy = &mocked.ConnectorSelector{}
 	this.forwardStrategy.
 		On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).
 		Return(mocked.IPeerConnectors(this.forwardPeers))
 }
 
 func (this *NodeContext) createSut() {
-	this.dataStorage = &mocked.DataStorage{}
-	this.dataStorage.
-		On("ConsiderStorage", mock.AnythingOfTypeArgument("peer.Data")).
-		Return()
+	if this.dataStorage == nil {
+		this.dataStorage = mocked.NewDataStorage(mock.Anything, nil)
+	}
 	this.node = &peer.NodeImpl{
 		StateStorage:       this.stateStorage,
 		DataStorage:        this.dataStorage,

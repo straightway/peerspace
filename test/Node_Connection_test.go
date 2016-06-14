@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/mocked"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -44,9 +45,38 @@ func (suite *Node_Connection_Test) TearDownTest() {
 	suite.NodeContext = nil
 }
 
-func (suite *Node_Connection_Test) TestSuccessfulConnectionsAreAcknowledged() {
+func (suite *Node_Connection_Test) TestSuccessfulConnectionIsAcknowledged() {
 	peerNode := mocked.CreatePeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
-	peerNode.AssertNumberOfCalls(suite.T(), "NotifyConnectionAck", 1)
-	peerNode.AssertCalled(suite.T(), "NotifyConnectionAck", suite.node)
+	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
+	peerNode.AssertCalled(suite.T(), "RequestConnectionWith", suite.node)
+}
+
+func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
+	peerNode := mocked.CreatePeerConnector()
+	suite.connectionStrategy.ExpectedCalls = nil
+	suite.connectionStrategy.On("IsConnectionAcceptedWith", mock.Anything).Return(false)
+
+	suite.node.RequestConnectionWith(peerNode)
+
+	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 0)
+	peerNode.AssertNumberOfCalls(suite.T(), "CloseConnectionWith", 1)
+	peerNode.AssertCalled(suite.T(), "CloseConnectionWith", suite.node)
+}
+
+func (suite *Node_Connection_Test) TestRequestForAlreadyAcceptedConnectionIsIgnored() {
+	peerNode := mocked.CreatePeerConnector()
+	suite.node.RequestConnectionWith(peerNode)
+	suite.node.RequestConnectionWith(peerNode)
+	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
+}
+
+func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequestCheck() {
+	peerNode := mocked.CreatePeerConnector()
+	samePeerNode := mocked.CreatePeerConnector()
+	samePeerNode.Identifier = peerNode.Identifier
+	suite.node.RequestConnectionWith(peerNode)
+	suite.node.RequestConnectionWith(samePeerNode)
+	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
+	samePeerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 0)
 }

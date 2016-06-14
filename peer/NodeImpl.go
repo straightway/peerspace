@@ -16,6 +16,8 @@
 
 package peer
 
+import "github.com/straightway/straightway/data"
+
 type NodeImpl struct {
 	StateStorage       StateStorage
 	DataStorage        DataStorage
@@ -23,6 +25,10 @@ type NodeImpl struct {
 	ConnectionStrategy ConnectionStrategy
 
 	connectedPeers []Connector
+}
+
+func (this *NodeImpl) Id() string {
+	panic("Not implemented")
 }
 
 func (this *NodeImpl) Startup() {
@@ -53,22 +59,35 @@ func (this *NodeImpl) ShutDown() {
 }
 
 func (this *NodeImpl) RequestConnectionWith(peer Connector) {
+	for _, p := range this.connectedPeers {
+		if p.Id() == peer.Id() {
+			return
+		}
+	}
 	this.connectedPeers = append(this.connectedPeers, peer)
-	peer.NotifyConnectionAck(this)
-}
-
-func (m *NodeImpl) NotifyConnectionAck(peer Connector) {
-	panic("Not implemented")
+	if this.ConnectionStrategy.IsConnectionAcceptedWith(peer) {
+		peer.RequestConnectionWith(this)
+	} else {
+		peer.CloseConnectionWith(this)
+	}
 }
 
 func (this *NodeImpl) CloseConnectionWith(peer Connector) {
 	panic("Not implemented")
 }
 
-func (this *NodeImpl) Push(data Data) {
+func (this *NodeImpl) Push(data data.Chunk) {
 	forwardPeers := this.ForwardStrategy.SelectedConnectors(this.connectedPeers)
 	for _, p := range forwardPeers {
 		p.Push(data)
 	}
 	this.DataStorage.ConsiderStorage(data)
+}
+
+func (this *NodeImpl) Query(key data.Key, receiver Connector) {
+	queryResult := this.DataStorage.Query(key)
+	println("peer.NodeImpl: queryResult = ", queryResult)
+	if queryResult != nil {
+		receiver.Push(queryResult)
+	}
 }

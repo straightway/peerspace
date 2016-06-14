@@ -14,9 +14,6 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package data
 
-type ConnectionStrategy interface {
-	ConnectorSelector
-	IsConnectionAcceptedWith(peer Connector) bool
-}
+type Key string

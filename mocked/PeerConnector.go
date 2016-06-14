@@ -17,20 +17,32 @@
 package mocked
 
 import (
+	"fmt"
+
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
 
 type PeerConnector struct {
 	mock.Mock
+	Identifier string
 }
+
+var objectCount = 0
 
 func CreatePeerConnector() *PeerConnector {
 	peer := &PeerConnector{}
+	peer.Identifier = fmt.Sprintf("%v", objectCount)
+	objectCount++
 	peer.On("Push", mock.Anything)
 	peer.On("CloseConnectionWith", mock.Anything)
-	peer.On("NotifyConnectionAck", mock.Anything)
+	peer.On("RequestConnectionWith", mock.Anything)
 	return peer
+}
+
+func (this *PeerConnector) Id() string {
+	return this.Identifier
 }
 
 func (m *PeerConnector) Startup() {
@@ -41,16 +53,16 @@ func (m *PeerConnector) RequestConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *PeerConnector) NotifyConnectionAck(peer peer.Connector) {
-	m.Called(peer)
-}
-
 func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *PeerConnector) Push(data peer.Data) {
+func (m *PeerConnector) Push(data data.Chunk) {
 	m.Called(data)
+}
+
+func (m *PeerConnector) Query(key data.Key, receiver peer.Connector) {
+	m.Called(key, receiver)
 }
 
 func IPeerConnectors(cs []*PeerConnector) []peer.Connector {

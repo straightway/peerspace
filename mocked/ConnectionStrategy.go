@@ -17,35 +17,21 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
 
-type DataStorage struct {
-	mock.Mock
+type ConnectionStrategy struct {
+	ConnectorSelector
 }
 
-func NewDataStorage(queryKey interface{}, result data.Chunk) *DataStorage {
-	dataStorage := &DataStorage{}
-	dataStorage.
-		On("ConsiderStorage", mock.AnythingOfTypeArgument("data.Chunk")).
-		Return()
-	dataStorage.On("Query", queryKey).Return(result)
-	return dataStorage
+func NewConnectionStrategy() *ConnectionStrategy {
+	cs := &ConnectionStrategy{}
+	cs.On("IsConnectionAcceptedWith", mock.Anything).Return(true)
+	return cs
 }
 
-func (this *DataStorage) ConsiderStorage(data data.Chunk) {
-	this.Called(data)
-}
-
-func (this *DataStorage) Query(key data.Key) data.Chunk {
-	args := this.Called(key)
-
-	returnValue := args.Get(0)
-	println("mocked.DataStorage: Query result:", returnValue)
-	if returnValue == nil {
-		return nil
-	} else {
-		return returnValue.(data.Chunk)
-	}
+func (m *ConnectionStrategy) IsConnectionAcceptedWith(peer peer.Connector) bool {
+	args := m.Called(peer)
+	return args.Get(0).(bool)
 }

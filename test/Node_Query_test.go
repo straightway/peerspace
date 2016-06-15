@@ -19,8 +19,8 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -37,6 +37,7 @@ func TestNodeQuery(t *testing.T) {
 
 func (suite *Node_Query_Test) SetupTest() {
 	suite.NodeContext = NewNodeContext()
+	suite.AddKnownConnectedPeer(DoForward(true))
 	suite.SetUp()
 }
 
@@ -47,17 +48,40 @@ func (suite *Node_Query_Test) TearDownTest() {
 
 func (suite *Node_Query_Test) Test_Query_LocallyStoredItemIsPushedToQueryNode() {
 	queryPeer := mocked.CreatePeerConnector()
-	queryKey := data.Key("1234")
-	suite.dataStorage = mocked.NewDataStorage(queryKey, dataChunk)
+	suite.dataStorage = mocked.NewDataStorage(&dataChunk)
 	suite.createSut()
 	suite.node.Query(queryKey, queryPeer)
-	queryPeer.AssertNumberOfCalls(suite.T(), "Push", 1)
-	queryPeer.AssertCalled(suite.T(), "Push", dataChunk)
+	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
 }
 
-func (suite *Node_Query_Test) Test_Query_NotLocallyStoredItemIsNotPushed() {
+func (suite *Node_Query_Test) Test_Query_NotLocallyStoredItemIsNotDirectlyPushedBack() {
 	queryPeer := mocked.CreatePeerConnector()
-	queryKey := data.Key("1234")
 	suite.node.Query(queryKey, queryPeer)
-	queryPeer.AssertNumberOfCalls(suite.T(), "Push", 0)
+	queryPeer.AssertNotCalled(suite.T(), "Push", mock.Anything)
+}
+
+func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
+	queryPeer := mocked.CreatePeerConnector()
+	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Query(queryKey, queryPeer)
+	fwdPeer.AssertCalledOnce(suite.T(), "Query", queryKey, suite.node)
+}
+
+func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwarded() {
+	queryPeer := mocked.CreatePeerConnector()
+	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Query(queryKey, queryPeer)
+	suite.node.Push(&dataChunk)
+	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+}
+
+func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipleReceivers() {
+	queryPeer1 := mocked.CreatePeerConnector()
+	queryPeer2 := mocked.CreatePeerConnector()
+	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Query(queryKey, queryPeer1)
+	suite.node.Query(queryKey, queryPeer2)
+	suite.node.Push(&dataChunk)
+	queryPeer1.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+	queryPeer2.AssertCalledOnce(suite.T(), "Push", &dataChunk)
 }

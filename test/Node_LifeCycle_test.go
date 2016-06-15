@@ -54,7 +54,7 @@ func (suite *Node_LifeCycle_Test) Test_Startup_WithoutStateStoragePanics() {
 }
 
 func (suite *Node_LifeCycle_Test) Test_Startup_WithoutForwardStrategyPanics() {
-	suite.node.ForwardStrategy = nil
+	suite.node.DataForwardStrategy = nil
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
@@ -77,15 +77,14 @@ func (suite Node_LifeCycle_Test) Test_Startup_NilNodePanics() {
 
 func (suite *Node_LifeCycle_Test) Test_Startup_GetsPeersFromStateStorage() {
 	suite.node.Startup()
-	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
+	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
 }
 
 func (suite *Node_LifeCycle_Test) Test_Startup_ConnectsToPeersAccordingToStrategy() {
 	suite.node.Startup()
 
 	for _, p := range suite.connectedPeers {
-		p.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
-		p.AssertCalled(suite.T(), "RequestConnectionWith", suite.node)
+		p.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
 	}
 }
 
@@ -94,7 +93,6 @@ func (suite *Node_LifeCycle_Test) Test_ShutDown_ClosesAllOpenConnections() {
 	suite.node.ShutDown()
 
 	for _, p := range suite.connectedPeers {
-		p.AssertNumberOfCalls(suite.T(), "CloseConnectionWith", 1)
-		p.AssertCalled(suite.T(), "CloseConnectionWith", suite.node)
+		p.AssertCalledOnce(suite.T(), "CloseConnectionWith", suite.node)
 	}
 }

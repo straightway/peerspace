@@ -19,14 +19,12 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 // Test suite
-
-var dataChunk data.Chunk = data.Chunk{0x2, 0x3, 0x5, 0x7, 0x11}
 
 type Node_Sending_Test struct {
 	suite.Suite
@@ -52,26 +50,29 @@ func (suite *Node_Sending_Test) TearDownTest() {
 
 // Tests
 
+func (suite *Node_Sending_Test) Test_PushedData_IgnoresNil() {
+	suite.node.Push(nil)
+	suite.dataForwardStrategy.AssertNumberOfCalls(suite.T(), "SelectedConnectors", 0)
+}
+
 func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
-	suite.node.Push(dataChunk)
+	suite.node.Push(&dataChunk)
 
 	for _, p := range suite.forwardPeers {
-		p.AssertNumberOfCalls(suite.T(), "Push", 1)
-		p.AssertCalled(suite.T(), "Push", dataChunk)
+		p.AssertCalledOnce(suite.T(), "Push", &dataChunk)
 	}
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsHandedToDataStorage() {
-	suite.node.Push(dataChunk)
-
-	suite.dataStorage.AssertNumberOfCalls(suite.T(), "ConsiderStorage", 1)
-	suite.dataStorage.AssertCalled(suite.T(), "ConsiderStorage", dataChunk)
+	assert.Nil(suite.T(), suite.dataStorage.Query(queryKey))
+	suite.node.Push(&dataChunk)
+	assert.NotNil(suite.T(), suite.dataStorage.Query(queryKey))
 }
 
 func (suite *Node_Sending_Test) Test_Push_DoesNotQueryStateStorage() {
-	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
-	suite.node.Push(dataChunk)
-	suite.stateStorage.AssertNumberOfCalls(suite.T(), "GetAllKnownPeers", 1)
+	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
+	suite.node.Push(&dataChunk)
+	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
 }
 
 func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
@@ -82,9 +83,8 @@ func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
 	connectedPeers := [...]*mocked.PeerConnector{mocked.CreatePeerConnector()}
 
 	suite.node.RequestConnectionWith(connectedPeers[0])
-	suite.node.Push(dataChunk)
+	suite.node.Push(&dataChunk)
 
-	suite.forwardStrategy.AssertNumberOfCalls(suite.T(), "SelectedConnectors", 1)
-	suite.forwardStrategy.AssertCalled(
+	suite.dataForwardStrategy.AssertCalledOnce(
 		suite.T(), "SelectedConnectors", mocked.IPeerConnectors(connectedPeers[:]))
 }

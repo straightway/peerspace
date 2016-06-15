@@ -48,8 +48,7 @@ func (suite *Node_Connection_Test) TearDownTest() {
 func (suite *Node_Connection_Test) TestSuccessfulConnectionIsAcknowledged() {
 	peerNode := mocked.CreatePeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
-	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
-	peerNode.AssertCalled(suite.T(), "RequestConnectionWith", suite.node)
+	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
 }
 
 func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
@@ -59,16 +58,15 @@ func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
 
 	suite.node.RequestConnectionWith(peerNode)
 
-	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 0)
-	peerNode.AssertNumberOfCalls(suite.T(), "CloseConnectionWith", 1)
-	peerNode.AssertCalled(suite.T(), "CloseConnectionWith", suite.node)
+	peerNode.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
+	peerNode.AssertCalledOnce(suite.T(), "CloseConnectionWith", suite.node)
 }
 
 func (suite *Node_Connection_Test) TestRequestForAlreadyAcceptedConnectionIsIgnored() {
 	peerNode := mocked.CreatePeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
 	suite.node.RequestConnectionWith(peerNode)
-	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
+	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", mock.Anything)
 }
 
 func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequestCheck() {
@@ -77,6 +75,6 @@ func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequest
 	samePeerNode.Identifier = peerNode.Identifier
 	suite.node.RequestConnectionWith(peerNode)
 	suite.node.RequestConnectionWith(samePeerNode)
-	peerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 1)
-	samePeerNode.AssertNumberOfCalls(suite.T(), "RequestConnectionWith", 0)
+	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", mock.Anything)
+	samePeerNode.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
 }

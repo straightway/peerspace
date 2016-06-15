@@ -25,7 +25,7 @@ import (
 )
 
 type PeerConnector struct {
-	mock.Mock
+	Base
 	Identifier string
 }
 
@@ -38,6 +38,7 @@ func CreatePeerConnector() *PeerConnector {
 	peer.On("Push", mock.Anything)
 	peer.On("CloseConnectionWith", mock.Anything)
 	peer.On("RequestConnectionWith", mock.Anything)
+	peer.On("Query", mock.Anything, mock.Anything)
 	return peer
 }
 
@@ -57,11 +58,11 @@ func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *PeerConnector) Push(data data.Chunk) {
+func (m *PeerConnector) Push(data *data.Chunk) {
 	m.Called(data)
 }
 
-func (m *PeerConnector) Query(key data.Key, receiver peer.Connector) {
+func (m *PeerConnector) Query(key data.Key, receiver peer.Pusher) {
 	m.Called(key, receiver)
 }
 

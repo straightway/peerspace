@@ -16,12 +16,10 @@
 
 package peer
 
-import "github.com/straightway/straightway/data"
-
 type Connector interface {
+	Pusher
+	Queryable
 	Id() string
 	RequestConnectionWith(peer Connector)
 	CloseConnectionWith(peer Connector)
-	Push(data data.Chunk)
-	Query(key data.Key, receiver Connector)
 }

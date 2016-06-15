@@ -22,11 +22,11 @@ import (
 )
 
 type ConnectionStrategy struct {
-	ConnectorSelector
+	*ConnectorSelector
 }
 
-func NewConnectionStrategy() *ConnectionStrategy {
-	cs := &ConnectionStrategy{}
+func NewConnectionStrategy(connectedPeers []peer.Connector) *ConnectionStrategy {
+	cs := &ConnectionStrategy{ConnectorSelector: NewConnectorSelector(connectedPeers)}
 	cs.On("IsConnectionAcceptedWith", mock.Anything).Return(true)
 	return cs
 }

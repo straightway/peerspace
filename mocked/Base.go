@@ -17,25 +17,14 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/data"
+	"github.com/stretchr/testify/mock"
 )
 
-type DataStorage struct {
-	data map[data.Key]*data.Chunk
+type Base struct {
+	mock.Mock
 }
 
-func NewDataStorage(result *data.Chunk) *DataStorage {
-	dataStorage := &DataStorage{data: make(map[data.Key]*data.Chunk)}
-	if result != nil {
-		dataStorage.data[result.Key] = result
-	}
-	return dataStorage
-}
-
-func (this *DataStorage) ConsiderStorage(data *data.Chunk) {
-	this.data[data.Key] = data
-}
-
-func (this *DataStorage) Query(key data.Key) *data.Chunk {
-	return this.data[key]
+func (m *Base) AssertCalledOnce(t mock.TestingT, methodName string, arguments ...interface{}) {
+	m.AssertNumberOfCalls(t, methodName, 1)
+	m.AssertCalled(t, methodName, arguments...)
 }

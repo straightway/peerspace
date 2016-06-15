@@ -16,4 +16,8 @@
 
 package peer
 
-type ForwardStrategy ConnectorSelector
+import "github.com/straightway/straightway/data"
+
+type Pusher interface {
+	Push(data *data.Chunk)
+}

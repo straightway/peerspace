@@ -22,7 +22,15 @@ import (
 )
 
 type ConnectorSelector struct {
-	mock.Mock
+	Base
+}
+
+func NewConnectorSelector(resultPeers []peer.Connector) *ConnectorSelector {
+	result := &ConnectorSelector{}
+	result.
+		On("SelectedConnectors", mock.Anything).
+		Return(resultPeers)
+	return result
 }
 
 func (m *ConnectorSelector) SelectedConnectors(allPeers []peer.Connector) []peer.Connector {

@@ -19,32 +19,33 @@ package test
 import (
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
 )
 
 type DoForward bool
 
 type NodeContext struct {
-	node               *peer.NodeImpl
-	dataStorage        *mocked.DataStorage
-	stateStorage       *mocked.StateStorage
-	connectionStrategy *mocked.ConnectionStrategy
-	forwardStrategy    *mocked.ConnectorSelector
-	knownPeers         []peer.Connector
-	connectedPeers     []*mocked.PeerConnector
-	notConnectedPeers  []*mocked.PeerConnector
-	forwardPeers       []*mocked.PeerConnector
+	node                 *peer.NodeImpl
+	dataStorage          *mocked.DataStorage
+	stateStorage         *mocked.StateStorage
+	connectionStrategy   *mocked.ConnectionStrategy
+	dataForwardStrategy  *mocked.ConnectorSelector
+	queryForwardStrategy *mocked.ConnectorSelector
+	knownPeers           []peer.Connector
+	connectedPeers       []*mocked.PeerConnector
+	notConnectedPeers    []*mocked.PeerConnector
+	forwardPeers         []*mocked.PeerConnector
 }
 
 // Construction
 
 func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
-		knownPeers:         make([]peer.Connector, 0),
-		connectionStrategy: mocked.NewConnectionStrategy(),
-		forwardStrategy:    &mocked.ConnectorSelector{},
-		connectedPeers:     []*mocked.PeerConnector{},
-		notConnectedPeers:  []*mocked.PeerConnector{},
+		knownPeers:           make([]peer.Connector, 0),
+		connectionStrategy:   mocked.NewConnectionStrategy(nil),
+		dataForwardStrategy:  &mocked.ConnectorSelector{},
+		queryForwardStrategy: &mocked.ConnectorSelector{},
+		connectedPeers:       []*mocked.PeerConnector{},
+		notConnectedPeers:    []*mocked.PeerConnector{},
 	}
 
 	return newNodeContext
@@ -59,7 +60,7 @@ func (this *NodeContext) AddKnownUnconnectedPeer() {
 	this.SetUp()
 }
 
-func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) {
+func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) *mocked.PeerConnector {
 	peer := mocked.CreatePeerConnector()
 	this.knownPeers = append(this.knownPeers, peer)
 	this.connectedPeers = append(this.connectedPeers, peer)
@@ -67,6 +68,7 @@ func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) {
 		this.forwardPeers = append(this.forwardPeers, peer)
 	}
 	this.SetUp()
+	return peer
 }
 
 func (this *NodeContext) SetUp() {
@@ -87,25 +89,21 @@ func (this *NodeContext) setupPeers() {
 	this.stateStorage.
 		On("GetAllKnownPeers").
 		Return(this.knownPeers)
-	this.connectionStrategy = mocked.NewConnectionStrategy()
-	this.connectionStrategy.
-		On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).
-		Return(mocked.IPeerConnectors(this.connectedPeers))
-	this.forwardStrategy = &mocked.ConnectorSelector{}
-	this.forwardStrategy.
-		On("SelectedConnectors", mock.AnythingOfTypeArgument("[]peer.Connector")).
-		Return(mocked.IPeerConnectors(this.forwardPeers))
+	this.connectionStrategy = mocked.NewConnectionStrategy(mocked.IPeerConnectors(this.connectedPeers))
+	this.dataForwardStrategy = mocked.NewConnectorSelector(mocked.IPeerConnectors(this.forwardPeers))
+	this.queryForwardStrategy = mocked.NewConnectorSelector(mocked.IPeerConnectors(this.forwardPeers))
 }
 
 func (this *NodeContext) createSut() {
 	if this.dataStorage == nil {
-		this.dataStorage = mocked.NewDataStorage(mock.Anything, nil)
+		this.dataStorage = mocked.NewDataStorage(nil)
 	}
 	this.node = &peer.NodeImpl{
-		StateStorage:       this.stateStorage,
-		DataStorage:        this.dataStorage,
-		ForwardStrategy:    this.forwardStrategy,
-		ConnectionStrategy: this.connectionStrategy}
+		StateStorage:         this.stateStorage,
+		DataStorage:          this.dataStorage,
+		DataForwardStrategy:  this.dataForwardStrategy,
+		QueryForwardStrategy: this.queryForwardStrategy,
+		ConnectionStrategy:   this.connectionStrategy}
 
 	for _, p := range this.connectedPeers {
 		p.On("RequestConnectionWith", this.node).Return()

@@ -18,11 +18,10 @@ package mocked
 
 import (
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
 )
 
 type StateStorage struct {
-	mock.Mock
+	Base
 }
 
 func (m *StateStorage) GetAllKnownPeers() []peer.Connector {

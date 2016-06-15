@@ -16,4 +16,7 @@
 
 package data
 
-type Chunk []byte
+type Chunk struct {
+	Key  Key
+	Data []byte
+}

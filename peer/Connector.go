@@ -19,7 +19,6 @@ package peer
 type Connector interface {
 	Pusher
 	Queryable
-	Id() string
 	RequestConnectionWith(peer Connector)
 	CloseConnectionWith(peer Connector)
 }

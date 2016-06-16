@@ -14,15 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package general
 
-import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
-)
-
-type Pusher interface {
-	general.Identifyable
-	general.Equaler
-	Push(data *data.Chunk)
+type Identifyable interface {
+	Id() string
 }

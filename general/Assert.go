@@ -14,15 +14,34 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package general
 
 import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"fmt"
+	"reflect"
 )
 
-type Pusher interface {
-	general.Identifyable
-	general.Equaler
-	Push(data *data.Chunk)
+func AssertFieldsNotNil(obj interface{}, fieldNames ...string) {
+	objValue := reflect.ValueOf(obj)
+	for _, fieldName := range fieldNames {
+		field := objValue.FieldByName(fieldName)
+		switch field.Kind() {
+		case reflect.Invalid:
+			panic(fmt.Sprintf("Invalid field: %v", fieldName))
+		case reflect.Interface:
+			fallthrough
+		case reflect.Ptr:
+			fallthrough
+		case reflect.Chan:
+			fallthrough
+		case reflect.Func:
+			fallthrough
+		case reflect.Map:
+			fallthrough
+		case reflect.Slice:
+			if field.IsNil() {
+				panic(fmt.Sprintf("Field %v is nil", fieldName))
+			}
+		}
+	}
 }

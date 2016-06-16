@@ -16,7 +16,10 @@
 
 package peer
 
-import "github.com/straightway/straightway/data"
+import (
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+)
 
 type NodeImpl struct {
 	StateStorage         StateStorage
@@ -24,34 +27,25 @@ type NodeImpl struct {
 	DataForwardStrategy  DataForwardStrategy
 	QueryForwardStrategy QueryForwardStrategy
 	ConnectionStrategy   ConnectionStrategy
+	Identifier           string
 
 	connectedPeers  []Connector
 	pendingQueryMap map[data.Key][]Pusher
 }
 
 func (this *NodeImpl) Id() string {
-	panic("Not implemented")
+	return this.Identifier
+}
+
+func (this *NodeImpl) Equal(other general.Equaler) bool {
+	connector, ok := other.(Connector)
+	return ok && connector.Id() == this.Id()
 }
 
 func (this *NodeImpl) Startup() {
-	if this.StateStorage == nil {
-		panic("No StateStorage")
-	}
-	if this.DataStorage == nil {
-		panic("No DataStorage")
-	}
-	if this.DataForwardStrategy == nil {
-		panic("No DataForwardStrategy")
-	}
-	if this.ConnectionStrategy == nil {
-		panic("No ConnectionStrategy")
-	}
-
-	allPeers := this.StateStorage.GetAllKnownPeers()
-	this.connectedPeers = this.ConnectionStrategy.SelectedConnectors(allPeers)
-	for _, peer := range this.connectedPeers {
-		peer.RequestConnectionWith(this)
-	}
+	//general.AssertFieldsNotNil(this, "StateStorage", "DataStorage", "DataForwardStrategy", "ConnectionStrategy")
+	this.assertConsistency()
+	this.requestPeerConnections()
 }
 
 func (this *NodeImpl) ShutDown() {
@@ -61,11 +55,11 @@ func (this *NodeImpl) ShutDown() {
 }
 
 func (this *NodeImpl) RequestConnectionWith(peer Connector) {
-	for _, p := range this.connectedPeers {
-		if p.Id() == peer.Id() {
-			return
-		}
+	if general.Contains(this.connectedPeers, peer) {
+		return
 	}
+
+	// TODO if the connection is refused, it should not be added to connectedPeers
 	this.connectedPeers = append(this.connectedPeers, peer)
 	if this.ConnectionStrategy.IsConnectionAcceptedWith(peer) {
 		peer.RequestConnectionWith(this)
@@ -82,39 +76,83 @@ func (this *NodeImpl) Push(data *data.Chunk) {
 	if data == nil {
 		return
 	}
-	forwardPeers := this.DataForwardStrategy.SelectedConnectors(this.connectedPeers)
-	for _, p := range forwardPeers {
+
+	for _, p := range this.dataForwardPeers(data.Key) {
 		p.Push(data)
 	}
+
 	this.DataStorage.ConsiderStorage(data)
-	if receivers, ok := this.pendingQueries()[data.Key]; ok {
-		for _, receiver := range receivers {
-			receiver.Push(data)
-		}
-		// TODO Remove pending query now
-		// TODO Remove pending query after timeout
-	}
+	this.removePendingQuery(data.Key)
+	// TODO Remove pending query after timeout
 }
 
 func (this *NodeImpl) Query(key data.Key, receiver Pusher) {
 	queryResult := this.DataStorage.Query(key)
 	switch queryResult {
 	case nil:
-		queriesForKey := this.pendingQueries()[key]
-		queriesForKey = append(queriesForKey, receiver)
-		this.pendingQueries()[key] = queriesForKey
-		fwdPeers := this.QueryForwardStrategy.SelectedConnectors(this.connectedPeers)
-		for _, p := range fwdPeers {
-			p.Query(key, this)
-		}
+		this.registerPendingQuery(key, receiver)
+		this.forwardQuery(key)
 	default:
 		receiver.Push(queryResult)
 	}
+}
+
+// Private
+
+func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
+	// TODO Data forwarding peers depends on data
+	forwardPeers := this.DataForwardStrategy.SelectedConnectors(this.connectedPeers)
+	queryReceivers, _ := this.pendingQueries()[key]
+	return general.SetUnion(forwardPeers, queryReceivers).([]Connector)
+}
+
+func (this *NodeImpl) forwardQuery(key data.Key) {
+	// TODO Data forwarding queries depends on data
+	fwdPeers := this.QueryForwardStrategy.SelectedConnectors(this.connectedPeers)
+	for _, p := range fwdPeers {
+		p.Query(key, this)
+	}
+}
+
+func (this *NodeImpl) registerPendingQuery(key data.Key, receiver Pusher) {
+	queriesForKey := this.pendingQueries()[key]
+	queriesForKey = append(queriesForKey, receiver)
+	this.pendingQueries()[key] = queriesForKey
+}
+
+func (this *NodeImpl) removePendingQuery(key data.Key) {
+	delete(this.pendingQueries(), key)
+}
+
+func (this *NodeImpl) assertConsistency() {
+	if this.StateStorage == nil {
+		panic("No StateStorage")
+	}
+	if this.DataStorage == nil {
+		panic("No DataStorage")
+	}
+	if this.DataForwardStrategy == nil {
+		panic("No DataForwardStrategy")
+	}
+	if this.ConnectionStrategy == nil {
+		panic("No ConnectionStrategy")
+	}
+}
+
+func (this *NodeImpl) requestPeerConnections() {
+	allPeers := this.StateStorage.GetAllKnownPeers()
+	this.connectedPeers = this.ConnectionStrategy.SelectedConnectors(allPeers)
+	for _, peer := range this.connectedPeers {
+		peer.RequestConnectionWith(this)
+	}
+
+	// TODO Handle requested but mot yet confirmed connections
 }
 
 func (this *NodeImpl) pendingQueries() map[data.Key][]Pusher {
 	if this.pendingQueryMap == nil {
 		this.pendingQueryMap = make(map[data.Key][]Pusher)
 	}
+
 	return this.pendingQueryMap
 }

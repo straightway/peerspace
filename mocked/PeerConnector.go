@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -44,6 +45,11 @@ func CreatePeerConnector() *PeerConnector {
 
 func (this *PeerConnector) Id() string {
 	return this.Identifier
+}
+
+func (this *PeerConnector) Equal(other general.Equaler) bool {
+	otherIdentifable, ok := other.(general.Identifyable)
+	return ok && otherIdentifable.Id() == this.Id()
 }
 
 func (m *PeerConnector) Startup() {

@@ -43,7 +43,6 @@ func (this *NodeImpl) Equal(other general.Equaler) bool {
 }
 
 func (this *NodeImpl) Startup() {
-	//general.AssertFieldsNotNil(this, "StateStorage", "DataStorage", "DataForwardStrategy", "ConnectionStrategy")
 	this.assertConsistency()
 	this.requestPeerConnections()
 }

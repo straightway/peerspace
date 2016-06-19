@@ -28,8 +28,8 @@ type NodeContext struct {
 	dataStorage          *mocked.DataStorage
 	stateStorage         *mocked.StateStorage
 	connectionStrategy   *mocked.ConnectionStrategy
-	dataForwardStrategy  *mocked.ConnectorSelector
-	queryForwardStrategy *mocked.ConnectorSelector
+	dataForwardStrategy  *mocked.ForwardStrategy
+	queryForwardStrategy *mocked.ForwardStrategy
 	knownPeers           []peer.Connector
 	connectedPeers       []*mocked.PeerConnector
 	notConnectedPeers    []*mocked.PeerConnector
@@ -42,8 +42,8 @@ func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
 		knownPeers:           make([]peer.Connector, 0),
 		connectionStrategy:   mocked.NewConnectionStrategy(nil),
-		dataForwardStrategy:  &mocked.ConnectorSelector{},
-		queryForwardStrategy: &mocked.ConnectorSelector{},
+		dataForwardStrategy:  &mocked.ForwardStrategy{},
+		queryForwardStrategy: &mocked.ForwardStrategy{},
 		connectedPeers:       []*mocked.PeerConnector{},
 		notConnectedPeers:    []*mocked.PeerConnector{},
 	}

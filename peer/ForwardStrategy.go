@@ -16,6 +16,8 @@
 
 package peer
 
-type ConnectorSelector interface {
-	SelectedConnectors(allPeers []Connector) []Connector
+import "github.com/straightway/straightway/data"
+
+type ForwardStrategy interface {
+	ForwardTargetsFor(allPeers []Connector, key data.Key) []Connector
 }

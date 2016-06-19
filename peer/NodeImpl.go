@@ -99,15 +99,13 @@ func (this *NodeImpl) Query(key data.Key, receiver Pusher) {
 // Private
 
 func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
-	// TODO Data forwarding peers depends on data
-	forwardPeers := this.DataForwardStrategy.SelectedConnectors(this.connectedPeers)
+	forwardPeers := this.DataForwardStrategy.ForwardTargetsFor(this.connectedPeers, key)
 	queryReceivers, _ := this.pendingQueries()[key]
 	return general.SetUnion(forwardPeers, queryReceivers).([]Connector)
 }
 
 func (this *NodeImpl) forwardQuery(key data.Key) {
-	// TODO Data forwarding queries depends on data
-	fwdPeers := this.QueryForwardStrategy.SelectedConnectors(this.connectedPeers)
+	fwdPeers := this.QueryForwardStrategy.ForwardTargetsFor(this.connectedPeers, key)
 	for _, p := range fwdPeers {
 		p.Query(key, this)
 	}
@@ -140,12 +138,12 @@ func (this *NodeImpl) assertConsistency() {
 
 func (this *NodeImpl) requestPeerConnections() {
 	allPeers := this.StateStorage.GetAllKnownPeers()
-	this.connectedPeers = this.ConnectionStrategy.SelectedConnectors(allPeers)
+	this.connectedPeers = this.ConnectionStrategy.PeersToConnect(allPeers)
 	for _, peer := range this.connectedPeers {
 		peer.RequestConnectionWith(this)
 	}
 
-	// TODO Handle requested but mot yet confirmed connections
+	// TODO Handle requested but not yet confirmed connections
 }
 
 func (this *NodeImpl) pendingQueries() map[data.Key][]Pusher {

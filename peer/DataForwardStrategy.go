@@ -16,4 +16,4 @@
 
 package peer
 
-type DataForwardStrategy ConnectorSelector
+type DataForwardStrategy ForwardStrategy

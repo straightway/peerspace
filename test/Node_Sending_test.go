@@ -52,7 +52,7 @@ func (suite *Node_Sending_Test) TearDownTest() {
 
 func (suite *Node_Sending_Test) Test_PushedData_IgnoresNil() {
 	suite.node.Push(nil)
-	suite.dataForwardStrategy.AssertNumberOfCalls(suite.T(), "SelectedConnectors", 0)
+	suite.dataForwardStrategy.AssertNumberOfCalls(suite.T(), "ForwardTargetsFor", 0)
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
@@ -86,5 +86,5 @@ func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
 	suite.node.Push(&dataChunk)
 
 	suite.dataForwardStrategy.AssertCalledOnce(
-		suite.T(), "SelectedConnectors", mocked.IPeerConnectors(connectedPeers[:]))
+		suite.T(), "ForwardTargetsFor", mocked.IPeerConnectors(connectedPeers[:]))
 }

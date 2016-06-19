@@ -17,23 +17,24 @@
 package mocked
 
 import (
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
 
-type ConnectorSelector struct {
+type ForwardStrategy struct {
 	Base
 }
 
-func NewConnectorSelector(resultPeers []peer.Connector) *ConnectorSelector {
-	result := &ConnectorSelector{}
+func NewConnectorSelector(resultPeers []peer.Connector) *ForwardStrategy {
+	result := &ForwardStrategy{}
 	result.
-		On("SelectedConnectors", mock.Anything).
+		On("ForwardTargetsFor", mock.Anything, mock.Anything).
 		Return(resultPeers)
 	return result
 }
 
-func (m *ConnectorSelector) SelectedConnectors(allPeers []peer.Connector) []peer.Connector {
+func (m *ForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
 	args := m.Called(allPeers)
 	return args.Get(0).([]peer.Connector)
 }

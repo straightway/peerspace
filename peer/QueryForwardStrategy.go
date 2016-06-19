@@ -16,4 +16,4 @@
 
 package peer
 
-type QueryForwardStrategy ConnectorSelector
+type QueryForwardStrategy ForwardStrategy

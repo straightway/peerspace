@@ -17,6 +17,6 @@
 package peer
 
 type ConnectionStrategy interface {
-	ConnectorSelector
+	PeersToConnect(allPeers []Connector) []Connector
 	IsConnectionAcceptedWith(peer Connector) bool
 }

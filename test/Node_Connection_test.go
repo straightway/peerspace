@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/mocked"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -78,11 +77,4 @@ func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequest
 	suite.node.RequestConnectionWith(samePeerNode)
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", mock.Anything)
 	samePeerNode.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
-}
-
-func (suite *Node_Connection_Test) Test_Equal_WithSameID() {
-	peerNode := mocked.CreatePeerConnector()
-	peerNode.Identifier = "1"
-	suite.node.Identifier = "1"
-	assert.True(suite.T(), suite.node.Equal(peerNode))
 }

@@ -28,13 +28,11 @@ type ForwardStrategy struct {
 
 func NewConnectorSelector(resultPeers []peer.Connector) *ForwardStrategy {
 	result := &ForwardStrategy{}
-	result.
-		On("ForwardTargetsFor", mock.Anything, mock.Anything).
-		Return(resultPeers)
+	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
 	return result
 }
 
 func (m *ForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
-	args := m.Called(allPeers)
+	args := m.Called(allPeers, key)
 	return args.Get(0).([]peer.Connector)
 }

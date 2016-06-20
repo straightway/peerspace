@@ -91,7 +91,7 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipl
 func (suite *Node_Query_Test) Test_Query_QueryResultIsSentOnceIfPeerIsAlsoForwardTarget() {
 	queryPeer := suite.AddKnownConnectedPeer(DoForward(true))
 	suite.dataForwardStrategy.
-		On("ForwardTargetsFor", mock.Anything).
+		On("ForwardTargetsFor", suite.connectedPeers, queryKey).
 		Return(mocked.IPeerConnectors(suite.connectedPeers))
 	suite.node.Query(queryKey, queryPeer)
 	suite.node.Push(&dataChunk)

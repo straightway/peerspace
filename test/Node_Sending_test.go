@@ -86,5 +86,5 @@ func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
 	suite.node.Push(&dataChunk)
 
 	suite.dataForwardStrategy.AssertCalledOnce(
-		suite.T(), "ForwardTargetsFor", mocked.IPeerConnectors(connectedPeers[:]))
+		suite.T(), "ForwardTargetsFor", mocked.IPeerConnectors(connectedPeers[:]), dataChunk.Key)
 }

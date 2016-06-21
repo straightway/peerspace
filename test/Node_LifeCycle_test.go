@@ -68,6 +68,11 @@ func (suite *Node_LifeCycle_Test) Test_Startup_WithoutDataStoragePanics() {
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutTimerPanics() {
+	suite.node.Timer = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
 func (suite Node_LifeCycle_Test) Test_Startup_NilNodePanics() {
 	var nilSut peer.Node
 	suite.Assert().Panics(func() {

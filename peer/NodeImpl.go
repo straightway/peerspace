@@ -28,6 +28,7 @@ type NodeImpl struct {
 	DataForwardStrategy  DataForwardStrategy
 	QueryForwardStrategy QueryForwardStrategy
 	ConnectionStrategy   ConnectionStrategy
+	Timer                Timer
 
 	connectingPeers []Connector
 	connectedPeers  []Connector
@@ -180,6 +181,9 @@ func (this *NodeImpl) assertConsistency() {
 	}
 	if this.ConnectionStrategy == nil {
 		panic("No ConnectionStrategy")
+	}
+	if this.Timer == nil {
+		panic("No Timer")
 	}
 }
 

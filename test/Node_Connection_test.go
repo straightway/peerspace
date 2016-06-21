@@ -20,6 +20,8 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -62,6 +64,24 @@ func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
 	peerNode.AssertCalledOnce(suite.T(), "CloseConnectionWith", suite.node)
 }
 
+func (suite *Node_Connection_Test) TestRefusedPeerIsNotForwardTarget() {
+	acceptedPeerNode := mocked.CreatePeerConnector()
+	refusedPeerNode := mocked.CreatePeerConnector()
+	suite.connectionStrategy.ExpectedCalls = nil
+	suite.connectionStrategy.On("IsConnectionAcceptedWith", refusedPeerNode).Return(false)
+	suite.connectionStrategy.On("IsConnectionAcceptedWith", acceptedPeerNode).Return(true)
+
+	suite.node.RequestConnectionWith(refusedPeerNode)
+	suite.node.RequestConnectionWith(acceptedPeerNode)
+	suite.node.Push(&dataChunk)
+
+	suite.dataForwardStrategy.AssertCalledOnce(
+		suite.T(),
+		"ForwardTargetsFor",
+		[]peer.Connector{acceptedPeerNode},
+		dataChunk.Key)
+}
+
 func (suite *Node_Connection_Test) TestRequestForAlreadyAcceptedConnectionIsIgnored() {
 	peerNode := mocked.CreatePeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
@@ -77,4 +97,77 @@ func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequest
 	suite.node.RequestConnectionWith(samePeerNode)
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", mock.Anything)
 	samePeerNode.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
+}
+
+func (suite *Node_Connection_Test) TestInitialUnconfirmedConnectionsAreNotForwarded() {
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	suite.node.Push(&dataChunk)
+
+	suite.dataForwardStrategy.AssertCalledOnce(
+		suite.T(),
+		"ForwardTargetsFor",
+		[]peer.Connector{},
+		dataChunk.Key)
+}
+
+func (suite *Node_Connection_Test) TestConfirmedConnectionsAreNotReconnected() {
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	for _, p := range suite.connectedPeers {
+		p.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
+		suite.node.RequestConnectionWith(p)
+		p.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
+	}
+}
+
+func (suite *Node_Connection_Test) TestInitialConnectionsArePending() {
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	for _, p := range suite.connectedPeers {
+		assert.True(suite.T(), suite.node.IsConnectionPendingWith(p))
+	}
+}
+
+func (suite *Node_Connection_Test) TestInitialConnectionsAreAcceptedRegardlessStrategy() {
+	connectedPeer := suite.AddKnownConnectedPeer(DoForward(false))
+	suite.connectionStrategy.ExpectedCalls = nil
+	suite.connectionStrategy.On("IsConnectionAcceptedWith", mock.Anything).Return(false)
+	suite.connectionStrategy.On("PeersToConnect", mock.Anything).Return([]peer.Connector{connectedPeer})
+	suite.node.Startup()
+	suite.node.RequestConnectionWith(connectedPeer)
+	for _, p := range suite.connectedPeers {
+		assert.True(suite.T(), suite.node.IsConnectedWith(p))
+	}
+}
+
+func (suite *Node_Connection_Test) TestConfirmedConnectionsAreNotPending() {
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	for _, p := range suite.connectedPeers {
+		suite.node.RequestConnectionWith(p)
+		assert.False(suite.T(), suite.node.IsConnectionPendingWith(p))
+	}
+}
+
+func (suite *Node_Connection_Test) TestRefusedConnectionsAreNotPending() {
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	for _, p := range suite.connectedPeers {
+		suite.node.CloseConnectionWith(p)
+		assert.False(suite.T(), suite.node.IsConnectionPendingWith(p))
+	}
+}
+
+func (suite *Node_Connection_Test) TestSuccessfulConnectionsAreConnected() {
+	peerNode := mocked.CreatePeerConnector()
+	suite.node.RequestConnectionWith(peerNode)
+	assert.True(suite.T(), suite.node.IsConnectedWith(peerNode))
+}
+
+func (suite *Node_Connection_Test) TestClosedConnectionsAreNotConnected() {
+	peerNode := mocked.CreatePeerConnector()
+	suite.node.RequestConnectionWith(peerNode)
+	suite.node.CloseConnectionWith(peerNode)
+	assert.False(suite.T(), suite.node.IsConnectedWith(peerNode))
 }

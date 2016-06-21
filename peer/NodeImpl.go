@@ -22,15 +22,16 @@ import (
 )
 
 type NodeImpl struct {
+	Identifier           string
 	StateStorage         StateStorage
 	DataStorage          DataStorage
 	DataForwardStrategy  DataForwardStrategy
 	QueryForwardStrategy QueryForwardStrategy
 	ConnectionStrategy   ConnectionStrategy
-	Identifier           string
 
+	connectingPeers []Connector
 	connectedPeers  []Connector
-	pendingQueryMap map[data.Key][]Pusher
+	pendingQueries  map[data.Key][]Pusher
 }
 
 func (this *NodeImpl) Id() string {
@@ -43,12 +44,13 @@ func (this *NodeImpl) Equal(other general.Equaler) bool {
 }
 
 func (this *NodeImpl) Startup() {
+	this.pendingQueries = make(map[data.Key][]Pusher)
 	this.assertConsistency()
 	this.requestPeerConnections()
 }
 
 func (this *NodeImpl) ShutDown() {
-	for _, peer := range this.connectedPeers {
+	for _, peer := range append(this.connectingPeers, this.connectedPeers...) {
 		peer.CloseConnectionWith(this)
 	}
 }
@@ -58,17 +60,25 @@ func (this *NodeImpl) RequestConnectionWith(peer Connector) {
 		return
 	}
 
-	// TODO if the connection is refused, it should not be added to connectedPeers
-	this.connectedPeers = append(this.connectedPeers, peer)
-	if this.ConnectionStrategy.IsConnectionAcceptedWith(peer) {
-		peer.RequestConnectionWith(this)
+	if this.isConnectionAcceptedWith(peer) {
+		this.confirmConnectionWith(peer)
+		this.acceptConnectionWith(peer)
 	} else {
-		peer.CloseConnectionWith(this)
+		this.refuseConnectionWith(peer)
 	}
 }
 
 func (this *NodeImpl) CloseConnectionWith(peer Connector) {
-	panic("Not implemented")
+	this.connectingPeers = removePeer(this.connectingPeers, peer)
+	this.connectedPeers = removePeer(this.connectedPeers, peer)
+}
+
+func (this *NodeImpl) IsConnectionPendingWith(peer Connector) bool {
+	return general.Contains(this.connectingPeers, peer)
+}
+
+func (this *NodeImpl) IsConnectedWith(peer Connector) bool {
+	return general.Contains(this.connectedPeers, peer)
 }
 
 func (this *NodeImpl) Push(data *data.Chunk) {
@@ -98,9 +108,46 @@ func (this *NodeImpl) Query(key data.Key, receiver Pusher) {
 
 // Private
 
+func (this *NodeImpl) isConnectionAcceptedWith(peer Connector) bool {
+	return this.IsConnectionPendingWith(peer) ||
+		this.ConnectionStrategy.IsConnectionAcceptedWith(peer)
+}
+
+func (this *NodeImpl) isConnectionPendingWith(peer Connector) bool {
+	return general.Contains(this.connectingPeers, peer)
+}
+
+func (this *NodeImpl) refuseConnectionWith(peer Connector) {
+	peer.CloseConnectionWith(this)
+}
+
+func (this *NodeImpl) acceptConnectionWith(peer Connector) {
+	this.connectedPeers = append(this.connectedPeers, peer)
+	this.connectingPeers = removePeer(this.connectingPeers, peer)
+}
+
+func removePeer(peers []Connector, peerToRemove Connector) []Connector {
+	for i, p := range peers {
+		if peerToRemove.Equal(p) {
+			nPeers := len(peers) - 1
+			peers[i] = peers[nPeers]
+			peers = peers[:nPeers]
+			break
+		}
+	}
+
+	return peers
+}
+
+func (this *NodeImpl) confirmConnectionWith(peer Connector) {
+	if !this.isConnectionPendingWith(peer) {
+		peer.RequestConnectionWith(this)
+	}
+}
+
 func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
 	forwardPeers := this.DataForwardStrategy.ForwardTargetsFor(this.connectedPeers, key)
-	queryReceivers, _ := this.pendingQueries()[key]
+	queryReceivers, _ := this.pendingQueries[key]
 	return general.SetUnion(forwardPeers, queryReceivers).([]Connector)
 }
 
@@ -112,13 +159,13 @@ func (this *NodeImpl) forwardQuery(key data.Key) {
 }
 
 func (this *NodeImpl) registerPendingQuery(key data.Key, receiver Pusher) {
-	queriesForKey := this.pendingQueries()[key]
+	queriesForKey := this.pendingQueries[key]
 	queriesForKey = append(queriesForKey, receiver)
-	this.pendingQueries()[key] = queriesForKey
+	this.pendingQueries[key] = queriesForKey
 }
 
 func (this *NodeImpl) removePendingQuery(key data.Key) {
-	delete(this.pendingQueries(), key)
+	delete(this.pendingQueries, key)
 }
 
 func (this *NodeImpl) assertConsistency() {
@@ -138,18 +185,9 @@ func (this *NodeImpl) assertConsistency() {
 
 func (this *NodeImpl) requestPeerConnections() {
 	allPeers := this.StateStorage.GetAllKnownPeers()
-	this.connectedPeers = this.ConnectionStrategy.PeersToConnect(allPeers)
-	for _, peer := range this.connectedPeers {
+	this.connectingPeers = this.ConnectionStrategy.PeersToConnect(allPeers)
+	this.connectedPeers = []Connector{}
+	for _, peer := range this.connectingPeers {
 		peer.RequestConnectionWith(this)
 	}
-
-	// TODO Handle requested but not yet confirmed connections
-}
-
-func (this *NodeImpl) pendingQueries() map[data.Key][]Pusher {
-	if this.pendingQueryMap == nil {
-		this.pendingQueryMap = make(map[data.Key][]Pusher)
-	}
-
-	return this.pendingQueryMap
 }

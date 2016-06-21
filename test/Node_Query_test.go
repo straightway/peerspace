@@ -56,6 +56,7 @@ func (suite *Node_Query_Test) Test_Query_LocallyStoredItemIsPushedToQueryNode() 
 
 func (suite *Node_Query_Test) Test_Query_NotLocallyStoredItemIsNotDirectlyPushedBack() {
 	queryPeer := mocked.CreatePeerConnector()
+	suite.node.Startup()
 	suite.node.Query(queryKey, queryPeer)
 	queryPeer.AssertNotCalled(suite.T(), "Push", mock.Anything)
 }
@@ -63,6 +64,7 @@ func (suite *Node_Query_Test) Test_Query_NotLocallyStoredItemIsNotDirectlyPushed
 func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
 	queryPeer := mocked.CreatePeerConnector()
 	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Startup()
 	suite.node.Query(queryKey, queryPeer)
 	fwdPeer.AssertCalledOnce(suite.T(), "Query", queryKey, suite.node)
 }
@@ -70,6 +72,7 @@ func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 	queryPeer := mocked.CreatePeerConnector()
 	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Startup()
 	suite.node.Query(queryKey, queryPeer)
 	suite.node.Push(&dataChunk)
 	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
@@ -81,6 +84,7 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipl
 	queryPeer1 := mocked.CreatePeerConnector()
 	queryPeer2 := mocked.CreatePeerConnector()
 	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Startup()
 	suite.node.Query(queryKey, queryPeer1)
 	suite.node.Query(queryKey, queryPeer2)
 	suite.node.Push(&dataChunk)
@@ -93,6 +97,7 @@ func (suite *Node_Query_Test) Test_Query_QueryResultIsSentOnceIfPeerIsAlsoForwar
 	suite.dataForwardStrategy.
 		On("ForwardTargetsFor", suite.connectedPeers, queryKey).
 		Return(mocked.IPeerConnectors(suite.connectedPeers))
+	suite.node.Startup()
 	suite.node.Query(queryKey, queryPeer)
 	suite.node.Push(&dataChunk)
 	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)

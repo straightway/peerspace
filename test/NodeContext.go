@@ -35,6 +35,7 @@ type NodeContext struct {
 	notConnectedPeers    []*mocked.PeerConnector
 	forwardPeers         []*mocked.PeerConnector
 	timer                *mocked.Timer
+	configuration        *peer.Configuration
 }
 
 // Construction
@@ -47,7 +48,8 @@ func NewNodeContext() *NodeContext {
 		queryForwardStrategy: &mocked.ForwardStrategy{},
 		connectedPeers:       []*mocked.PeerConnector{},
 		notConnectedPeers:    []*mocked.PeerConnector{},
-		timer:                &mocked.Timer{}}
+		timer:                &mocked.Timer{},
+		configuration:        &peer.Configuration{}}
 
 	return newNodeContext
 }
@@ -105,7 +107,8 @@ func (this *NodeContext) createSut() {
 		DataForwardStrategy:  this.dataForwardStrategy,
 		QueryForwardStrategy: this.queryForwardStrategy,
 		ConnectionStrategy:   this.connectionStrategy,
-		Timer:                this.timer}
+		Timer:                this.timer,
+		Configuration:        this.configuration}
 
 	for _, p := range this.connectedPeers {
 		p.On("RequestConnectionWith", this.node).Return()

@@ -17,6 +17,8 @@
 package peer
 
 import (
+	"time"
+
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 )
@@ -29,10 +31,16 @@ type NodeImpl struct {
 	QueryForwardStrategy QueryForwardStrategy
 	ConnectionStrategy   ConnectionStrategy
 	Timer                Timer
+	Configuration        *Configuration
 
 	connectingPeers []Connector
 	connectedPeers  []Connector
-	pendingQueries  map[data.Key][]Pusher
+	pendingQueries  map[data.Key]pendingQuery
+}
+
+type pendingQuery struct {
+	expirationTime time.Time
+	receivers      []Pusher
 }
 
 func (this *NodeImpl) Id() string {
@@ -45,7 +53,7 @@ func (this *NodeImpl) Equal(other general.Equaler) bool {
 }
 
 func (this *NodeImpl) Startup() {
-	this.pendingQueries = make(map[data.Key][]Pusher)
+	this.pendingQueries = make(map[data.Key]pendingQuery)
 	this.assertConsistency()
 	this.requestPeerConnections()
 }
@@ -92,8 +100,7 @@ func (this *NodeImpl) Push(data *data.Chunk) {
 	}
 
 	this.DataStorage.ConsiderStorage(data)
-	this.removePendingQuery(data.Key)
-	// TODO Remove pending query after timeout
+	this.removeObsoleteQueries(data.Key)
 }
 
 func (this *NodeImpl) Query(key data.Key, receiver Pusher) {
@@ -148,8 +155,12 @@ func (this *NodeImpl) confirmConnectionWith(peer Connector) {
 
 func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
 	forwardPeers := this.DataForwardStrategy.ForwardTargetsFor(this.connectedPeers, key)
-	queryReceivers, _ := this.pendingQueries[key]
-	return general.SetUnion(forwardPeers, queryReceivers).([]Connector)
+	query, isQueryFound := this.pendingQueries[key]
+	if isQueryFound {
+		return general.SetUnion(forwardPeers, query.receivers).([]Connector)
+	} else {
+		return forwardPeers
+	}
 }
 
 func (this *NodeImpl) forwardQuery(key data.Key) {
@@ -160,13 +171,26 @@ func (this *NodeImpl) forwardQuery(key data.Key) {
 }
 
 func (this *NodeImpl) registerPendingQuery(key data.Key, receiver Pusher) {
-	queriesForKey := this.pendingQueries[key]
-	queriesForKey = append(queriesForKey, receiver)
+	queriesForKey, isQueryFound := this.pendingQueries[key]
+	if isQueryFound {
+		queriesForKey.receivers = append(queriesForKey.receivers, receiver)
+	} else {
+		queriesForKey = pendingQuery{receivers: []Pusher{receiver}}
+	}
+	queriesForKey.expirationTime = this.Timer.Time().Add(this.Configuration.QueryTimeout)
 	this.pendingQueries[key] = queriesForKey
 }
 
-func (this *NodeImpl) removePendingQuery(key data.Key) {
-	delete(this.pendingQueries, key)
+func (this *NodeImpl) removeObsoleteQueries(fulfilledQueryKey data.Key) {
+	delete(this.pendingQueries, fulfilledQueryKey)
+	currentTime := this.Timer.Time()
+	newPendingQueries := make(map[data.Key]pendingQuery)
+	for key, query := range this.pendingQueries {
+		if currentTime.Before(query.expirationTime) {
+			newPendingQueries[key] = query
+		}
+	}
+	this.pendingQueries = newPendingQueries
 }
 
 func (this *NodeImpl) assertConsistency() {
@@ -184,6 +208,9 @@ func (this *NodeImpl) assertConsistency() {
 	}
 	if this.Timer == nil {
 		panic("No Timer")
+	}
+	if this.Configuration == nil {
+		panic("No Configuration")
 	}
 }
 

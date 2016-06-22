@@ -18,7 +18,9 @@ package test
 
 import (
 	"testing"
+	"time"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -77,7 +79,7 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 	suite.node.Push(&dataChunk)
 	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
 	suite.node.Push(&dataChunk)
-	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk) // Not called again
 }
 
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipleReceivers() {
@@ -92,7 +94,7 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipl
 	queryPeer2.AssertCalledOnce(suite.T(), "Push", &dataChunk)
 }
 
-func (suite *Node_Query_Test) Test_Query_QueryResultIsSentOnceIfPeerIsAlsoForwardTarget() {
+func (suite *Node_Query_Test) Test_Query_ResultIsSentOnceIfPeerIsAlsoForwardTarget() {
 	queryPeer := suite.AddKnownConnectedPeer(DoForward(true))
 	suite.dataForwardStrategy.
 		On("ForwardTargetsFor", suite.connectedPeers, queryKey).
@@ -101,4 +103,36 @@ func (suite *Node_Query_Test) Test_Query_QueryResultIsSentOnceIfPeerIsAlsoForwar
 	suite.node.Query(queryKey, queryPeer)
 	suite.node.Push(&dataChunk)
 	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+}
+
+func (suite *Node_Query_Test) Test_Query_IsDiscardedAfterTimeout() {
+	queryPeer := mocked.CreatePeerConnector()
+	suite.node.Configuration.QueryTimeout = time.Duration(20)
+	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Startup()
+	suite.node.Query(queryKey, queryPeer)
+	suite.timer.CurrentTime = suite.timer.CurrentTime.Add(suite.node.Configuration.QueryTimeout)
+	suite.clearTimedOutQueries()
+
+	suite.node.Push(&dataChunk)
+
+	queryPeer.AssertNotCalled(suite.T(), "Push", mock.Anything)
+}
+
+func (suite *Node_Query_Test) Test_Query_IsNotDiscardedBeforeTimeout() {
+	queryPeer := mocked.CreatePeerConnector()
+	suite.node.Configuration.QueryTimeout = time.Duration(20)
+	suite.AddKnownConnectedPeer(DoForward(true))
+	suite.node.Startup()
+	suite.node.Query(queryKey, queryPeer)
+	suite.timer.CurrentTime = suite.timer.CurrentTime.Add(time.Duration(10))
+	suite.clearTimedOutQueries()
+
+	suite.node.Push(&dataChunk)
+
+	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+}
+
+func (suite *Node_Query_Test) clearTimedOutQueries() {
+	suite.node.Push(&data.Chunk{Key: data.Key("Other Key")})
 }

@@ -68,8 +68,8 @@ func (m *PeerConnector) Push(data *data.Chunk) {
 	m.Called(data)
 }
 
-func (m *PeerConnector) Query(key data.Key, receiver peer.Pusher) {
-	m.Called(key, receiver)
+func (m *PeerConnector) Query(query peer.Query, receiver peer.Pusher) {
+	m.Called(query, receiver)
 }
 
 func IPeerConnectors(cs []*PeerConnector) []peer.Connector {

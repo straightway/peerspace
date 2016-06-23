@@ -131,3 +131,61 @@ func (suite *SliceTools_Test) Test_ForEachSliceItem_CallbackReturnFalseBreaksLoo
 	})
 	assert.Equal(suite.T(), []int{2}, output)
 }
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_NilSliceBecomesEmpty() {
+	result := general.RemoveItemsIf(nil, truePredicate)
+	assert.Empty(suite.T(), result)
+}
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_NilSliceResultIsCastableToSliceType() {
+	var sut []int = nil
+	result := general.RemoveItemsIf(sut, truePredicate)
+	assert.NotPanics(suite.T(), func() { sut = result.([]int) })
+}
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_NilPredicatePanics() {
+	var sut []int = nil
+	var nilPredicate func(item interface{}) bool = nil
+	assert.Panics(suite.T(), func() { general.RemoveItemsIf(sut, nilPredicate) })
+}
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_FalsePredicateYieldsUnchangedSlice() {
+	var sut []int = []int{2, 3, 5}
+	result := general.RemoveItemsIf(sut, falsePredicate)
+	assert.Equal(suite.T(), []int{2, 3, 5}, result)
+}
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_TruePredicateYieldsEmptySlice() {
+	var sut []int = []int{2, 3, 5}
+	result := general.RemoveItemsIf(sut, truePredicate)
+	assert.Empty(suite.T(), result)
+}
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_EvenPredicateYieldsOddSlice() {
+	var sut []int = []int{2, 3, 5}
+	result := general.RemoveItemsIf(sut, evenPredicate)
+	assert.Equal(suite.T(), []int{3, 5}, result)
+}
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_NilPredicateYieldsNotNil() {
+	notNilItem := 2
+	var sut []*int = []*int{&notNilItem, nil}
+	result := general.RemoveItemsIf(sut, nilPredicate)
+	assert.Equal(suite.T(), []*int{&notNilItem}, result)
+}
+
+func truePredicate(item interface{}) bool {
+	return true
+}
+
+func falsePredicate(item interface{}) bool {
+	return false
+}
+
+func evenPredicate(item interface{}) bool {
+	return item.(int)%2 == 0
+}
+
+func nilPredicate(item interface{}) bool {
+	return item == nil
+}

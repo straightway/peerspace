@@ -84,6 +84,35 @@ func ForEachSliceItem(slice interface{}, do func(item interface{}) LoopControl) 
 	}
 }
 
+func RemoveItemsIf(slice interface{}, predicate func(item interface{}) bool) interface{} {
+	if predicate == nil {
+		panic("No predicate")
+	}
+	sliceValue := reflect.ValueOf(slice)
+	if slice == nil {
+		return nil
+	}
+
+	result := makeEmptySliceOfSameTypeAs(slice)
+	inputLen := sliceValue.Len()
+	for i := 0; i < inputLen; i++ {
+		item := sliceValue.Index(i)
+		if !predicate(interfaceOrNil(item)) {
+			result = reflect.Append(result, item)
+		}
+	}
+
+	return result.Interface()
+}
+
+func interfaceOrNil(value reflect.Value) interface{} {
+	ivalue := value.Interface()
+	if ivalue != nil && value.Kind() >= reflect.Array && value.IsNil() {
+		return nil
+	}
+	return ivalue
+}
+
 func makeEmptySliceOfSameTypeAs(a interface{}) reflect.Value {
 	targetType := reflect.TypeOf(a)
 	return reflect.MakeSlice(targetType, 0, 0)

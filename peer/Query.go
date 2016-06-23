@@ -16,6 +16,8 @@
 
 package peer
 
-type Queryable interface {
-	Query(query Query, receiver Pusher)
+import "github.com/straightway/straightway/data"
+
+type Query struct {
+	Key data.Key
 }

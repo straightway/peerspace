@@ -136,5 +136,5 @@ func (suite *Node_Query_Test) Test_Query_IsNotDiscardedBeforeTimeout() {
 }
 
 func (suite *Node_Query_Test) clearTimedOutQueries() {
-	suite.node.Push(&data.Chunk{Key: data.Key("Other Key")})
+	suite.node.Push(&data.Chunk{Key: data.Key{Id: "Other Key"}})
 }

@@ -16,7 +16,4 @@
 
 package data
 
-type Key struct {
-	Id        string
-	TimeStamp int64
-}
+type Id string

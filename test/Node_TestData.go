@@ -21,6 +21,6 @@ import (
 )
 
 var (
-	queryKey  data.Key   = data.Key("1234")
+	queryKey  data.Key   = data.Key{Id: "1234"}
 	dataChunk data.Chunk = data.Chunk{Key: queryKey, Data: []byte{0x2, 0x3, 0x5, 0x7, 0x11}}
 )

@@ -22,17 +22,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type ForwardStrategy struct {
+type DataForwardStrategy struct {
 	Base
 }
 
-func NewConnectorSelector(resultPeers []peer.Connector) *ForwardStrategy {
-	result := &ForwardStrategy{}
+func NewDataForwardStrategy(resultPeers []peer.Connector) *DataForwardStrategy {
+	result := &DataForwardStrategy{}
 	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
 	return result
 }
 
-func (m *ForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
+func (m *DataForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
 	args := m.Called(allPeers, key)
 	return args.Get(0).([]peer.Connector)
 }

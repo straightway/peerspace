@@ -19,5 +19,7 @@ package peer
 import "github.com/straightway/straightway/data"
 
 type Query struct {
-	Key data.Key
+	Key      data.Key
+	TimeFrom int64
+	TimeTo   int64
 }

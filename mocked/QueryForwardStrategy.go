@@ -14,10 +14,25 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package mocked
 
-import "github.com/straightway/straightway/data"
+import (
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
+)
 
-type ForwardStrategy interface {
-	ForwardTargetsFor(allPeers []Connector, key data.Key) []Connector
+type QueryForwardStrategy struct {
+	Base
+}
+
+func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryForwardStrategy {
+	result := &QueryForwardStrategy{}
+	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
+	return result
+}
+
+func (m *QueryForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
+	args := m.Called(allPeers, key)
+	return args.Get(0).([]peer.Connector)
 }

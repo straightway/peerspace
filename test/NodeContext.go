@@ -28,8 +28,8 @@ type NodeContext struct {
 	dataStorage          *mocked.DataStorage
 	stateStorage         *mocked.StateStorage
 	connectionStrategy   *mocked.ConnectionStrategy
-	dataForwardStrategy  *mocked.ForwardStrategy
-	queryForwardStrategy *mocked.ForwardStrategy
+	dataForwardStrategy  *mocked.DataForwardStrategy
+	queryForwardStrategy *mocked.QueryForwardStrategy
 	knownPeers           []peer.Connector
 	connectedPeers       []*mocked.PeerConnector
 	notConnectedPeers    []*mocked.PeerConnector
@@ -44,8 +44,8 @@ func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
 		knownPeers:           make([]peer.Connector, 0),
 		connectionStrategy:   mocked.NewConnectionStrategy(nil),
-		dataForwardStrategy:  &mocked.ForwardStrategy{},
-		queryForwardStrategy: &mocked.ForwardStrategy{},
+		dataForwardStrategy:  &mocked.DataForwardStrategy{},
+		queryForwardStrategy: &mocked.QueryForwardStrategy{},
 		connectedPeers:       []*mocked.PeerConnector{},
 		notConnectedPeers:    []*mocked.PeerConnector{},
 		timer:                &mocked.Timer{},
@@ -93,8 +93,8 @@ func (this *NodeContext) setupPeers() {
 		On("GetAllKnownPeers").
 		Return(this.knownPeers)
 	this.connectionStrategy = mocked.NewConnectionStrategy(mocked.IPeerConnectors(this.connectedPeers))
-	this.dataForwardStrategy = mocked.NewConnectorSelector(mocked.IPeerConnectors(this.forwardPeers))
-	this.queryForwardStrategy = mocked.NewConnectorSelector(mocked.IPeerConnectors(this.forwardPeers))
+	this.dataForwardStrategy = mocked.NewDataForwardStrategy(mocked.IPeerConnectors(this.forwardPeers))
+	this.queryForwardStrategy = mocked.NewQueryForwardStrategy(mocked.IPeerConnectors(this.forwardPeers))
 }
 
 func (this *NodeContext) createSut() {

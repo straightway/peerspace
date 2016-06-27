@@ -20,5 +20,5 @@ import "github.com/straightway/straightway/data"
 
 type DataStorage interface {
 	ConsiderStorage(*data.Chunk)
-	Query(Query) *data.Chunk
+	Query(Query) []*data.Chunk
 }

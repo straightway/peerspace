@@ -27,3 +27,7 @@ type Query struct {
 func QueryExactlyKey(key data.Key) Query {
 	return Query{Id: key.Id, TimeTo: key.TimeStamp, TimeFrom: key.TimeStamp}
 }
+
+func (this *Query) Matches(key data.Key) bool {
+	return this.Id == key.Id && this.TimeFrom <= key.TimeStamp && key.TimeStamp <= this.TimeTo
+}

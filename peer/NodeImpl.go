@@ -105,12 +105,14 @@ func (this *NodeImpl) Push(data *data.Chunk) {
 }
 
 func (this *NodeImpl) Query(query Query, receiver Pusher) {
-	queryResult := this.DataStorage.Query(query)
-	switch queryResult {
-	case nil:
+	queryResults := this.DataStorage.Query(query)
+	if len(queryResults) == 0 {
 		this.registerPendingQuery(query, receiver)
 		this.forwardQuery(query)
-	default:
+		return
+	}
+
+	for _, queryResult := range queryResults {
 		receiver.Push(queryResult)
 	}
 }

@@ -65,9 +65,9 @@ func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsHandedToDataStorage() {
-	assert.Nil(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
+	assert.Empty(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
 	suite.node.Push(&dataChunk)
-	assert.NotNil(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
+	assert.NotEmpty(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
 }
 
 func (suite *Node_Sending_Test) Test_Push_DoesNotQueryStateStorage() {

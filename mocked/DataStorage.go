@@ -22,21 +22,28 @@ import (
 )
 
 type DataStorage struct {
-	data map[data.Key]*data.Chunk
+	data []*data.Chunk
 }
 
 func NewDataStorage(result *data.Chunk) *DataStorage {
-	dataStorage := &DataStorage{data: make(map[data.Key]*data.Chunk)}
-	if result != nil {
-		dataStorage.data[result.Key] = result
-	}
+	dataStorage := &DataStorage{data: make([]*data.Chunk, 0)}
+	dataStorage.ConsiderStorage(result)
 	return dataStorage
 }
 
 func (this *DataStorage) ConsiderStorage(data *data.Chunk) {
-	this.data[data.Key] = data
+	if data != nil {
+		this.data = append(this.data, data)
+	}
 }
 
-func (this *DataStorage) Query(query peer.Query) *data.Chunk {
-	return this.data[data.Key{Id: query.Id}]
+func (this *DataStorage) Query(query peer.Query) []*data.Chunk {
+	result := make([]*data.Chunk, 0)
+	for _, chunk := range this.data {
+		if query.Matches(chunk.Key) {
+			result = append(result, chunk)
+		}
+	}
+
+	return result
 }

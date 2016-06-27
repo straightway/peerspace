@@ -14,29 +14,40 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package test
 
 import (
+	"testing"
+
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-type DataStorage struct {
-	data map[data.Key]*data.Chunk
+// Test suite
+
+type Query_Test struct {
+	suite.Suite
 }
 
-func NewDataStorage(result *data.Chunk) *DataStorage {
-	dataStorage := &DataStorage{data: make(map[data.Key]*data.Chunk)}
-	if result != nil {
-		dataStorage.data[result.Key] = result
-	}
-	return dataStorage
+var key data.Key = data.Key{Id: "123", TimeStamp: 456}
+
+func TestQuery(t *testing.T) {
+	suite.Run(t, new(Query_Test))
 }
 
-func (this *DataStorage) ConsiderStorage(data *data.Chunk) {
-	this.data[data.Key] = data
+func (suite *Query_Test) Test_QueryExactlyKey_HasKeyIdInResult() {
+	query := peer.QueryExactlyKey(key)
+	assert.Equal(suite.T(), key.Id, query.Id)
 }
 
-func (this *DataStorage) Query(query peer.Query) *data.Chunk {
-	return this.data[data.Key{Id: query.Id}]
+func (suite *Query_Test) Test_QueryExactlyKey_HasKeyTimepointUpperBoundInResult() {
+	query := peer.QueryExactlyKey(key)
+	assert.Equal(suite.T(), key.TimeStamp, query.TimeTo)
+}
+
+func (suite *Query_Test) Test_QueryExactlyKey_HasKeyTimepointLowerBoundInResult() {
+	query := peer.QueryExactlyKey(key)
+	assert.Equal(suite.T(), key.TimeStamp, query.TimeFrom)
 }

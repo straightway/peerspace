@@ -16,8 +16,6 @@
 
 package peer
 
-import "github.com/straightway/straightway/data"
-
 type QueryForwardStrategy interface {
-	ForwardTargetsFor(allPeers []Connector, key data.Key) []Connector
+	ForwardTargetsFor(allPeers []Connector, query Query) []Connector
 }

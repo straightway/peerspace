@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -64,9 +65,9 @@ func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsHandedToDataStorage() {
-	assert.Nil(suite.T(), suite.dataStorage.Query(queryKey))
+	assert.Nil(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
 	suite.node.Push(&dataChunk)
-	assert.NotNil(suite.T(), suite.dataStorage.Query(queryKey))
+	assert.NotNil(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
 }
 
 func (suite *Node_Sending_Test) Test_Push_DoesNotQueryStateStorage() {

@@ -17,7 +17,6 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -32,7 +31,7 @@ func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryForwardStrategy
 	return result
 }
 
-func (m *QueryForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
-	args := m.Called(allPeers, key)
+func (m *QueryForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, query peer.Query) []peer.Connector {
+	args := m.Called(allPeers, query)
 	return args.Get(0).([]peer.Connector)
 }

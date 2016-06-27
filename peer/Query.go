@@ -19,7 +19,11 @@ package peer
 import "github.com/straightway/straightway/data"
 
 type Query struct {
-	Key      data.Key
+	Id       data.Id
 	TimeFrom int64
 	TimeTo   int64
+}
+
+func QueryExactlyKey(key data.Key) Query {
+	return Query{Id: key.Id, TimeTo: key.TimeStamp, TimeFrom: key.TimeStamp}
 }

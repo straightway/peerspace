@@ -105,7 +105,7 @@ func (this *NodeImpl) Push(data *data.Chunk) {
 }
 
 func (this *NodeImpl) Query(query Query, receiver Pusher) {
-	queryResult := this.DataStorage.Query(query.Key)
+	queryResult := this.DataStorage.Query(query)
 	switch queryResult {
 	case nil:
 		this.registerPendingQuery(query, receiver)
@@ -164,9 +164,9 @@ func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
 	}
 }
 
-func (this *NodeImpl) pendingQueriesForKey(key data.Key) (*pendingQuery, bool) {
+func (this *NodeImpl) pendingQueriesForKey(key data.Key) (*pendingQuery, bool) { // TODO Consider multiple results
 	for _, q := range this.pendingQueries {
-		if q.query.Key == key {
+		if q.query.Id == key.Id { // TODO Check timestamp ranges
 			return q, true
 		}
 	}
@@ -175,14 +175,14 @@ func (this *NodeImpl) pendingQueriesForKey(key data.Key) (*pendingQuery, bool) {
 }
 
 func (this *NodeImpl) forwardQuery(query Query) {
-	fwdPeers := this.QueryForwardStrategy.ForwardTargetsFor(this.connectedPeers, query.Key)
+	fwdPeers := this.QueryForwardStrategy.ForwardTargetsFor(this.connectedPeers, query)
 	for _, p := range fwdPeers {
 		p.Query(query, this)
 	}
 }
 
 func (this *NodeImpl) registerPendingQuery(query Query, receiver Pusher) {
-	queriesForKey, isQueryFound := this.pendingQueriesForKey(query.Key)
+	queriesForKey, isQueryFound := this.pendingQueriesForKey(data.Key{Id: query.Id})
 	if isQueryFound {
 		queriesForKey.receivers = append(queriesForKey.receivers, receiver)
 	} else {
@@ -195,7 +195,7 @@ func (this *NodeImpl) registerPendingQuery(query Query, receiver Pusher) {
 func (this *NodeImpl) removeObsoleteQueries(fulfilledQueryKey data.Key) {
 	this.pendingQueries = general.RemoveItemsIf(this.pendingQueries, func(item interface{}) bool {
 		query := item.(*pendingQuery)
-		return query.query.Key == fulfilledQueryKey
+		return query.query.Id == fulfilledQueryKey.Id // TODO consider timestamp ranges
 	}).([]*pendingQuery)
 	currentTime := this.Timer.Time()
 	newPendingQueries := make([]*pendingQuery, 0)

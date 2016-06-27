@@ -143,16 +143,9 @@ func (this *NodeImpl) acceptConnectionWith(peer Connector) {
 }
 
 func removePeer(peers []Connector, peerToRemove Connector) []Connector {
-	for i, p := range peers {
-		if peerToRemove.Equal(p) {
-			nPeers := len(peers) - 1
-			peers[i] = peers[nPeers]
-			peers = peers[:nPeers]
-			break
-		}
-	}
-
-	return peers
+	return general.RemoveItemsIf(peers, func(p interface{}) bool {
+		return peerToRemove.Equal(p.(Connector))
+	}).([]Connector)
 }
 
 func (this *NodeImpl) confirmConnectionWith(peer Connector) {

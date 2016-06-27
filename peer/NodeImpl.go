@@ -44,6 +44,11 @@ type pendingQuery struct {
 	receivers      []Pusher
 }
 
+func (this *pendingQuery) AddReceiver(receiver Pusher, parent *NodeImpl) {
+	this.receivers = append(this.receivers, receiver)
+	this.expirationTime = parent.Timer.Time().Add(parent.Configuration.QueryTimeout)
+}
+
 func (this *NodeImpl) Id() string {
 	return this.Identifier
 }
@@ -158,22 +163,22 @@ func (this *NodeImpl) confirmConnectionWith(peer Connector) {
 
 func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
 	forwardPeers := this.DataForwardStrategy.ForwardTargetsFor(this.connectedPeers, key)
-	query, isQueryFound := this.pendingQueriesForKey(key)
-	if isQueryFound {
+	for _, query := range this.pendingQueriesForKey(key) {
 		return general.SetUnion(forwardPeers, query.receivers).([]Connector)
-	} else {
-		return forwardPeers
 	}
+
+	return forwardPeers
 }
 
-func (this *NodeImpl) pendingQueriesForKey(key data.Key) (*pendingQuery, bool) { // TODO Consider multiple results
+func (this *NodeImpl) pendingQueriesForKey(key data.Key) []*pendingQuery {
+	result := make([]*pendingQuery, 0)
 	for _, q := range this.pendingQueries {
-		if q.query.Id == key.Id { // TODO Check timestamp ranges
-			return q, true
+		if q.query.Matches(key) {
+			result = append(result, q)
 		}
 	}
 
-	return nil, false
+	return result
 }
 
 func (this *NodeImpl) forwardQuery(query Query) {
@@ -184,21 +189,31 @@ func (this *NodeImpl) forwardQuery(query Query) {
 }
 
 func (this *NodeImpl) registerPendingQuery(query Query, receiver Pusher) {
-	queriesForKey, isQueryFound := this.pendingQueriesForKey(data.Key{Id: query.Id})
-	if isQueryFound {
-		queriesForKey.receivers = append(queriesForKey.receivers, receiver)
-	} else {
-		queriesForKey = &pendingQuery{query: query, receivers: []Pusher{receiver}}
-		this.pendingQueries = append(this.pendingQueries, queriesForKey)
+	for _, pending := range this.pendingQueries {
+		if pending.query == query {
+			pending.AddReceiver(receiver, this)
+			return
+		}
 	}
-	queriesForKey.expirationTime = this.Timer.Time().Add(this.Configuration.QueryTimeout)
+
+	queriesForKey := &pendingQuery{query: query, receivers: make([]Pusher, 0)}
+	queriesForKey.AddReceiver(receiver, this)
+	this.pendingQueries = append(this.pendingQueries, queriesForKey)
 }
 
 func (this *NodeImpl) removeObsoleteQueries(fulfilledQueryKey data.Key) {
+	this.removeExactlyMatchedPendingQueries(fulfilledQueryKey)
+	this.removeTimedOutQueries()
+}
+
+func (this *NodeImpl) removeExactlyMatchedPendingQueries(fulfilledQueryKey data.Key) {
 	this.pendingQueries = general.RemoveItemsIf(this.pendingQueries, func(item interface{}) bool {
-		query := item.(*pendingQuery)
-		return query.query.Id == fulfilledQueryKey.Id // TODO consider timestamp ranges
+		pending := item.(*pendingQuery)
+		return pending.query.MatchesOnly(fulfilledQueryKey)
 	}).([]*pendingQuery)
+}
+
+func (this *NodeImpl) removeTimedOutQueries() {
 	currentTime := this.Timer.Time()
 	newPendingQueries := make([]*pendingQuery, 0)
 	for _, query := range this.pendingQueries {

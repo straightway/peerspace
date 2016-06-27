@@ -71,3 +71,26 @@ func (suite *Query_Test) Test_MatchesNot_DifferentId_TimestampExactlyRange() {
 	query := peer.Query{Id: "different from " + key.Id, TimeFrom: key.TimeStamp, TimeTo: key.TimeStamp}
 	assert.False(suite.T(), query.Matches(key))
 }
+
+func (suite *Query_Test) Test_MatchesOnly_SameId_TimestampExactlyRange() {
+	query := peer.QueryExactlyKey(key)
+	assert.True(suite.T(), query.MatchesOnly(key))
+}
+
+func (suite *Query_Test) Test_MatchesOnlyNot_DifferentId_TimestampExactlyRange() {
+	query := peer.QueryExactlyKey(key)
+	query.Id = "different from " + key.Id
+	assert.False(suite.T(), query.MatchesOnly(key))
+}
+
+func (suite *Query_Test) Test_MatchesOnlyNot_SameId_TimestampInRange1() {
+	query := peer.QueryExactlyKey(key)
+	query.TimeFrom = query.TimeFrom - 1
+	assert.False(suite.T(), query.MatchesOnly(key))
+}
+
+func (suite *Query_Test) Test_MatchesOnlyNot_SameId_TimestampInRange2() {
+	query := peer.QueryExactlyKey(key)
+	query.TimeTo = query.TimeTo + 1
+	assert.False(suite.T(), query.MatchesOnly(key))
+}

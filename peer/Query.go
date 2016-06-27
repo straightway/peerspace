@@ -31,3 +31,7 @@ func QueryExactlyKey(key data.Key) Query {
 func (this *Query) Matches(key data.Key) bool {
 	return this.Id == key.Id && this.TimeFrom <= key.TimeStamp && key.TimeStamp <= this.TimeTo
 }
+
+func (this *Query) MatchesOnly(key data.Key) bool {
+	return this.Id == key.Id && this.TimeFrom == key.TimeStamp && this.TimeTo == key.TimeStamp
+}

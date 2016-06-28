@@ -17,6 +17,10 @@
 package test
 
 import (
+	"testing"
+	"time"
+
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 )
@@ -74,15 +78,38 @@ func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) *mocked.PeerCo
 	return peer
 }
 
+func (this *NodeContext) SetDataStorage(newDataStorage *mocked.DataStorage) {
+	this.dataStorage = newDataStorage
+	this.SetUp()
+}
+
 func (this *NodeContext) SetUp() {
+	isNodeStarted := this.node != nil && this.node.IsStarted()
+	if isNodeStarted {
+		this.node.ShutDown()
+	}
 	this.setupPeers()
 	this.createSut()
+	if isNodeStarted {
+		this.node.Startup()
+	}
 }
 
 func (this *NodeContext) ShutDownNode() {
 	if this.node != nil {
 		this.node.ShutDown()
 	}
+}
+
+func (this *NodeContext) AdvanceTimeBy(span time.Duration) {
+	this.timer.CurrentTime = this.timer.CurrentTime.Add(span)
+}
+
+func AssertPushed(t *testing.T, receiver *mocked.PeerConnector, chunks ...*data.Chunk) {
+	for _, chunk := range chunks {
+		receiver.AssertCalled(t, "Push", chunk)
+	}
+	receiver.AssertNumberOfCalls(t, "Push", len(chunks))
 }
 
 // Private

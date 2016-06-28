@@ -73,13 +73,13 @@ func (suite *Node_Connection_Test) TestRefusedPeerIsNotForwardTarget() {
 
 	suite.node.RequestConnectionWith(refusedPeerNode)
 	suite.node.RequestConnectionWith(acceptedPeerNode)
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 
 	suite.dataForwardStrategy.AssertCalledOnce(
 		suite.T(),
 		"ForwardTargetsFor",
 		[]peer.Connector{acceptedPeerNode},
-		dataChunk.Key)
+		untimedChunk.Key)
 }
 
 func (suite *Node_Connection_Test) TestRequestForAlreadyAcceptedConnectionIsIgnored() {
@@ -102,13 +102,13 @@ func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequest
 func (suite *Node_Connection_Test) TestInitialUnconfirmedConnectionsAreNotForwarded() {
 	suite.AddKnownConnectedPeer(DoForward(false))
 	suite.node.Startup()
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 
 	suite.dataForwardStrategy.AssertCalledOnce(
 		suite.T(),
 		"ForwardTargetsFor",
 		[]peer.Connector{},
-		dataChunk.Key)
+		untimedChunk.Key)
 }
 
 func (suite *Node_Connection_Test) TestConfirmedConnectionsAreNotReconnected() {

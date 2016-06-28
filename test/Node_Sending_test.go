@@ -57,22 +57,22 @@ func (suite *Node_Sending_Test) Test_PushedData_IgnoresNil() {
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 
 	for _, p := range suite.forwardPeers {
-		p.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+		p.AssertCalledOnce(suite.T(), "Push", &untimedChunk)
 	}
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsHandedToDataStorage() {
-	assert.Empty(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
-	suite.node.Push(&dataChunk)
-	assert.NotEmpty(suite.T(), suite.dataStorage.Query(peer.Query{Id: queryKey.Id}))
+	assert.Empty(suite.T(), suite.dataStorage.Query(peer.Query{Id: untimedKey.Id}))
+	suite.node.Push(&untimedChunk)
+	assert.NotEmpty(suite.T(), suite.dataStorage.Query(peer.Query{Id: untimedKey.Id}))
 }
 
 func (suite *Node_Sending_Test) Test_Push_DoesNotQueryStateStorage() {
 	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
 }
 
@@ -84,8 +84,8 @@ func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
 	connectedPeers := [...]*mocked.PeerConnector{mocked.CreatePeerConnector()}
 
 	suite.node.RequestConnectionWith(connectedPeers[0])
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 
 	suite.dataForwardStrategy.AssertCalledOnce(
-		suite.T(), "ForwardTargetsFor", mocked.IPeerConnectors(connectedPeers[:]), dataChunk.Key)
+		suite.T(), "ForwardTargetsFor", mocked.IPeerConnectors(connectedPeers[:]), untimedChunk.Key)
 }

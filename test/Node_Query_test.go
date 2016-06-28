@@ -23,7 +23,6 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -32,6 +31,7 @@ import (
 type Node_Query_Test struct {
 	suite.Suite
 	*NodeContext
+	queryPeer *mocked.PeerConnector
 }
 
 func TestNodeQuery(t *testing.T) {
@@ -41,100 +41,113 @@ func TestNodeQuery(t *testing.T) {
 func (suite *Node_Query_Test) SetupTest() {
 	suite.NodeContext = NewNodeContext()
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.SetUp()
+	suite.node.Configuration.QueryTimeout = time.Duration(30) * time.Second
+	suite.queryPeer = mocked.CreatePeerConnector()
+	suite.node.Startup()
 }
 
 func (suite *Node_Query_Test) TearDownTest() {
 	suite.ShutDownNode()
 	suite.NodeContext = nil
+	suite.queryPeer = nil
 }
 
+// Tests
+
 func (suite *Node_Query_Test) Test_Query_LocallyStoredItemIsPushedToQueryNode() {
-	queryPeer := mocked.CreatePeerConnector()
-	suite.dataStorage = mocked.NewDataStorage(&dataChunk)
-	suite.createSut()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer)
-	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+	suite.SetDataStorage(mocked.NewDataStorage(&untimedChunk))
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.assertQueryResult(&untimedChunk)
 }
 
 func (suite *Node_Query_Test) Test_Query_NotLocallyStoredItemIsNotDirectlyPushedBack() {
-	queryPeer := mocked.CreatePeerConnector()
-	suite.node.Startup()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer)
-	queryPeer.AssertNotCalled(suite.T(), "Push", mock.Anything)
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.assertQueryResult( /*nothing*/ )
 }
 
 func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
-	queryPeer := mocked.CreatePeerConnector()
 	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
-	suite.node.Startup()
-	query := peer.Query{Id: queryKey.Id}
-	suite.node.Query(query, queryPeer)
+	query := peer.Query{Id: untimedKey.Id}
+	suite.Query(query)
 	fwdPeer.AssertCalledOnce(suite.T(), "Query", query, suite.node)
 }
 
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
-	queryPeer := mocked.CreatePeerConnector()
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.node.Startup()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer)
-	suite.node.Push(&dataChunk)
-	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
-	suite.node.Push(&dataChunk)
-	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk) // Not called again
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.node.Push(&untimedChunk)
+	suite.assertQueryResult(&untimedChunk)
+	suite.queryPeer.Calls = nil
+	suite.node.Push(&untimedChunk)
+	suite.assertQueryResult( /*nothing*/ )
 }
 
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipleReceivers() {
-	queryPeer1 := mocked.CreatePeerConnector()
-	queryPeer2 := mocked.CreatePeerConnector()
+	otherQueryPeer := mocked.CreatePeerConnector()
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.node.Startup()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer1)
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer2)
-	suite.node.Push(&dataChunk)
-	queryPeer1.AssertCalledOnce(suite.T(), "Push", &dataChunk)
-	queryPeer2.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.node.Query(peer.Query{Id: untimedKey.Id}, otherQueryPeer)
+
+	suite.node.Push(&untimedChunk)
+
+	suite.assertQueryResult(&untimedChunk)
+	AssertPushed(suite.T(), otherQueryPeer, &untimedChunk)
 }
 
 func (suite *Node_Query_Test) Test_Query_ResultIsSentOnceIfPeerIsAlsoForwardTarget() {
-	queryPeer := suite.AddKnownConnectedPeer(DoForward(true))
-	suite.dataForwardStrategy.
-		On("ForwardTargetsFor", suite.connectedPeers, queryKey).
-		Return(mocked.IPeerConnectors(suite.connectedPeers))
-	suite.node.Startup()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer)
-	suite.node.Push(&dataChunk)
-	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+	suite.queryPeer = suite.AddKnownConnectedPeer(DoForward(true))
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.node.Push(&untimedChunk)
+	suite.assertQueryResult(&untimedChunk)
 }
 
 func (suite *Node_Query_Test) Test_Query_IsDiscardedAfterTimeout() {
-	queryPeer := mocked.CreatePeerConnector()
-	suite.node.Configuration.QueryTimeout = time.Duration(20)
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.node.Startup()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer)
-	suite.timer.CurrentTime = suite.timer.CurrentTime.Add(suite.node.Configuration.QueryTimeout)
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.AdvanceTimeBy(suite.node.Configuration.QueryTimeout)
 	suite.clearTimedOutQueries()
 
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 
-	queryPeer.AssertNotCalled(suite.T(), "Push", mock.Anything)
+	suite.assertQueryResult( /*nothing*/ )
 }
 
 func (suite *Node_Query_Test) Test_Query_IsNotDiscardedBeforeTimeout() {
-	queryPeer := mocked.CreatePeerConnector()
-	suite.node.Configuration.QueryTimeout = time.Duration(20)
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.node.Startup()
-	suite.node.Query(peer.Query{Id: queryKey.Id}, queryPeer)
-	suite.timer.CurrentTime = suite.timer.CurrentTime.Add(time.Duration(10))
+	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.AdvanceTimeBy(suite.configuration.QueryTimeout / 2)
 	suite.clearTimedOutQueries()
 
-	suite.node.Push(&dataChunk)
+	suite.node.Push(&untimedChunk)
 
-	queryPeer.AssertCalledOnce(suite.T(), "Push", &dataChunk)
+	suite.assertQueryResult(&untimedChunk)
 }
+
+func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeYieldsMultipleResults() {
+	suite.Query(peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
+	suite.node.Push(&timedChunk10)
+	suite.node.Push(&timedChunk20)
+	suite.assertQueryResult(&timedChunk10, &timedChunk20)
+}
+
+func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsDiscardedAfterTimeout() {
+	suite.Query(peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
+	suite.AdvanceTimeBy(suite.configuration.QueryTimeout)
+	suite.node.Push(&timedChunk10)
+	suite.node.Push(&timedChunk20)
+	suite.assertQueryResult(&timedChunk10)
+}
+
+// Private
 
 func (suite *Node_Query_Test) clearTimedOutQueries() {
 	suite.node.Push(&data.Chunk{Key: data.Key{Id: "Other Key"}})
+}
+
+func (suite *Node_Query_Test) assertQueryResult(chunks ...*data.Chunk) {
+	AssertPushed(suite.T(), suite.queryPeer, chunks...)
+}
+
+func (suite *Node_Query_Test) Query(query peer.Query) {
+	suite.node.Query(query, suite.queryPeer)
 }

@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -46,7 +47,7 @@ func (suite *Node_LifeCycle_Test) TearDownTest() {
 	suite.NodeContext = nil
 }
 
-// Startup
+// Tests
 
 func (suite *Node_LifeCycle_Test) Test_Startup_WithoutStateStoragePanics() {
 	suite.node.StateStorage = nil
@@ -78,11 +79,26 @@ func (suite *Node_LifeCycle_Test) Test_Startup_WithoutConfigurationPanics() {
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 
-func (suite Node_LifeCycle_Test) Test_Startup_NilNodePanics() {
+func (suite *Node_LifeCycle_Test) Test_Startup_NilNodePanics() {
 	var nilSut peer.Node
 	suite.Assert().Panics(func() {
 		nilSut.Startup()
 	})
+}
+
+func (suite *Node_LifeCycle_Test) Test_IsStarted_FalseInitially() {
+	assert.False(suite.T(), suite.node.IsStarted())
+}
+
+func (suite *Node_LifeCycle_Test) Test_IsStarted_TrueAfterStartup() {
+	suite.node.Startup()
+	assert.True(suite.T(), suite.node.IsStarted())
+}
+
+func (suite *Node_LifeCycle_Test) Test_IsStarted_FalseAfterShutdown() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+	assert.False(suite.T(), suite.node.IsStarted())
 }
 
 func (suite *Node_LifeCycle_Test) Test_Startup_GetsPeersFromStateStorage() {

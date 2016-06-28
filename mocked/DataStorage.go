@@ -25,9 +25,12 @@ type DataStorage struct {
 	data []*data.Chunk
 }
 
-func NewDataStorage(result *data.Chunk) *DataStorage {
+func NewDataStorage(result ...*data.Chunk) *DataStorage {
 	dataStorage := &DataStorage{data: make([]*data.Chunk, 0)}
-	dataStorage.ConsiderStorage(result)
+	for _, chunk := range result {
+		dataStorage.ConsiderStorage(chunk)
+	}
+
 	return dataStorage
 }
 

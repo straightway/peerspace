@@ -36,6 +36,7 @@ type NodeImpl struct {
 	connectingPeers []Connector
 	connectedPeers  []Connector
 	pendingQueries  []*pendingQuery
+	isStarted       bool
 }
 
 type pendingQuery struct {
@@ -61,10 +62,12 @@ func (this *NodeImpl) Equal(other general.Equaler) bool {
 func (this *NodeImpl) Startup() {
 	this.pendingQueries = make([]*pendingQuery, 0)
 	this.assertConsistency()
+	this.isStarted = true
 	this.requestPeerConnections()
 }
 
 func (this *NodeImpl) ShutDown() {
+	defer func() { this.isStarted = false }()
 	for _, peer := range append(this.connectingPeers, this.connectedPeers...) {
 		peer.CloseConnectionWith(this)
 	}
@@ -120,6 +123,10 @@ func (this *NodeImpl) Query(query Query, receiver Pusher) {
 	for _, queryResult := range queryResults {
 		receiver.Push(queryResult)
 	}
+}
+
+func (this *NodeImpl) IsStarted() bool {
+	return this.isStarted
 }
 
 // Private

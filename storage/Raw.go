@@ -21,7 +21,10 @@ import (
 	"github.com/straightway/straightway/peer"
 )
 
+type ChunkOrder func(a, b *data.Key) bool
+
 type Raw interface {
 	Store(*data.Chunk)
 	Query(peer.Query) []*data.Chunk
+	SetChunkOrder(ChunkOrder)
 }

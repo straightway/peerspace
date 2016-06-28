@@ -19,34 +19,42 @@ package mocked
 import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/mock"
 )
 
 type RawStorage struct {
 	Base
-	data []*data.Chunk
+	Data       []*data.Chunk
+	ChunkOrder storage.ChunkOrder
 }
 
 func NewRawStorage() *RawStorage {
 	result := &RawStorage{}
 	result.On("Store", mock.Anything).Return()
-	result.On("Query", mock.Anything).Return(nil)
+	result.On("Query", mock.Anything).Return()
+	result.On("SetChunkOrder", mock.Anything).Return()
 	return result
 }
 
 func (m *RawStorage) Store(chunk *data.Chunk) {
 	m.Called(chunk)
-	m.data = append(m.data, chunk)
+	m.Data = append(m.Data, chunk)
 }
 
 func (m *RawStorage) Query(query peer.Query) []*data.Chunk {
 	m.Called(query)
 	result := make([]*data.Chunk, 0)
-	for _, chunk := range m.data {
+	for _, chunk := range m.Data {
 		if query.Matches(chunk.Key) {
 			result = append(result, chunk)
 		}
 	}
 
 	return result
+}
+
+func (m *RawStorage) SetChunkOrder(chunkOrder storage.ChunkOrder) {
+	m.Called(chunkOrder)
+	m.ChunkOrder = chunkOrder
 }

@@ -114,6 +114,11 @@ func (suite *Node_LifeCycle_Test) Test_Startup_ConnectsToPeersAccordingToStrateg
 	}
 }
 
+func (suite *Node_LifeCycle_Test) Test_Startup_StartsDataStorage() {
+	suite.node.Startup()
+	suite.Assert().Equal(1, suite.dataStorage.StartupCalls)
+}
+
 func (suite *Node_LifeCycle_Test) Test_ShutDown_ClosesAllOpenConnections() {
 	suite.node.Startup()
 	suite.node.ShutDown()

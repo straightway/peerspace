@@ -22,7 +22,8 @@ import (
 )
 
 type DataStorage struct {
-	data []*data.Chunk
+	data         []*data.Chunk
+	StartupCalls int
 }
 
 func NewDataStorage(result ...*data.Chunk) *DataStorage {
@@ -49,4 +50,8 @@ func (this *DataStorage) Query(query peer.Query) []*data.Chunk {
 	}
 
 	return result
+}
+
+func (this *DataStorage) Startup() {
+	this.StartupCalls++
 }

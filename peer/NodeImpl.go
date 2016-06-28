@@ -62,6 +62,7 @@ func (this *NodeImpl) Equal(other general.Equaler) bool {
 func (this *NodeImpl) Startup() {
 	this.pendingQueries = make([]*pendingQuery, 0)
 	this.assertConsistency()
+	this.DataStorage.Startup()
 	this.isStarted = true
 	this.requestPeerConnections()
 }

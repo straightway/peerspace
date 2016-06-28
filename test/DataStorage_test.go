@@ -22,6 +22,7 @@ import (
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/storage"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -49,15 +50,20 @@ func (suite *DataStorage_Test) TearDownTest() {
 
 // Tests
 
-func (suite *DataStorage_Test) TestStoredChunkIsForwardedToRawStorage() {
-	suite.sut.ConsiderStorage(&untimedChunk)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk)
-}
-
 func (suite *DataStorage_Test) TestQueryIsForwardedToRawStorage() {
 	suite.raw.Store(&untimedChunk)
 	query := peer.Query{Id: queryId}
 	result := suite.sut.Query(query)
 	suite.raw.AssertCalledOnce(suite.T(), "Query", query)
 	suite.Assert().Equal(suite.raw.Query(query), result)
+}
+
+func (suite *DataStorage_Test) TestStoredChunkIsForwardedToRawStorage() {
+	suite.sut.ConsiderStorage(&untimedChunk)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk)
+}
+
+func (suite *DataStorage_Test) TestChunkOrderIsSetOnStartup() {
+	suite.sut.Startup()
+	suite.raw.AssertCalledOnce(suite.T(), "SetChunkOrder", mock.Anything)
 }

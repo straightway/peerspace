@@ -25,6 +25,14 @@ type Data struct {
 	RawStorage Raw
 }
 
+func chunkOrder(a, b *data.Key) bool {
+	panic("Not implemented")
+}
+
+func (this *Data) Startup() {
+	this.RawStorage.SetChunkOrder(chunkOrder)
+}
+
 func (this *Data) ConsiderStorage(chunk *data.Chunk) {
 	this.RawStorage.Store(chunk)
 }

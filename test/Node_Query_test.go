@@ -77,7 +77,6 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 	suite.Query(peer.Query{Id: untimedKey.Id})
 	suite.node.Push(&untimedChunk)
 	suite.assertQueryResult(&untimedChunk)
-	suite.queryPeer.Calls = nil
 	suite.node.Push(&untimedChunk)
 	suite.assertQueryResult( /*nothing*/ )
 }
@@ -146,6 +145,7 @@ func (suite *Node_Query_Test) clearTimedOutQueries() {
 
 func (suite *Node_Query_Test) assertQueryResult(chunks ...*data.Chunk) {
 	AssertPushed(suite.T(), suite.queryPeer, chunks...)
+	suite.queryPeer.Calls = nil
 }
 
 func (suite *Node_Query_Test) Query(query peer.Query) {

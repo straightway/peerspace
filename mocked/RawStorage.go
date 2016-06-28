@@ -14,26 +14,39 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package mocked
 
-import "github.com/straightway/straightway/data"
+import (
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
+)
 
-// TODO Check if this is the right package for this type
-
-type Query struct {
-	Id       data.Id
-	TimeFrom int64
-	TimeTo   int64
+type RawStorage struct {
+	Base
+	data []*data.Chunk
 }
 
-func QueryExactlyKey(key data.Key) Query {
-	return Query{Id: key.Id, TimeTo: key.TimeStamp, TimeFrom: key.TimeStamp}
+func NewRawStorage() *RawStorage {
+	result := &RawStorage{}
+	result.On("Store", mock.Anything).Return()
+	result.On("Query", mock.Anything).Return(nil)
+	return result
 }
 
-func (this *Query) Matches(key data.Key) bool {
-	return this.Id == key.Id && this.TimeFrom <= key.TimeStamp && key.TimeStamp <= this.TimeTo
+func (m *RawStorage) Store(chunk *data.Chunk) {
+	m.Called(chunk)
+	m.data = append(m.data, chunk)
 }
 
-func (this *Query) MatchesOnly(key data.Key) bool {
-	return this.Id == key.Id && this.TimeFrom == key.TimeStamp && this.TimeTo == key.TimeStamp
+func (m *RawStorage) Query(query peer.Query) []*data.Chunk {
+	m.Called(query)
+	result := make([]*data.Chunk, 0)
+	for _, chunk := range m.data {
+		if query.Matches(chunk.Key) {
+			result = append(result, chunk)
+		}
+	}
+
+	return result
 }

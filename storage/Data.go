@@ -14,26 +14,21 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package storage
 
-import "github.com/straightway/straightway/data"
+import (
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/peer"
+)
 
-// TODO Check if this is the right package for this type
-
-type Query struct {
-	Id       data.Id
-	TimeFrom int64
-	TimeTo   int64
+type Data struct {
+	RawStorage Raw
 }
 
-func QueryExactlyKey(key data.Key) Query {
-	return Query{Id: key.Id, TimeTo: key.TimeStamp, TimeFrom: key.TimeStamp}
+func (this *Data) ConsiderStorage(chunk *data.Chunk) {
+	this.RawStorage.Store(chunk)
 }
 
-func (this *Query) Matches(key data.Key) bool {
-	return this.Id == key.Id && this.TimeFrom <= key.TimeStamp && key.TimeStamp <= this.TimeTo
-}
-
-func (this *Query) MatchesOnly(key data.Key) bool {
-	return this.Id == key.Id && this.TimeFrom == key.TimeStamp && this.TimeTo == key.TimeStamp
+func (this *Data) Query(query peer.Query) []*data.Chunk {
+	return this.RawStorage.Query(query)
 }

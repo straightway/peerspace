@@ -14,21 +14,30 @@
    limitations under the License.
 ****************************************************************************/
 
-package storage
+package general
 
-import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/peer"
-)
+import "reflect"
 
-type ChunkOrder func(a, b *data.Key) bool
+type Iterator func() (interface{}, bool)
 
-type Raw interface {
-	Query(peer.Query) []DataRecord
-	Store(chunk *data.Chunk, priority float32)
-	Delete(data.Key) int
-	GetSizeOf(*data.Chunk) int
-	GetFreeStorage() int
-	GetLeastImportantData() general.Iterator
+func Iterate(slice interface{}) Iterator {
+	index := 0
+	itemsSlice := reflect.ValueOf(slice)
+	return Iterator(func() (result interface{}, isFound bool) {
+		if index < itemsSlice.Len() {
+			isFound = true
+			result = itemsSlice.Index(index).Interface()
+			index++
+		}
+		return
+	})
+}
+
+func (this Iterator) Loop(body func(interface{}) LoopControl) {
+	iterFunc := (func() (interface{}, bool))(this)
+	for i, isFound := iterFunc(); isFound; i, isFound = iterFunc() {
+		if body(i) == Break {
+			break
+		}
+	}
 }

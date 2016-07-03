@@ -17,35 +17,25 @@
 package test
 
 import (
-	"testing"
-
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
+	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
 )
 
 // Test suite
 
-type DataStorage_Test struct {
-	DataStorage_TestBase
+type DataStorage_TestBase struct {
+	suite.Suite
+	sut *storage.Data
+	raw *mocked.RawStorage
 }
 
-func TestDataStorage(t *testing.T) {
-	suite.Run(t, new(DataStorage_Test))
+func (suite *DataStorage_TestBase) SetupTest() {
+	suite.raw = mocked.NewRawStorage()
+	suite.sut = &storage.Data{RawStorage: suite.raw}
 }
 
-// Tests
-
-func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
-	suite.raw.Store(&untimedChunk, 0.0)
-	query := peer.Query{Id: queryId}
-	result := suite.sut.Query(query)
-	suite.raw.AssertCalledOnce(suite.T(), "Query", query)
-	suite.Assert().Equal([]*data.Chunk{&untimedChunk}, result)
-}
-
-func (suite *DataStorage_Test) Test_ConsiderStorage_IsForwardedToRawStorage() {
-	suite.sut.ConsiderStorage(&untimedChunk)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything)
+func (suite *DataStorage_TestBase) TearDownTest() {
+	suite.sut = nil
+	suite.raw = nil
 }

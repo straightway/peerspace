@@ -16,19 +16,9 @@
 
 package storage
 
-import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/peer"
-)
+import "github.com/straightway/straightway/data"
 
-type ChunkOrder func(a, b *data.Key) bool
-
-type Raw interface {
-	Query(peer.Query) []DataRecord
-	Store(chunk *data.Chunk, priority float32)
-	Delete(data.Key) int
-	GetSizeOf(*data.Chunk) int
-	GetFreeStorage() int
-	GetLeastImportantData() general.Iterator
+type DataRecord struct {
+	Chunk    *data.Chunk
+	Priority float32
 }

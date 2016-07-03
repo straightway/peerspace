@@ -18,6 +18,7 @@ package storage
 
 import (
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -25,18 +26,40 @@ type Data struct {
 	RawStorage Raw
 }
 
-func chunkOrder(a, b *data.Key) bool {
-	panic("Not implemented")
-}
-
-func (this *Data) Startup() {
-	this.RawStorage.SetChunkOrder(chunkOrder)
-}
+func (this *Data) Startup() {}
 
 func (this *Data) ConsiderStorage(chunk *data.Chunk) {
-	this.RawStorage.Store(chunk)
+	chunkSize := this.RawStorage.GetSizeOf(chunk)
+	freeStorage := this.RawStorage.GetFreeStorage()
+	keysToDelete := make([]data.Key, 0)
+	this.RawStorage.GetLeastImportantData().Loop(func(item interface{}) general.LoopControl {
+		chunk := item.(DataRecord).Chunk
+		keysToDelete = append(keysToDelete, chunk.Key)
+		freeStorage += this.RawStorage.GetSizeOf(chunk)
+		if freeStorage < chunkSize {
+			return general.Continue
+		} else {
+			return general.Break
+		}
+	})
+
+	if freeStorage < chunkSize {
+		return
+	}
+
+	for _, key := range keysToDelete {
+		this.RawStorage.Delete(key)
+	}
+
+	this.RawStorage.Store(chunk, 0.0)
 }
 
 func (this *Data) Query(query peer.Query) []*data.Chunk {
-	return this.RawStorage.Query(query)
+	queryResult := this.RawStorage.Query(query)
+	result := make([]*data.Chunk, len(queryResult))
+	for i := range queryResult {
+		result[i] = queryResult[i].Chunk
+	}
+
+	return result
 }

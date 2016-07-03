@@ -21,17 +21,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type QueryForwardStrategy struct {
+type QueryStrategy struct {
 	Base
 }
 
-func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryForwardStrategy {
-	result := &QueryForwardStrategy{}
+func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryStrategy {
+	result := &QueryStrategy{}
 	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
 	return result
 }
 
-func (m *QueryForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, query peer.Query) []peer.Connector {
+func (m *QueryStrategy) ForwardTargetsFor(allPeers []peer.Connector, query peer.Query) []peer.Connector {
 	args := m.Called(allPeers, query)
 	return args.Get(0).([]peer.Connector)
 }

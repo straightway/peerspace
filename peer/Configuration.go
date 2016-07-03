@@ -16,19 +16,7 @@
 
 package peer
 
-import "time"
-
 type Configuration struct {
-	QueryTimeout time.Duration
 }
 
-var DefaultConfiguration Configuration = Configuration{
-	QueryTimeout: parseDuration("2h")}
-
-func parseDuration(durationString string) time.Duration {
-	result, err := time.ParseDuration(durationString)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
+var DefaultConfiguration Configuration = Configuration{}

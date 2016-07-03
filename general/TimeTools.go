@@ -14,11 +14,14 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package general
 
 import "time"
 
-type QueryStrategy interface {
-	ForwardTargetsFor(allPeers []Connector, query Query) []Connector
-	TimeoutFor(query Query) time.Duration
+func ParseDuration(durationString string) (result time.Duration) {
+	result, err := time.ParseDuration(durationString)
+	if err != nil {
+		panic(err)
+	}
+	return
 }

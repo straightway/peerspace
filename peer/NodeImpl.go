@@ -47,7 +47,12 @@ type pendingQuery struct {
 
 func (this *pendingQuery) AddReceiver(receiver Pusher, parent *NodeImpl) {
 	this.receivers = append(this.receivers, receiver)
-	this.expirationTime = parent.Timer.Time().Add(parent.Configuration.QueryTimeout)
+	this.refreshTimeout(parent)
+}
+
+func (this *pendingQuery) refreshTimeout(parent *NodeImpl) {
+	queryTimeout := parent.QueryStrategy.TimeoutFor(this.query)
+	this.expirationTime = parent.Timer.Time().Add(queryTimeout)
 }
 
 func (this *NodeImpl) Id() string {

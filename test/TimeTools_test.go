@@ -14,11 +14,35 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package test
 
-import "time"
+import (
+	"testing"
+	"time"
 
-type QueryStrategy interface {
-	ForwardTargetsFor(allPeers []Connector, query Query) []Connector
-	TimeoutFor(query Query) time.Duration
+	"github.com/straightway/straightway/general"
+	"github.com/stretchr/testify/suite"
+)
+
+// Test suite
+
+type TimeTools_Test struct {
+	suite.Suite
+}
+
+func TestTimeTools(t *testing.T) {
+	suite.Run(t, new(TimeTools_Test))
+}
+
+// Tests
+
+func (suite *TimeTools_Test) Test_ParseDuration_Successful() {
+	durationString := "2h"
+	expected, _ := time.ParseDuration(durationString)
+	actual := general.ParseDuration(durationString)
+	suite.Assert().Equal(expected, actual)
+}
+
+func (suite *TimeTools_Test) Test_ParseDuration_InvalidFormat() {
+	suite.Assert().Panics(func() { general.ParseDuration("") })
 }

@@ -100,13 +100,5 @@ func (m *RawStorage) Query(query peer.Query) []storage.DataRecord {
 
 func (m *RawStorage) GetLeastImportantData() general.Iterator {
 	m.Called()
-	index := 0
-	return func() (record interface{}, isFound bool) {
-		isFound = index < len(m.Data)
-		if isFound {
-			record = m.Data[index]
-			index++
-		}
-		return
-	}
+	return general.Iterate(m.Data)
 }

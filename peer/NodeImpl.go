@@ -24,14 +24,14 @@ import (
 )
 
 type NodeImpl struct {
-	Identifier           string
-	StateStorage         StateStorage
-	DataStorage          DataStorage
-	DataForwardStrategy  DataForwardStrategy
-	QueryForwardStrategy QueryForwardStrategy
-	ConnectionStrategy   ConnectionStrategy
-	Timer                Timer
-	Configuration        *Configuration
+	Identifier          string
+	StateStorage        StateStorage
+	DataStorage         DataStorage
+	DataForwardStrategy DataForwardStrategy
+	QueryStrategy       QueryStrategy
+	ConnectionStrategy  ConnectionStrategy
+	Timer               Timer
+	Configuration       *Configuration
 
 	connectingPeers []Connector
 	connectedPeers  []Connector
@@ -183,7 +183,7 @@ func (this *NodeImpl) pendingQueriesForKey(key data.Key) []*pendingQuery {
 }
 
 func (this *NodeImpl) forwardQuery(query Query) {
-	fwdPeers := this.QueryForwardStrategy.ForwardTargetsFor(this.connectedPeers, query)
+	fwdPeers := this.QueryStrategy.ForwardTargetsFor(this.connectedPeers, query)
 	for _, p := range fwdPeers {
 		p.Query(query, this)
 	}

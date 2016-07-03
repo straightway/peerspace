@@ -26,13 +26,13 @@ import (
 
 type DataStorage_TestBase struct {
 	suite.Suite
-	sut *storage.Data
+	sut *storage.DataImpl
 	raw *mocked.RawStorage
 }
 
 func (suite *DataStorage_TestBase) SetupTest() {
 	suite.raw = mocked.NewRawStorage()
-	suite.sut = &storage.Data{
+	suite.sut = &storage.DataImpl{
 		RawStorage:        suite.raw,
 		PriorityGenerator: mocked.NewPriorityGenerator(0.0)}
 }

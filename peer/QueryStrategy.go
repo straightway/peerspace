@@ -16,6 +16,6 @@
 
 package peer
 
-type QueryForwardStrategy interface {
+type QueryStrategy interface {
 	ForwardTargetsFor(allPeers []Connector, query Query) []Connector
 }

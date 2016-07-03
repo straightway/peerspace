@@ -22,14 +22,14 @@ import (
 	"github.com/straightway/straightway/peer"
 )
 
-type Data struct {
+type DataImpl struct {
 	PriorityGenerator PriorityGenerator
 	RawStorage        Raw
 }
 
-func (this *Data) Startup() {}
+func (this *DataImpl) Startup() {}
 
-func (this *Data) ConsiderStorage(chunk *data.Chunk) {
+func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
 	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.GetSizeOf(chunk))
 	if success {
 		this.deleteKeys(keysToDelete)
@@ -37,14 +37,14 @@ func (this *Data) ConsiderStorage(chunk *data.Chunk) {
 	}
 }
 
-func (this *Data) Query(query peer.Query) []*data.Chunk {
+func (this *DataImpl) Query(query peer.Query) []*data.Chunk {
 	queryResult := this.RawStorage.Query(query)
 	return ToChunkSlice(queryResult)
 }
 
 // Private
 
-func (this *Data) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
+func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
 	freeStorage := this.RawStorage.GetFreeStorage()
 	if chunkSize <= freeStorage {
 		return nil, true
@@ -60,7 +60,7 @@ func (this *Data) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.
 	return keysToDelete, chunkSize <= freeStorage
 }
 
-func (this *Data) deleteKeys(keysToDelete []data.Key) {
+func (this *DataImpl) deleteKeys(keysToDelete []data.Key) {
 	for _, key := range keysToDelete {
 		this.RawStorage.Delete(key)
 	}

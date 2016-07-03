@@ -129,13 +129,13 @@ func (this *NodeContext) createSut() {
 		this.dataStorage = mocked.NewDataStorage(nil)
 	}
 	this.node = &peer.NodeImpl{
-		StateStorage:         this.stateStorage,
-		DataStorage:          this.dataStorage,
-		DataForwardStrategy:  this.dataForwardStrategy,
-		QueryForwardStrategy: this.queryForwardStrategy,
-		ConnectionStrategy:   this.connectionStrategy,
-		Timer:                this.timer,
-		Configuration:        this.configuration}
+		StateStorage:        this.stateStorage,
+		DataStorage:         this.dataStorage,
+		DataForwardStrategy: this.dataForwardStrategy,
+		QueryStrategy:       this.queryForwardStrategy,
+		ConnectionStrategy:  this.connectionStrategy,
+		Timer:               this.timer,
+		Configuration:       this.configuration}
 
 	for _, p := range this.connectedPeers {
 		p.On("RequestConnectionWith", this.node).Return()

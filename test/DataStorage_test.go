@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -51,7 +52,9 @@ func (suite *DataStorage_Test) Test_ConsiderStorage_IsForwardedToRawStorage() {
 }
 
 func (suite *DataStorage_Test) Test_ConsiderStorage_UsesPriorityGeneratorToDeterminePriority() {
-	suite.sut.PriorityGenerator = func(chunk *data.Chunk) float32 { return 2.0 }
+	priorityGenerator := mocked.NewPriorityGenerator(2.0)
+	suite.sut.PriorityGenerator = priorityGenerator
 	suite.sut.ConsiderStorage(&untimedChunk)
+	priorityGenerator.AssertCalledOnce(suite.T(), "Priority", &untimedChunk)
 	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, float32(2.0))
 }

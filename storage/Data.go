@@ -23,7 +23,7 @@ import (
 )
 
 type Data struct {
-	PriorityGenerator func(*data.Chunk) float32
+	PriorityGenerator PriorityGenerator
 	RawStorage        Raw
 }
 
@@ -33,7 +33,7 @@ func (this *Data) ConsiderStorage(chunk *data.Chunk) {
 	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.GetSizeOf(chunk))
 	if success {
 		this.deleteKeys(keysToDelete)
-		this.RawStorage.Store(chunk, this.PriorityGenerator(chunk))
+		this.RawStorage.Store(chunk, this.PriorityGenerator.Priority(chunk))
 	}
 }
 

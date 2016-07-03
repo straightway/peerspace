@@ -14,30 +14,24 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package mocked
 
 import (
-	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/storage"
-	"github.com/stretchr/testify/suite"
+	"github.com/straightway/straightway/data"
+	"github.com/stretchr/testify/mock"
 )
 
-// Test suite
-
-type DataStorage_TestBase struct {
-	suite.Suite
-	sut *storage.Data
-	raw *mocked.RawStorage
+type PriorityGenerator struct {
+	Base
 }
 
-func (suite *DataStorage_TestBase) SetupTest() {
-	suite.raw = mocked.NewRawStorage()
-	suite.sut = &storage.Data{
-		RawStorage:        suite.raw,
-		PriorityGenerator: mocked.NewPriorityGenerator(0.0)}
+func NewPriorityGenerator(priority float32) *PriorityGenerator {
+	result := &PriorityGenerator{}
+	result.On("Priority", mock.Anything).Return(priority)
+	return result
 }
 
-func (suite *DataStorage_TestBase) TearDownTest() {
-	suite.sut = nil
-	suite.raw = nil
+func (m *PriorityGenerator) Priority(chunk *data.Chunk) float32 {
+	args := m.Called(chunk)
+	return args.Get(0).(float32)
 }

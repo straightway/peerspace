@@ -49,3 +49,9 @@ func (suite *DataStorage_Test) Test_ConsiderStorage_IsForwardedToRawStorage() {
 	suite.sut.ConsiderStorage(&untimedChunk)
 	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything)
 }
+
+func (suite *DataStorage_Test) Test_ConsiderStorage_UsesPriorityGeneratorToDeterminePriority() {
+	suite.sut.PriorityGenerator = func(chunk *data.Chunk) float32 { return 2.0 }
+	suite.sut.ConsiderStorage(&untimedChunk)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, float32(2.0))
+}

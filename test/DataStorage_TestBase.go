@@ -17,6 +17,7 @@
 package test
 
 import (
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
@@ -32,7 +33,9 @@ type DataStorage_TestBase struct {
 
 func (suite *DataStorage_TestBase) SetupTest() {
 	suite.raw = mocked.NewRawStorage()
-	suite.sut = &storage.Data{RawStorage: suite.raw}
+	suite.sut = &storage.Data{
+		RawStorage:        suite.raw,
+		PriorityGenerator: func(chunk *data.Chunk) float32 { return 0.0 }}
 }
 
 func (suite *DataStorage_TestBase) TearDownTest() {

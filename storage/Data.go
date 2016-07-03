@@ -29,37 +29,34 @@ type Data struct {
 func (this *Data) Startup() {}
 
 func (this *Data) ConsiderStorage(chunk *data.Chunk) {
-	chunkSize := this.RawStorage.GetSizeOf(chunk)
-	freeStorage := this.RawStorage.GetFreeStorage()
-	keysToDelete := make([]data.Key, 0)
-	this.RawStorage.GetLeastImportantData().Loop(func(item interface{}) general.LoopControl {
-		chunk := item.(DataRecord).Chunk
-		keysToDelete = append(keysToDelete, chunk.Key)
-		freeStorage += this.RawStorage.GetSizeOf(chunk)
-		if freeStorage < chunkSize {
-			return general.Continue
-		} else {
-			return general.Break
-		}
-	})
-
-	if freeStorage < chunkSize {
-		return
+	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.GetSizeOf(chunk))
+	if success {
+		this.deleteKeys(keysToDelete)
+		this.RawStorage.Store(chunk, 0.0)
 	}
-
-	for _, key := range keysToDelete {
-		this.RawStorage.Delete(key)
-	}
-
-	this.RawStorage.Store(chunk, 0.0)
 }
 
 func (this *Data) Query(query peer.Query) []*data.Chunk {
 	queryResult := this.RawStorage.Query(query)
-	result := make([]*data.Chunk, len(queryResult))
-	for i := range queryResult {
-		result[i] = queryResult[i].Chunk
-	}
+	return ToChunkSlice(queryResult)
+}
 
-	return result
+// Private
+
+func (this *Data) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
+	freeStorage := this.RawStorage.GetFreeStorage()
+	keysToDelete = make([]data.Key, 0)
+	this.RawStorage.GetLeastImportantData().Loop(func(item interface{}) general.LoopControl {
+		chunk := item.(DataRecord).Chunk
+		keysToDelete = append(keysToDelete, chunk.Key)
+		freeStorage += this.RawStorage.GetSizeOf(chunk)
+		return general.BreakIf(chunkSize <= freeStorage)
+	})
+	return keysToDelete, chunkSize <= freeStorage
+}
+
+func (this *Data) deleteKeys(keysToDelete []data.Key) {
+	for _, key := range keysToDelete {
+		this.RawStorage.Delete(key)
+	}
 }

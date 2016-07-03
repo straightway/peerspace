@@ -22,3 +22,12 @@ type DataRecord struct {
 	Chunk    *data.Chunk
 	Priority float32
 }
+
+func ToChunkSlice(records []DataRecord) []*data.Chunk {
+	result := make([]*data.Chunk, len(records))
+	for i, r := range records {
+		result[i] = r.Chunk
+	}
+
+	return result
+}

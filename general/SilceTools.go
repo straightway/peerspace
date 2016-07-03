@@ -28,15 +28,15 @@ const (
 	Continue = LoopControl(true)
 )
 
+func BreakIf(cond bool) LoopControl {
+	return LoopControl(!cond)
+}
+
 func Contains(slice interface{}, itemToCompare Equaler) bool {
 	itemFound := false
 	ForEachSliceItem(slice, func(c interface{}) LoopControl {
 		itemFound = areEqualEqualers(c, itemToCompare)
-		if itemFound {
-			return Break
-		} else {
-			return Continue
-		}
+		return BreakIf(itemFound)
 	})
 
 	return itemFound

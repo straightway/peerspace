@@ -45,12 +45,15 @@ func (this *Data) Query(query peer.Query) []*data.Chunk {
 
 func (this *Data) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
 	freeStorage := this.RawStorage.GetFreeStorage()
-	this.RawStorage.GetLeastImportantData().Loop(func(item interface{}) general.LoopControl {
-		chunk := item.(DataRecord).Chunk
-		keysToDelete = append(keysToDelete, chunk.Key)
-		freeStorage += this.RawStorage.GetSizeOf(chunk)
-		return general.BreakIf(chunkSize <= freeStorage)
-	})
+	if freeStorage < chunkSize {
+		this.RawStorage.GetLeastImportantData().Loop(func(item interface{}) general.LoopControl {
+			chunk := item.(DataRecord).Chunk
+			keysToDelete = append(keysToDelete, chunk.Key)
+			freeStorage += this.RawStorage.GetSizeOf(chunk)
+			return general.BreakIf(chunkSize <= freeStorage)
+		})
+	}
+
 	return keysToDelete, chunkSize <= freeStorage
 }
 

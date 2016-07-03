@@ -37,6 +37,17 @@ func TestDataStorage_Cleanup(t *testing.T) {
 
 // Tests
 
+func (suite *DataStorage_Cleanup_Test) Test_DeleteNoChunksIfEnoughSpaceIsFree() {
+	suite.createTestChunksOfSize(10, 1)
+	chunkToAdd := createTestChunkOfSize(11)
+	suite.raw.FreeStorage = 11
+
+	suite.sut.ConsiderStorage(chunkToAdd)
+
+	suite.raw.AssertNotCalled(suite.T(), "Delete", mock.Anything)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything)
+}
+
 func (suite *DataStorage_Cleanup_Test) Test_RefuseStorageIfChunkIsTooBig() {
 	chunkToAdd := createTestChunkOfSize(10)
 	suite.raw.FreeStorage = 9

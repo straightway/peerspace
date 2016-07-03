@@ -94,3 +94,18 @@ func (suite *Query_Test) Test_MatchesOnlyNot_SameId_TimestampInRange2() {
 	query.TimeTo = query.TimeTo + 1
 	assert.False(suite.T(), query.MatchesOnly(key))
 }
+
+func (suite *Query_Test) Test_IsTimed_IdOnlyQuery_False() {
+	query := peer.Query{Id: "Id"}
+	assert.False(suite.T(), query.IsTimed())
+}
+
+func (suite *Query_Test) Test_IsTimed_WithTimeFrom_True() {
+	query := peer.Query{Id: "Id", TimeFrom: 1}
+	assert.True(suite.T(), query.IsTimed())
+}
+
+func (suite *Query_Test) Test_IsTimed_WithTimeTo_True() {
+	query := peer.Query{Id: "Id", TimeTo: 1}
+	assert.True(suite.T(), query.IsTimed())
+}

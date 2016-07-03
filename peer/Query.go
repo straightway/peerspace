@@ -37,3 +37,7 @@ func (this *Query) Matches(key data.Key) bool {
 func (this *Query) MatchesOnly(key data.Key) bool {
 	return this.Id == key.Id && this.TimeFrom == key.TimeStamp && this.TimeTo == key.TimeStamp
 }
+
+func (this *Query) IsTimed() bool {
+	return this.TimeFrom != 0 || this.TimeTo != 0
+}

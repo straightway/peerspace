@@ -73,6 +73,22 @@ func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
 	fwdPeer.AssertCalledOnce(suite.T(), "Query", query, suite.node)
 }
 
+func (suite *Node_Query_Test) Test_Query_UntimedQueryIsNotForwardedAfterImmediateResult() {
+	suite.node.Push(&untimedChunk)
+	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
+	query := peer.Query{Id: untimedKey.Id}
+	suite.Query(query)
+	fwdPeer.AssertNotCalled(suite.T(), "Query", query, suite.node)
+}
+
+func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsForwardedAfterImmediateResult() {
+	suite.node.Push(&timedChunk10)
+	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
+	query := peer.Query{Id: timedKey10.Id, TimeFrom: 5, TimeTo: 30}
+	suite.Query(query)
+	fwdPeer.AssertCalledOnce(suite.T(), "Query", query, suite.node)
+}
+
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 	suite.AddKnownConnectedPeer(DoForward(true))
 	suite.Query(peer.Query{Id: untimedKey.Id})
@@ -128,6 +144,13 @@ func (suite *Node_Query_Test) Test_Query_IsNotDiscardedBeforeTimeout() {
 func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeYieldsMultipleResults() {
 	suite.Query(peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
 	suite.node.Push(&timedChunk10)
+	suite.node.Push(&timedChunk20)
+	suite.assertQueryResult(&timedChunk10, &timedChunk20)
+}
+
+func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsNotDiscardedAfterImmediateResult() {
+	suite.node.Push(&timedChunk10)
+	suite.Query(peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
 	suite.node.Push(&timedChunk20)
 	suite.assertQueryResult(&timedChunk10, &timedChunk20)
 }

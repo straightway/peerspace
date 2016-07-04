@@ -100,6 +100,14 @@ func (this *NodeImpl) IsConnectedWith(peer Connector) bool {
 	return general.Contains(this.connectedPeers, peer)
 }
 
+func (this *NodeImpl) ConnectedPeers() []Connector {
+	return append([]Connector(nil), this.connectedPeers...)
+}
+
+func (this *NodeImpl) ConnectingPeers() []Connector {
+	return append([]Connector(nil), this.connectingPeers...)
+}
+
 func (this *NodeImpl) Push(data *data.Chunk) {
 	if data == nil {
 		return

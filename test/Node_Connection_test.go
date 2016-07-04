@@ -19,6 +19,7 @@ package test
 import (
 	"testing"
 
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/assert"
@@ -170,4 +171,24 @@ func (suite *Node_Connection_Test) TestClosedConnectionsAreNotConnected() {
 	suite.node.RequestConnectionWith(peerNode)
 	suite.node.CloseConnectionWith(peerNode)
 	assert.False(suite.T(), suite.node.IsConnectedWith(peerNode))
+}
+
+func (suite *Node_Connection_Test) Test_ConnectedPeers_ContainsConnectedPeers() {
+	suite.AddKnownConnectedPeer(DoForward(false))
+	connectedPeer := suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	suite.node.RequestConnectionWith(connectedPeer)
+	result := suite.node.ConnectedPeers()
+	suite.Assert().Equal(1, len(result))
+	suite.Assert().True(general.Contains(result, connectedPeer))
+}
+
+func (suite *Node_Connection_Test) Test_ConnectingPeers_ContainsConnectingPeers() {
+	connectingPeer := suite.AddKnownConnectedPeer(DoForward(false))
+	connectedPeer := suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.Startup()
+	suite.node.RequestConnectionWith(connectedPeer)
+	result := suite.node.ConnectingPeers()
+	suite.Assert().Equal(1, len(result))
+	suite.Assert().True(general.Contains(result, connectingPeer))
 }

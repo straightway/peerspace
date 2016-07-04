@@ -14,13 +14,11 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package strategy
 
-type Configuration struct {
-	MaxConnections int
-}
+import "github.com/straightway/straightway/peer"
 
-func DefaultConfiguration() *Configuration {
-	return &Configuration{
-		MaxConnections: 20}
+type ConnectionInfoProvider interface {
+	ConnectingPeers() []peer.Connector
+	ConnectedPeers() []peer.Connector
 }

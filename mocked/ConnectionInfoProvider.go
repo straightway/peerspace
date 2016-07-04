@@ -14,13 +14,29 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package mocked
 
-type Configuration struct {
-	MaxConnections int
+import "github.com/straightway/straightway/peer"
+
+type ConnectionInfoProvider struct {
+	Base
+	AllConnectingPeers []peer.Connector
+	AllConnectedPeers  []peer.Connector
 }
 
-func DefaultConfiguration() *Configuration {
-	return &Configuration{
-		MaxConnections: 20}
+func NewConnectionInfoProvider() *ConnectionInfoProvider {
+	result := &ConnectionInfoProvider{}
+	result.On("ConnectingPeers").Return()
+	result.On("ConnectedPeers").Return()
+	return result
+}
+
+func (m *ConnectionInfoProvider) ConnectingPeers() []peer.Connector {
+	m.Called()
+	return m.AllConnectingPeers
+}
+
+func (m *ConnectionInfoProvider) ConnectedPeers() []peer.Connector {
+	m.Called()
+	return m.AllConnectedPeers
 }

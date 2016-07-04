@@ -19,29 +19,37 @@ package mocked
 import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
 )
 
 type DataStorage struct {
+	Base
 	data         []*data.Chunk
 	StartupCalls int
 }
 
 func NewDataStorage(result ...*data.Chunk) *DataStorage {
 	dataStorage := &DataStorage{data: make([]*data.Chunk, 0)}
+	dataStorage.On("ConsiderStorage", mock.Anything).Return()
 	for _, chunk := range result {
 		dataStorage.ConsiderStorage(chunk)
 	}
+
+	dataStorage.On("Query", mock.Anything).Return()
+	dataStorage.On("Startup").Return()
 
 	return dataStorage
 }
 
 func (this *DataStorage) ConsiderStorage(data *data.Chunk) {
+	this.Called(data)
 	if data != nil {
 		this.data = append(this.data, data)
 	}
 }
 
 func (this *DataStorage) Query(query peer.Query) []*data.Chunk {
+	this.Called(query)
 	result := make([]*data.Chunk, 0)
 	for _, chunk := range this.data {
 		if query.Matches(chunk.Key) {
@@ -53,5 +61,6 @@ func (this *DataStorage) Query(query peer.Query) []*data.Chunk {
 }
 
 func (this *DataStorage) Startup() {
+	this.Called()
 	this.StartupCalls++
 }

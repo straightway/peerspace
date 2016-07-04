@@ -24,14 +24,14 @@ import (
 )
 
 type NodeImpl struct {
-	Identifier          string
-	StateStorage        StateStorage
-	DataStorage         DataStorage
-	DataForwardStrategy DataForwardStrategy
-	QueryStrategy       QueryStrategy
-	ConnectionStrategy  ConnectionStrategy
-	Timer               Timer
-	Configuration       *Configuration
+	Identifier         string
+	StateStorage       StateStorage
+	DataStorage        DataStorage
+	DataStrategy       DataStrategy
+	QueryStrategy      QueryStrategy
+	ConnectionStrategy ConnectionStrategy
+	Timer              Timer
+	Configuration      *Configuration
 
 	connectingPeers []Connector
 	connectedPeers  []Connector
@@ -48,11 +48,6 @@ type pendingQuery struct {
 func (this *pendingQuery) AddReceiver(receiver Pusher, parent *NodeImpl) {
 	this.receivers = append(this.receivers, receiver)
 	this.refreshTimeout(parent)
-}
-
-func (this *pendingQuery) refreshTimeout(parent *NodeImpl) {
-	queryTimeout := parent.QueryStrategy.TimeoutFor(this.query)
-	this.expirationTime = parent.Timer.Time().Add(queryTimeout)
 }
 
 func (this *NodeImpl) Id() string {
@@ -110,6 +105,10 @@ func (this *NodeImpl) Push(data *data.Chunk) {
 		return
 	}
 
+	if !this.DataStrategy.IsChunkAccepted(data) {
+		return
+	}
+
 	for _, p := range this.dataForwardPeers(data.Key) {
 		p.Push(data)
 	}
@@ -119,6 +118,10 @@ func (this *NodeImpl) Push(data *data.Chunk) {
 }
 
 func (this *NodeImpl) Query(query Query, receiver Pusher) {
+	if !this.QueryStrategy.IsQueryAccepted(query, receiver) {
+		return
+	}
+
 	queryResults := this.DataStorage.Query(query)
 	if len(queryResults) == 0 || query.IsTimed() {
 		this.registerPendingQuery(query, receiver)
@@ -135,6 +138,11 @@ func (this *NodeImpl) IsStarted() bool {
 }
 
 // Private
+
+func (this *pendingQuery) refreshTimeout(parent *NodeImpl) {
+	queryTimeout := parent.QueryStrategy.TimeoutFor(this.query)
+	this.expirationTime = parent.Timer.Time().Add(queryTimeout)
+}
 
 func (this *NodeImpl) isConnectionAcceptedWith(peer Connector) bool {
 	return this.IsConnectionPendingWith(peer) ||
@@ -167,7 +175,7 @@ func (this *NodeImpl) confirmConnectionWith(peer Connector) {
 }
 
 func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
-	forwardPeers := this.DataForwardStrategy.ForwardTargetsFor(this.connectedPeers, key)
+	forwardPeers := this.DataStrategy.ForwardTargetsFor(this.connectedPeers, key)
 	for _, query := range this.pendingQueriesForKey(key) {
 		return general.SetUnion(forwardPeers, query.receivers).([]Connector)
 	}
@@ -236,8 +244,8 @@ func (this *NodeImpl) assertConsistency() {
 	if this.DataStorage == nil {
 		panic("No DataStorage")
 	}
-	if this.DataForwardStrategy == nil {
-		panic("No DataForwardStrategy")
+	if this.DataStrategy == nil {
+		panic("No DataStrategy")
 	}
 	if this.ConnectionStrategy == nil {
 		panic("No ConnectionStrategy")

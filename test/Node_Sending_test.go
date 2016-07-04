@@ -22,6 +22,7 @@ import (
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -53,7 +54,7 @@ func (suite *Node_Sending_Test) TearDownTest() {
 
 func (suite *Node_Sending_Test) Test_PushedData_IgnoresNil() {
 	suite.node.Push(nil)
-	suite.dataForwardStrategy.AssertNumberOfCalls(suite.T(), "ForwardTargetsFor", 0)
+	suite.dataStrategy.AssertNumberOfCalls(suite.T(), "ForwardTargetsFor", 0)
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
@@ -86,6 +87,17 @@ func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
 	suite.node.RequestConnectionWith(connectedPeers[0])
 	suite.node.Push(&untimedChunk)
 
-	suite.dataForwardStrategy.AssertCalledOnce(
-		suite.T(), "ForwardTargetsFor", mocked.IPeerConnectors(connectedPeers[:]), untimedChunk.Key)
+	suite.dataStrategy.AssertCalledOnce(
+		suite.T(),
+		"ForwardTargetsFor",
+		mocked.IPeerConnectors(connectedPeers[:]),
+		untimedChunk.Key)
+}
+
+func (suite *Node_Sending_Test) Test_Push_NotAcceptedChunkIsImmediatelyDiscarded() {
+	suite.dataStrategy.ExpectedCalls = nil
+	suite.dataStrategy.On("IsChunkAccepted", &untimedChunk).Return(false)
+	suite.node.Push(&untimedChunk)
+	suite.dataStrategy.AssertNotCalled(
+		suite.T(), "ForwardTargetsFor", mock.Anything, mock.Anything)
 }

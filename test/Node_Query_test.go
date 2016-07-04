@@ -164,6 +164,14 @@ func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsDiscardedAfterTimeou
 	suite.assertQueryResult(&timedChunk10)
 }
 
+func (suite *Node_Query_Test) Test_Query_NotAcceptedQueryIsImmediatelyDiscarded() {
+	query := peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20}
+	suite.queryStrategy.ExpectedCalls = nil
+	suite.queryStrategy.On("IsQueryAccepted", query, suite.queryPeer).Return(false)
+	suite.Query(query)
+	suite.dataStorage.AssertNotCalled(suite.T(), "Query", mock.Anything)
+}
+
 // Private
 
 func (suite *Node_Query_Test) advanceTimeByQueryTimeoutFactor(query peer.Query, factor float32) {

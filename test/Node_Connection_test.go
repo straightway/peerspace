@@ -75,7 +75,7 @@ func (suite *Node_Connection_Test) TestRefusedPeerIsNotForwardTarget() {
 	suite.node.RequestConnectionWith(acceptedPeerNode)
 	suite.node.Push(&untimedChunk)
 
-	suite.dataForwardStrategy.AssertCalledOnce(
+	suite.dataStrategy.AssertCalledOnce(
 		suite.T(),
 		"ForwardTargetsFor",
 		[]peer.Connector{acceptedPeerNode},
@@ -104,7 +104,7 @@ func (suite *Node_Connection_Test) TestInitialUnconfirmedConnectionsAreNotForwar
 	suite.node.Startup()
 	suite.node.Push(&untimedChunk)
 
-	suite.dataForwardStrategy.AssertCalledOnce(
+	suite.dataStrategy.AssertCalledOnce(
 		suite.T(),
 		"ForwardTargetsFor",
 		[]peer.Connector{},

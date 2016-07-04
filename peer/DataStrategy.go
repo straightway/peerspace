@@ -18,6 +18,7 @@ package peer
 
 import "github.com/straightway/straightway/data"
 
-type DataForwardStrategy interface {
+type DataStrategy interface {
+	IsChunkAccepted(*data.Chunk) bool
 	ForwardTargetsFor(allPeers []Connector, key data.Key) []Connector
 }

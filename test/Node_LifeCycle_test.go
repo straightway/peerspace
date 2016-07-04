@@ -55,7 +55,7 @@ func (suite *Node_LifeCycle_Test) Test_Startup_WithoutStateStoragePanics() {
 }
 
 func (suite *Node_LifeCycle_Test) Test_Startup_WithoutForwardStrategyPanics() {
-	suite.node.DataForwardStrategy = nil
+	suite.node.DataStrategy = nil
 	suite.Assert().Panics(func() { suite.node.Startup() })
 }
 

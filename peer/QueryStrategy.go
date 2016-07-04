@@ -19,6 +19,7 @@ package peer
 import "time"
 
 type QueryStrategy interface {
+	IsQueryAccepted(query Query, receiver Pusher) bool
 	ForwardTargetsFor(allPeers []Connector, query Query) []Connector
 	TimeoutFor(query Query) time.Duration
 }

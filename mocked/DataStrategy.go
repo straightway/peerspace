@@ -22,17 +22,23 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type DataForwardStrategy struct {
+type DataStrategy struct {
 	Base
 }
 
-func NewDataForwardStrategy(resultPeers []peer.Connector) *DataForwardStrategy {
-	result := &DataForwardStrategy{}
+func NewDataStrategy(resultPeers []peer.Connector) *DataStrategy {
+	result := &DataStrategy{}
 	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
+	result.On("IsChunkAccepted", mock.Anything).Return(true)
 	return result
 }
 
-func (m *DataForwardStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
+func (m *DataStrategy) IsChunkAccepted(chunk *data.Chunk) bool {
+	args := m.Called(chunk)
+	return args.Get(0).(bool)
+}
+
+func (m *DataStrategy) ForwardTargetsFor(allPeers []peer.Connector, key data.Key) []peer.Connector {
 	args := m.Called(allPeers, key)
 	return args.Get(0).([]peer.Connector)
 }

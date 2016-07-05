@@ -18,7 +18,6 @@ package test
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
@@ -26,9 +25,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// Test suite
-
-type ConnectionStrategy_Test struct {
+type ConnectionStrategy_Base struct {
 	suite.Suite
 	sut                    *strategy.Connection
 	connectionInfoProvider *mocked.ConnectionInfoProvider
@@ -36,11 +33,7 @@ type ConnectionStrategy_Test struct {
 	configuration          *peer.Configuration
 }
 
-func TestConnectionStrategy(t *testing.T) {
-	suite.Run(t, new(ConnectionStrategy_Test))
-}
-
-func (suite *ConnectionStrategy_Test) SetupTest() {
+func (suite *ConnectionStrategy_Base) SetupTest() {
 	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
 	suite.configuration = peer.DefaultConfiguration()
 	suite.sut = &strategy.Connection{
@@ -48,50 +41,20 @@ func (suite *ConnectionStrategy_Test) SetupTest() {
 		Configuration:          suite.configuration}
 }
 
-func (suite *ConnectionStrategy_Test) TearDownTest() {
+func (suite *ConnectionStrategy_Base) TearDownTest() {
 	suite.sut = nil
 	suite.connectionInfoProvider = nil
 	suite.allConnectors = nil
 	suite.configuration = nil
 }
 
-// Tests
-
-func (suite *ConnectionStrategy_Test) Test_PeersToConnect_EmptyInputEmptyOutput() {
-	result := suite.sut.PeersToConnect(nil)
-	suite.Assert().Empty(result)
-}
-
-func (suite *ConnectionStrategy_Test) Test_PeersToConnect_SkipAlreadyConnectedPeers() {
-	suite.addConnectedPeer()
-	result := suite.sut.PeersToConnect(suite.connectionInfoProvider.AllConnectedPeers)
-	suite.Assert().Empty(result)
-}
-
-func (suite *ConnectionStrategy_Test) Test_PeersToConnect_ConnectAllIfNotExceedingMaximum() {
-	suite.configuration.MaxConnections = 3
-	suite.createConnectors(suite.configuration.MaxConnections)
-	result := suite.sut.PeersToConnect(suite.allConnectors)
-	suite.Assert().Equal(suite.allConnectors[0:3], result)
-}
-
-func (suite *ConnectionStrategy_Test) Test_PeersToConnect_ConnectToMaxNumberIfNotYetConnected() {
-	suite.configuration.MaxConnections = 3
-	suite.createConnectors(suite.configuration.MaxConnections + 1)
-
-	result := suite.sut.PeersToConnect(suite.allConnectors)
-	suite.Assert().Equal(suite.allConnectors[0:suite.configuration.MaxConnections], result)
-}
-
-// Private
-
-func (suite *ConnectionStrategy_Test) addConnectedPeer() {
+func (suite *ConnectionStrategy_Base) addConnectedPeer() {
 	suite.connectionInfoProvider.AllConnectedPeers = append(
 		suite.connectionInfoProvider.AllConnectedPeers,
 		suite.createPeerConnector())
 }
 
-func (suite *ConnectionStrategy_Test) addConnectingPeer() {
+func (suite *ConnectionStrategy_Base) addConnectingPeer() {
 	suite.connectionInfoProvider.AllConnectingPeers = append(
 		suite.connectionInfoProvider.AllConnectingPeers,
 		suite.createPeerConnector())
@@ -99,14 +62,14 @@ func (suite *ConnectionStrategy_Test) addConnectingPeer() {
 
 var nextPeerId = 0
 
-func (suite *ConnectionStrategy_Test) createPeerConnector() *mocked.PeerConnector {
+func (suite *ConnectionStrategy_Base) createPeerConnector() *mocked.PeerConnector {
 	result := &mocked.PeerConnector{Identifier: fmt.Sprintf("%v", nextPeerId)}
 	suite.allConnectors = append(suite.allConnectors, result)
 	nextPeerId++
 	return result
 }
 
-func (suite *ConnectionStrategy_Test) createConnectors(count int) {
+func (suite *ConnectionStrategy_Base) createConnectors(count int) {
 	for i := 0; i < count; i++ {
 		suite.createPeerConnector()
 	}

@@ -35,11 +35,19 @@ func (this *Connection) PeersToConnect(allPeers []peer.Connector) []peer.Connect
 	}
 }
 
+func (this *Connection) IsConnectionAcceptedWith(peer peer.Connector) bool {
+	return len(this.existingConnections()) < this.Configuration.MaxConnections
+}
+
 func (this *Connection) existingConnectionsFilteredFrom(allPeers []peer.Connector) []peer.Connector {
 	filteredPeers := append([]peer.Connector(nil), allPeers...)
-	omittedPeers := this.ConnectionInfoProvider.ConnectedPeers()
-	omittedPeers = append(omittedPeers, this.ConnectionInfoProvider.ConnectingPeers()...)
+	omittedPeers := this.existingConnections()
 	return general.RemoveItemsIf(filteredPeers, func(item interface{}) bool {
 		return general.Contains(omittedPeers, item.(general.Equaler))
 	}).([]peer.Connector)
+}
+
+func (this *Connection) existingConnections() []peer.Connector {
+	connected := this.ConnectionInfoProvider.ConnectedPeers()
+	return append(connected, this.ConnectionInfoProvider.ConnectingPeers()...)
 }

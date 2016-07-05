@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ConnectionStrategy_Base struct {
+type ConnectionStrategy_TestBase struct {
 	suite.Suite
 	sut                    *strategy.Connection
 	connectionInfoProvider *mocked.ConnectionInfoProvider
@@ -33,7 +33,7 @@ type ConnectionStrategy_Base struct {
 	configuration          *peer.Configuration
 }
 
-func (suite *ConnectionStrategy_Base) SetupTest() {
+func (suite *ConnectionStrategy_TestBase) SetupTest() {
 	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
 	suite.configuration = peer.DefaultConfiguration()
 	suite.sut = &strategy.Connection{
@@ -41,20 +41,20 @@ func (suite *ConnectionStrategy_Base) SetupTest() {
 		Configuration:          suite.configuration}
 }
 
-func (suite *ConnectionStrategy_Base) TearDownTest() {
+func (suite *ConnectionStrategy_TestBase) TearDownTest() {
 	suite.sut = nil
 	suite.connectionInfoProvider = nil
 	suite.allConnectors = nil
 	suite.configuration = nil
 }
 
-func (suite *ConnectionStrategy_Base) addConnectedPeer() {
+func (suite *ConnectionStrategy_TestBase) addConnectedPeer() {
 	suite.connectionInfoProvider.AllConnectedPeers = append(
 		suite.connectionInfoProvider.AllConnectedPeers,
 		suite.createPeerConnector())
 }
 
-func (suite *ConnectionStrategy_Base) addConnectingPeer() {
+func (suite *ConnectionStrategy_TestBase) addConnectingPeer() {
 	suite.connectionInfoProvider.AllConnectingPeers = append(
 		suite.connectionInfoProvider.AllConnectingPeers,
 		suite.createPeerConnector())
@@ -62,14 +62,14 @@ func (suite *ConnectionStrategy_Base) addConnectingPeer() {
 
 var nextPeerId = 0
 
-func (suite *ConnectionStrategy_Base) createPeerConnector() *mocked.PeerConnector {
+func (suite *ConnectionStrategy_TestBase) createPeerConnector() *mocked.PeerConnector {
 	result := &mocked.PeerConnector{Identifier: fmt.Sprintf("%v", nextPeerId)}
 	suite.allConnectors = append(suite.allConnectors, result)
 	nextPeerId++
 	return result
 }
 
-func (suite *ConnectionStrategy_Base) createConnectors(count int) {
+func (suite *ConnectionStrategy_TestBase) createConnectors(count int) {
 	for i := 0; i < count; i++ {
 		suite.createPeerConnector()
 	}

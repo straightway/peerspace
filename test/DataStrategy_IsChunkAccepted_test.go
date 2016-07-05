@@ -14,31 +14,33 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package test
 
 import (
+	"testing"
+
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
 
-type DataStrategy struct {
-	Base
+type DataStrategy_IsChunkAccepted_Test struct {
+	DataStrategy_TestBase
 }
 
-func NewDataStrategy(resultPeers []peer.Connector) *DataStrategy {
-	result := &DataStrategy{}
-	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
-	result.On("IsChunkAccepted", mock.Anything, mock.Anything).Return(true)
-	return result
+func TestDataStrategy_IsChunkAccepted(t *testing.T) {
+	suite.Run(t, new(DataStrategy_IsChunkAccepted_Test))
 }
 
-func (m *DataStrategy) IsChunkAccepted(chunk *data.Chunk, origin peer.Connector) bool {
-	args := m.Called(chunk, origin)
-	return args.Get(0).(bool)
+// Tests
+
+func (suite *DataStrategy_IsChunkAccepted_Test) TestChunkSmallerThanMaxChunkSizeIsAccepted() {
+	suite.configuration.MaxChunkSize = 5
+	chunk := &data.Chunk{Data: make([]byte, 5, 5)}
+	suite.Assert().True(suite.sut.IsChunkAccepted(chunk, nil))
 }
 
-func (m *DataStrategy) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.Connector {
-	args := m.Called(key, origin)
-	return args.Get(0).([]peer.Connector)
+func (suite *DataStrategy_IsChunkAccepted_Test) TestChunkBiggerThanMaxChunkSizeIsRejected() {
+	suite.configuration.MaxChunkSize = 5
+	chunk := &data.Chunk{Data: make([]byte, 6, 6)}
+	suite.Assert().False(suite.sut.IsChunkAccepted(chunk, nil))
 }

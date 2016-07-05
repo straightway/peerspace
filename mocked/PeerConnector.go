@@ -36,7 +36,7 @@ func CreatePeerConnector() *PeerConnector {
 	peer := &PeerConnector{}
 	peer.Identifier = fmt.Sprintf("%v", objectCount)
 	objectCount++
-	peer.On("Push", mock.Anything)
+	peer.On("Push", mock.Anything, mock.Anything)
 	peer.On("CloseConnectionWith", mock.Anything)
 	peer.On("RequestConnectionWith", mock.Anything)
 	peer.On("Query", mock.Anything, mock.Anything)
@@ -64,8 +64,8 @@ func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *PeerConnector) Push(data *data.Chunk) {
-	m.Called(data)
+func (m *PeerConnector) Push(data *data.Chunk, origin peer.Connector) {
+	m.Called(data, origin)
 }
 
 func (m *PeerConnector) Query(query peer.Query, receiver peer.Pusher) {

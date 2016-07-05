@@ -18,9 +18,11 @@ package peer
 
 type Configuration struct {
 	MaxConnections int
+	MaxChunkSize   int
 }
 
 func DefaultConfiguration() *Configuration {
 	return &Configuration{
-		MaxConnections: 20}
+		MaxConnections: 20,
+		MaxChunkSize:   0xffff}
 }

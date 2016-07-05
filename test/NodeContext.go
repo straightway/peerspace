@@ -23,6 +23,7 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
 )
 
 type DoForward bool
@@ -75,7 +76,16 @@ func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) *mocked.PeerCo
 		this.forwardPeers = append(this.forwardPeers, peer)
 	}
 	this.SetUp()
+	if this.node.IsStarted() {
+		this.ConfirmConnectedPeers()
+	}
 	return peer
+}
+
+func (this *NodeContext) ConfirmConnectedPeers() {
+	for _, p := range this.connectedPeers {
+		this.node.RequestConnectionWith(p)
+	}
 }
 
 func (this *NodeContext) SetDataStorage(newDataStorage *mocked.DataStorage) {
@@ -105,9 +115,17 @@ func (this *NodeContext) AdvanceTimeBy(span time.Duration) {
 	this.timer.CurrentTime = this.timer.CurrentTime.Add(span)
 }
 
+func (this *NodeContext) FirstConnectedPeer() peer.Connector {
+	return this.node.ConnectedPeers()[0]
+}
+
+func (this *NodeContext) Push(chunk *data.Chunk) {
+	this.node.Push(chunk, this.FirstConnectedPeer())
+}
+
 func AssertPushed(t *testing.T, receiver *mocked.PeerConnector, chunks ...*data.Chunk) {
 	for _, chunk := range chunks {
-		receiver.AssertCalled(t, "Push", chunk)
+		receiver.AssertCalled(t, "Push", chunk, mock.Anything)
 	}
 	receiver.AssertNumberOfCalls(t, "Push", len(chunks))
 }

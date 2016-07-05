@@ -19,7 +19,6 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -44,6 +43,7 @@ func (suite *Node_Sending_Test) SetupTest() {
 	suite.AddKnownConnectedPeer(DoForward(true))
 	suite.AddKnownConnectedPeer(DoForward(false))
 	suite.node.Startup()
+	suite.ConfirmConnectedPeers()
 }
 
 func (suite *Node_Sending_Test) TearDownTest() {
@@ -53,51 +53,38 @@ func (suite *Node_Sending_Test) TearDownTest() {
 // Tests
 
 func (suite *Node_Sending_Test) Test_PushedData_IgnoresNil() {
-	suite.node.Push(nil)
+	suite.Push(nil)
 	suite.dataStrategy.AssertNumberOfCalls(suite.T(), "ForwardTargetsFor", 0)
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsForwardedToProperPeer() {
-	suite.node.Push(&untimedChunk)
+	firstConnectedPeer := suite.node.ConnectedPeers()[0]
+	suite.node.Push(&untimedChunk, firstConnectedPeer)
+	suite.Assert().NotEmpty(suite.forwardPeers)
 
 	for _, p := range suite.forwardPeers {
-		p.AssertCalledOnce(suite.T(), "Push", &untimedChunk)
+		p.AssertCalledOnce(suite.T(), "Push", &untimedChunk, suite.node)
 	}
 }
 
 func (suite *Node_Sending_Test) Test_PushedData_IsHandedToDataStorage() {
 	assert.Empty(suite.T(), suite.dataStorage.Query(peer.Query{Id: untimedKey.Id}))
-	suite.node.Push(&untimedChunk)
+	suite.Push(&untimedChunk)
 	assert.NotEmpty(suite.T(), suite.dataStorage.Query(peer.Query{Id: untimedKey.Id}))
 }
 
 func (suite *Node_Sending_Test) Test_Push_DoesNotQueryStateStorage() {
 	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
-	suite.node.Push(&untimedChunk)
+	suite.Push(&untimedChunk)
 	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
-}
-
-func (suite *Node_Sending_Test) Test_Push_ConsidersExternallyConnectedPeers() {
-	suite.NodeContext = NewNodeContext()
-	suite.SetUp()
-	suite.node.Startup()
-
-	connectedPeers := [...]*mocked.PeerConnector{mocked.CreatePeerConnector()}
-
-	suite.node.RequestConnectionWith(connectedPeers[0])
-	suite.node.Push(&untimedChunk)
-
-	suite.dataStrategy.AssertCalledOnce(
-		suite.T(),
-		"ForwardTargetsFor",
-		mocked.IPeerConnectors(connectedPeers[:]),
-		untimedChunk.Key)
 }
 
 func (suite *Node_Sending_Test) Test_Push_NotAcceptedChunkIsImmediatelyDiscarded() {
 	suite.dataStrategy.ExpectedCalls = nil
-	suite.dataStrategy.On("IsChunkAccepted", &untimedChunk).Return(false)
-	suite.node.Push(&untimedChunk)
+	suite.dataStrategy.
+		On("IsChunkAccepted", &untimedChunk, suite.FirstConnectedPeer()).
+		Return(false)
+	suite.Push(&untimedChunk)
 	suite.dataStrategy.AssertNotCalled(
 		suite.T(), "ForwardTargetsFor", mock.Anything, mock.Anything)
 }

@@ -108,17 +108,17 @@ func (this *NodeImpl) ConnectingPeers() []Connector {
 	return append([]Connector(nil), this.connectingPeers...)
 }
 
-func (this *NodeImpl) Push(data *data.Chunk) {
+func (this *NodeImpl) Push(data *data.Chunk, origin Connector) {
 	if data == nil {
 		return
 	}
 
-	if !this.DataStrategy.IsChunkAccepted(data) {
+	if !this.DataStrategy.IsChunkAccepted(data, origin) {
 		return
 	}
 
-	for _, p := range this.dataForwardPeers(data.Key) {
-		p.Push(data)
+	for _, p := range this.dataForwardPeers(origin, data.Key) {
+		p.Push(data, this)
 	}
 
 	this.DataStorage.ConsiderStorage(data)
@@ -133,11 +133,11 @@ func (this *NodeImpl) Query(query Query, receiver Pusher) {
 	queryResults := this.DataStorage.Query(query)
 	if len(queryResults) == 0 || query.IsTimed() {
 		this.registerPendingQuery(query, receiver)
-		this.forwardQuery(query)
+		this.forwardQuery(query, receiver)
 	}
 
 	for _, queryResult := range queryResults {
-		receiver.Push(queryResult)
+		receiver.Push(queryResult, this)
 	}
 }
 
@@ -182,8 +182,8 @@ func (this *NodeImpl) confirmConnectionWith(peer Connector) {
 	}
 }
 
-func (this *NodeImpl) dataForwardPeers(key data.Key) []Connector {
-	forwardPeers := this.DataStrategy.ForwardTargetsFor(this.connectedPeers, key)
+func (this *NodeImpl) dataForwardPeers(origin Connector, key data.Key) []Connector {
+	forwardPeers := this.DataStrategy.ForwardTargetsFor(key, origin)
 	for _, query := range this.pendingQueriesForKey(key) {
 		return general.SetUnion(forwardPeers, query.receivers).([]Connector)
 	}
@@ -202,8 +202,8 @@ func (this *NodeImpl) pendingQueriesForKey(key data.Key) []*pendingQuery {
 	return result
 }
 
-func (this *NodeImpl) forwardQuery(query Query) {
-	fwdPeers := this.QueryStrategy.ForwardTargetsFor(this.connectedPeers, query)
+func (this *NodeImpl) forwardQuery(query Query, receiver Pusher) {
+	fwdPeers := this.QueryStrategy.ForwardTargetsFor(this.connectedPeers, receiver, query)
 	for _, p := range fwdPeers {
 		p.Query(query, this)
 	}

@@ -14,11 +14,26 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package strategy
 
-import "github.com/straightway/straightway/data"
+import (
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
+)
 
-type DataStrategy interface {
-	IsChunkAccepted(data *data.Chunk, origin Connector) bool
-	ForwardTargetsFor(key data.Key, origin Connector) []Connector
+type Data struct {
+	Configuration          *peer.Configuration
+	ConnectionInfoProvider ConnectionInfoProvider
+}
+
+func (this *Data) IsChunkAccepted(data *data.Chunk, origin peer.Connector) bool {
+	return len(data.Data) <= this.Configuration.MaxChunkSize
+}
+
+func (this *Data) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.Connector {
+	result := append([]peer.Connector(nil), this.ConnectionInfoProvider.ConnectedPeers()...)
+	return general.RemoveItemsIf(result, func(item interface{}) bool {
+		return origin.Equal(item.(general.Equaler))
+	}).([]peer.Connector)
 }

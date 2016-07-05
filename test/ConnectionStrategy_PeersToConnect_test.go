@@ -25,7 +25,7 @@ import (
 // Test suite
 
 type ConnectionStrategy_PeersToConnect_Test struct {
-	ConnectionStrategy_Base
+	ConnectionStrategy_TestBase
 }
 
 func TestConnectionStrategy_PeersToConnect(t *testing.T) {

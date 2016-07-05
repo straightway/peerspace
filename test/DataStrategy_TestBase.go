@@ -14,31 +14,33 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package test
 
 import (
-	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
+	"github.com/straightway/straightway/strategy"
+	"github.com/stretchr/testify/suite"
 )
 
-type DataStrategy struct {
-	Base
+// Test suite
+
+type DataStrategy_TestBase struct {
+	suite.Suite
+	sut                    *strategy.Data
+	configuration          *peer.Configuration
+	connectionInfoProvider *mocked.ConnectionInfoProvider
 }
 
-func NewDataStrategy(resultPeers []peer.Connector) *DataStrategy {
-	result := &DataStrategy{}
-	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
-	result.On("IsChunkAccepted", mock.Anything, mock.Anything).Return(true)
-	return result
+func (suite *DataStrategy_TestBase) SetupTest() {
+	suite.configuration = peer.DefaultConfiguration()
+	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
+	suite.sut = &strategy.Data{
+		Configuration:          suite.configuration,
+		ConnectionInfoProvider: suite.connectionInfoProvider}
 }
 
-func (m *DataStrategy) IsChunkAccepted(chunk *data.Chunk, origin peer.Connector) bool {
-	args := m.Called(chunk, origin)
-	return args.Get(0).(bool)
-}
-
-func (m *DataStrategy) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.Connector {
-	args := m.Called(key, origin)
-	return args.Get(0).([]peer.Connector)
+func (suite *DataStrategy_TestBase) TearDownTest() {
+	suite.configuration = nil
+	suite.sut = nil
 }

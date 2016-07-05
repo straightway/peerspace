@@ -65,7 +65,7 @@ func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
 	peerNode.AssertCalledOnce(suite.T(), "CloseConnectionWith", suite.node)
 }
 
-func (suite *Node_Connection_Test) TestRefusedPeerIsNotForwardTarget() {
+func (suite *Node_Connection_Test) TestRefusedPeerIsNotConnected() {
 	acceptedPeerNode := mocked.CreatePeerConnector()
 	refusedPeerNode := mocked.CreatePeerConnector()
 	suite.connectionStrategy.ExpectedCalls = nil
@@ -74,13 +74,7 @@ func (suite *Node_Connection_Test) TestRefusedPeerIsNotForwardTarget() {
 
 	suite.node.RequestConnectionWith(refusedPeerNode)
 	suite.node.RequestConnectionWith(acceptedPeerNode)
-	suite.node.Push(&untimedChunk)
-
-	suite.dataStrategy.AssertCalledOnce(
-		suite.T(),
-		"ForwardTargetsFor",
-		[]peer.Connector{acceptedPeerNode},
-		untimedChunk.Key)
+	suite.Assert().False(general.Contains(suite.node.ConnectedPeers(), refusedPeerNode))
 }
 
 func (suite *Node_Connection_Test) TestRequestForAlreadyAcceptedConnectionIsIgnored() {
@@ -98,18 +92,6 @@ func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequest
 	suite.node.RequestConnectionWith(samePeerNode)
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", mock.Anything)
 	samePeerNode.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
-}
-
-func (suite *Node_Connection_Test) TestInitialUnconfirmedConnectionsAreNotForwarded() {
-	suite.AddKnownConnectedPeer(DoForward(false))
-	suite.node.Startup()
-	suite.node.Push(&untimedChunk)
-
-	suite.dataStrategy.AssertCalledOnce(
-		suite.T(),
-		"ForwardTargetsFor",
-		[]peer.Connector{},
-		untimedChunk.Key)
 }
 
 func (suite *Node_Connection_Test) TestConfirmedConnectionsAreNotReconnected() {

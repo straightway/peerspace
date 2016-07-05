@@ -25,7 +25,7 @@ import (
 // Test suite
 
 type ConnectionStrategy_IsConnectionAcceptedWith_Test struct {
-	ConnectionStrategy_Base
+	ConnectionStrategy_TestBase
 }
 
 func TestConnectionStrategy_IsConnectionAcceptedWith(t *testing.T) {

@@ -17,36 +17,10 @@
 package strategy
 
 import (
-	"math"
-
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
 )
 
-type Data struct {
-	Configuration          *peer.Configuration
-	ConnectionInfoProvider ConnectionInfoProvider
-	PeerDistanceCalculator PeerDistanceCalculator
-}
-
-func (this *Data) IsChunkAccepted(data *data.Chunk, origin peer.Connector) bool {
-	return len(data.Data) <= this.Configuration.MaxChunkSize
-}
-
-func (this *Data) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.Connector {
-	var nearestPeer peer.Connector = nil
-	var nearestPeerDistance uint64 = math.MaxUint64
-	for _, peer := range this.ConnectionInfoProvider.ConnectedPeers() {
-		currentDist := this.PeerDistanceCalculator.Distance(peer, key)
-		if currentDist < nearestPeerDistance {
-			nearestPeer = peer
-			nearestPeerDistance = currentDist
-		}
-	}
-
-	if nearestPeer != nil && !origin.Equal(nearestPeer) {
-		return []peer.Connector{nearestPeer}
-	} else {
-		return []peer.Connector{}
-	}
+type PeerDistanceCalculator interface {
+	Distance(peer.Connector, data.Key) uint64
 }

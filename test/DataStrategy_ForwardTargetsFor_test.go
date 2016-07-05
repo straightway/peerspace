@@ -26,33 +26,62 @@ import (
 
 type DataStrategy_ForwardTargetsFor_Test struct {
 	DataStrategy_TestBase
+	distanceCalculator *mocked.PeerDistanceCalculator
+	origin             *mocked.PeerConnector
 }
 
 func TestDataStrategy_ForwardTargetsFor(t *testing.T) {
 	suite.Run(t, new(DataStrategy_ForwardTargetsFor_Test))
 }
 
+func (suite *DataStrategy_ForwardTargetsFor_Test) SetupTest() {
+	suite.DataStrategy_TestBase.SetupTest()
+	suite.origin = mocked.CreatePeerConnector()
+	suite.distanceCalculator = mocked.NewPeerDistanceCalculator()
+	suite.sut.PeerDistanceCalculator = suite.distanceCalculator
+}
+
+func (suite *DataStrategy_ForwardTargetsFor_Test) TearDownTest() {
+	suite.DataStrategy_TestBase.TearDownTest()
+	suite.origin = nil
+	suite.distanceCalculator = nil
+}
+
 // Tests
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) TestNoConnectionNoForwardTarget() {
-	origin := mocked.CreatePeerConnector()
-	result := suite.sut.ForwardTargetsFor(untimedKey, origin)
+	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
 	suite.Assert().Empty(result)
 }
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) TestChunkIsNotForwardedBack() {
-	origin := mocked.CreatePeerConnector()
 	suite.connectionInfoProvider.AllConnectedPeers =
-		append(suite.connectionInfoProvider.AllConnectedPeers, origin)
-	result := suite.sut.ForwardTargetsFor(untimedKey, origin)
+		append(suite.connectionInfoProvider.AllConnectedPeers, suite.origin)
+	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
 	suite.Assert().Empty(result)
 }
 
-func (suite *DataStrategy_ForwardTargetsFor_Test) TestOnlyConnectionIsSelected() {
-	origin := mocked.CreatePeerConnector()
+func (suite *DataStrategy_ForwardTargetsFor_Test) TestSingleConnectionIsSelected() {
+	connectedPeer := suite.createConnectedPeer()
+	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
+	suite.Assert().Equal([]peer.Connector{connectedPeer}, result)
+}
+
+func (suite *DataStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelected() {
+	nearPeer := suite.createConnectedPeer()
+	farPeer := suite.createConnectedPeer()
+	suite.distanceCalculator.ExpectedCalls = nil
+	suite.distanceCalculator.On("Distance", nearPeer, untimedKey).Return(uint64(1))
+	suite.distanceCalculator.On("Distance", farPeer, untimedKey).Return(uint64(2))
+	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
+	suite.Assert().Equal([]peer.Connector{nearPeer}, result)
+}
+
+// Private
+
+func (suite *DataStrategy_ForwardTargetsFor_Test) createConnectedPeer() *mocked.PeerConnector {
 	connectedPeer := mocked.CreatePeerConnector()
 	suite.connectionInfoProvider.AllConnectedPeers =
 		append(suite.connectionInfoProvider.AllConnectedPeers, connectedPeer)
-	result := suite.sut.ForwardTargetsFor(untimedKey, origin)
-	suite.Assert().Equal([]peer.Connector{connectedPeer}, result)
+	return connectedPeer
 }

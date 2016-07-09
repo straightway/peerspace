@@ -19,6 +19,8 @@ package test
 import (
 	"testing"
 
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -57,5 +59,20 @@ func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectToMaxNumberIfNot
 	suite.createConnectors(suite.configuration.MaxConnections + 1)
 
 	result := suite.sut.PeersToConnect(suite.allConnectors)
-	suite.Assert().Equal(suite.allConnectors[0:suite.configuration.MaxConnections], result)
+	suite.Assert().Equal(suite.configuration.MaxConnections, len(result))
+	for _, p := range result {
+		suite.Assert().True(general.Contains(suite.allConnectors, p))
+	}
+
+	suite.Assert().Equal(general.SetUnion(result).([]peer.Connector), result)
+}
+
+func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectionsAreRandomized() {
+	suite.configuration.MaxConnections = 3
+	suite.createConnectors(suite.configuration.MaxConnections + 10)
+
+	result1 := suite.sut.PeersToConnect(suite.allConnectors)
+	result2 := suite.sut.PeersToConnect(suite.allConnectors)
+	suite.Assert().Equal(len(result1), len(result2))
+	suite.Assert().NotEqual(result1, result2)
 }

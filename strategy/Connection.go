@@ -17,6 +17,8 @@
 package strategy
 
 import (
+	"math/rand"
+
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 )
@@ -24,14 +26,22 @@ import (
 type Connection struct {
 	Configuration          *peer.Configuration
 	ConnectionInfoProvider ConnectionInfoProvider
+	RandSource             rand.Source
 }
 
 func (this *Connection) PeersToConnect(allPeers []peer.Connector) []peer.Connector {
+	var maxConn = this.Configuration.MaxConnections
 	filteredPeers := this.existingConnectionsFilteredFrom(allPeers)
-	if len(filteredPeers) <= this.Configuration.MaxConnections {
+	if len(filteredPeers) <= maxConn {
 		return filteredPeers
 	} else {
-		return filteredPeers[0:this.Configuration.MaxConnections]
+		permutation := rand.New(this.RandSource).Perm(len(filteredPeers))
+		result := make([]peer.Connector, maxConn, maxConn)
+		for i := 0; i < maxConn; i++ {
+			result[i] = filteredPeers[permutation[i]]
+		}
+
+		return result
 	}
 }
 

@@ -18,6 +18,7 @@ package test
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
@@ -38,7 +39,8 @@ func (suite *ConnectionStrategy_TestBase) SetupTest() {
 	suite.configuration = peer.DefaultConfiguration()
 	suite.sut = &strategy.Connection{
 		ConnectionInfoProvider: suite.connectionInfoProvider,
-		Configuration:          suite.configuration}
+		Configuration:          suite.configuration,
+		RandSource:             rand.NewSource(12345)}
 }
 
 func (suite *ConnectionStrategy_TestBase) TearDownTest() {

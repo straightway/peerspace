@@ -30,10 +30,11 @@ type DataImpl struct {
 func (this *DataImpl) Startup() {}
 
 func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
-	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.GetSizeOf(chunk))
+	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.SizeOf(chunk))
 	if success {
 		this.deleteKeys(keysToDelete)
-		this.RawStorage.Store(chunk, this.PriorityGenerator.Priority(chunk))
+		prio, expiration := this.PriorityGenerator.Priority(chunk)
+		this.RawStorage.Store(chunk, prio, expiration)
 	}
 }
 
@@ -45,15 +46,15 @@ func (this *DataImpl) Query(query peer.Query) []*data.Chunk {
 // Private
 
 func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
-	freeStorage := this.RawStorage.GetFreeStorage()
+	freeStorage := this.RawStorage.FreeStorage()
 	if chunkSize <= freeStorage {
 		return nil, true
 	}
 
-	this.RawStorage.GetLeastImportantData().Loop(func(item interface{}) general.LoopControl {
+	this.RawStorage.LeastImportantData().Loop(func(item interface{}) general.LoopControl {
 		chunk := item.(DataRecord).Chunk
 		keysToDelete = append(keysToDelete, chunk.Key)
-		freeStorage += this.RawStorage.GetSizeOf(chunk)
+		freeStorage += this.RawStorage.SizeOf(chunk)
 		return general.BreakIf(chunkSize <= freeStorage)
 	})
 

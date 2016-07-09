@@ -34,6 +34,17 @@ func (this *Data) IsChunkAccepted(data *data.Chunk, origin peer.Connector) bool 
 }
 
 func (this *Data) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.Connector {
+	var nearestPeer = this.nearestPeer(key)
+	if nearestPeer != nil && !origin.Equal(nearestPeer) {
+		return []peer.Connector{nearestPeer}
+	} else {
+		return []peer.Connector{}
+	}
+}
+
+// Private
+
+func (this *Data) nearestPeer(key data.Key) peer.Connector {
 	var nearestPeer peer.Connector = nil
 	var nearestPeerDistance uint64 = math.MaxUint64
 	for _, peer := range this.ConnectionInfoProvider.ConnectedPeers() {
@@ -44,9 +55,5 @@ func (this *Data) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.
 		}
 	}
 
-	if nearestPeer != nil && !origin.Equal(nearestPeer) {
-		return []peer.Connector{nearestPeer}
-	} else {
-		return []peer.Connector{}
-	}
+	return nearestPeer
 }

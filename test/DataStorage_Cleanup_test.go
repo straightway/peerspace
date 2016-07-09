@@ -18,7 +18,9 @@ package test
 
 import (
 	"fmt"
+	"math"
 	"testing"
+	"time"
 
 	"github.com/straightway/straightway/data"
 	"github.com/stretchr/testify/mock"
@@ -40,17 +42,17 @@ func TestDataStorage_Cleanup(t *testing.T) {
 func (suite *DataStorage_Cleanup_Test) Test_DeleteNoChunksIfEnoughSpaceIsFree() {
 	suite.createTestChunksOfSize(10, 1)
 	chunkToAdd := createTestChunkOfSize(11)
-	suite.raw.FreeStorage = 11
+	suite.raw.CurrentFreeStorage = 11
 
 	suite.sut.ConsiderStorage(chunkToAdd)
 
 	suite.raw.AssertNotCalled(suite.T(), "Delete", mock.Anything)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything, mock.Anything)
 }
 
 func (suite *DataStorage_Cleanup_Test) Test_RefuseStorageIfChunkIsTooBig() {
 	chunkToAdd := createTestChunkOfSize(10)
-	suite.raw.FreeStorage = 9
+	suite.raw.CurrentFreeStorage = 9
 
 	suite.sut.ConsiderStorage(chunkToAdd)
 
@@ -61,30 +63,30 @@ func (suite *DataStorage_Cleanup_Test) Test_RefuseStorageIfChunkIsTooBig() {
 func (suite *DataStorage_Cleanup_Test) Test_DeleteLeastImportantChunkIfNoSpaceLeft() {
 	chunkToCleanUp := suite.createTestChunksOfSize(10, 2)[0]
 	chunkToAdd := createTestChunkOfSize(10)
-	suite.raw.FreeStorage = 0
+	suite.raw.CurrentFreeStorage = 0
 
 	suite.sut.ConsiderStorage(chunkToAdd)
 
 	suite.raw.AssertCalledOnce(suite.T(), "Delete", chunkToCleanUp.Key)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything, mock.Anything)
 }
 
 func (suite *DataStorage_Cleanup_Test) Test_DeleteSeveralChunksIfNeeded() {
 	chunksToCleanUp := suite.createTestChunksOfSize(10, 2)
 	chunkToAdd := createTestChunkOfSize(11)
-	suite.raw.FreeStorage = 0
+	suite.raw.CurrentFreeStorage = 0
 
 	suite.sut.ConsiderStorage(chunkToAdd)
 
 	suite.raw.AssertCalled(suite.T(), "Delete", chunksToCleanUp[0].Key)
 	suite.raw.AssertCalled(suite.T(), "Delete", chunksToCleanUp[1].Key)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, mock.Anything, mock.Anything)
 }
 
 func (suite *DataStorage_Cleanup_Test) Test_DeleteNoChunksIfNoChunkIsBiggerThanOverallStorageSize() {
 	suite.createTestChunksOfSize(10, 2)
 	chunkToAdd := createTestChunkOfSize(21)
-	suite.raw.FreeStorage = 0
+	suite.raw.CurrentFreeStorage = 0
 
 	suite.sut.ConsiderStorage(chunkToAdd)
 
@@ -106,7 +108,7 @@ func (suite *DataStorage_Cleanup_Test) createTestChunksOfSize(size, number int) 
 	result = make([]*data.Chunk, size, size)
 	for i := number - 1; 0 <= i; i-- {
 		result[i] = createTestChunkOfSize(size)
-		suite.raw.Store(result[i], float32(i+1)*10.0)
+		suite.raw.Store(result[i], float32(i+1)*10.0, time.Unix(math.MaxInt64, 0))
 	}
 
 	suite.raw.Calls = nil

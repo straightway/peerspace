@@ -19,6 +19,7 @@ package mocked
 import (
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
@@ -29,39 +30,48 @@ import (
 
 type RawStorage struct {
 	Base
-	FreeStorage int
-	Data        []storage.DataRecord
+	CurrentFreeStorage int
+	Data               []storage.DataRecord
+	Timer              peer.Timer
 }
 
 func NewRawStorage() *RawStorage {
-	result := &RawStorage{FreeStorage: math.MaxInt32}
-	result.On("GetFreeStorage").Return()
-	result.On("GetSizeOf", mock.Anything).Return()
-	result.On("Store", mock.Anything, mock.Anything).Return()
+	result := &RawStorage{CurrentFreeStorage: math.MaxInt32}
+	result.On("FreeStorage").Return()
+	result.On("SizeOf", mock.Anything).Return()
+	result.On("Store", mock.Anything, mock.Anything, mock.Anything).Return()
 	result.On("Delete", mock.Anything).Return()
 	result.On("Query", mock.Anything).Return()
-	result.On("GetLeastImportantData").Return()
+	result.On("LeastImportantData").Return()
 	return result
 }
 
-func (m *RawStorage) GetFreeStorage() int {
+func (m *RawStorage) FreeStorage() int {
 	m.Called()
-	return m.FreeStorage
+	return m.CurrentFreeStorage
 }
 
-func (m *RawStorage) GetSizeOf(chunk *data.Chunk) int {
+func (m *RawStorage) SizeOf(chunk *data.Chunk) int {
 	m.Called(chunk)
 	return len(chunk.Data)
 }
 
-func (m *RawStorage) Store(chunk *data.Chunk, priority float32) {
-	m.Called(chunk, priority)
-	chunkSize := m.GetSizeOf(chunk)
-	if m.FreeStorage < chunkSize {
-		panic(fmt.Sprintf("Cannot store chunk %+v (size: %v). Free space: %v", chunk.Key, chunkSize, m.FreeStorage))
+func (m *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time) {
+	m.Called(chunk, priority, prioExpirationTime)
+	chunkSize := m.SizeOf(chunk)
+	if m.CurrentFreeStorage < chunkSize {
+		panic(fmt.Sprintf(
+			"Cannot store chunk %+v (size: %v). Free space: %v",
+			chunk.Key,
+			chunkSize,
+			m.FreeStorage))
 	}
-	m.FreeStorage -= chunkSize
-	record := storage.DataRecord{Chunk: chunk, Priority: priority}
+	m.CurrentFreeStorage -= chunkSize
+	record := storage.DataRecord{
+		Chunk:              chunk,
+		Priority:           priority,
+		PrioExpirationTime: prioExpirationTime}
+
 	for i, context := range m.Data {
 		if priority < context.Priority {
 			m.Data = append(m.Data, record)
@@ -70,6 +80,7 @@ func (m *RawStorage) Store(chunk *data.Chunk, priority float32) {
 			return
 		}
 	}
+
 	m.Data = append(m.Data, record)
 }
 
@@ -78,12 +89,12 @@ func (m *RawStorage) Delete(key data.Key) int {
 	for i, record := range m.Data {
 		if record.Chunk.Key == key {
 			m.Data = append(m.Data[:i], m.Data[i+1:]...)
-			m.FreeStorage += m.GetSizeOf(record.Chunk)
+			m.CurrentFreeStorage += m.SizeOf(record.Chunk)
 			break
 		}
 	}
 
-	return m.FreeStorage
+	return m.CurrentFreeStorage
 }
 
 func (m *RawStorage) Query(query peer.Query) []storage.DataRecord {
@@ -98,7 +109,20 @@ func (m *RawStorage) Query(query peer.Query) []storage.DataRecord {
 	return result
 }
 
-func (m *RawStorage) GetLeastImportantData() general.Iterator {
+func (m *RawStorage) LeastImportantData() general.Iterator {
 	m.Called()
 	return general.Iterate(m.Data)
+}
+
+func (m *RawStorage) ExpiredData() []storage.DataRecord {
+	m.Called()
+	result := make([]storage.DataRecord, 0)
+	now := m.Timer.Time()
+	for _, record := range m.Data {
+		if record.PrioExpirationTime.Before(now) {
+			result = append(result, record)
+		}
+	}
+
+	return result
 }

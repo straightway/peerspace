@@ -16,11 +16,16 @@
 
 package storage
 
-import "github.com/straightway/straightway/data"
+import (
+	"time"
+
+	"github.com/straightway/straightway/data"
+)
 
 type DataRecord struct {
-	Chunk    *data.Chunk
-	Priority float32
+	Chunk              *data.Chunk
+	Priority           float32
+	PrioExpirationTime time.Time
 }
 
 func ToChunkSlice(records []DataRecord) []*data.Chunk {

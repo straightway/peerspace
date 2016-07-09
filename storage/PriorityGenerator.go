@@ -16,8 +16,12 @@
 
 package storage
 
-import "github.com/straightway/straightway/data"
+import (
+	"time"
+
+	"github.com/straightway/straightway/data"
+)
 
 type PriorityGenerator interface {
-	Priority(*data.Chunk) float32
+	Priority(*data.Chunk) (prio float32, expirationTime time.Time)
 }

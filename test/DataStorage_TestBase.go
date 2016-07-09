@@ -17,6 +17,9 @@
 package test
 
 import (
+	"math"
+	"time"
+
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
@@ -34,7 +37,7 @@ func (suite *DataStorage_TestBase) SetupTest() {
 	suite.raw = mocked.NewRawStorage()
 	suite.sut = &storage.DataImpl{
 		RawStorage:        suite.raw,
-		PriorityGenerator: mocked.NewPriorityGenerator(0.0)}
+		PriorityGenerator: mocked.NewPriorityGenerator(0.0, time.Unix(math.MaxInt64, 0))}
 }
 
 func (suite *DataStorage_TestBase) TearDownTest() {

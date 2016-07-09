@@ -17,7 +17,9 @@
 package test
 
 import (
+	"math"
 	"testing"
+	"time"
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
@@ -39,7 +41,7 @@ func TestDataStorage(t *testing.T) {
 // Tests
 
 func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
-	suite.raw.Store(&untimedChunk, 0.0)
+	suite.raw.Store(&untimedChunk, 0.0, time.Unix(math.MaxInt64, 0))
 	query := peer.Query{Id: queryId}
 	result := suite.sut.Query(query)
 	suite.raw.AssertCalledOnce(suite.T(), "Query", query)
@@ -48,13 +50,13 @@ func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
 
 func (suite *DataStorage_Test) Test_ConsiderStorage_IsForwardedToRawStorage() {
 	suite.sut.ConsiderStorage(&untimedChunk)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything, mock.Anything)
 }
 
 func (suite *DataStorage_Test) Test_ConsiderStorage_UsesPriorityGeneratorToDeterminePriority() {
-	priorityGenerator := mocked.NewPriorityGenerator(2.0)
+	priorityGenerator := mocked.NewPriorityGenerator(2.0, time.Unix(math.MaxInt64, 0))
 	suite.sut.PriorityGenerator = priorityGenerator
 	suite.sut.ConsiderStorage(&untimedChunk)
 	priorityGenerator.AssertCalledOnce(suite.T(), "Priority", &untimedChunk)
-	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, float32(2.0))
+	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, float32(2.0), mock.Anything)
 }

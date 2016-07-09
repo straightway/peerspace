@@ -17,6 +17,8 @@
 package mocked
 
 import (
+	"time"
+
 	"github.com/straightway/straightway/data"
 	"github.com/stretchr/testify/mock"
 )
@@ -25,13 +27,13 @@ type PriorityGenerator struct {
 	Base
 }
 
-func NewPriorityGenerator(priority float32) *PriorityGenerator {
+func NewPriorityGenerator(priority float32, expirationTime time.Time) *PriorityGenerator {
 	result := &PriorityGenerator{}
-	result.On("Priority", mock.Anything).Return(priority)
+	result.On("Priority", mock.Anything).Return(priority, expirationTime)
 	return result
 }
 
-func (m *PriorityGenerator) Priority(chunk *data.Chunk) float32 {
+func (m *PriorityGenerator) Priority(chunk *data.Chunk) (float32, time.Time) {
 	args := m.Called(chunk)
-	return args.Get(0).(float32)
+	return args.Get(0).(float32), args.Get(1).(time.Time)
 }

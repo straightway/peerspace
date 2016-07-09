@@ -1,4 +1,6 @@
 #TODO
+* Peer announcment strategy
+	* Peers can get to know new peers by asking known peers about their peers
 * Implement cryptography
 	* Future-safe algorithms
 	* Encrypt data chunks

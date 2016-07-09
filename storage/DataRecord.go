@@ -28,6 +28,12 @@ type DataRecord struct {
 	PrioExpirationTime time.Time
 }
 
+type DataRecordByPriority []DataRecord
+
+func (a DataRecordByPriority) Len() int           { return len(a) }
+func (a DataRecordByPriority) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a DataRecordByPriority) Less(i, j int) bool { return a[i].Priority < a[j].Priority }
+
 func ToChunkSlice(records []DataRecord) []*data.Chunk {
 	result := make([]*data.Chunk, len(records))
 	for i, r := range records {

@@ -17,11 +17,11 @@
 package test
 
 import (
-	"math"
 	"testing"
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
@@ -41,10 +41,18 @@ func TestDataStorage(t *testing.T) {
 // Tests
 
 func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
-	suite.raw.Store(&untimedChunk, 0.0, time.Unix(math.MaxInt64, 0))
+	suite.raw.Store(&untimedChunk, 0.0, general.MaxTime())
 	query := peer.Query{Id: queryId}
 	result := suite.sut.Query(query)
 	suite.raw.AssertCalledOnce(suite.T(), "Query", query)
+	suite.Assert().Equal([]*data.Chunk{&untimedChunk}, result)
+}
+
+func (suite *DataStorage_Test) Test_Query_LeadsToRePrioritizationOfResult() {
+	suite.raw.Store(&untimedChunk, -10.0, time.Unix(0, 0))
+	query := peer.Query{Id: queryId}
+	result := suite.sut.Query(query)
+	suite.raw.AssertCalledOnce(suite.T(), "RePrioritize", untimedChunk.Key, float32(0.0), general.MaxTime())
 	suite.Assert().Equal([]*data.Chunk{&untimedChunk}, result)
 }
 
@@ -53,8 +61,27 @@ func (suite *DataStorage_Test) Test_ConsiderStorage_IsForwardedToRawStorage() {
 	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything, mock.Anything)
 }
 
+func (suite *DataStorage_Test) Test_ConsiderStorage_OverridesItemIfSameSizeEvenIfRawStorageIsFull() {
+	suite.raw.Store(&untimedChunk, 10.0, general.MaxTime())
+	suite.raw.CurrentFreeStorage = 0
+	suite.raw.Calls = nil
+	suite.sut.ConsiderStorage(&untimedChunk)
+	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything, mock.Anything)
+}
+
+func (suite *DataStorage_Test) Test_ConsiderStorage_StoresNotIfItemWithSameKeyIsBiggerAndNoStorageSpaceLeft() {
+	suite.raw.Store(&untimedChunk, 10.0, general.MaxTime())
+	suite.raw.CurrentFreeStorage = 0
+	suite.raw.Calls = nil
+	biggerChunk := data.Chunk{Key: untimedChunk.Key, Data: make([]byte, len(untimedChunk.Data)+1, len(untimedChunk.Data)+1)}
+	suite.sut.ConsiderStorage(&biggerChunk)
+
+	suite.raw.AssertNotCalled(suite.T(), "Store", mock.Anything, mock.Anything, mock.Anything)
+	suite.Assert().Equal(&untimedChunk, suite.raw.Data[0].Chunk)
+}
+
 func (suite *DataStorage_Test) Test_ConsiderStorage_UsesPriorityGeneratorToDeterminePriority() {
-	priorityGenerator := mocked.NewPriorityGenerator(2.0, time.Unix(math.MaxInt64, 0))
+	priorityGenerator := mocked.NewPriorityGenerator(2.0, general.MaxTime())
 	suite.sut.PriorityGenerator = priorityGenerator
 	suite.sut.ConsiderStorage(&untimedChunk)
 	priorityGenerator.AssertCalledOnce(suite.T(), "Priority", &untimedChunk)

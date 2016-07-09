@@ -19,6 +19,7 @@ package mocked
 import (
 	"fmt"
 	"math"
+	"sort"
 	"time"
 
 	"github.com/straightway/straightway/data"
@@ -35,14 +36,16 @@ type RawStorage struct {
 	Timer              peer.Timer
 }
 
-func NewRawStorage() *RawStorage {
-	result := &RawStorage{CurrentFreeStorage: math.MaxInt32}
+func NewRawStorage(timer peer.Timer) *RawStorage {
+	result := &RawStorage{CurrentFreeStorage: math.MaxInt32, Timer: timer}
 	result.On("FreeStorage").Return()
 	result.On("SizeOf", mock.Anything).Return()
 	result.On("Store", mock.Anything, mock.Anything, mock.Anything).Return()
 	result.On("Delete", mock.Anything).Return()
 	result.On("Query", mock.Anything).Return()
 	result.On("LeastImportantData").Return()
+	result.On("ExpiredData").Return()
+	result.On("RePrioritize", mock.Anything, mock.Anything, mock.Anything).Return()
 	return result
 }
 
@@ -58,6 +61,7 @@ func (m *RawStorage) SizeOf(chunk *data.Chunk) int {
 
 func (m *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time) {
 	m.Called(chunk, priority, prioExpirationTime)
+	m.deleteInternal(chunk.Key)
 	chunkSize := m.SizeOf(chunk)
 	if m.CurrentFreeStorage < chunkSize {
 		panic(fmt.Sprintf(
@@ -72,28 +76,30 @@ func (m *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTi
 		Priority:           priority,
 		PrioExpirationTime: prioExpirationTime}
 
-	for i, context := range m.Data {
-		if priority < context.Priority {
-			m.Data = append(m.Data, record)
-			copy(m.Data[i+1:], m.Data[i:])
-			m.Data[i] = record
-			return
+	m.Data = append(m.Data, record)
+	sort.Sort(storage.DataRecordByPriority(m.Data))
+}
+
+func (m *RawStorage) RePrioritize(key data.Key, priority float32, prioExpirationTime time.Time) {
+	m.Called(key, priority, prioExpirationTime)
+	for i, r := range m.Data {
+		if r.Chunk.Key != key {
+			continue
 		}
+
+		r.Priority = priority
+		r.PrioExpirationTime = prioExpirationTime
+		m.Data[i] = r
+		sort.Sort(storage.DataRecordByPriority(m.Data))
+		return
 	}
 
-	m.Data = append(m.Data, record)
+	panic(fmt.Sprintf("Cannot re-prioritize item with key %v as it is not contained", key))
 }
 
 func (m *RawStorage) Delete(key data.Key) int {
 	m.Called(key)
-	for i, record := range m.Data {
-		if record.Chunk.Key == key {
-			m.Data = append(m.Data[:i], m.Data[i+1:]...)
-			m.CurrentFreeStorage += m.SizeOf(record.Chunk)
-			break
-		}
-	}
-
+	m.deleteInternal(key)
 	return m.CurrentFreeStorage
 }
 
@@ -125,4 +131,16 @@ func (m *RawStorage) ExpiredData() []storage.DataRecord {
 	}
 
 	return result
+}
+
+// Private
+
+func (m *RawStorage) deleteInternal(key data.Key) {
+	for i, record := range m.Data {
+		if record.Chunk.Key == key {
+			m.Data = append(m.Data[:i], m.Data[i+1:]...)
+			m.CurrentFreeStorage += m.SizeOf(record.Chunk)
+			break
+		}
+	}
 }

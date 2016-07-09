@@ -34,4 +34,5 @@ type Raw interface {
 	FreeStorage() int
 	LeastImportantData() general.Iterator
 	ExpiredData() []DataRecord
+	RePrioritize(data.Key, float32, time.Time)
 }

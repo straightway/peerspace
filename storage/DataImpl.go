@@ -30,6 +30,7 @@ type DataImpl struct {
 func (this *DataImpl) Startup() {}
 
 func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
+	this.rePrioritizeChunksWithExpiredPrio()
 	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.SizeOf(chunk))
 	if success {
 		this.deleteKeys(keysToDelete)
@@ -40,10 +41,22 @@ func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
 
 func (this *DataImpl) Query(query peer.Query) []*data.Chunk {
 	queryResult := this.RawStorage.Query(query)
+	for _, data := range queryResult {
+		prio, expiration := this.PriorityGenerator.Priority(data.Chunk)
+		this.RawStorage.RePrioritize(data.Chunk.Key, prio, expiration)
+	}
 	return ToChunkSlice(queryResult)
 }
 
 // Private
+
+func (this *DataImpl) rePrioritizeChunksWithExpiredPrio() {
+	chunksWithExpiredPrio := this.RawStorage.ExpiredData()
+	for _, chunk := range chunksWithExpiredPrio {
+		prio, expiration := this.PriorityGenerator.Priority(chunk.Chunk)
+		this.RawStorage.RePrioritize(chunk.Chunk.Key, prio, expiration)
+	}
+}
 
 func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
 	freeStorage := this.RawStorage.FreeStorage()

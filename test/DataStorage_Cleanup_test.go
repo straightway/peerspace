@@ -18,11 +18,12 @@ package test
 
 import (
 	"fmt"
-	"math"
 	"testing"
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/mocked"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -94,6 +95,28 @@ func (suite *DataStorage_Cleanup_Test) Test_DeleteNoChunksIfNoChunkIsBiggerThanO
 	suite.raw.AssertNotCalled(suite.T(), "Store", mock.Anything)
 }
 
+func (suite *DataStorage_Cleanup_Test) Test_RePrioritizeExpiredChunksBeforeCleanup() {
+	suite.createTestChunksOfSize(10, 2)
+
+	chunkToRePrioritize := createTestChunkOfSize(10)
+	suite.raw.Store(chunkToRePrioritize, -10.0, time.Unix(10, 0))
+
+	suite.timer.CurrentTime = time.Unix(11, 0)
+
+	const newPrio = float32(1000.0)
+	suite.sut.PriorityGenerator = mocked.NewPriorityGenerator(newPrio, general.MaxTime())
+
+	chunkToAdd := createTestChunkOfSize(10)
+	suite.raw.CurrentFreeStorage = 0
+	suite.raw.Calls = nil
+
+	suite.sut.ConsiderStorage(chunkToAdd)
+
+	suite.raw.AssertNotCalled(suite.T(), "Delete", chunkToRePrioritize.Key)
+	suite.raw.AssertCalledOnce(suite.T(), "RePrioritize", chunkToRePrioritize.Key, newPrio, general.MaxTime())
+	suite.raw.AssertCalledOnce(suite.T(), "Store", chunkToAdd, newPrio, general.MaxTime())
+}
+
 // Private
 
 var nextChunkId = 0
@@ -108,7 +131,7 @@ func (suite *DataStorage_Cleanup_Test) createTestChunksOfSize(size, number int) 
 	result = make([]*data.Chunk, size, size)
 	for i := number - 1; 0 <= i; i-- {
 		result[i] = createTestChunkOfSize(size)
-		suite.raw.Store(result[i], float32(i+1)*10.0, time.Unix(math.MaxInt64, 0))
+		suite.raw.Store(result[i], float32(i+1)*10.0, general.MaxTime())
 	}
 
 	suite.raw.Calls = nil

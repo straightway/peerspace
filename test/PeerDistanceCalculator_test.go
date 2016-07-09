@@ -17,11 +17,11 @@
 package test
 
 import (
-	"math"
 	"testing"
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/strategy"
 	"github.com/stretchr/testify/suite"
@@ -115,7 +115,7 @@ func (suite *PeerDistanceCalculator_Test) Test_TimedKey_HasSameIdNext10Years() {
 func (suite *PeerDistanceCalculator_Test) Test_TimedKey_HasAlwaysSameIdAfter10Years() {
 	suite.advanceTimeByDays(3650, 0)
 	earlyDistance := suite.sut.Distance(suite.peer, recentKey)
-	suite.timer.CurrentTime = time.Unix(math.MaxInt64, 0)
+	suite.timer.CurrentTime = general.MaxTime()
 	lateDistance := suite.sut.Distance(suite.peer, recentKey)
 	suite.Assert().Equal(earlyDistance, lateDistance)
 }

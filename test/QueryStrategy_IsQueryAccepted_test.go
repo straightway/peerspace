@@ -14,31 +14,23 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package test
 
 import (
-	"github.com/straightway/straightway/data"
+	"testing"
+
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
 
-type PeerDistanceCalculator struct {
-	Base
+type QueryStrategy_IsQueryAccepted_Test struct {
+	QueryStrategy_TestBase
 }
 
-func NewPeerDistanceCalculator() *PeerDistanceCalculator {
-	result := &PeerDistanceCalculator{}
-	result.On("Distance", mock.Anything, mock.Anything).Return(uint64(0))
-	result.On("Distances", mock.Anything, mock.Anything).Return([]uint64{0})
-	return result
+func TestQueryStrategyIsQueryAccepted(t *testing.T) {
+	suite.Run(t, new(QueryStrategy_IsQueryAccepted_Test))
 }
 
-func (m *PeerDistanceCalculator) Distance(peer peer.Connector, key data.Key) uint64 {
-	args := m.Called(peer, key)
-	return args.Get(0).(uint64)
-}
-
-func (m *PeerDistanceCalculator) Distances(peer peer.Connector, query peer.Query) []uint64 {
-	args := m.Called(peer, query)
-	return args.Get(0).([]uint64)
+func (suite *QueryStrategy_IsQueryAccepted_Test) TestAlwaysTrue() {
+	suite.Assert().True(suite.sut.IsQueryAccepted(peer.Query{}, nil))
 }

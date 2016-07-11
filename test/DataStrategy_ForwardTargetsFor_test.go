@@ -19,15 +19,12 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
 
 type DataStrategy_ForwardTargetsFor_Test struct {
 	DataStrategy_TestBase
-	distanceCalculator *mocked.PeerDistanceCalculator
-	origin             *mocked.PeerConnector
 }
 
 func TestDataStrategy_ForwardTargetsFor(t *testing.T) {
@@ -36,15 +33,11 @@ func TestDataStrategy_ForwardTargetsFor(t *testing.T) {
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) SetupTest() {
 	suite.DataStrategy_TestBase.SetupTest()
-	suite.origin = mocked.CreatePeerConnector()
-	suite.distanceCalculator = mocked.NewPeerDistanceCalculator()
 	suite.sut.PeerDistanceCalculator = suite.distanceCalculator
 }
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) TearDownTest() {
 	suite.DataStrategy_TestBase.TearDownTest()
-	suite.origin = nil
-	suite.distanceCalculator = nil
 }
 
 // Tests
@@ -75,13 +68,4 @@ func (suite *DataStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelected() {
 	suite.distanceCalculator.On("Distance", farPeer, untimedKey).Return(uint64(2))
 	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
 	suite.Assert().Equal([]peer.Connector{nearPeer}, result)
-}
-
-// Private
-
-func (suite *DataStrategy_ForwardTargetsFor_Test) createConnectedPeer() *mocked.PeerConnector {
-	connectedPeer := mocked.CreatePeerConnector()
-	suite.connectionInfoProvider.AllConnectedPeers =
-		append(suite.connectionInfoProvider.AllConnectedPeers, connectedPeer)
-	return connectedPeer
 }

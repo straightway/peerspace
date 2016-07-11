@@ -122,7 +122,7 @@ func (suite *Node_Query_Test) Test_Query_ReceiverIsPassedToForwardStrategy() {
 	suite.queryPeer = suite.AddKnownConnectedPeer(DoForward(true))
 	query := peer.Query{Id: untimedKey.Id}
 	suite.Query(query)
-	suite.queryStrategy.AssertCalledOnce(suite.T(), "ForwardTargetsFor", mock.Anything, suite.queryPeer, query)
+	suite.queryStrategy.AssertCalledOnce(suite.T(), "ForwardTargetsFor", suite.queryPeer, query)
 }
 
 func (suite *Node_Query_Test) Test_Query_IsDiscardedAfterTimeout() {

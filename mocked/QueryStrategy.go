@@ -30,7 +30,7 @@ type QueryStrategy struct {
 
 func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryStrategy {
 	result := &QueryStrategy{}
-	result.On("ForwardTargetsFor", mock.Anything, mock.Anything, mock.Anything).Return(resultPeers)
+	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
 	result.On("TimeoutFor", mock.Anything).Return(general.ParseDuration("2h"))
 	result.On("IsQueryAccepted", mock.Anything, mock.Anything).Return(true)
 	return result
@@ -41,8 +41,8 @@ func (m *QueryStrategy) IsQueryAccepted(query peer.Query, receiver peer.Pusher) 
 	return args.Get(0).(bool)
 }
 
-func (m *QueryStrategy) ForwardTargetsFor(allPeers []peer.Connector, receiver peer.Pusher, query peer.Query) []peer.Connector {
-	args := m.Called(allPeers, receiver, query)
+func (m *QueryStrategy) ForwardTargetsFor(query peer.Query, receiver peer.Pusher) []peer.Connector {
+	args := m.Called(receiver, query)
 	return args.Get(0).([]peer.Connector)
 }
 

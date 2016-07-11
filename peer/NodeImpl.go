@@ -203,7 +203,7 @@ func (this *NodeImpl) pendingQueriesForKey(key data.Key) []*pendingQuery {
 }
 
 func (this *NodeImpl) forwardQuery(query Query, receiver Pusher) {
-	fwdPeers := this.QueryStrategy.ForwardTargetsFor(this.connectedPeers, receiver, query)
+	fwdPeers := this.QueryStrategy.ForwardTargetsFor(query, receiver)
 	for _, p := range fwdPeers {
 		p.Query(query, this)
 	}

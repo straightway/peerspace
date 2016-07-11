@@ -17,30 +17,24 @@
 package test
 
 import (
-	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/strategy"
-	"github.com/stretchr/testify/suite"
 )
 
 // Test suite
 
 type DataStrategy_TestBase struct {
-	suite.Suite
-	sut                    *strategy.Data
-	configuration          *peer.Configuration
-	connectionInfoProvider *mocked.ConnectionInfoProvider
+	ForwardStrategy_TestBase
+	sut *strategy.Data
 }
 
 func (suite *DataStrategy_TestBase) SetupTest() {
-	suite.configuration = peer.DefaultConfiguration()
-	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
+	suite.ForwardStrategy_TestBase.SetupTest()
 	suite.sut = &strategy.Data{
 		Configuration:          suite.configuration,
 		ConnectionInfoProvider: suite.connectionInfoProvider}
 }
 
 func (suite *DataStrategy_TestBase) TearDownTest() {
-	suite.configuration = nil
+	suite.ForwardStrategy_TestBase.TearDownTest()
 	suite.sut = nil
 }

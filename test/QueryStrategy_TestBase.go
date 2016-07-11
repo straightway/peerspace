@@ -14,31 +14,27 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package test
 
 import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
+	"github.com/straightway/straightway/strategy"
 )
 
-type PeerDistanceCalculator struct {
-	Base
+// Test suite
+
+type QueryStrategy_TestBase struct {
+	ForwardStrategy_TestBase
+	sut *strategy.Query
 }
 
-func NewPeerDistanceCalculator() *PeerDistanceCalculator {
-	result := &PeerDistanceCalculator{}
-	result.On("Distance", mock.Anything, mock.Anything).Return(uint64(0))
-	result.On("Distances", mock.Anything, mock.Anything).Return([]uint64{0})
-	return result
+func (suite *QueryStrategy_TestBase) SetupTest() {
+	suite.ForwardStrategy_TestBase.SetupTest()
+	suite.sut = &strategy.Query{
+		ConnectionInfoProvider: suite.connectionInfoProvider,
+		PeerDistanceCalculator: suite.distanceCalculator}
 }
 
-func (m *PeerDistanceCalculator) Distance(peer peer.Connector, key data.Key) uint64 {
-	args := m.Called(peer, key)
-	return args.Get(0).(uint64)
-}
-
-func (m *PeerDistanceCalculator) Distances(peer peer.Connector, query peer.Query) []uint64 {
-	args := m.Called(peer, query)
-	return args.Get(0).([]uint64)
+func (suite *QueryStrategy_TestBase) TearDownTest() {
+	suite.sut = nil
+	suite.ForwardStrategy_TestBase.TearDownTest()
 }

@@ -23,4 +23,5 @@ import (
 
 type PeerDistanceCalculator interface {
 	Distance(peer.Connector, data.Key) uint64
+	Distances(peer.Connector, peer.Query) []uint64
 }

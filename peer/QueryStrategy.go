@@ -20,6 +20,6 @@ import "time"
 
 type QueryStrategy interface {
 	IsQueryAccepted(query Query, receiver Pusher) bool
-	ForwardTargetsFor(allPeers []Connector, receiver Pusher, query Query) []Connector
+	ForwardTargetsFor(query Query, receiver Pusher) []Connector
 	TimeoutFor(query Query) time.Duration
 }

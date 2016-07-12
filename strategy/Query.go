@@ -18,6 +18,7 @@ package strategy
 
 import (
 	"math"
+	"time"
 
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
@@ -26,6 +27,7 @@ import (
 type Query struct {
 	ConnectionInfoProvider ConnectionInfoProvider
 	PeerDistanceCalculator PeerDistanceCalculator
+	Configuration          *peer.Configuration
 }
 
 func (this *Query) IsQueryAccepted(query peer.Query, receiver peer.Pusher) bool {
@@ -58,4 +60,12 @@ func (this *Query) ForwardTargetsFor(query peer.Query, receiver peer.Pusher) []p
 	return general.SetUnion(general.RemoveItemsIf(nearedPeer, func(item interface{}) bool {
 		return item.(peer.Connector).Equal(receiver)
 	})).([]peer.Connector)
+}
+
+func (this *Query) TimeoutFor(query peer.Query) time.Duration {
+	if query.IsTimed() {
+		return this.Configuration.TimedQueryTimeout
+	} else {
+		return this.Configuration.UntimedQueryTimeout
+	}
 }

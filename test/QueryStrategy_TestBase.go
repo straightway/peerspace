@@ -31,7 +31,8 @@ func (suite *QueryStrategy_TestBase) SetupTest() {
 	suite.ForwardStrategy_TestBase.SetupTest()
 	suite.sut = &strategy.Query{
 		ConnectionInfoProvider: suite.connectionInfoProvider,
-		PeerDistanceCalculator: suite.distanceCalculator}
+		PeerDistanceCalculator: suite.distanceCalculator,
+		Configuration:          suite.configuration}
 }
 
 func (suite *QueryStrategy_TestBase) TearDownTest() {

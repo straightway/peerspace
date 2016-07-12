@@ -16,13 +16,23 @@
 
 package peer
 
+import (
+	"time"
+
+	"github.com/straightway/straightway/general"
+)
+
 type Configuration struct {
-	MaxConnections int
-	MaxChunkSize   int
+	MaxConnections      int
+	MaxChunkSize        int
+	TimedQueryTimeout   time.Duration
+	UntimedQueryTimeout time.Duration
 }
 
 func DefaultConfiguration() *Configuration {
 	return &Configuration{
-		MaxConnections: 20,
-		MaxChunkSize:   0xffff}
+		MaxConnections:      20,
+		MaxChunkSize:        0xffff,
+		TimedQueryTimeout:   general.ParseDuration("1h"),
+		UntimedQueryTimeout: general.ParseDuration("5m")}
 }

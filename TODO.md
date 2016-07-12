@@ -4,8 +4,6 @@
 * Implement cryptography
 	* Future-safe algorithms
 	* Encrypt data chunks
-* Implement strategies
-	* Simple strategies as the first shot
 * Implement network simulation
 	* Event driven simulation
 	* Which scenarios?

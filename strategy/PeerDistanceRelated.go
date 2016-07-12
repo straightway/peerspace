@@ -23,14 +23,30 @@ import (
 	"github.com/straightway/straightway/peer"
 )
 
-type PeerDistanceCalculatorImpl struct {
-	Hasher hash.Hash64
-	Timer  peer.Timer
+type PeerDistanceRelated struct {
+	Hasher      hash.Hash64
+	Timer       peer.Timer
+	LocalPeerId string
 }
 
-func (this *PeerDistanceCalculatorImpl) Distance(peer peer.Connector, key data.Key) uint64 {
+func (this *PeerDistanceRelated) Distance(peer peer.Connector, key data.Key) uint64 {
+	return this.distanceIdToKey(peer.Id(), key)
+}
+
+func (this *PeerDistanceRelated) Priority(chunk *data.Chunk) float32 {
+	peerDistance := this.distanceIdToKey(this.LocalPeerId, chunk.Key)
+	if peerDistance == 0 {
+		peerDistance = 1 // Avoid divison by zero
+	}
+
+	return float32(this.Timer.Time().Unix()) / float32(peerDistance)
+}
+
+// Private
+
+func (this *PeerDistanceRelated) distanceIdToKey(peerId string, key data.Key) uint64 {
 	this.Hasher.Reset()
-	this.Hasher.Write([]byte(peer.Id()))
+	this.Hasher.Write([]byte(peerId))
 	peerHash := this.Hasher.Sum64()
 
 	this.Hasher.Reset()
@@ -44,9 +60,7 @@ func (this *PeerDistanceCalculatorImpl) Distance(peer peer.Connector, key data.K
 	return peerHash ^ keyHash
 }
 
-// Private
-
-func (this *PeerDistanceCalculatorImpl) timestampAgeMarker(key data.Key) []byte {
+func (this *PeerDistanceRelated) timestampAgeMarker(key data.Key) []byte {
 	keyTimeStamp := key.TimeStamp
 	ageTable := this.timestampAgeTable()
 	for i, timeStampFromTable := range ageTable {
@@ -58,7 +72,7 @@ func (this *PeerDistanceCalculatorImpl) timestampAgeMarker(key data.Key) []byte 
 	return []byte{byte(len(ageTable) + 1)}
 }
 
-func (this *PeerDistanceCalculatorImpl) timestampAgeTable() []int64 {
+func (this *PeerDistanceRelated) timestampAgeTable() []int64 {
 	now := this.Timer.Time()
 	return []int64{
 		now.AddDate(0, 0, -3650).Unix(),

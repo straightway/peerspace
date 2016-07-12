@@ -37,27 +37,10 @@ func (this *Query) IsQueryAccepted(query peer.Query, receiver peer.Pusher) bool 
 func (this *Query) ForwardTargetsFor(query peer.Query, receiver peer.Pusher) []peer.Connector {
 	allConnections := this.ConnectionInfoProvider.ConnectedPeers()
 
-	var nearedPeer []peer.Connector
-	var nearedPeerDistance []uint64
+	seletor := nearestPeerSelector{Query: query, PeerDistanceCalculator: this.PeerDistanceCalculator}
+	nearestPeers := seletor.NearestPeers(allConnections)
 
-	for _, p := range allConnections {
-		peerDistances := this.PeerDistanceCalculator.Distances(p, query)
-		if nearedPeer == nil {
-			nearedPeer = make([]peer.Connector, len(peerDistances), len(peerDistances))
-			nearedPeerDistance = make([]uint64, len(peerDistances), len(peerDistances))
-			for i := range nearedPeerDistance {
-				nearedPeerDistance[i] = math.MaxUint64
-			}
-		}
-		for i, d := range peerDistances {
-			if d < nearedPeerDistance[i] {
-				nearedPeer[i] = p
-				nearedPeerDistance[i] = d
-			}
-		}
-	}
-
-	return general.SetUnion(general.RemoveItemsIf(nearedPeer, func(item interface{}) bool {
+	return general.SetUnion(general.RemoveItemsIf(nearestPeers, func(item interface{}) bool {
 		return item.(peer.Connector).Equal(receiver)
 	})).([]peer.Connector)
 }
@@ -67,5 +50,49 @@ func (this *Query) TimeoutFor(query peer.Query) time.Duration {
 		return this.Configuration.TimedQueryTimeout
 	} else {
 		return this.Configuration.UntimedQueryTimeout
+	}
+}
+
+// Private
+
+type nearestPeerSelector struct {
+	Query                  peer.Query
+	PeerDistanceCalculator PeerDistanceCalculator
+	nearestPeers           []peer.Connector
+	nearestPeerDistances   []uint64
+}
+
+func (this *nearestPeerSelector) NearestPeers(allConnections []peer.Connector) []peer.Connector {
+	for _, p := range allConnections {
+		this.updateNearestPeers(p)
+	}
+
+	return this.nearestPeers
+}
+
+func (this *nearestPeerSelector) updateNearestPeers(peer peer.Connector) {
+	distances := this.PeerDistanceCalculator.Distances(peer, this.Query)
+	this.initializeNearestPeers(len(distances))
+	this.exchangeIfNearer(peer, distances)
+}
+
+func (this *nearestPeerSelector) exchangeIfNearer(peer peer.Connector, distances []uint64) {
+	for i, d := range distances {
+		if d < this.nearestPeerDistances[i] {
+			this.nearestPeers[i] = peer
+			this.nearestPeerDistances[i] = d
+		}
+	}
+}
+
+func (this *nearestPeerSelector) initializeNearestPeers(count int) {
+	if this.nearestPeers != nil {
+		return
+	}
+
+	this.nearestPeers = make([]peer.Connector, count, count)
+	this.nearestPeerDistances = make([]uint64, count, count)
+	for i := range this.nearestPeerDistances {
+		this.nearestPeerDistances[i] = math.MaxUint64
 	}
 }

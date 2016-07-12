@@ -14,6 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
+// TODO Check if this is the right package for this class
 package peer
 
 import (

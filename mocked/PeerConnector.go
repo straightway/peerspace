@@ -39,6 +39,7 @@ func CreatePeerConnector() *PeerConnector {
 	peer.On("Push", mock.Anything, mock.Anything)
 	peer.On("CloseConnectionWith", mock.Anything)
 	peer.On("RequestConnectionWith", mock.Anything)
+	peer.On("AnnouncePeers", mock.Anything)
 	peer.On("Query", mock.Anything, mock.Anything)
 	return peer
 }
@@ -58,6 +59,10 @@ func (m *PeerConnector) Startup() {
 
 func (m *PeerConnector) RequestConnectionWith(peer peer.Connector) {
 	m.Called(peer)
+}
+
+func (m *PeerConnector) AnnouncePeers(peers []peer.Connector) {
+	m.Called(peers)
 }
 
 func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {

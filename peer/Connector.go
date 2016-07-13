@@ -20,5 +20,6 @@ type Connector interface {
 	Pusher
 	Queryable
 	RequestConnectionWith(peer Connector)
+	AnnouncePeers(peers []Connector)
 	CloseConnectionWith(peer Connector)
 }

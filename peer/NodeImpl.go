@@ -87,6 +87,16 @@ func (this *NodeImpl) RequestConnectionWith(peer Connector) {
 	}
 }
 
+func (this *NodeImpl) AnnouncePeers(peers []Connector) {
+	for _, peer := range peers {
+		if this.StateStorage.IsKnownPeer(peer) {
+			continue
+		}
+		this.StateStorage.AddKnownPeer(peer)
+		this.tryConnectWith(peer)
+	}
+}
+
 func (this *NodeImpl) CloseConnectionWith(peer Connector) {
 	this.connectingPeers = removePeer(this.connectingPeers, peer)
 	this.connectedPeers = removePeer(this.connectedPeers, peer)
@@ -146,6 +156,13 @@ func (this *NodeImpl) IsStarted() bool {
 }
 
 // Private
+
+func (this *NodeImpl) tryConnectWith(peer Connector) {
+	if this.ConnectionStrategy.IsConnectionAcceptedWith(peer) {
+		peer.RequestConnectionWith(this)
+		this.connectingPeers = append(this.connectingPeers, peer)
+	}
+}
 
 func (this *pendingQuery) refreshTimeout(parent *NodeImpl) {
 	queryTimeout := parent.QueryStrategy.TimeoutFor(this.query)

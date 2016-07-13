@@ -17,14 +17,35 @@
 package mocked
 
 import (
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
 )
 
 type StateStorage struct {
 	Base
+	KnownPeers []peer.Connector
+}
+
+func NewStateStorage(knownPeers ...peer.Connector) *StateStorage {
+	result := &StateStorage{KnownPeers: knownPeers}
+	result.On("GetAllKnownPeers").Return()
+	result.On("IsKnownPeer", mock.Anything).Return()
+	result.On("AddKnownPeer", mock.Anything).Return()
+	return result
 }
 
 func (m *StateStorage) GetAllKnownPeers() []peer.Connector {
-	args := m.Called()
-	return args.Get(0).([]peer.Connector)
+	m.Called()
+	return m.KnownPeers
+}
+
+func (m *StateStorage) IsKnownPeer(peer peer.Connector) bool {
+	m.Called(peer)
+	return general.Contains(m.KnownPeers, peer)
+}
+
+func (m *StateStorage) AddKnownPeer(peer peer.Connector) {
+	m.Called(peer)
+	m.KnownPeers = append(m.KnownPeers, peer)
 }

@@ -61,11 +61,12 @@ func NewNodeContext() *NodeContext {
 
 // Public
 
-func (this *NodeContext) AddKnownUnconnectedPeer() {
+func (this *NodeContext) AddKnownUnconnectedPeer() *mocked.PeerConnector {
 	peer := &mocked.PeerConnector{}
 	this.knownPeers = append(this.knownPeers, peer)
 	this.notConnectedPeers = append(this.notConnectedPeers, peer)
 	this.SetUp()
+	return peer
 }
 
 func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) *mocked.PeerConnector {
@@ -133,10 +134,7 @@ func AssertPushed(t *testing.T, receiver *mocked.PeerConnector, chunks ...*data.
 // Private
 
 func (this *NodeContext) setupPeers() {
-	this.stateStorage = &mocked.StateStorage{}
-	this.stateStorage.
-		On("GetAllKnownPeers").
-		Return(this.knownPeers)
+	this.stateStorage = mocked.NewStateStorage(this.knownPeers...)
 	this.connectionStrategy = mocked.NewConnectionStrategy(mocked.IPeerConnectors(this.connectedPeers))
 	this.dataStrategy = mocked.NewDataStrategy(mocked.IPeerConnectors(this.forwardPeers))
 	this.queryStrategy = mocked.NewQueryForwardStrategy(mocked.IPeerConnectors(this.forwardPeers))

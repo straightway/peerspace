@@ -18,4 +18,6 @@ package peer
 
 type StateStorage interface {
 	GetAllKnownPeers() []Connector
+	IsKnownPeer(peer Connector) bool
+	AddKnownPeer(peer Connector)
 }

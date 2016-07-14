@@ -24,14 +24,15 @@ import (
 )
 
 type NodeImpl struct {
-	Identifier         string
-	StateStorage       StateStorage
-	DataStorage        DataStorage
-	DataStrategy       DataStrategy
-	QueryStrategy      QueryStrategy
-	ConnectionStrategy ConnectionStrategy
-	Timer              Timer
-	Configuration      *Configuration
+	Identifier           string
+	StateStorage         StateStorage
+	DataStorage          DataStorage
+	AnnouncementStrategy AnnouncementStrategy
+	DataStrategy         DataStrategy
+	QueryStrategy        QueryStrategy
+	ConnectionStrategy   ConnectionStrategy
+	Timer                Timer
+	Configuration        *Configuration
 
 	connectingPeers []Connector
 	connectedPeers  []Connector
@@ -87,6 +88,11 @@ func (this *NodeImpl) RequestConnectionWith(peer Connector) {
 	}
 }
 
+func (this *NodeImpl) CloseConnectionWith(peer Connector) {
+	this.connectingPeers = removePeer(this.connectingPeers, peer)
+	this.connectedPeers = removePeer(this.connectedPeers, peer)
+}
+
 func (this *NodeImpl) AnnouncePeers(peers []Connector) {
 	for _, peer := range peers {
 		if this.StateStorage.IsKnownPeer(peer) {
@@ -97,9 +103,9 @@ func (this *NodeImpl) AnnouncePeers(peers []Connector) {
 	}
 }
 
-func (this *NodeImpl) CloseConnectionWith(peer Connector) {
-	this.connectingPeers = removePeer(this.connectingPeers, peer)
-	this.connectedPeers = removePeer(this.connectedPeers, peer)
+func (this *NodeImpl) RequestPeers(receiver Connector) {
+	peersToAnnounce := this.AnnouncementStrategy.AnnouncedPeers()
+	receiver.AnnouncePeers(peersToAnnounce)
 }
 
 func (this *NodeImpl) IsConnectionPendingWith(peer Connector) bool {
@@ -194,9 +200,11 @@ func removePeer(peers []Connector, peerToRemove Connector) []Connector {
 }
 
 func (this *NodeImpl) confirmConnectionWith(peer Connector) {
-	if !this.isConnectionPendingWith(peer) {
+	if this.isConnectionPendingWith(peer) == false {
 		peer.RequestConnectionWith(this)
 	}
+
+	peer.RequestPeers(this)
 }
 
 func (this *NodeImpl) dataForwardPeers(origin Connector, key data.Key) []Connector {
@@ -285,9 +293,7 @@ func (this *NodeImpl) assertConsistency() {
 
 func (this *NodeImpl) requestPeerConnections() {
 	allPeers := this.StateStorage.GetAllKnownPeers()
-	this.connectingPeers = this.ConnectionStrategy.PeersToConnect(allPeers)
-	this.connectedPeers = []Connector{}
-	for _, peer := range this.connectingPeers {
-		peer.RequestConnectionWith(this)
+	for _, peer := range this.ConnectionStrategy.PeersToConnect(allPeers) {
+		this.tryConnectWith(peer)
 	}
 }

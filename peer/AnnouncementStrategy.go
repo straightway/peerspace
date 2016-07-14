@@ -16,11 +16,6 @@
 
 package peer
 
-type Connector interface {
-	Pusher
-	Queryable
-	RequestConnectionWith(peer Connector)
-	CloseConnectionWith(peer Connector)
-	RequestPeers(receiver Connector)
-	AnnouncePeers(peers []Connector)
+type AnnouncementStrategy interface {
+	AnnouncedPeers() []Connector
 }

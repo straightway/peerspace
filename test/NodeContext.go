@@ -29,32 +29,34 @@ import (
 type DoForward bool
 
 type NodeContext struct {
-	node               *peer.NodeImpl
-	dataStorage        *mocked.DataStorage
-	stateStorage       *mocked.StateStorage
-	connectionStrategy *mocked.ConnectionStrategy
-	dataStrategy       *mocked.DataStrategy
-	queryStrategy      *mocked.QueryStrategy
-	knownPeers         []peer.Connector
-	connectedPeers     []*mocked.PeerConnector
-	notConnectedPeers  []*mocked.PeerConnector
-	forwardPeers       []*mocked.PeerConnector
-	timer              *mocked.Timer
-	configuration      *peer.Configuration
+	node                 *peer.NodeImpl
+	dataStorage          *mocked.DataStorage
+	stateStorage         *mocked.StateStorage
+	announcementStrategy *mocked.AnnouncementStrategy
+	connectionStrategy   *mocked.ConnectionStrategy
+	dataStrategy         *mocked.DataStrategy
+	queryStrategy        *mocked.QueryStrategy
+	knownPeers           []peer.Connector
+	connectedPeers       []*mocked.PeerConnector
+	notConnectedPeers    []*mocked.PeerConnector
+	forwardPeers         []*mocked.PeerConnector
+	timer                *mocked.Timer
+	configuration        *peer.Configuration
 }
 
 // Construction
 
 func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
-		knownPeers:         make([]peer.Connector, 0),
-		connectionStrategy: mocked.NewConnectionStrategy(nil),
-		dataStrategy:       &mocked.DataStrategy{},
-		queryStrategy:      &mocked.QueryStrategy{},
-		connectedPeers:     []*mocked.PeerConnector{},
-		notConnectedPeers:  []*mocked.PeerConnector{},
-		timer:              &mocked.Timer{},
-		configuration:      &peer.Configuration{}}
+		knownPeers:           make([]peer.Connector, 0),
+		connectionStrategy:   mocked.NewConnectionStrategy(nil),
+		announcementStrategy: mocked.NewAnnouncementStrategy(),
+		dataStrategy:         &mocked.DataStrategy{},
+		queryStrategy:        &mocked.QueryStrategy{},
+		connectedPeers:       []*mocked.PeerConnector{},
+		notConnectedPeers:    []*mocked.PeerConnector{},
+		timer:                &mocked.Timer{},
+		configuration:        &peer.Configuration{}}
 
 	return newNodeContext
 }
@@ -145,13 +147,14 @@ func (this *NodeContext) createSut() {
 		this.dataStorage = mocked.NewDataStorage(nil)
 	}
 	this.node = &peer.NodeImpl{
-		StateStorage:       this.stateStorage,
-		DataStorage:        this.dataStorage,
-		DataStrategy:       this.dataStrategy,
-		QueryStrategy:      this.queryStrategy,
-		ConnectionStrategy: this.connectionStrategy,
-		Timer:              this.timer,
-		Configuration:      this.configuration}
+		StateStorage:         this.stateStorage,
+		DataStorage:          this.dataStorage,
+		AnnouncementStrategy: this.announcementStrategy,
+		DataStrategy:         this.dataStrategy,
+		QueryStrategy:        this.queryStrategy,
+		ConnectionStrategy:   this.connectionStrategy,
+		Timer:                this.timer,
+		Configuration:        this.configuration}
 
 	for _, p := range this.connectedPeers {
 		p.On("RequestConnectionWith", this.node).Return()

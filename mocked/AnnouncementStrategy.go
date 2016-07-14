@@ -14,13 +14,21 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package mocked
 
-type Connector interface {
-	Pusher
-	Queryable
-	RequestConnectionWith(peer Connector)
-	CloseConnectionWith(peer Connector)
-	RequestPeers(receiver Connector)
-	AnnouncePeers(peers []Connector)
+import "github.com/straightway/straightway/peer"
+
+type AnnouncementStrategy struct {
+	Base
+}
+
+func NewAnnouncementStrategy(connectors ...peer.Connector) *AnnouncementStrategy {
+	result := &AnnouncementStrategy{}
+	result.On("AnnouncedPeers").Return(connectors)
+	return result
+}
+
+func (m *AnnouncementStrategy) AnnouncedPeers() []peer.Connector {
+	args := m.Called()
+	return args.Get(0).([]peer.Connector)
 }

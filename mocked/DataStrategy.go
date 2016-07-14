@@ -18,6 +18,7 @@ package mocked
 
 import (
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -33,12 +34,12 @@ func NewDataStrategy(resultPeers []peer.Connector) *DataStrategy {
 	return result
 }
 
-func (m *DataStrategy) IsChunkAccepted(chunk *data.Chunk, origin peer.Connector) bool {
+func (m *DataStrategy) IsChunkAccepted(chunk *data.Chunk, origin general.Identifyable) bool {
 	args := m.Called(chunk, origin)
 	return args.Get(0).(bool)
 }
 
-func (m *DataStrategy) ForwardTargetsFor(key data.Key, origin peer.Connector) []peer.Connector {
+func (m *DataStrategy) ForwardTargetsFor(key data.Key, origin general.Identifyable) []peer.Connector {
 	args := m.Called(key, origin)
 	return args.Get(0).([]peer.Connector)
 }

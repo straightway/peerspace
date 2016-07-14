@@ -17,6 +17,7 @@
 package mocked
 
 import (
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -33,7 +34,7 @@ func NewConnectionStrategy(connectedPeers []peer.Connector) *ConnectionStrategy 
 	return cs
 }
 
-func (m *ConnectionStrategy) IsConnectionAcceptedWith(peer peer.Connector) bool {
+func (m *ConnectionStrategy) IsConnectionAcceptedWith(peer general.Identifyable) bool {
 	args := m.Called(peer)
 	return args.Get(0).(bool)
 }

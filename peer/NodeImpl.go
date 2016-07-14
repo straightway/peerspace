@@ -124,7 +124,7 @@ func (this *NodeImpl) ConnectingPeers() []Connector {
 	return append([]Connector(nil), this.connectingPeers...)
 }
 
-func (this *NodeImpl) Push(data *data.Chunk, origin Connector) {
+func (this *NodeImpl) Push(data *data.Chunk, origin general.Identifyable) {
 	if data == nil {
 		return
 	}
@@ -207,7 +207,7 @@ func (this *NodeImpl) confirmConnectionWith(peer Connector) {
 	peer.RequestPeers(this)
 }
 
-func (this *NodeImpl) dataForwardPeers(origin Connector, key data.Key) []Connector {
+func (this *NodeImpl) dataForwardPeers(origin general.Identifyable, key data.Key) []Connector {
 	forwardPeers := this.DataStrategy.ForwardTargetsFor(key, origin)
 	for _, query := range this.pendingQueriesForKey(key) {
 		return general.SetUnion(forwardPeers, query.receivers).([]Connector)

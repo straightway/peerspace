@@ -74,7 +74,7 @@ func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *PeerConnector) Push(data *data.Chunk, origin peer.Connector) {
+func (m *PeerConnector) Push(data *data.Chunk, origin general.Identifyable) {
 	m.Called(data, origin)
 }
 

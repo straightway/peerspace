@@ -24,5 +24,5 @@ import (
 type Pusher interface {
 	general.Identifyable
 	general.Equaler
-	Push(data *data.Chunk, origin Connector)
+	Push(data *data.Chunk, origin general.Identifyable)
 }

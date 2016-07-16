@@ -24,6 +24,7 @@ import (
 type EventScheduler struct {
 	currentTime time.Time
 	events      []event
+	isRunning   bool
 }
 
 type event struct {
@@ -42,19 +43,36 @@ func (this *EventScheduler) Time() time.Time {
 }
 
 func (this *EventScheduler) Schedule(duration time.Duration, action func()) {
-	this.events = append(this.events, event{time: this.currentTime.Add(duration), action: action})
+	this.ScheduleAbsolute(this.currentTime.Add(duration), action)
+}
+
+func (this *EventScheduler) ScheduleNextDayTime(daysFromNow int, clockTime time.Duration, action func()) bool {
+	year, month, day := this.currentTime.Date()
+	today := time.Date(year, month, day, 0, 0, 0, 0, this.currentTime.Location())
+	targetTime := today.AddDate(0, 0, daysFromNow)
+	isTargetTimeInFuture := targetTime.Before(this.currentTime) == false
+	if isTargetTimeInFuture {
+		this.ScheduleAbsolute(targetTime.Add(clockTime), action)
+	}
+	return isTargetTimeInFuture
+}
+
+func (this *EventScheduler) ScheduleAbsolute(time time.Time, action func()) {
+	this.events = append(this.events, event{time: time, action: action})
 	sort.Sort(eventByTime(this.events))
 }
 
 func (this *EventScheduler) Run() {
-	for this.hasEvent() {
+	this.isRunning = true
+	for this.isRunning && this.hasEvent() {
 		event := this.popEvent()
 		this.execute(event)
 	}
+	this.events = nil
 }
 
 func (this *EventScheduler) Stop() {
-	this.events = nil
+	this.isRunning = false
 }
 
 // Private

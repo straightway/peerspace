@@ -14,26 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package randvar
 
-import (
-	"github.com/straightway/straightway/general"
-	"github.com/stretchr/testify/mock"
-)
+import "time"
 
-type Base struct {
-	mock.Mock
-}
-
-func (m *Base) OnNew(methodName string, arguments ...interface{}) *mock.Call {
-	m.ExpectedCalls = general.RemoveItemsIf(m.ExpectedCalls, func(item interface{}) bool {
-		call := item.(*mock.Call)
-		return call.Method == methodName
-	}).([]*mock.Call)
-	return m.On(methodName, arguments...)
-}
-
-func (m *Base) AssertCalledOnce(t mock.TestingT, methodName string, arguments ...interface{}) {
-	m.AssertNumberOfCalls(t, methodName, 1)
-	m.AssertCalled(t, methodName, arguments...)
+type Duration interface {
+	NextSample() time.Duration
 }

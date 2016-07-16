@@ -16,24 +16,18 @@
 
 package mocked
 
-import (
-	"github.com/straightway/straightway/general"
-	"github.com/stretchr/testify/mock"
-)
+import "time"
 
-type Base struct {
-	mock.Mock
+type DurationRandVar struct {
+	Base
 }
 
-func (m *Base) OnNew(methodName string, arguments ...interface{}) *mock.Call {
-	m.ExpectedCalls = general.RemoveItemsIf(m.ExpectedCalls, func(item interface{}) bool {
-		call := item.(*mock.Call)
-		return call.Method == methodName
-	}).([]*mock.Call)
-	return m.On(methodName, arguments...)
+func NewDurationRandVar(sample time.Duration) *DurationRandVar {
+	result := &DurationRandVar{}
+	result.On("NextSample").Return(sample)
+	return result
 }
 
-func (m *Base) AssertCalledOnce(t mock.TestingT, methodName string, arguments ...interface{}) {
-	m.AssertNumberOfCalls(t, methodName, 1)
-	m.AssertCalled(t, methodName, arguments...)
+func (m *DurationRandVar) NextSample() time.Duration {
+	return m.Called().Get(0).(time.Duration)
 }

@@ -99,9 +99,9 @@ func (suite *DataStorage_Cleanup_Test) Test_RePrioritizeExpiredChunksBeforeClean
 	suite.createTestChunksOfSize(10, 2)
 
 	chunkToRePrioritize := createTestChunkOfSize(10)
-	suite.raw.Store(chunkToRePrioritize, -10.0, time.Unix(10, 0))
+	suite.raw.Store(chunkToRePrioritize, -10.0, time.Unix(10, 0).In(time.UTC))
 
-	suite.timer.CurrentTime = time.Unix(11, 0)
+	suite.timer.CurrentTime = time.Unix(11, 0).In(time.UTC)
 
 	const newPrio = float32(1000.0)
 	suite.sut.PriorityGenerator = mocked.NewPriorityGenerator(newPrio, general.MaxTime())

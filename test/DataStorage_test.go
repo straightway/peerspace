@@ -49,7 +49,7 @@ func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
 }
 
 func (suite *DataStorage_Test) Test_Query_LeadsToRePrioritizationOfResult() {
-	suite.raw.Store(&untimedChunk, -10.0, time.Unix(0, 0))
+	suite.raw.Store(&untimedChunk, -10.0, time.Unix(0, 0).In(time.UTC))
 	query := peer.Query{Id: queryId}
 	result := suite.sut.Query(query)
 	suite.raw.AssertCalledOnce(suite.T(), "RePrioritize", untimedChunk.Key, float32(0.0), general.MaxTime())

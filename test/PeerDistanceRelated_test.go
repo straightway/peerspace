@@ -23,6 +23,7 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/strategy"
 	"github.com/stretchr/testify/suite"
 )
@@ -69,7 +70,7 @@ func (suite *PeerDistanceRelated_Test) SetupTest() {
 		suite.hasher.SetupHashSum(append([]byte(key2Id), i), key2Hash+uint64(i)*0x10)
 	}
 
-	suite.timer = &mocked.Timer{CurrentTime: time.Unix(currentTime, 0)}
+	suite.timer = &mocked.Timer{CurrentTime: time.Unix(currentTime, 0).In(time.UTC)}
 
 	suite.sut = &strategy.PeerDistanceRelated{
 		Hasher:      suite.hasher,
@@ -130,41 +131,158 @@ func (suite *PeerDistanceRelated_Test) Test_TimedKey_HasAlwaysSameIdAfter10Years
 	suite.Assert().Equal(earlyDistance, lateDistance)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_LaterPriorityIsHigher() {
-	prio1 := suite.sut.Priority(&data.Chunk{Key: recentKey})
+func (suite *PeerDistanceRelated_Test) Test_Priority_LaterPriorityIsHigher() {
+	prio1, _ := suite.sut.Priority(&data.Chunk{Key: recentKey})
 	suite.advanceTimeByDays(1, 0)
-	prio2 := suite.sut.Priority(&data.Chunk{Key: recentKey})
+	prio2, _ := suite.sut.Priority(&data.Chunk{Key: recentKey})
 	suite.Assert().True(prio1 < prio2)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_NearerToCurrentPeerHasHigherPriority() {
+func (suite *PeerDistanceRelated_Test) Test_Priority_NearerToCurrentPeerHasHigherPriority() {
 	// distance key1: 1 ^ 2 = 3 --> lower prio
-	prio1 := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId)}})
+	prio1, _ := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId)}})
 
 	// distance key2: 1 ^ 3 = 2 --> higher prio
-	prio2 := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(key2Id)}})
+	prio2, _ := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(key2Id)}})
 
 	suite.Assert().True(prio1 < prio2)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_ExactlyMatchingKeyIsSameAsKeyWithDistance1() {
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExactlyMatchingKeyIsSameAsKeyWithDistance1() {
 	suite.sut.LocalPeerId = key2Id
 
 	// distance key1: 3 ^ 2 = 1
-	prio1 := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId)}})
+	prio1, _ := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId)}})
 
 	// distance key2: 3 ^ 3 = 0 --> avoid division by zero
-	prio2 := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(key2Id)}})
+	prio2, _ := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(key2Id)}})
 
 	suite.Assert().True(prio1 == prio2)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_MaxDistanceYieldsPositivePrio() {
-	prio := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(peerIdNegated)}})
+func (suite *PeerDistanceRelated_Test) Test_Priority_MaxDistanceYieldsPositivePrio() {
+	prio, _ := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(peerIdNegated)}})
 	suite.Assert().True(0.0 < prio)
 }
 
+func (suite *PeerDistanceRelated_Test) Test_Priority_PriorityOfUntimedKeyExpiresNever() {
+	_, expiration := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId)}})
+	suite.Assert().Equal(general.MaxTime(), expiration)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_PriorityOfFreshTimedKeyExpiresAfter1Day() {
+	currTime := suite.timer.Time()
+	_, expiration := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId), TimeStamp: currTime.Unix()}})
+	suite.Assert().Equal(currTime.AddDate(0, 0, 1), expiration)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationUpToFirstDay() {
+	suite.testPriorityExpirationDateOfTimedKey(0, 1)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationUpToFirstWeek() {
+	suite.testPriorityExpirationDateOfTimedKey(1, 7)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationUpToFirstMonth() {
+	suite.testPriorityExpirationDateOfTimedKey(7, 30)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationUpToFirstYear() {
+	suite.testPriorityExpirationDateOfTimedKey(30, 365)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationUpToFirstTenYears() {
+	suite.testPriorityExpirationDateOfTimedKey(365, 3650)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationAfterTenYears() {
+	currTime := suite.timer.Time()
+	startTimeStamp := currTime.AddDate(0, 0, -3650)
+	_, expiration := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId), TimeStamp: startTimeStamp.Unix()}})
+	suite.Assert().Equal(general.MaxTime(), expiration)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQueryEqualsKeyDistance() {
+	query := peer.Query{Id: keyId}
+	key := data.Key{Id: data.Id(keyId)}
+	distances := suite.sut.Distances(suite.peer, query)
+	expectedDistances := []uint64{suite.sut.Distance(suite.peer, key)}
+	suite.Assert().Equal(expectedDistances, distances)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange1() {
+	currTime := suite.timer.Time().Unix()
+	query := peer.Query{Id: keyId, TimeFrom: currTime, TimeTo: currTime}
+	key := data.Key{Id: data.Id(keyId), TimeStamp: currTime}
+	distances := suite.sut.Distances(suite.peer, query)
+	expectedDistances := []uint64{suite.sut.Distance(suite.peer, key)}
+	suite.Assert().Equal(expectedDistances, distances)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange2() {
+	currTime := suite.timer.Time()
+	query := peer.Query{Id: keyId, TimeFrom: -400, TimeTo: currTime.Unix()}
+	distances := suite.sut.Distances(suite.peer, query)
+	expectedDistances := []uint64{
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -1).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -7).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -30).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -365).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -3650).Unix()})}
+	suite.Assert().Equal(expectedDistances, distances)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange3() {
+	currTime := suite.timer.Time()
+	query := peer.Query{Id: keyId, TimeFrom: 0, TimeTo: currTime.AddDate(0, 0, -10).Unix()}
+	distances := suite.sut.Distances(suite.peer, query)
+	expectedDistances := []uint64{
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -7).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -30).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -365).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -3650).Unix()})}
+	suite.Assert().Equal(expectedDistances, distances)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange4() {
+	currTime := suite.timer.Time()
+	query := peer.Query{
+		Id:       keyId,
+		TimeFrom: currTime.AddDate(0, 0, -400).Unix(),
+		TimeTo:   currTime.AddDate(0, 0, -10).Unix()}
+	distances := suite.sut.Distances(suite.peer, query)
+	expectedDistances := []uint64{
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -7).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -30).Unix()}),
+		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -365).Unix()})}
+	suite.Assert().Equal(expectedDistances, distances)
+}
+
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForInvlidTimedQuery_IsEmpty() {
+	currTime := suite.timer.Time()
+	query := peer.Query{
+		Id:       keyId,
+		TimeFrom: currTime.AddDate(0, 0, -10).Unix(),
+		TimeTo:   currTime.AddDate(0, 0, -400).Unix()}
+	distances := suite.sut.Distances(suite.peer, query)
+	suite.Assert().Empty(distances)
+}
+
 // Private
+
+func (suite *PeerDistanceRelated_Test) testPriorityExpirationDateOfTimedKey(startAgeDays, endAgeDays int) {
+	currTime := suite.timer.Time()
+	startTimeStamp := currTime.AddDate(0, 0, -startAgeDays)
+	expectedExpirationDate := startTimeStamp.AddDate(0, 0, endAgeDays)
+	_, expiration := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId), TimeStamp: startTimeStamp.Unix()}})
+	suite.Assert().Equal(expectedExpirationDate, expiration)
+
+	endTimeStamp := time.Unix(currTime.AddDate(0, 0, -endAgeDays).Unix()+1, 0).In(time.UTC)
+	_, expiration = suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId), TimeStamp: endTimeStamp.Unix()}})
+	suite.Assert().Equal(currTime.Add(time.Second), expiration)
+}
 
 func (suite *PeerDistanceRelated_Test) testTimedKeyAge(startAgeDays, endAgeDays int) {
 	suite.advanceTimeByDays(startAgeDays, 0)
@@ -179,5 +297,5 @@ func (suite *PeerDistanceRelated_Test) testTimedKeyAge(startAgeDays, endAgeDays 
 
 func (suite *PeerDistanceRelated_Test) advanceTimeByDays(days int, seconds int64) {
 	suite.timer.CurrentTime =
-		time.Unix(suite.timer.CurrentTime.AddDate(0, 0, days).Unix()+seconds, 0)
+		time.Unix(suite.timer.CurrentTime.AddDate(0, 0, days).Unix()+seconds, 0).In(time.UTC)
 }

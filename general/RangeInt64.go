@@ -16,16 +16,24 @@
 
 package general
 
-import "time"
+import "fmt"
 
-const MaxUnixTime = 0x7FFFFFF1886E08FF
+type RangeInt64 [2]int64
 
-func MaxTime() time.Time { return time.Unix(MaxUnixTime, 0).In(time.UTC) }
+func (this RangeInt64) IntersectsWith(other RangeInt64) bool {
+	return this.isValid() && other.isValid() && !this.notIntersectingWith(other)
+}
 
-func ParseDuration(durationString string) (result time.Duration) {
-	result, err := time.ParseDuration(durationString)
-	if err != nil {
-		panic(err)
-	}
-	return
+func (this RangeInt64) String() string {
+	return fmt.Sprintf("[%v,%v[", this[0], this[1])
+}
+
+// Private
+
+func (this RangeInt64) isValid() bool {
+	return this[0] <= this[1]
+}
+
+func (this RangeInt64) notIntersectingWith(other RangeInt64) bool {
+	return this[1] <= other[0] || other[1] <= this[0]
 }

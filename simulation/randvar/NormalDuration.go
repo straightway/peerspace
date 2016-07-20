@@ -14,18 +14,26 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package randvar
 
-import "time"
+import (
+	"math/rand"
+	"time"
+)
 
-const MaxUnixTime = 0x7FFFFFF1886E08FF
+type NormalDuration struct {
+	baseRand *rand.Rand
+	mean     time.Duration
+}
 
-func MaxTime() time.Time { return time.Unix(MaxUnixTime, 0).In(time.UTC) }
+func NewNormalDuration(source rand.Source, mean time.Duration) *NormalDuration {
+	return &NormalDuration{
+		baseRand: rand.New(source),
+		mean:     mean}
+}
 
-func ParseDuration(durationString string) (result time.Duration) {
-	result, err := time.ParseDuration(durationString)
-	if err != nil {
-		panic(err)
-	}
-	return
+func (this *NormalDuration) NextSample() time.Duration {
+	sample := this.baseRand.NormFloat64()
+	sample += float64(this.mean)
+	return time.Duration(sample)
 }

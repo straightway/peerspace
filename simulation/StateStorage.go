@@ -14,18 +14,27 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package simulation
 
-import "time"
+import (
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
+)
 
-const MaxUnixTime = 0x7FFFFFF1886E08FF
+type StateStorage struct {
+	connectors []peer.Connector
+}
 
-func MaxTime() time.Time { return time.Unix(MaxUnixTime, 0).In(time.UTC) }
+func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
+	return this.connectors
+}
 
-func ParseDuration(durationString string) (result time.Duration) {
-	result, err := time.ParseDuration(durationString)
-	if err != nil {
-		panic(err)
+func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
+	return general.Contains(this.connectors, peer)
+}
+
+func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
+	if this.IsKnownPeer(peer) == false {
+		this.connectors = append(this.connectors, peer)
 	}
-	return
 }

@@ -18,8 +18,10 @@ package strategy
 
 import (
 	"hash"
+	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -29,20 +31,64 @@ type PeerDistanceRelated struct {
 	LocalPeerId string
 }
 
+var expirationTimespans = []int{3650, 365, 30, 7, 1}
+
 func (this *PeerDistanceRelated) Distance(peer peer.Connector, key data.Key) uint64 {
 	return this.distanceIdToKey(peer.Id(), key)
 }
 
-func (this *PeerDistanceRelated) Priority(chunk *data.Chunk) float32 {
+func (this *PeerDistanceRelated) Distances(peer peer.Connector, query peer.Query) []uint64 {
+	result := make([]uint64, 0, 0)
+	queryRange := general.RangeInt64{query.TimeFrom, query.TimeTo + 1}
+	for _, timestampRange := range this.timestampRangesForQuery(query) {
+		if queryRange.IntersectsWith(timestampRange) {
+			result = append(result, this.distanceForQueryTimeRange(peer, query, timestampRange))
+		}
+	}
+
+	return result
+}
+
+func (this *PeerDistanceRelated) Priority(chunk *data.Chunk) (float32, time.Time) {
 	peerDistance := this.distanceIdToKey(this.LocalPeerId, chunk.Key)
 	if peerDistance == 0 {
 		peerDistance = 1 // Avoid divison by zero
 	}
 
-	return float32(this.Timer.Time().Unix()) / float32(peerDistance)
+	_, expirationTime := this.timestampAgeMarker(chunk.Key)
+	return float32(this.Timer.Time().Unix()) / float32(peerDistance), expirationTime
 }
 
 // Private
+
+func (this *PeerDistanceRelated) distanceForQueryTimeRange(
+	peer peer.Connector, query peer.Query, timepointRange general.RangeInt64) uint64 {
+	equivalentKey := data.Key{Id: query.Id, TimeStamp: timepointRange[1] - 1}
+	return this.Distance(peer, equivalentKey)
+}
+
+func (this *PeerDistanceRelated) timestampRangesForQuery(query peer.Query) []general.RangeInt64 {
+	timestampAges := this.timestampAgesForQuery(query)
+	numRanges := len(timestampAges) - 2
+	result := make([]general.RangeInt64, 0, 0)
+	for i := numRanges; 0 <= i; i-- {
+		result = append(result, general.RangeInt64{timestampAges[i], timestampAges[i+1] + 1})
+	}
+
+	return result
+}
+
+func (this *PeerDistanceRelated) timestampAgesForQuery(query peer.Query) []int64 {
+	timestampAges := []int64{0}
+	if query.IsTimed() {
+		timestampAges = append(timestampAges, this.timestampAgeTable()...)
+		timestampAges = append(timestampAges, this.Timer.Time().Unix())
+	} else {
+		timestampAges = []int64{0, 0}
+	}
+
+	return timestampAges
+}
 
 func (this *PeerDistanceRelated) distanceIdToKey(peerId string, key data.Key) uint64 {
 	this.Hasher.Reset()
@@ -52,7 +98,8 @@ func (this *PeerDistanceRelated) distanceIdToKey(peerId string, key data.Key) ui
 	this.Hasher.Reset()
 	this.Hasher.Write([]byte(key.Id))
 	if key.TimeStamp != 0 {
-		this.Hasher.Write(this.timestampAgeMarker(key))
+		ageMarker, _ := this.timestampAgeMarker(key)
+		this.Hasher.Write([]byte{ageMarker})
 	}
 
 	keyHash := this.Hasher.Sum64()
@@ -60,24 +107,26 @@ func (this *PeerDistanceRelated) distanceIdToKey(peerId string, key data.Key) ui
 	return peerHash ^ keyHash
 }
 
-func (this *PeerDistanceRelated) timestampAgeMarker(key data.Key) []byte {
+func (this *PeerDistanceRelated) timestampAgeMarker(key data.Key) (byte, time.Time) {
 	keyTimeStamp := key.TimeStamp
 	ageTable := this.timestampAgeTable()
+	expirationTime := general.MaxTime()
 	for i, timeStampFromTable := range ageTable {
 		if keyTimeStamp <= timeStampFromTable {
-			return []byte{byte(i + 1)}
+			return byte(i + 1), expirationTime
 		}
+		expirationTime = time.Unix(key.TimeStamp, 0).In(time.UTC).
+			Add(time.Duration(expirationTimespans[i]) * 24 * time.Hour)
 	}
 
-	return []byte{byte(len(ageTable) + 1)}
+	return byte(len(ageTable) + 1), expirationTime
 }
 
 func (this *PeerDistanceRelated) timestampAgeTable() []int64 {
 	now := this.Timer.Time()
-	return []int64{
-		now.AddDate(0, 0, -3650).Unix(),
-		now.AddDate(0, 0, -365).Unix(),
-		now.AddDate(0, 0, -30).Unix(),
-		now.AddDate(0, 0, -7).Unix(),
-		now.AddDate(0, 0, -1).Unix()}
+	ages := make([]int64, len(expirationTimespans), len(expirationTimespans))
+	for i := range expirationTimespans {
+		ages[i] = now.AddDate(0, 0, -expirationTimespans[i]).Unix()
+	}
+	return ages
 }

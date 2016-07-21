@@ -203,7 +203,7 @@ func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationAfterTenYears() {
 	suite.Assert().Equal(general.MaxTime(), expiration)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQueryEqualsKeyDistance() {
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQuery_EqualsKeyDistance() {
 	query := peer.Query{Id: keyId}
 	key := data.Key{Id: data.Id(keyId)}
 	distances := suite.sut.Distances(suite.peer, query)
@@ -211,7 +211,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQueryEqualsKeyDi
 	suite.Assert().Equal(expectedDistances, distances)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange1() {
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_SingleTimePoint_EqualsKeyDistance() {
 	currTime := suite.timer.Time().Unix()
 	query := peer.Query{Id: keyId, TimeFrom: currTime, TimeTo: currTime}
 	key := data.Key{Id: data.Id(keyId), TimeStamp: currTime}
@@ -220,7 +220,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDist
 	suite.Assert().Equal(expectedDistances, distances)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange2() {
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_CoveringAllData() {
 	currTime := suite.timer.Time()
 	query := peer.Query{Id: keyId, TimeFrom: -400, TimeTo: currTime.Unix()}
 	distances := suite.sut.Distances(suite.peer, query)
@@ -234,7 +234,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDist
 	suite.Assert().Equal(expectedDistances, distances)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange3() {
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_CoveringAllPastData() {
 	currTime := suite.timer.Time()
 	query := peer.Query{Id: keyId, TimeFrom: 0, TimeTo: currTime.AddDate(0, 0, -10).Unix()}
 	distances := suite.sut.Distances(suite.peer, query)
@@ -246,7 +246,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDist
 	suite.Assert().Equal(expectedDistances, distances)
 }
 
-func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQueryYieldsKeyDistanceRange4() {
+func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_OverlappingNotAllIntervals() {
 	currTime := suite.timer.Time()
 	query := peer.Query{
 		Id:       keyId,

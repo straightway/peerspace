@@ -45,7 +45,7 @@ func (this *Connection) PeersToConnect(allPeers []peer.Connector) []peer.Connect
 	}
 }
 
-func (this *Connection) IsConnectionAcceptedWith(peer peer.Connector) bool {
+func (this *Connection) IsConnectionAcceptedWith(peer general.Identifyable) bool {
 	return len(this.existingConnections()) < this.Configuration.MaxConnections
 }
 

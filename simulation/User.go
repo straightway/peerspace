@@ -28,8 +28,8 @@ type User struct {
 	Scheduler       *EventScheduler
 	StartupDuration randvar.Duration
 	OnlineDuration  randvar.Duration
-	ActionDuration  randvar.Duration
 	OnlineAction    func(*User)
+	ActionDuration  randvar.Duration
 	nextOfflineTime time.Time
 }
 

@@ -58,7 +58,10 @@ func (this *simulationEnvironment) createUser() *User {
 	newUser := &User{
 		Scheduler:       &this.eventScheduler,
 		Node:            this.createNode(),
-		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h"))}
+		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h")),
+		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h")),
+		OnlineAction:    func(*User) {},
+		ActionDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("10m"))}
 	newUser.Activate()
 	return newUser
 }
@@ -70,7 +73,9 @@ func (this *simulationEnvironment) createNode() peer.Node {
 		StateStorage:  this.createStateStorage(),
 		DataStorage:   this.createDataStorage(peerDistanceRelated),
 		DataStrategy:  this.createDataStrategy(configuration, peerDistanceRelated),
+		Timer:         &this.eventScheduler,
 		Configuration: configuration}
+	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
 	return newNode
 }
 
@@ -90,4 +95,13 @@ func (this *simulationEnvironment) createDataStrategy(
 	return &strategy.Data{
 		Configuration:          configuration,
 		PeerDistanceCalculator: peerDistanceCalculator}
+}
+
+func (this *simulationEnvironment) createConnecionStrategy(
+	configuration *peer.Configuration,
+	connectionInfoProvider strategy.ConnectionInfoProvider) peer.ConnectionStrategy {
+	return &strategy.Connection{
+		Configuration:          configuration,
+		ConnectionInfoProvider: connectionInfoProvider,
+		RandSource:             this.randSource}
 }

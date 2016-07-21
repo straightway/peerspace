@@ -89,6 +89,7 @@ func (suite *RangeInt64_Test) Test_IntersectsWith_InvalidRange_Both() {
 	b := general.RangeInt64{7, 3}
 	suite.Assert().False(b.IntersectsWith(a))
 }
+
 func (suite *RangeInt64_Test) Test_String() {
 	suite.Assert().Equal("[3,5[", general.RangeInt64{3, 5}.String())
 }

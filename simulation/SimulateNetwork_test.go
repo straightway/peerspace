@@ -58,10 +58,10 @@ func (this *simulationEnvironment) createUser() *User {
 	newUser := &User{
 		Scheduler:       &this.eventScheduler,
 		Node:            this.createNode(),
-		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h")),
-		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h")),
+		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h"), general.ParseDuration("2h")),
+		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h"), general.ParseDuration("2h")),
 		OnlineAction:    func(*User) {},
-		ActionDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("10m"))}
+		ActionDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("10m"), general.ParseDuration("30m"))}
 	newUser.Activate()
 	return newUser
 }

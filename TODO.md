@@ -1,12 +1,10 @@
 #TODO
-* [x] Peer announcment strategy
-	* [x] Peers can get to know new peers by asking known peers about their peers
-* [ ] Re-prioritze data after successful query
+* [x] Re-prioritze data after successful query
 * [ ] Implement cryptography
 	* [ ] Future-safe algorithms
 	* [ ] Encrypt data chunks
 * [ ] Implement network simulation
-	* [ ] Event driven simulation
+	* [x] Event driven simulation
 	* [ ] Which scenarios?
 	* [ ] Measure from client perspective
 		1. [ ] Answer times

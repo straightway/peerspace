@@ -23,17 +23,20 @@ import (
 
 type NormalDuration struct {
 	baseRand *rand.Rand
-	mean     time.Duration
+	mean     float64
+	stdDev   float64
 }
 
-func NewNormalDuration(source rand.Source, mean time.Duration) *NormalDuration {
+func NewNormalDuration(source rand.Source, mean, stdDev time.Duration) *NormalDuration {
 	return &NormalDuration{
 		baseRand: rand.New(source),
-		mean:     mean}
+		mean:     float64(mean),
+		stdDev:   float64(stdDev)}
 }
 
 func (this *NormalDuration) NextSample() time.Duration {
 	sample := this.baseRand.NormFloat64()
-	sample += float64(this.mean)
+	sample *= this.stdDev
+	sample += this.mean
 	return time.Duration(sample)
 }

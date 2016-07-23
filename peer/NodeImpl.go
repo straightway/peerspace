@@ -73,6 +73,10 @@ func (this *NodeImpl) ShutDown() {
 	for _, peer := range append(this.connectingPeers, this.connectedPeers...) {
 		peer.CloseConnectionWith(this)
 	}
+
+	if this.DataStorage != nil {
+		this.DataStorage.ShutDown()
+	}
 }
 
 func (this *NodeImpl) RequestConnectionWith(peer Connector) {

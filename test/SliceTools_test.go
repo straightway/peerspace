@@ -108,7 +108,6 @@ func (suite *SliceTools_Test) Test_SetUnion_WithOverlappingValuesInFirstArgument
 func (suite *SliceTools_Test) Test_ForEachSliceItem_NilDoesNothing() {
 	general.ForEachSliceItem(nil, func(p interface{}) general.LoopControl {
 		panic("Callback should not be called")
-		return general.Continue
 	})
 }
 

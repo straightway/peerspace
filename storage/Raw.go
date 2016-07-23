@@ -29,9 +29,9 @@ type ChunkOrder func(a, b *data.Key) bool
 type Raw interface {
 	Query(peer.Query) []DataRecord
 	Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time)
-	Delete(data.Key) int
-	SizeOf(*data.Chunk) int
-	FreeStorage() int
+	Delete(data.Key)
+	SizeOf(*data.Chunk) uint64
+	FreeStorage() uint64
 	LeastImportantData() general.Iterator
 	ExpiredData() []DataRecord
 	RePrioritize(data.Key, float32, time.Time)

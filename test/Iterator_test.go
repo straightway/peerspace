@@ -37,7 +37,7 @@ func TestIterator(t *testing.T) {
 
 func (suite *Iterator_Test) Test_Loop_WithEmptyIterator_DoesNothing() {
 	sut := general.Iterator(func() (interface{}, bool) { return nil, false })
-	sut.Loop(func(interface{}) general.LoopControl { panic("No iteration expected"); return true })
+	sut.Loop(func(interface{}) general.LoopControl { panic("No iteration expected") })
 }
 
 func (suite *Iterator_Test) Test_Loop_WithNonEmptyIterator_YieldsValues() {

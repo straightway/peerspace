@@ -19,7 +19,7 @@ package peer
 import "github.com/straightway/straightway/data"
 
 type DataStorage interface {
-	Startup()
+	LifeCycle
 	ConsiderStorage(*data.Chunk)
 	Query(Query) []*data.Chunk
 }

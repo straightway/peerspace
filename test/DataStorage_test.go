@@ -87,3 +87,23 @@ func (suite *DataStorage_Test) Test_ConsiderStorage_UsesPriorityGeneratorToDeter
 	priorityGenerator.AssertCalledOnce(suite.T(), "Priority", &untimedChunk)
 	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, float32(2.0), mock.Anything)
 }
+
+func (suite *DataStorage_Test) Test_Startup_IsForwardedToRawStorage() {
+	suite.sut.Startup()
+	suite.raw.AssertCalledOnce(suite.T(), "Startup")
+}
+
+func (suite *DataStorage_Test) Test_Startup_IsIgnoredIfNotSupportedByRawStorage() {
+	suite.sut.RawStorage = mocked.NewRawStorage(suite.timer)
+	suite.Assert().NotPanics(func() { suite.sut.Startup() })
+}
+
+func (suite *DataStorage_Test) Test_ShutDown_IsForwardedToRawStorage() {
+	suite.sut.ShutDown()
+	suite.raw.AssertCalledOnce(suite.T(), "ShutDown")
+}
+
+func (suite *DataStorage_Test) Test_Shutdown_IsIgnoredIfNotSupportedByRawStorage() {
+	suite.sut.RawStorage = mocked.NewRawStorage(suite.timer)
+	suite.Assert().NotPanics(func() { suite.sut.ShutDown() })
+}

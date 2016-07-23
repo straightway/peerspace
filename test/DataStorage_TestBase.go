@@ -28,13 +28,13 @@ import (
 type DataStorage_TestBase struct {
 	suite.Suite
 	sut   *storage.DataImpl
-	raw   *mocked.RawStorage
+	raw   *mocked.RawStorageWithLifeCycle
 	timer *mocked.Timer
 }
 
 func (suite *DataStorage_TestBase) SetupTest() {
 	suite.timer = &mocked.Timer{}
-	suite.raw = mocked.NewRawStorage(suite.timer)
+	suite.raw = mocked.NewRawStorageWithLifeCycle(suite.timer)
 	suite.sut = &storage.DataImpl{
 		RawStorage:        suite.raw,
 		PriorityGenerator: mocked.NewPriorityGenerator(0.0, general.MaxTime())}

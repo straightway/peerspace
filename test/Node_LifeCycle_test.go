@@ -127,3 +127,9 @@ func (suite *Node_LifeCycle_Test) Test_ShutDown_ClosesAllOpenConnections() {
 		p.AssertCalledOnce(suite.T(), "CloseConnectionWith", suite.node)
 	}
 }
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ShutsDownDataStorage() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+	suite.dataStorage.AssertCalledOnce(suite.T(), "ShutDown")
+}

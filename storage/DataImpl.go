@@ -27,7 +27,19 @@ type DataImpl struct {
 	RawStorage        Raw
 }
 
-func (this *DataImpl) Startup() {}
+func (this *DataImpl) Startup() {
+	lifeCycle, ok := this.RawStorage.(peer.LifeCycle)
+	if ok {
+		lifeCycle.Startup()
+	}
+}
+
+func (this *DataImpl) ShutDown() {
+	lifeCycle, ok := this.RawStorage.(peer.LifeCycle)
+	if ok {
+		lifeCycle.ShutDown()
+	}
+}
 
 func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
 	this.rePrioritizeChunksWithExpiredPrio()
@@ -58,7 +70,7 @@ func (this *DataImpl) rePrioritizeChunksWithExpiredPrio() {
 	}
 }
 
-func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize int) (keysToDelete []data.Key, success bool) {
+func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete []data.Key, success bool) {
 	freeStorage := this.RawStorage.FreeStorage()
 	if chunkSize <= freeStorage {
 		return nil, true

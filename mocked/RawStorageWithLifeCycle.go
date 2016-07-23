@@ -14,27 +14,28 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package mocked
 
 import (
-	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 )
 
-type StateStorage struct {
-	Connectors []peer.Connector
+type RawStorageWithLifeCycle struct {
+	*RawStorage
 }
 
-func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
-	return this.Connectors
+func NewRawStorageWithLifeCycle(timer peer.Timer) *RawStorageWithLifeCycle {
+	result := &RawStorageWithLifeCycle{}
+	result.RawStorage = NewRawStorage(timer)
+	result.On("Startup").Return()
+	result.On("ShutDown").Return()
+	return result
 }
 
-func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
-	return general.Contains(this.Connectors, peer)
+func (m *RawStorageWithLifeCycle) Startup() {
+	m.Called()
 }
 
-func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
-	if this.IsKnownPeer(peer) == false {
-		this.Connectors = append(this.Connectors, peer)
-	}
+func (m *RawStorageWithLifeCycle) ShutDown() {
+	m.Called()
 }

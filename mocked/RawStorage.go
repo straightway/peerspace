@@ -31,7 +31,7 @@ import (
 
 type RawStorage struct {
 	Base
-	CurrentFreeStorage int
+	CurrentFreeStorage uint64
 	Data               []storage.DataRecord
 	Timer              peer.Timer
 }
@@ -49,14 +49,14 @@ func NewRawStorage(timer peer.Timer) *RawStorage {
 	return result
 }
 
-func (m *RawStorage) FreeStorage() int {
+func (m *RawStorage) FreeStorage() uint64 {
 	m.Called()
 	return m.CurrentFreeStorage
 }
 
-func (m *RawStorage) SizeOf(chunk *data.Chunk) int {
+func (m *RawStorage) SizeOf(chunk *data.Chunk) uint64 {
 	m.Called(chunk)
-	return len(chunk.Data)
+	return uint64(len(chunk.Data))
 }
 
 func (m *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time) {
@@ -68,7 +68,7 @@ func (m *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTi
 			"Cannot store chunk %+v (size: %v). Free space: %v",
 			chunk.Key,
 			chunkSize,
-			m.FreeStorage))
+			m.FreeStorage()))
 	}
 	m.CurrentFreeStorage -= chunkSize
 	record := storage.DataRecord{
@@ -97,10 +97,9 @@ func (m *RawStorage) RePrioritize(key data.Key, priority float32, prioExpiration
 	panic(fmt.Sprintf("Cannot re-prioritize item with key %v as it is not contained", key))
 }
 
-func (m *RawStorage) Delete(key data.Key) int {
+func (m *RawStorage) Delete(key data.Key) {
 	m.Called(key)
 	m.deleteInternal(key)
-	return m.CurrentFreeStorage
 }
 
 func (m *RawStorage) Query(query peer.Query) []storage.DataRecord {

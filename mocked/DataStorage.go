@@ -37,6 +37,7 @@ func NewDataStorage(result ...*data.Chunk) *DataStorage {
 
 	dataStorage.On("Query", mock.Anything).Return()
 	dataStorage.On("Startup").Return()
+	dataStorage.On("ShutDown").Return()
 
 	return dataStorage
 }
@@ -61,6 +62,11 @@ func (this *DataStorage) Query(query peer.Query) []*data.Chunk {
 }
 
 func (this *DataStorage) Startup() {
+	this.Called()
+	this.StartupCalls++
+}
+
+func (this *DataStorage) ShutDown() {
 	this.Called()
 	this.StartupCalls++
 }

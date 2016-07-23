@@ -17,24 +17,26 @@
 package simulation
 
 import (
-	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/peer"
+	"bytes"
+	"encoding/binary"
+
+	"github.com/straightway/straightway/data"
 )
 
-type StateStorage struct {
-	Connectors []peer.Connector
+type RawStorage struct{}
+
+func (this *RawStorage) CreateChunk(key data.Key, virtualSize uint32) *data.Chunk {
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, virtualSize)
+	return &data.Chunk{Key: key, Data: buf.Bytes()}
 }
 
-func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
-	return this.Connectors
-}
-
-func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
-	return general.Contains(this.Connectors, peer)
-}
-
-func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
-	if this.IsKnownPeer(peer) == false {
-		this.Connectors = append(this.Connectors, peer)
+func (this *RawStorage) SizeOf(chunk *data.Chunk) uint32 {
+	buf := bytes.NewReader(chunk.Data)
+	var virtualSize uint32 = 0
+	err := binary.Read(buf, binary.LittleEndian, &virtualSize)
+	if err != nil {
+		panic(err)
 	}
+	return virtualSize
 }

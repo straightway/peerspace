@@ -75,12 +75,14 @@ func (this *simulationEnvironment) createUser() *User {
 func (this *simulationEnvironment) createNode() peer.Node {
 	configuration := peer.DefaultConfiguration()
 	peerDistanceRelated := &strategy.PeerDistanceRelated{}
+	stateStorage := this.createStateStorage()
 	newNode := &peer.NodeImpl{
-		StateStorage:  this.createStateStorage(),
-		DataStorage:   this.createDataStorage(peerDistanceRelated),
-		DataStrategy:  this.createDataStrategy(configuration, peerDistanceRelated),
-		Timer:         &this.eventScheduler,
-		Configuration: configuration}
+		StateStorage:         stateStorage,
+		DataStorage:          this.createDataStorage(peerDistanceRelated),
+		AnnouncementStrategy: this.createAnnouncementStrategy(configuration, stateStorage),
+		DataStrategy:         this.createDataStrategy(configuration, peerDistanceRelated),
+		Timer:                &this.eventScheduler,
+		Configuration:        configuration}
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
 	return newNode
 }
@@ -109,6 +111,15 @@ func (this *simulationEnvironment) createDataStrategy(
 	return &strategy.Data{
 		Configuration:          configuration,
 		PeerDistanceCalculator: peerDistanceCalculator}
+}
+
+func (this *simulationEnvironment) createAnnouncementStrategy(
+	configuration *peer.Configuration,
+	stateStorage peer.StateStorage) peer.AnnouncementStrategy {
+	return &strategy.Announcement{
+		Configuration: configuration,
+		RandomSource:  this.randSource,
+		StateStorage:  stateStorage}
 }
 
 func (this *simulationEnvironment) createConnecionStrategy(

@@ -169,8 +169,8 @@ func (this *NodeImpl) IsStarted() bool {
 
 func (this *NodeImpl) tryConnectWith(peer Connector) {
 	if this.ConnectionStrategy.IsConnectionAcceptedWith(peer) {
-		peer.RequestConnectionWith(this)
 		this.connectingPeers = append(this.connectingPeers, peer)
+		peer.RequestConnectionWith(this)
 	}
 }
 

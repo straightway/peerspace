@@ -14,28 +14,32 @@
    limitations under the License.
 ****************************************************************************/
 
-// TODO Check if this is the right package for this class
-package peer
+package strategy
 
 import (
-	"time"
+	"math/rand"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
 )
 
-type Configuration struct {
-	MaxConnections      int
-	MaxChunkSize        int
-	MaxAnnouncedPeers   int
-	TimedQueryTimeout   time.Duration
-	UntimedQueryTimeout time.Duration
+type Announcement struct {
+	Configuration *peer.Configuration
+	RandomSource  rand.Source
+	StateStorage  peer.StateStorage
 }
 
-func DefaultConfiguration() *Configuration {
-	return &Configuration{
-		MaxConnections:      20,
-		MaxAnnouncedPeers:   50,
-		MaxChunkSize:        0xffff,
-		TimedQueryTimeout:   general.ParseDuration("1h"),
-		UntimedQueryTimeout: general.ParseDuration("5m")}
+func (this *Announcement) AnnouncedPeers() []peer.Connector {
+	knownPeers := this.StateStorage.GetAllKnownPeers()
+	if len(knownPeers) < this.Configuration.MaxAnnouncedPeers {
+		return knownPeers
+	} else {
+		dice := rand.New(this.RandomSource)
+		permutation := dice.Perm(len(knownPeers))[0:this.Configuration.MaxAnnouncedPeers]
+		result := make([]peer.Connector, this.Configuration.MaxAnnouncedPeers, this.Configuration.MaxAnnouncedPeers)
+		for i, j := range permutation {
+			result[i] = knownPeers[j]
+		}
+
+		return result
+	}
 }

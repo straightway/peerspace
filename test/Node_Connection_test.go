@@ -105,7 +105,10 @@ func (suite *Node_Connection_Test) TestConfirmedConnectionsAreNotReconnected() {
 }
 
 func (suite *Node_Connection_Test) TestInitialConnectionsArePending() {
-	suite.AddKnownConnectedPeer(DoForward(false))
+	peer := suite.AddKnownConnectedPeer(DoForward(false))
+	peer.OnNew("RequestConnectionWith", suite.node).Run(func(mock.Arguments) {
+		suite.Assert().True(suite.node.IsConnectionPendingWith(peer))
+	})
 	suite.node.Startup()
 	for _, p := range suite.connectedPeers {
 		assert.True(suite.T(), suite.node.IsConnectionPendingWith(p))

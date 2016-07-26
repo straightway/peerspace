@@ -107,7 +107,7 @@ func RemoveItemsIf(slice interface{}, predicate func(item interface{}) bool) int
 
 func interfaceOrNil(value reflect.Value) interface{} {
 	ivalue := value.Interface()
-	if ivalue != nil && value.Kind() >= reflect.Array && value.IsNil() {
+	if ivalue != nil && value.Kind() >= reflect.Array && value.Kind() != reflect.Struct && value.IsNil() {
 		return nil
 	}
 	return ivalue

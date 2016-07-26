@@ -29,13 +29,18 @@ import (
 
 func TestSimulatedNetwork(t *testing.T) {
 	env := newSimulationEnvironment()
-	for i := 0; i < 2; i++ {
+	numberOfUsers := 2
+	for i := 0; i < numberOfUsers; i++ {
 		env.addNewUser()
 	}
 
 	env.eventScheduler.Schedule(general.ParseDuration("24h"), func() { env.eventScheduler.Stop() })
 	env.eventScheduler.Run()
 }
+
+const (
+	gb = 1024 * 1024 * 1024
+)
 
 type simulationEnvironment struct {
 	randSource     rand.Source
@@ -49,9 +54,10 @@ func newSimulationEnvironment() *simulationEnvironment {
 	}
 }
 
-func (this *simulationEnvironment) addNewUser() {
+func (this *simulationEnvironment) addNewUser() *User {
 	newUser := this.createUser()
 	this.users = append(this.users, newUser)
+	return newUser
 }
 
 func (this *simulationEnvironment) createUser() *User {
@@ -80,13 +86,21 @@ func (this *simulationEnvironment) createNode() peer.Node {
 }
 
 func (this *simulationEnvironment) createStateStorage() peer.StateStorage {
-	return &StateStorage{}
+	stateStorage := &StateStorage{}
+	if 0 < len(this.users) {
+		stateStorage.AddKnownPeer(this.users[0].Node)
+	}
+
+	return stateStorage
 }
 
 func (this *simulationEnvironment) createDataStorage(priorityGenerator storage.PriorityGenerator) peer.DataStorage {
+	rawStorage := &RawStorage{
+		FreeStorageValue: 2 * gb,
+		Timer:            &this.eventScheduler}
 	return &storage.DataImpl{
 		PriorityGenerator: priorityGenerator,
-		RawStorage:        nil}
+		RawStorage:        rawStorage}
 }
 
 func (this *simulationEnvironment) createDataStrategy(

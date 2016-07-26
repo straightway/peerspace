@@ -30,6 +30,8 @@ type SliceTools_Test struct {
 	suite.Suite
 }
 
+type testStruct struct{}
+
 type intEqualer int
 
 func (this intEqualer) Equal(other general.Equaler) bool {
@@ -172,6 +174,14 @@ func (suite *SliceTools_Test) Test_RemoveItemsIf_NilPredicateYieldsNotNil() {
 	result := general.RemoveItemsIf(sut, nilPredicate)
 	assert.Equal(suite.T(), []*int{&notNilItem}, result)
 }
+
+func (suite *SliceTools_Test) Test_RemoveItemsIf_WithPlainStructValues() {
+	var sut []testStruct = []testStruct{testStruct{}, testStruct{}}
+	result := general.RemoveItemsIf(sut, truePredicate)
+	assert.Empty(suite.T(), result)
+}
+
+// Private
 
 func truePredicate(item interface{}) bool {
 	return true

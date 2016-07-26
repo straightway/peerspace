@@ -19,24 +19,99 @@ package simulation
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"sort"
+	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/storage"
 )
 
-type RawStorage struct{}
+type RawStorage struct {
+	FreeStorageValue uint64
+	Timer            peer.Timer
+	storedData       []storage.DataRecord
+}
 
-func (this *RawStorage) CreateChunk(key data.Key, virtualSize uint32) *data.Chunk {
+func (this *RawStorage) CreateChunk(key data.Key, virtualSize uint64) *data.Chunk {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, virtualSize)
 	return &data.Chunk{Key: key, Data: buf.Bytes()}
 }
 
-func (this *RawStorage) SizeOf(chunk *data.Chunk) uint32 {
+func (this *RawStorage) FreeStorage() uint64 {
+	return this.FreeStorageValue
+}
+
+func (this *RawStorage) SizeOf(chunk *data.Chunk) uint64 {
 	buf := bytes.NewReader(chunk.Data)
-	var virtualSize uint32 = 0
+	var virtualSize uint64 = 0
 	err := binary.Read(buf, binary.LittleEndian, &virtualSize)
 	if err != nil {
 		panic(err)
 	}
 	return virtualSize
+}
+
+func (this *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time) {
+	this.Delete(chunk.Key)
+	this.FreeStorageValue -= this.SizeOf(chunk)
+	dataRecord := storage.DataRecord{
+		Chunk:              chunk,
+		Priority:           priority,
+		PrioExpirationTime: prioExpirationTime}
+	this.storedData = append(this.storedData, dataRecord)
+	sort.Sort(storage.DataRecordByPriority(this.storedData))
+}
+
+func (this *RawStorage) Delete(key data.Key) {
+	this.storedData = general.RemoveItemsIf(this.storedData, func(item interface{}) bool {
+		dataRecord := item.(storage.DataRecord)
+		isFound := dataRecord.Chunk.Key == key
+		if isFound {
+			this.FreeStorageValue += this.SizeOf(dataRecord.Chunk)
+		}
+		return isFound
+	}).([]storage.DataRecord)
+}
+
+func (this *RawStorage) Query(query peer.Query) []storage.DataRecord {
+	result := make([]storage.DataRecord, 0, 0)
+	for _, record := range this.storedData {
+		if query.Matches(record.Chunk.Key) {
+			result = append(result, record)
+		}
+	}
+
+	return result
+}
+
+func (this *RawStorage) LeastImportantData() general.Iterator {
+	return general.Iterate(storage.ToChunkSlice(this.storedData))
+}
+
+func (this *RawStorage) ExpiredData() []storage.DataRecord {
+	result := make([]storage.DataRecord, 0, 0)
+	now := this.Timer.Time()
+	for _, record := range this.storedData {
+		if !now.Before(record.PrioExpirationTime) {
+			result = append(result, record)
+		}
+	}
+
+	return result
+}
+
+func (this *RawStorage) RePrioritize(key data.Key, prio float32, prioExpTime time.Time) {
+	for _, record := range this.storedData {
+		if record.Chunk.Key == key {
+			this.Delete(key)
+			this.Store(record.Chunk, prio, prioExpTime)
+			return
+		}
+	}
+
+	panic(fmt.Sprintf("key %+v not found", key))
 }

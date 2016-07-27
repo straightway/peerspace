@@ -28,8 +28,7 @@ type User struct {
 	Scheduler       *EventScheduler
 	StartupDuration randvar.Duration
 	OnlineDuration  randvar.Duration
-	OnlineAction    func(*User)
-	ActionDuration  randvar.Duration
+	OnlineActivity  UserActivity
 	nextOfflineTime time.Time
 }
 
@@ -42,7 +41,7 @@ func (this *User) Activate() {
 func (this *User) doStartup() {
 	this.Node.Startup()
 	this.nextOfflineTime = this.schedule(this.OnlineDuration, this.doShutDown)
-	this.scheduleNextAction()
+	this.OnlineActivity.ScheduleUntil(this.nextOfflineTime)
 }
 
 func (this *User) doShutDown() {
@@ -50,21 +49,8 @@ func (this *User) doShutDown() {
 	this.Activate()
 }
 
-func (this *User) executeAction() {
-	this.OnlineAction(this)
-	this.scheduleNextAction()
-}
-
 func (this *User) schedule(duration randvar.Duration, action func()) time.Time {
 	actionDuration := duration.NextSample()
 	this.Scheduler.Schedule(actionDuration, action)
 	return this.Scheduler.Time().Add(actionDuration)
-}
-
-func (this *User) scheduleNextAction() {
-	actionDuration := this.ActionDuration.NextSample()
-	actionTime := this.Scheduler.Time().Add(actionDuration)
-	if actionTime.Before(this.nextOfflineTime) {
-		this.Scheduler.Schedule(actionDuration, this.executeAction)
-	}
 }

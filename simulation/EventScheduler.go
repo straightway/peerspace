@@ -43,7 +43,9 @@ func (this *EventScheduler) Time() time.Time {
 }
 
 func (this *EventScheduler) Schedule(duration time.Duration, action func()) {
-	this.ScheduleAbsolute(this.currentTime.Add(duration), action)
+	if 0 <= duration {
+		this.ScheduleAbsolute(this.currentTime.Add(duration), action)
+	}
 }
 
 func (this *EventScheduler) ScheduleNextDayTime(daysFromNow int, clockTime time.Duration, action func()) bool {

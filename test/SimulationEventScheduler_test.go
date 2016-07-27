@@ -100,6 +100,14 @@ func (suite *SimulationEventScheduler_Test) Test_Schedule_ChainedEvents() {
 	suite.Assert().True(wasCalled)
 }
 
+func (suite *SimulationEventScheduler_Test) Test_Schedule_IgnoresNegativeTimes() {
+	eventDuration := time.Duration(-1)
+	suite.sut.Schedule(eventDuration, func() {
+		panic("Shall not be called")
+	})
+	suite.sut.Run()
+}
+
 func (suite *SimulationEventScheduler_Test) Test_ScheduleAbsolute() {
 	wasCalled := false
 	targetDateTime, err := time.Parse(timeFormat, "2000-01-01 08:45:13")

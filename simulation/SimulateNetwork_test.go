@@ -17,10 +17,13 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simulation/randvar"
 	"github.com/straightway/straightway/storage"
@@ -28,12 +31,7 @@ import (
 )
 
 func TestSimulatedNetwork(t *testing.T) {
-	env := newSimulationEnvironment()
-	numberOfUsers := 2
-	for i := 0; i < numberOfUsers; i++ {
-		env.addNewUser()
-	}
-
+	env := newSimulationEnvironment(2)
 	env.eventScheduler.Schedule(general.ParseDuration("24h"), func() { env.eventScheduler.Stop() })
 	env.eventScheduler.Run()
 }
@@ -43,15 +41,21 @@ const (
 )
 
 type simulationEnvironment struct {
+	nextNodeId     uint
 	randSource     rand.Source
 	eventScheduler EventScheduler
+	initialUser    *User
 	users          []*User
 }
 
-func newSimulationEnvironment() *simulationEnvironment {
-	return &simulationEnvironment{
-		randSource: rand.NewSource(12345),
+func newSimulationEnvironment(numberOfUsers int) *simulationEnvironment {
+	result := &simulationEnvironment{
+		randSource: rand.NewSource(12345)}
+	result.createSeedNode()
+	for i := 0; i < numberOfUsers; i++ {
+		result.addNewUser()
 	}
+	return result
 }
 
 func (this *simulationEnvironment) addNewUser() *User {
@@ -60,23 +64,34 @@ func (this *simulationEnvironment) addNewUser() *User {
 	return newUser
 }
 
+func (this *simulationEnvironment) createSeedNode() {
+	this.initialUser = &User{
+		Scheduler:       &this.eventScheduler,
+		Node:            this.createNode(),
+		StartupDuration: randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
+		OnlineDuration:  randvar.NewNormalDuration(this.randSource, time.Duration(-1), time.Duration(0)),
+		OnlineActivity:  mocked.NewSimulationUserActivity()}
+	this.initialUser.Activate()
+}
+
 func (this *simulationEnvironment) createUser() *User {
 	newUser := &User{
 		Scheduler:       &this.eventScheduler,
 		Node:            this.createNode(),
 		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h"), general.ParseDuration("2h")),
 		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h"), general.ParseDuration("2h")),
-		OnlineAction:    func(*User) {},
-		ActionDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("10m"), general.ParseDuration("30m"))}
+		OnlineActivity:  mocked.NewSimulationUserActivity()}
 	newUser.Activate()
 	return newUser
 }
 
 func (this *simulationEnvironment) createNode() peer.Node {
+	this.nextNodeId++
 	configuration := peer.DefaultConfiguration()
 	peerDistanceRelated := &strategy.PeerDistanceRelated{}
 	stateStorage := this.createStateStorage()
 	newNode := &peer.NodeImpl{
+		Identifier:           fmt.Sprintf("%v", this.nextNodeId),
 		StateStorage:         stateStorage,
 		DataStorage:          this.createDataStorage(peerDistanceRelated),
 		AnnouncementStrategy: this.createAnnouncementStrategy(configuration, stateStorage),
@@ -90,7 +105,7 @@ func (this *simulationEnvironment) createNode() peer.Node {
 func (this *simulationEnvironment) createStateStorage() peer.StateStorage {
 	stateStorage := &StateStorage{}
 	if 0 < len(this.users) {
-		stateStorage.AddKnownPeer(this.users[0].Node)
+		stateStorage.AddKnownPeer(this.initialUser.Node)
 	}
 
 	return stateStorage

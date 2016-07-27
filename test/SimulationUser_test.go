@@ -32,6 +32,7 @@ type SimulationUser_Test struct {
 	sut       *simulation.User
 	scheduler *simulation.EventScheduler
 	node      *mocked.Node
+	activity  *mocked.SimulationUserActivity
 }
 
 func TestSimulationUser(t *testing.T) {
@@ -40,21 +41,22 @@ func TestSimulationUser(t *testing.T) {
 
 var startupDuration = general.ParseDuration("8h")
 var onlineDuration = general.ParseDuration("2h")
-var actionDuration = general.ParseDuration("45m")
 var stopDuration = general.ParseDuration("1000h")
 
 func (suite *SimulationUser_Test) SetupTest() {
 	suite.scheduler = &simulation.EventScheduler{}
 	suite.node = mocked.NewNode("nodeId")
+	suite.activity = mocked.NewSimulationUserActivity()
 	suite.sut = &simulation.User{
 		Scheduler:       suite.scheduler,
 		Node:            suite.node,
 		StartupDuration: mocked.NewDurationRandVar(startupDuration),
 		OnlineDuration:  mocked.NewDurationRandVar(onlineDuration),
-		ActionDuration:  mocked.NewDurationRandVar(actionDuration),
-		OnlineAction:    func(*simulation.User) {}}
+		OnlineActivity:  suite.activity}
 	suite.sut.Activate()
-	suite.scheduler.Schedule(stopDuration, func() { panic("Simulation did not stop") })
+	suite.scheduler.Schedule(stopDuration, func() {
+		panic("Simulation did not stop")
+	})
 }
 
 func (suite *SimulationUser_Test) TearDownTest() {
@@ -84,36 +86,24 @@ func (suite *SimulationUser_Test) TestNodeIsRestartedAfterShutDown() {
 }
 
 func (suite *SimulationUser_Test) TestOnlineActionIsExecutedWhenOnline() {
-	suite.sut.OnlineAction = func(user *simulation.User) {
-		suite.Assert().Equal(suite.sut, user)
-		suite.sut.Node.Push(nil, nil)
-	}
-	expectedActionTime := startupDuration + actionDuration
-	suite.assertScheduledAfter(expectedActionTime, "Push", mock.Anything, mock.Anything)
+	shutdownTime := suite.scheduler.Time().Add(startupDuration + onlineDuration)
+	suite.activity.AssertNotCalled(suite.T(), "ScheduleUntil", mock.Anything)
+	suite.scheduler.Schedule(startupDuration+onlineDuration+time.Duration(1), func() {
+		suite.scheduler.Stop()
+	})
 	suite.scheduler.Run()
-	suite.node.AssertNumberOfCalls(suite.T(), "Startup", 1)
-}
-
-func (suite *SimulationUser_Test) TestOnlineActionIsRepeatedWhenOnline() {
-	suite.sut.OnlineAction = func(user *simulation.User) {
-		suite.Assert().Equal(suite.sut, user)
-		suite.sut.Node.Push(nil, nil)
-	}
-	repeatedActionTime := startupDuration + 2*actionDuration
-	suite.assertScheduledAfter(repeatedActionTime, "Push", mock.Anything, mock.Anything)
-	suite.scheduler.Run()
-	suite.node.AssertNumberOfCalls(suite.T(), "Push", 2)
+	suite.activity.AssertCalledOnce(suite.T(), "ScheduleUntil", shutdownTime)
 }
 
 func (suite *SimulationUser_Test) TestOnlineActionIsNotExecutedWhenOffline() {
-	suite.sut.OnlineAction = func(user *simulation.User) {
-		suite.Assert().Equal(suite.sut, user)
-		suite.sut.Node.Push(nil, nil)
-	}
-	nextOnlineTime := 2*startupDuration + onlineDuration
-	suite.assertScheduledAfter(nextOnlineTime, "Startup", mock.Anything, mock.Anything)
+	suite.scheduler.Schedule(startupDuration+onlineDuration+1, func() {
+		suite.activity.Calls = nil
+	})
+	suite.scheduler.Schedule(2*startupDuration+onlineDuration-1, func() {
+		suite.scheduler.Stop()
+	})
 	suite.scheduler.Run()
-	suite.node.AssertNumberOfCalls(suite.T(), "Push", 2)
+	suite.activity.AssertNotCalled(suite.T(), "ScheduleUntil", mock.Anything)
 }
 
 // Private

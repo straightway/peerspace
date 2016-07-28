@@ -49,6 +49,14 @@ func (this *Upload) ScheduleUntil(maxTime time.Time) {
 // Private
 
 func (this *Upload) doPush() {
+	newDataChunk := this.ChunkCreator.CreateChunk(
+		data.Key{Id: data.Id(this.IdGenerator.NextId())},
+		this.nextChunkSize())
+	this.User.Node.Push(newDataChunk, this.User)
+	this.attractToAudience(newDataChunk)
+}
+
+func (this *Upload) nextChunkSize() uint64 {
 	chunkSize := uint64(this.DataSize.NextSample())
 	if this.Configuration.MaxChunkSize < chunkSize {
 		chunkSize = this.Configuration.MaxChunkSize
@@ -56,11 +64,12 @@ func (this *Upload) doPush() {
 		chunkSize = 1
 	}
 
-	newDataChunk := this.ChunkCreator.CreateChunk(
-		data.Key{Id: data.Id(this.IdGenerator.NextId())},
-		chunkSize)
-	this.User.Node.Push(newDataChunk, this.User)
+	return chunkSize
+}
+
+func (this *Upload) attractToAudience(chunk *data.Chunk) {
+	chunkQuery := peer.Query{Id: chunk.Key.Id}
 	for _, consumer := range this.Audience {
-		consumer.AttractTo(peer.Query{Id: newDataChunk.Key.Id})
+		consumer.AttractTo(chunkQuery)
 	}
 }

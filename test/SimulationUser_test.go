@@ -107,7 +107,7 @@ func (suite *SimulationUser_Test) TestOnlineActionIsNotExecutedWhenOffline() {
 
 func (suite *SimulationUser_Test) TestUserIsIdentifyable() {
 	var identifyable general.Identifyable = suite.sut
-	suite.Assert().Equal("UserOf"+suite.sut.Node.Id(), identifyable.Id())
+	suite.Assert().Equal("UserOf_"+suite.sut.Node.Id(), identifyable.Id())
 }
 
 // Private

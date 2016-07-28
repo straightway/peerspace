@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simulation"
 	"github.com/straightway/straightway/simulation/randvar"
 )
@@ -28,8 +30,9 @@ type Upload struct {
 	User         *simulation.User
 	Delay        randvar.Duration
 	DataSize     randvar.Float64
+	IdGenerator  general.IdGenerator
 	ChunkCreator simulation.ChunkCreator
-	Audience     Audience
+	Audience     []simulation.DataConsumer
 }
 
 func (this *Upload) ScheduleUntil(maxTime time.Time) {
@@ -45,6 +48,11 @@ func (this *Upload) ScheduleUntil(maxTime time.Time) {
 // Private
 
 func (this *Upload) doPush() {
-	newDataChunk := this.ChunkCreator.CreateChunk(data.Key{Id: "ChunkId"}, uint64(this.DataSize.NextSample()))
+	newDataChunk := this.ChunkCreator.CreateChunk(
+		data.Key{Id: data.Id(this.IdGenerator.NextId())},
+		uint64(this.DataSize.NextSample()))
 	this.User.Node.Push(newDataChunk, this.User)
+	for _, consumer := range this.Audience {
+		consumer.AttractTo(peer.Query{Id: newDataChunk.Key.Id})
+	}
 }

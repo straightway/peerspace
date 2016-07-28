@@ -33,7 +33,7 @@ type User struct {
 }
 
 func (this *User) Id() string {
-	return "UserOf" + this.Node.Id()
+	return "UserOf_" + this.Node.Id()
 }
 
 func (this *User) Activate() {

@@ -17,12 +17,14 @@
 package test
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simulation"
 	"github.com/straightway/straightway/simulation/activity"
 	"github.com/stretchr/testify/mock"
@@ -69,6 +71,7 @@ func (suite *SimulationActivityUpload_Test) SetupTest() {
 		User:         suite.user,
 		Delay:        suite.durationRandVar,
 		DataSize:     suite.sizeRandVar,
+		IdGenerator:  &simulation.IdGenerator{RandSource: rand.NewSource(12345)},
 		ChunkCreator: suite.rawStorage}
 	now := suite.scheduler.Time()
 	suite.offlineTime = now.Add(onlineDuration)
@@ -117,8 +120,32 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_PushesDataAtDefin
 	suite.Assert().Equal(2, numberOfCalls)
 }
 
-/*
 func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAudience() {
-
+	var expectedQueries []peer.Query = nil
+	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
+		chunk := args[0].(*data.Chunk)
+		expectedQueries = append(expectedQueries, peer.Query{Id: chunk.Key.Id})
+	})
+	consumer := mocked.NewSimulationDataConsumer()
+	suite.sut.Audience = append(suite.sut.Audience, consumer)
+	suite.sut.ScheduleUntil(suite.offlineTime)
+	suite.scheduler.Run()
+	for _, q := range expectedQueries {
+		consumer.AssertCalled(suite.T(), "AttractTo", q)
+	}
 }
-*/
+
+func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_CreatesUntimedUniqueKeysForPushedChunks() {
+	var lastKey data.Key
+	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
+		chunk := args[0].(*data.Chunk)
+		suite.Assert().Equal(int64(0), chunk.Key.TimeStamp)
+		if lastKey.Id != "" {
+			suite.Assert().NotEqual(lastKey, chunk.Key)
+		}
+
+		lastKey = chunk.Key
+	})
+	suite.sut.ScheduleUntil(suite.offlineTime)
+	suite.scheduler.Run()
+}

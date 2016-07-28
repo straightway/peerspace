@@ -16,14 +16,6 @@
 
 package simulation
 
-import (
-	"testing"
-
-	"github.com/straightway/straightway/general"
-)
-
-func TestSimulatedNetwork(t *testing.T) {
-	env := NewSimulationEnvironment(2)
-	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+type Audience interface {
+	Members() []DataConsumer
 }

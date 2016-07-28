@@ -32,6 +32,10 @@ type User struct {
 	nextOfflineTime time.Time
 }
 
+func (this *User) Id() string {
+	return "UserOf" + this.Node.Id()
+}
+
 func (this *User) Activate() {
 	this.schedule(this.StartupDuration, this.doStartup)
 }

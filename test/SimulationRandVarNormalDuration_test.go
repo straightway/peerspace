@@ -46,7 +46,7 @@ func (suite *SimulationRandvarNormalDuration_Test) TestMeanValueIsAsSpecified() 
 	meanDuration := general.ParseDuration("1m")
 	stdDeviation := general.ParseDuration("1ms")
 	sut := randvar.NewNormalDuration(suite.randSource, meanDuration, stdDeviation)
-	actMean, actStdDeviation := determineMeanAndStdDeviation(sut, 1000, meanDuration)
+	actMean, actStdDeviation := determineMeanAndStdDeviationDuration(sut, 2000, meanDuration)
 
 	suite.assertDeviationBelow(actMean, meanDuration, 0.01)
 	suite.assertDeviationBelow(stdDeviation, actStdDeviation, 0.01)
@@ -54,7 +54,7 @@ func (suite *SimulationRandvarNormalDuration_Test) TestMeanValueIsAsSpecified() 
 
 // Private
 
-func determineMeanAndStdDeviation(randVar randvar.Duration, numSamples int, definedMean time.Duration) (mean, stdDev time.Duration) {
+func determineMeanAndStdDeviationDuration(randVar randvar.Duration, numSamples int, definedMean time.Duration) (mean, stdDev time.Duration) {
 	sumDurations := time.Duration(0)
 	sumVariations := int64(0)
 	for i := 0; i < numSamples; i++ {

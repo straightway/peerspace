@@ -44,6 +44,8 @@ func (suite *SimulationEventScheduler_Test) TearDownTest() {
 	suite.sut = nil
 }
 
+// Tests
+
 func (suite *SimulationEventScheduler_Test) Test_Run_OnInitialStateDoesNothing() {
 	suite.sut.Run()
 }

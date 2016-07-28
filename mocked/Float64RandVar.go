@@ -14,16 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package mocked
 
-import (
-	"testing"
+type Float64RandVar struct {
+	Base
+}
 
-	"github.com/straightway/straightway/general"
-)
+func NewFloat64RandVar(sample float64) *Float64RandVar {
+	result := &Float64RandVar{}
+	result.On("NextSample").Return(sample)
+	return result
+}
 
-func TestSimulatedNetwork(t *testing.T) {
-	env := NewSimulationEnvironment(2)
-	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+func (m *Float64RandVar) NextSample() float64 {
+	return m.Called().Get(0).(float64)
 }

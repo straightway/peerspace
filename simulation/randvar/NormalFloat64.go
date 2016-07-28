@@ -14,16 +14,28 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package randvar
 
 import (
-	"testing"
-
-	"github.com/straightway/straightway/general"
+	"math/rand"
 )
 
-func TestSimulatedNetwork(t *testing.T) {
-	env := NewSimulationEnvironment(2)
-	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+type NormalFloat64 struct {
+	baseRand *rand.Rand
+	mean     float64
+	stdDev   float64
+}
+
+func NewNormalFloat64(source rand.Source, mean, stdDev float64) *NormalFloat64 {
+	return &NormalFloat64{
+		baseRand: rand.New(source),
+		mean:     mean,
+		stdDev:   stdDev}
+}
+
+func (this *NormalFloat64) NextSample() float64 {
+	sample := this.baseRand.NormFloat64()
+	sample *= this.stdDev
+	sample += this.mean
+	return sample
 }

@@ -40,7 +40,6 @@ func TestSimulationUser(t *testing.T) {
 }
 
 var startupDuration = general.ParseDuration("8h")
-var onlineDuration = general.ParseDuration("2h")
 var stopDuration = general.ParseDuration("1000h")
 
 func (suite *SimulationUser_Test) SetupTest() {
@@ -104,6 +103,11 @@ func (suite *SimulationUser_Test) TestOnlineActionIsNotExecutedWhenOffline() {
 	})
 	suite.scheduler.Run()
 	suite.activity.AssertNotCalled(suite.T(), "ScheduleUntil", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) TestUserIsIdentifyable() {
+	var identifyable general.Identifyable = suite.sut
+	suite.Assert().Equal("UserOf"+suite.sut.Node.Id(), identifyable.Id())
 }
 
 // Private

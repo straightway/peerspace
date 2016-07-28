@@ -16,14 +16,8 @@
 
 package simulation
 
-import (
-	"testing"
+import "github.com/straightway/straightway/peer"
 
-	"github.com/straightway/straightway/general"
-)
-
-func TestSimulatedNetwork(t *testing.T) {
-	env := NewSimulationEnvironment(2)
-	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+type DataConsumer interface {
+	AttractTo(query peer.Query)
 }

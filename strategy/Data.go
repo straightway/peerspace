@@ -31,7 +31,7 @@ type Data struct {
 }
 
 func (this *Data) IsChunkAccepted(data *data.Chunk, origin general.Identifyable) bool {
-	return len(data.Data) <= this.Configuration.MaxChunkSize
+	return uint64(len(data.Data)) <= this.Configuration.MaxChunkSize
 }
 
 func (this *Data) ForwardTargetsFor(key data.Key, origin general.Identifyable) []peer.Connector {

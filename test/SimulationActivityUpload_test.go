@@ -68,11 +68,12 @@ func (suite *SimulationActivityUpload_Test) SetupTest() {
 		suite.scheduler.Stop()
 	})
 	suite.sut = &activity.Upload{
-		User:         suite.user,
-		Delay:        suite.durationRandVar,
-		DataSize:     suite.sizeRandVar,
-		IdGenerator:  &simulation.IdGenerator{RandSource: rand.NewSource(12345)},
-		ChunkCreator: suite.rawStorage}
+		User:          suite.user,
+		Configuration: peer.DefaultConfiguration(),
+		Delay:         suite.durationRandVar,
+		DataSize:      suite.sizeRandVar,
+		IdGenerator:   &simulation.IdGenerator{RandSource: rand.NewSource(12345)},
+		ChunkCreator:  suite.rawStorage}
 	now := suite.scheduler.Time()
 	suite.offlineTime = now.Add(onlineDuration)
 }
@@ -145,6 +146,27 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_CreatesUntimedUni
 		}
 
 		lastKey = chunk.Key
+	})
+	suite.sut.ScheduleUntil(suite.offlineTime)
+	suite.scheduler.Run()
+}
+
+func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateTooLargeChunks() {
+	maxChunkSize := uint64(suite.sut.Configuration.MaxChunkSize)
+	suite.sut.DataSize = mocked.NewFloat64RandVar(float64(maxChunkSize + 1))
+	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
+		chunk := args[0].(*data.Chunk)
+		suite.Assert().True(suite.rawStorage.SizeOf(chunk) <= maxChunkSize)
+	})
+	suite.sut.ScheduleUntil(suite.offlineTime)
+	suite.scheduler.Run()
+}
+
+func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateEmptyChunks() {
+	suite.sut.DataSize = mocked.NewFloat64RandVar(float64(0))
+	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
+		chunk := args[0].(*data.Chunk)
+		suite.Assert().True(0 < suite.rawStorage.SizeOf(chunk))
 	})
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	suite.scheduler.Run()

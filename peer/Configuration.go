@@ -25,7 +25,7 @@ import (
 
 type Configuration struct {
 	MaxConnections      int
-	MaxChunkSize        int
+	MaxChunkSize        uint64
 	MaxAnnouncedPeers   int
 	TimedQueryTimeout   time.Duration
 	UntimedQueryTimeout time.Duration

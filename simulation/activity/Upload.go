@@ -27,12 +27,13 @@ import (
 )
 
 type Upload struct {
-	User         *simulation.User
-	Delay        randvar.Duration
-	DataSize     randvar.Float64
-	IdGenerator  general.IdGenerator
-	ChunkCreator simulation.ChunkCreator
-	Audience     []simulation.DataConsumer
+	User          *simulation.User
+	Configuration *peer.Configuration
+	Delay         randvar.Duration
+	DataSize      randvar.Float64
+	IdGenerator   general.IdGenerator
+	ChunkCreator  simulation.ChunkCreator
+	Audience      []simulation.DataConsumer
 }
 
 func (this *Upload) ScheduleUntil(maxTime time.Time) {
@@ -48,9 +49,16 @@ func (this *Upload) ScheduleUntil(maxTime time.Time) {
 // Private
 
 func (this *Upload) doPush() {
+	chunkSize := uint64(this.DataSize.NextSample())
+	if this.Configuration.MaxChunkSize < chunkSize {
+		chunkSize = this.Configuration.MaxChunkSize
+	} else if chunkSize <= 0 {
+		chunkSize = 1
+	}
+
 	newDataChunk := this.ChunkCreator.CreateChunk(
 		data.Key{Id: data.Id(this.IdGenerator.NextId())},
-		uint64(this.DataSize.NextSample()))
+		chunkSize)
 	this.User.Node.Push(newDataChunk, this.User)
 	for _, consumer := range this.Audience {
 		consumer.AttractTo(peer.Query{Id: newDataChunk.Key.Id})

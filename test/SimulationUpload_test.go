@@ -26,14 +26,13 @@ import (
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simulation"
-	"github.com/straightway/straightway/simulation/activity"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
-type SimulationActivityUpload_Test struct {
+type SimulationUpload_Test struct {
 	suite.Suite
-	sut             *activity.Upload
+	sut             *simulation.Upload
 	scheduler       *simulation.EventScheduler
 	user            *simulation.User
 	node            *mocked.Node
@@ -43,8 +42,8 @@ type SimulationActivityUpload_Test struct {
 	offlineTime     time.Time
 }
 
-func TestSimulationActivityUpload(t *testing.T) {
-	suite.Run(t, new(SimulationActivityUpload_Test))
+func TestSimulationUpload(t *testing.T) {
+	suite.Run(t, new(SimulationUpload_Test))
 }
 
 const (
@@ -55,7 +54,7 @@ var (
 	activityDuration = onlineDuration/3 + 10
 )
 
-func (suite *SimulationActivityUpload_Test) SetupTest() {
+func (suite *SimulationUpload_Test) SetupTest() {
 	suite.scheduler = &simulation.EventScheduler{}
 	suite.rawStorage = &simulation.RawStorage{}
 	suite.node = mocked.NewNode("1")
@@ -68,7 +67,7 @@ func (suite *SimulationActivityUpload_Test) SetupTest() {
 		suite.scheduler.Stop()
 	})
 	randSource := rand.NewSource(12345)
-	suite.sut = &activity.Upload{
+	suite.sut = &simulation.Upload{
 		User:               suite.user,
 		Configuration:      peer.DefaultConfiguration(),
 		Delay:              suite.durationRandVar,
@@ -81,7 +80,7 @@ func (suite *SimulationActivityUpload_Test) SetupTest() {
 	suite.offlineTime = now.Add(onlineDuration)
 }
 
-func (suite *SimulationActivityUpload_Test) TearDownTest() {
+func (suite *SimulationUpload_Test) TearDownTest() {
 	suite.sut = nil
 	suite.scheduler = nil
 	suite.node = nil
@@ -93,14 +92,14 @@ func (suite *SimulationActivityUpload_Test) TearDownTest() {
 
 // Tests
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_SchedulesPushAction() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_SchedulesPushAction() {
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	suite.node.AssertNotCalled(suite.T(), "Push", mock.Anything, mock.Anything)
 	suite.scheduler.Run()
 	suite.node.AssertCalled(suite.T(), "Push", mock.Anything, suite.user)
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_PushesDataOfConfiguredSize() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_PushesDataOfConfiguredSize() {
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
 		chunk := args[0].(*data.Chunk)
 		suite.Assert().Equal(defaultDataSize, suite.rawStorage.SizeOf(chunk))
@@ -110,7 +109,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_PushesDataOfConfi
 	suite.node.AssertCalled(suite.T(), "Push", mock.Anything, suite.user)
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_PushesDataAtDefinedTimes() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_PushesDataAtDefinedTimes() {
 	startTime := suite.scheduler.Time()
 	numberOfCalls := 0
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
@@ -124,7 +123,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_PushesDataAtDefin
 	suite.Assert().Equal(2, numberOfCalls)
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAudience() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAudience() {
 	var expectedQueries []peer.Query = nil
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
 		chunk := args[0].(*data.Chunk)
@@ -139,7 +138,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedCh
 	}
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToPartialAudience() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToPartialAudience() {
 	consumers := suite.createConsumers(10)
 
 	attractionRatio := 0.5
@@ -159,7 +158,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedCh
 	suite.Assert().Equal(expectedNumberOfAttractions, numberOfAttractions)
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AttractedParialAudienceIsRandom() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_AttractedParialAudienceIsRandom() {
 	consumers := suite.createConsumers(10)
 
 	attractionRatio := 0.5
@@ -179,7 +178,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AttractedParialAu
 	}
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_CreatesUntimedUniqueKeysForPushedChunks() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_CreatesUntimedUniqueKeysForPushedChunks() {
 	var lastKey data.Key
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
 		chunk := args[0].(*data.Chunk)
@@ -194,7 +193,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_CreatesUntimedUni
 	suite.scheduler.Run()
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateTooLargeChunks() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_DoesNotCreateTooLargeChunks() {
 	maxChunkSize := uint64(suite.sut.Configuration.MaxChunkSize)
 	suite.sut.DataSize = mocked.NewFloat64RandVar(float64(maxChunkSize + 1))
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
@@ -205,7 +204,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateTooL
 	suite.scheduler.Run()
 }
 
-func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateEmptyChunks() {
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_DoesNotCreateEmptyChunks() {
 	suite.sut.DataSize = mocked.NewFloat64RandVar(float64(0))
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
 		chunk := args[0].(*data.Chunk)
@@ -217,7 +216,7 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateEmpt
 
 // Private
 
-func (suite *SimulationActivityUpload_Test) createConsumers(count int) (consumers []*mocked.SimulationDataConsumer) {
+func (suite *SimulationUpload_Test) createConsumers(count int) (consumers []*mocked.SimulationDataConsumer) {
 	for i := 0; i < count; i++ {
 		consumer := mocked.NewSimulationDataConsumer()
 		suite.sut.Audience = append(suite.sut.Audience, consumer)

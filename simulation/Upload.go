@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package activity
+package simulation
 
 import (
 	"time"
@@ -22,18 +22,17 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/simulation"
 	"github.com/straightway/straightway/simulation/randvar"
 )
 
 type Upload struct {
-	User               *simulation.User
+	User               *User
 	Configuration      *peer.Configuration
 	Delay              randvar.Duration
 	DataSize           randvar.Float64
 	IdGenerator        general.IdGenerator
-	ChunkCreator       simulation.ChunkCreator
-	Audience           []simulation.DataConsumer
+	ChunkCreator       ChunkCreator
+	Audience           []DataConsumer
 	AttractionRatio    randvar.Float64
 	AudiencePermutator randvar.Permutator
 }
@@ -73,7 +72,7 @@ func (this *Upload) attractToAudience(chunk *data.Chunk) {
 	attractionRatio := this.AttractionRatio.NextSample()
 	audienceCount := len(this.Audience)
 	numberOfAttractions := int(float64(audienceCount) * attractionRatio)
-	permutatedAudience := make([]simulation.DataConsumer, audienceCount, audienceCount)
+	permutatedAudience := make([]DataConsumer, audienceCount, audienceCount)
 	for i, j := range this.AudiencePermutator.Perm(audienceCount) {
 		permutatedAudience[i] = this.Audience[j]
 	}

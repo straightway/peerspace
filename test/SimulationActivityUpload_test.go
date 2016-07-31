@@ -67,13 +67,16 @@ func (suite *SimulationActivityUpload_Test) SetupTest() {
 	suite.scheduler.Schedule(general.ParseDuration("1000h"), func() {
 		suite.scheduler.Stop()
 	})
+	randSource := rand.NewSource(12345)
 	suite.sut = &activity.Upload{
-		User:          suite.user,
-		Configuration: peer.DefaultConfiguration(),
-		Delay:         suite.durationRandVar,
-		DataSize:      suite.sizeRandVar,
-		IdGenerator:   &simulation.IdGenerator{RandSource: rand.NewSource(12345)},
-		ChunkCreator:  suite.rawStorage}
+		User:               suite.user,
+		Configuration:      peer.DefaultConfiguration(),
+		Delay:              suite.durationRandVar,
+		DataSize:           suite.sizeRandVar,
+		IdGenerator:        &simulation.IdGenerator{RandSource: randSource},
+		ChunkCreator:       suite.rawStorage,
+		AttractionRatio:    mocked.NewFloat64RandVar(1.0),
+		AudiencePermutator: rand.New(randSource)}
 	now := suite.scheduler.Time()
 	suite.offlineTime = now.Add(onlineDuration)
 }
@@ -136,6 +139,46 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedCh
 	}
 }
 
+func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToPartialAudience() {
+	consumers := suite.createConsumers(10)
+
+	attractionRatio := 0.5
+	suite.sut.AttractionRatio = mocked.NewFloat64RandVar(attractionRatio)
+
+	suite.sut.ScheduleUntil(suite.scheduler.Time().Add(activityDuration))
+	suite.scheduler.Run()
+
+	numberOfAttractions := 0
+	for _, consumer := range consumers {
+		if consumer.WasCalled("AttractTo") {
+			numberOfAttractions++
+		}
+	}
+
+	expectedNumberOfAttractions := int(float64(len(consumers)) * attractionRatio)
+	suite.Assert().Equal(expectedNumberOfAttractions, numberOfAttractions)
+}
+
+func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_AttractedParialAudienceIsRandom() {
+	consumers := suite.createConsumers(10)
+
+	attractionRatio := 0.5
+	suite.sut.AttractionRatio = mocked.NewFloat64RandVar(attractionRatio)
+	suite.sut.AudiencePermutator = mocked.NewSimulationRandVarPermutator(
+		[]int{1, 3, 5, 7, 9, 0, 2, 4, 6, 8})
+
+	suite.sut.ScheduleUntil(suite.scheduler.Time().Add(activityDuration))
+	suite.scheduler.Run()
+
+	for i, c := range consumers {
+		if i%2 == 0 {
+			c.AssertNotCalled(suite.T(), "AttractTo", mock.Anything)
+		} else {
+			c.AssertCalledOnce(suite.T(), "AttractTo", mock.Anything)
+		}
+	}
+}
+
 func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_CreatesUntimedUniqueKeysForPushedChunks() {
 	var lastKey data.Key
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
@@ -170,4 +213,16 @@ func (suite *SimulationActivityUpload_Test) Test_ScheduleUntil_DoesNotCreateEmpt
 	})
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	suite.scheduler.Run()
+}
+
+// Private
+
+func (suite *SimulationActivityUpload_Test) createConsumers(count int) (consumers []*mocked.SimulationDataConsumer) {
+	for i := 0; i < count; i++ {
+		consumer := mocked.NewSimulationDataConsumer()
+		suite.sut.Audience = append(suite.sut.Audience, consumer)
+		consumers = append(consumers, consumer)
+	}
+
+	return
 }

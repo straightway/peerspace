@@ -27,13 +27,15 @@ import (
 )
 
 type Upload struct {
-	User          *simulation.User
-	Configuration *peer.Configuration
-	Delay         randvar.Duration
-	DataSize      randvar.Float64
-	IdGenerator   general.IdGenerator
-	ChunkCreator  simulation.ChunkCreator
-	Audience      []simulation.DataConsumer
+	User               *simulation.User
+	Configuration      *peer.Configuration
+	Delay              randvar.Duration
+	DataSize           randvar.Float64
+	IdGenerator        general.IdGenerator
+	ChunkCreator       simulation.ChunkCreator
+	Audience           []simulation.DataConsumer
+	AttractionRatio    randvar.Float64
+	AudiencePermutator randvar.Permutator
 }
 
 func (this *Upload) ScheduleUntil(maxTime time.Time) {
@@ -68,8 +70,16 @@ func (this *Upload) nextChunkSize() uint64 {
 }
 
 func (this *Upload) attractToAudience(chunk *data.Chunk) {
+	attractionRatio := this.AttractionRatio.NextSample()
+	audienceCount := len(this.Audience)
+	numberOfAttractions := int(float64(audienceCount) * attractionRatio)
+	permutatedAudience := make([]simulation.DataConsumer, audienceCount, audienceCount)
+	for i, j := range this.AudiencePermutator.Perm(audienceCount) {
+		permutatedAudience[i] = this.Audience[j]
+	}
+
 	chunkQuery := peer.Query{Id: chunk.Key.Id}
-	for _, consumer := range this.Audience {
+	for _, consumer := range permutatedAudience[0:numberOfAttractions] {
 		consumer.AttractTo(chunkQuery)
 	}
 }

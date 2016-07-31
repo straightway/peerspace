@@ -16,34 +16,16 @@
 
 package mocked
 
-import (
-	"github.com/straightway/straightway/general"
-	"github.com/stretchr/testify/mock"
-)
-
-type Base struct {
-	mock.Mock
+type SimulationRandVarPermutator struct {
+	Base
 }
 
-func (m *Base) OnNew(methodName string, arguments ...interface{}) *mock.Call {
-	m.ExpectedCalls = general.RemoveItemsIf(m.ExpectedCalls, func(item interface{}) bool {
-		call := item.(*mock.Call)
-		return call.Method == methodName
-	}).([]*mock.Call)
-	return m.On(methodName, arguments...)
+func NewSimulationRandVarPermutator(permutation []int) *SimulationRandVarPermutator {
+	result := &SimulationRandVarPermutator{}
+	result.On("Perm", len(permutation)).Return(permutation)
+	return result
 }
 
-func (m *Base) AssertCalledOnce(t mock.TestingT, methodName string, arguments ...interface{}) {
-	m.AssertNumberOfCalls(t, methodName, 1)
-	m.AssertCalled(t, methodName, arguments...)
-}
-
-func (m *Base) WasCalled(methodName string) bool {
-	for _, call := range m.Calls {
-		if call.Method == methodName {
-			return true
-		}
-	}
-
-	return false
+func (m *SimulationRandVarPermutator) Perm(n int) []int {
+	return m.Called(n).Get(0).([]int)
 }

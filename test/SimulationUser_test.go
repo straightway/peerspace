@@ -22,6 +22,7 @@ import (
 
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simulation"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -108,6 +109,19 @@ func (suite *SimulationUser_Test) TestOnlineActionIsNotExecutedWhenOffline() {
 func (suite *SimulationUser_Test) TestUserIsIdentifyable() {
 	var identifyable general.Identifyable = suite.sut
 	suite.Assert().Equal("UserOf_"+suite.sut.Node.Id(), identifyable.Id())
+}
+
+func (suite *SimulationUser_Test) TestUserCanBeAttractedToData() {
+	query := peer.Query{Id: queryId}
+	suite.sut.AttractTo(query)
+
+	poppedQuery, ok := suite.sut.PopAttractiveQuery()
+	suite.Assert().True(ok)
+	suite.Assert().Equal(query, poppedQuery)
+
+	poppedQuery, ok = suite.sut.PopAttractiveQuery()
+	suite.Assert().False(ok)
+	suite.Assert().Equal(peer.Query{}, poppedQuery)
 }
 
 // Private

@@ -24,12 +24,13 @@ import (
 )
 
 type User struct {
-	Node            peer.Node
-	Scheduler       *EventScheduler
-	StartupDuration randvar.Duration
-	OnlineDuration  randvar.Duration
-	OnlineActivity  UserActivity
-	nextOfflineTime time.Time
+	Node              peer.Node
+	Scheduler         *EventScheduler
+	StartupDuration   randvar.Duration
+	OnlineDuration    randvar.Duration
+	OnlineActivity    UserActivity
+	attractiveQueries []peer.Query
+	nextOfflineTime   time.Time
 }
 
 func (this *User) Id() string {
@@ -38,6 +39,20 @@ func (this *User) Id() string {
 
 func (this *User) Activate() {
 	this.schedule(this.StartupDuration, this.doStartup)
+}
+
+func (this *User) AttractTo(query peer.Query) {
+	this.attractiveQueries = append(this.attractiveQueries, query)
+}
+
+func (this *User) PopAttractiveQuery() (query peer.Query, isFound bool) {
+	isFound = 0 < len(this.attractiveQueries)
+	if isFound {
+		query = this.attractiveQueries[0]
+		this.attractiveQueries = this.attractiveQueries[1:]
+	}
+
+	return
 }
 
 // Private

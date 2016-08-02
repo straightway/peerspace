@@ -39,7 +39,7 @@ func (a eventByTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a eventByTime) Less(i, j int) bool { return a[i].time.Before(a[j].time) }
 
 func (this *EventScheduler) Time() time.Time {
-	return this.currentTime
+	return this.currentTime.In(time.UTC)
 }
 
 func (this *EventScheduler) Schedule(duration time.Duration, action func()) {

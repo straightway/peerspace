@@ -75,6 +75,7 @@ func (suite *SimulationUpload_Test) SetupTest() {
 		IdGenerator:        &simulation.IdGenerator{RandSource: randSource},
 		ChunkCreator:       suite.rawStorage,
 		AttractionRatio:    mocked.NewFloat64RandVar(1.0),
+		AudienceProvider:   NewSimulationAudienceProvider(),
 		AudiencePermutator: rand.New(randSource)}
 	now := suite.scheduler.Time()
 	suite.offlineTime = now.Add(onlineDuration)
@@ -130,7 +131,7 @@ func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAu
 		expectedQueries = append(expectedQueries, peer.Query{Id: chunk.Key.Id})
 	})
 	consumer := mocked.NewSimulationDataConsumer()
-	suite.sut.Audience = append(suite.sut.Audience, consumer)
+	suite.addAudience(consumer)
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	suite.scheduler.Run()
 	for _, q := range expectedQueries {
@@ -219,9 +220,14 @@ func (suite *SimulationUpload_Test) Test_ScheduleUntil_DoesNotCreateEmptyChunks(
 func (suite *SimulationUpload_Test) createConsumers(count int) (consumers []*mocked.SimulationDataConsumer) {
 	for i := 0; i < count; i++ {
 		consumer := mocked.NewSimulationDataConsumer()
-		suite.sut.Audience = append(suite.sut.Audience, consumer)
+		suite.addAudience(consumer)
 		consumers = append(consumers, consumer)
 	}
 
 	return
+}
+
+func (suite *SimulationUpload_Test) addAudience(consumer simulation.DataConsumer) {
+	audience := append(suite.sut.AudienceProvider.Audience(), consumer)
+	suite.sut.AudienceProvider = NewSimulationAudienceProvider(audience...)
 }

@@ -32,7 +32,7 @@ type Upload struct {
 	DataSize           randvar.Float64
 	IdGenerator        general.IdGenerator
 	ChunkCreator       ChunkCreator
-	Audience           []DataConsumer
+	AudienceProvider   AudienceProvider
 	AttractionRatio    randvar.Float64
 	AudiencePermutator randvar.Permutator
 }
@@ -70,11 +70,12 @@ func (this *Upload) nextChunkSize() uint64 {
 
 func (this *Upload) attractToAudience(chunk *data.Chunk) {
 	attractionRatio := this.AttractionRatio.NextSample()
-	audienceCount := len(this.Audience)
+	audience := this.AudienceProvider.Audience()
+	audienceCount := len(audience)
 	numberOfAttractions := int(float64(audienceCount) * attractionRatio)
 	permutatedAudience := make([]DataConsumer, audienceCount, audienceCount)
 	for i, j := range this.AudiencePermutator.Perm(audienceCount) {
-		permutatedAudience[i] = this.Audience[j]
+		permutatedAudience[i] = audience[j]
 	}
 
 	chunkQuery := peer.Query{Id: chunk.Key.Id}

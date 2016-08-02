@@ -61,7 +61,7 @@ func (suite *SimulationEventScheduler_Test) Test_Run_ExecutesPreScheduledEvent()
 func (suite *SimulationEventScheduler_Test) Test_Run_ActionAtScheduledTime() {
 	eventDuration := general.ParseDuration("10s")
 	suite.sut.Schedule(eventDuration, func() {
-		suite.Assert().Equal(time.Time{}.Add(eventDuration), suite.sut.Time())
+		suite.Assert().Equal(time.Time{}.In(time.UTC).Add(eventDuration), suite.sut.Time())
 	})
 	suite.sut.Run()
 }
@@ -69,9 +69,9 @@ func (suite *SimulationEventScheduler_Test) Test_Run_ActionAtScheduledTime() {
 func (suite *SimulationEventScheduler_Test) Test_Run_AdvancesTimeWithEvent() {
 	eventDuration := general.ParseDuration("10s")
 	suite.sut.Schedule(eventDuration, func() {})
-	suite.Assert().Zero(suite.sut.Time())
+	suite.Assert().Equal(time.Time{}.In(time.UTC), suite.sut.Time())
 	suite.sut.Run()
-	suite.Assert().Equal(time.Time{}.Add(eventDuration), suite.sut.Time())
+	suite.Assert().Equal(time.Time{}.In(time.UTC).Add(eventDuration), suite.sut.Time())
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Run_ExecutesEventsInTimedOrder() {
@@ -79,13 +79,13 @@ func (suite *SimulationEventScheduler_Test) Test_Run_ExecutesEventsInTimedOrder(
 	duration2 := general.ParseDuration("15s")
 	suite.sut.Schedule(duration2, func() {
 		suite.Assert().Equal(1, eventIndex)
-		suite.Assert().Equal(time.Time{}.Add(duration2), suite.sut.Time())
+		suite.Assert().Equal(time.Time{}.In(time.UTC).Add(duration2), suite.sut.Time())
 		eventIndex++
 	})
 	duration1 := general.ParseDuration("10s")
 	suite.sut.Schedule(duration1, func() {
 		suite.Assert().Equal(0, eventIndex)
-		suite.Assert().Equal(time.Time{}.Add(duration1), suite.sut.Time())
+		suite.Assert().Equal(time.Time{}.In(time.UTC).Add(duration1), suite.sut.Time())
 		eventIndex++
 	})
 	suite.sut.Run()

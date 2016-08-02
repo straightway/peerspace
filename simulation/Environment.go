@@ -18,6 +18,7 @@ package simulation
 
 import (
 	"fmt"
+	"hash/crc64"
 	"math/rand"
 	"time"
 
@@ -51,6 +52,14 @@ func NewSimulationEnvironment(numberOfUsers int) *Environment {
 	return result
 }
 
+func (this *Environment) Audience() []DataConsumer {
+	result := make([]DataConsumer, len(this.users), len(this.users))
+	for i, u := range this.users {
+		result[i] = u
+	}
+	return result
+}
+
 func (this *Environment) Users() []*User {
 	return this.users
 }
@@ -62,9 +71,10 @@ func (this *Environment) addNewUser() *User {
 }
 
 func (this *Environment) createSeedNode() {
+	node, _, _ := this.createNode()
 	this.initialUser = &User{
 		Scheduler:       &this.Scheduler,
-		Node:            this.createNode(),
+		Node:            node,
 		StartupDuration: randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
 		OnlineDuration:  randvar.NewNormalDuration(this.randSource, time.Duration(-1), time.Duration(0)),
 		OnlineActivity:  mocked.NewSimulationUserActivity()}
@@ -72,31 +82,37 @@ func (this *Environment) createSeedNode() {
 }
 
 func (this *Environment) createUser() *User {
+	node, configuration, rawStorage := this.createNode()
 	newUser := &User{
 		Scheduler:       &this.Scheduler,
-		Node:            this.createNode(),
+		Node:            node,
 		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h"), general.ParseDuration("2h")),
-		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h"), general.ParseDuration("2h")),
-		OnlineActivity:  mocked.NewSimulationUserActivity()}
+		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h"), general.ParseDuration("2h"))}
+	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser
 }
 
-func (this *Environment) createNode() peer.Node {
+func (this *Environment) createNode() (peer.Node, *peer.Configuration, *RawStorage) {
 	this.nextNodeId++
+	nodeId := fmt.Sprintf("%v", this.nextNodeId)
 	configuration := peer.DefaultConfiguration()
-	peerDistanceRelated := &strategy.PeerDistanceRelated{}
+	peerDistanceRelated := &strategy.PeerDistanceRelated{
+		LocalPeerId: nodeId,
+		Timer:       &this.Scheduler,
+		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
 	stateStorage := this.createStateStorage()
+	dataStorage, rawStorage := this.createDataStorage(peerDistanceRelated)
 	newNode := &peer.NodeImpl{
-		Identifier:           fmt.Sprintf("%v", this.nextNodeId),
+		Identifier:           nodeId,
 		StateStorage:         stateStorage,
-		DataStorage:          this.createDataStorage(peerDistanceRelated),
+		DataStorage:          dataStorage,
 		AnnouncementStrategy: this.createAnnouncementStrategy(configuration, stateStorage),
-		DataStrategy:         this.createDataStrategy(configuration, peerDistanceRelated),
 		Timer:                &this.Scheduler,
 		Configuration:        configuration}
+	newNode.DataStrategy = this.createDataStrategy(configuration, peerDistanceRelated, newNode)
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
-	return newNode
+	return newNode, configuration, rawStorage
 }
 
 func (this *Environment) createStateStorage() peer.StateStorage {
@@ -108,21 +124,25 @@ func (this *Environment) createStateStorage() peer.StateStorage {
 	return stateStorage
 }
 
-func (this *Environment) createDataStorage(priorityGenerator storage.PriorityGenerator) peer.DataStorage {
-	rawStorage := &RawStorage{
+func (this *Environment) createDataStorage(
+	priorityGenerator storage.PriorityGenerator) (dataStorage peer.DataStorage, rawStorage *RawStorage) {
+	rawStorage = &RawStorage{
 		FreeStorageValue: 2 * gb,
 		Timer:            &this.Scheduler}
-	return &storage.DataImpl{
+	dataStorage = &storage.DataImpl{
 		PriorityGenerator: priorityGenerator,
 		RawStorage:        rawStorage}
+	return
 }
 
 func (this *Environment) createDataStrategy(
 	configuration *peer.Configuration,
-	peerDistanceCalculator strategy.PeerDistanceCalculator) peer.DataStrategy {
+	peerDistanceCalculator strategy.PeerDistanceCalculator,
+	connectionInfoProvider strategy.ConnectionInfoProvider) peer.DataStrategy {
 	return &strategy.Data{
 		Configuration:          configuration,
-		PeerDistanceCalculator: peerDistanceCalculator}
+		PeerDistanceCalculator: peerDistanceCalculator,
+		ConnectionInfoProvider: connectionInfoProvider}
 }
 
 func (this *Environment) createAnnouncementStrategy(
@@ -141,4 +161,20 @@ func (this *Environment) createConnecionStrategy(
 		Configuration:          configuration,
 		ConnectionInfoProvider: connectionInfoProvider,
 		RandSource:             this.randSource}
+}
+
+func (this *Environment) createActivity(
+	user *User,
+	configuration *peer.Configuration,
+	chunkCreator ChunkCreator) UserActivity {
+	return &Upload{
+		User:               user,
+		Configuration:      configuration,
+		Delay:              randvar.NewNormalDuration(this.randSource, general.ParseDuration("15m"), general.ParseDuration("30m")),
+		DataSize:           randvar.NewNormalFloat64(this.randSource, 32000, 32000),
+		IdGenerator:        &IdGenerator{RandSource: this.randSource},
+		ChunkCreator:       chunkCreator,
+		AudienceProvider:   this,
+		AttractionRatio:    randvar.NewNormalFloat64(this.randSource, 0.3, 0.1),
+		AudiencePermutator: rand.New(this.randSource)}
 }

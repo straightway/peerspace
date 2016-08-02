@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/simulation/randvar"
+	"github.com/straightway/straightway/impl/simulation/randvar"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -54,7 +54,7 @@ func (suite *SimulationRandvarNormalDuration_Test) TestMeanValueIsAsSpecified() 
 
 // Private
 
-func determineMeanAndStdDeviationDuration(randVar randvar.Duration, numSamples int, definedMean time.Duration) (mean, stdDev time.Duration) {
+func determineMeanAndStdDeviationDuration(randVar *randvar.NormalDuration, numSamples int, definedMean time.Duration) (mean, stdDev time.Duration) {
 	sumDurations := time.Duration(0)
 	sumVariations := int64(0)
 	for i := 0; i < numSamples; i++ {

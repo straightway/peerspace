@@ -20,7 +20,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/straightway/straightway/simulation"
+	"github.com/straightway/straightway/impl/simulation"
 	"github.com/stretchr/testify/suite"
 )
 

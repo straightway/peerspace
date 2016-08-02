@@ -23,9 +23,10 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/impl/simulation"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/simulation"
+	isimulation "github.com/straightway/straightway/simulation"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -75,7 +76,7 @@ func (suite *SimulationUpload_Test) SetupTest() {
 		IdGenerator:        &simulation.IdGenerator{RandSource: randSource},
 		ChunkCreator:       suite.rawStorage,
 		AttractionRatio:    mocked.NewFloat64RandVar(1.0),
-		AudienceProvider:   NewSimulationAudienceProvider(),
+		AudienceProvider:   mocked.NewSimulationAudienceProvider(),
 		AudiencePermutator: rand.New(randSource)}
 	now := suite.scheduler.Time()
 	suite.offlineTime = now.Add(onlineDuration)
@@ -227,7 +228,7 @@ func (suite *SimulationUpload_Test) createConsumers(count int) (consumers []*moc
 	return
 }
 
-func (suite *SimulationUpload_Test) addAudience(consumer simulation.DataConsumer) {
+func (suite *SimulationUpload_Test) addAudience(consumer isimulation.DataConsumer) {
 	audience := append(suite.sut.AudienceProvider.Audience(), consumer)
-	suite.sut.AudienceProvider = NewSimulationAudienceProvider(audience...)
+	suite.sut.AudienceProvider = mocked.NewSimulationAudienceProvider(audience...)
 }

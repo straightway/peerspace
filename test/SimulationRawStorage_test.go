@@ -22,9 +22,9 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/impl/simulation"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/simulation"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
 )

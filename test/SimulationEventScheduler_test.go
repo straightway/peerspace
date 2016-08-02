@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/simulation"
+	"github.com/straightway/straightway/impl/simulation"
 	"github.com/stretchr/testify/suite"
 )
 

@@ -14,27 +14,17 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
-
-// TODO This is a mock class and should be moved to the mocked package
-// However, it is due to cyclic dependencies not possible now.
-// Further refactoring is requied.
+package main
 
 import (
-	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/simulation"
+	"testing"
+
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/impl/simulation"
 )
 
-type SimulationAudienceProvider struct {
-	mocked.Base
-}
-
-func NewSimulationAudienceProvider(audience ...simulation.DataConsumer) *SimulationAudienceProvider {
-	result := &SimulationAudienceProvider{}
-	result.On("Audience").Return(audience)
-	return result
-}
-
-func (m *SimulationAudienceProvider) Audience() []simulation.DataConsumer {
-	return m.Called().Get(0).([]simulation.DataConsumer)
+func TestSimulatedNetwork(t *testing.T) {
+	env := simulation.NewSimulationEnvironment(2)
+	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
+	env.Scheduler.Run()
 }

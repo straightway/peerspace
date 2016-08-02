@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/simulation"
 	"github.com/straightway/straightway/simulation/randvar"
 )
 
@@ -28,7 +29,7 @@ type User struct {
 	Scheduler         *EventScheduler
 	StartupDuration   randvar.Duration
 	OnlineDuration    randvar.Duration
-	OnlineActivity    UserActivity
+	OnlineActivity    simulation.UserActivity
 	attractiveQueries []peer.Query
 	nextOfflineTime   time.Time
 }

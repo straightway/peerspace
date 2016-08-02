@@ -23,9 +23,10 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/impl/simulation/randvar"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/simulation/randvar"
+	"github.com/straightway/straightway/simulation"
 	"github.com/straightway/straightway/storage"
 	"github.com/straightway/straightway/strategy"
 )
@@ -52,8 +53,8 @@ func NewSimulationEnvironment(numberOfUsers int) *Environment {
 	return result
 }
 
-func (this *Environment) Audience() []DataConsumer {
-	result := make([]DataConsumer, len(this.users), len(this.users))
+func (this *Environment) Audience() []simulation.DataConsumer {
+	result := make([]simulation.DataConsumer, len(this.users), len(this.users))
 	for i, u := range this.users {
 		result[i] = u
 	}
@@ -166,7 +167,7 @@ func (this *Environment) createConnecionStrategy(
 func (this *Environment) createActivity(
 	user *User,
 	configuration *peer.Configuration,
-	chunkCreator ChunkCreator) UserActivity {
+	chunkCreator simulation.ChunkCreator) simulation.UserActivity {
 	return &Upload{
 		User:               user,
 		Configuration:      configuration,

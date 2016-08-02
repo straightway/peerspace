@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/straightway/straightway/simulation/randvar"
+	"github.com/straightway/straightway/impl/simulation/randvar"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -52,7 +52,7 @@ func (suite *SimulationRandvarNormal_Test) TestMeanValueIsAsSpecified() {
 
 // Private
 
-func determineMeanAndStdDeviation(randVar randvar.Float64, numSamples int, definedMean float64) (mean, stdDev float64) {
+func determineMeanAndStdDeviation(randVar *randvar.NormalFloat64, numSamples int, definedMean float64) (mean, stdDev float64) {
 	sum := float64(0.0)
 	sumVariations := float64(0.0)
 	for i := 0; i < numSamples; i++ {

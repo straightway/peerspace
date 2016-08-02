@@ -21,9 +21,9 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/impl/simulation"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/simulation"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

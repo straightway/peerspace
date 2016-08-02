@@ -14,12 +14,27 @@
    limitations under the License.
 ****************************************************************************/
 
-package isim
+package sim_
 
 import (
-	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
 )
 
-type ChunkCreator interface {
-	CreateChunk(key data.Key, virtualSize uint64) *data.Chunk
+type StateStorage struct {
+	Connectors []peer.Connector
+}
+
+func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
+	return this.Connectors
+}
+
+func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
+	return general.Contains(this.Connectors, peer)
+}
+
+func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
+	if this.IsKnownPeer(peer) == false {
+		this.Connectors = append(this.Connectors, peer)
+	}
 }

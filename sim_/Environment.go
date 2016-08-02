@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package sim_
 
 import (
 	"fmt"
@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/isim"
+	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/sim/randvar"
+	"github.com/straightway/straightway/sim_/randvar"
 	"github.com/straightway/straightway/storage"
 	"github.com/straightway/straightway/strategy"
 )
@@ -53,8 +53,8 @@ func NewSimulationEnvironment(numberOfUsers int) *Environment {
 	return result
 }
 
-func (this *Environment) Audience() []isim.DataConsumer {
-	result := make([]isim.DataConsumer, len(this.users), len(this.users))
+func (this *Environment) Audience() []sim.DataConsumer {
+	result := make([]sim.DataConsumer, len(this.users), len(this.users))
 	for i, u := range this.users {
 		result[i] = u
 	}
@@ -163,7 +163,7 @@ func (this *Environment) createConnecionStrategy(
 func (this *Environment) createActivity(
 	user *User,
 	configuration *peer.Configuration,
-	chunkCreator isim.ChunkCreator) isim.UserActivity {
+	chunkCreator sim.ChunkCreator) sim.UserActivity {
 	return &Upload{
 		User:               user,
 		Configuration:      configuration,

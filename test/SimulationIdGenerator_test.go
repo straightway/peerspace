@@ -20,13 +20,13 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/sim_"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationIdGenerator_Test struct {
 	suite.Suite
-	sut *sim.IdGenerator
+	sut *sim_.IdGenerator
 }
 
 func TestSimulationIdGenerator(t *testing.T) {
@@ -34,7 +34,7 @@ func TestSimulationIdGenerator(t *testing.T) {
 }
 
 func (suite *SimulationIdGenerator_Test) SetupTest() {
-	suite.sut = &sim.IdGenerator{RandSource: rand.NewSource(12345)}
+	suite.sut = &sim_.IdGenerator{RandSource: rand.NewSource(12345)}
 }
 
 func (suite *SimulationIdGenerator_Test) TearDownTest() {

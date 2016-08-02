@@ -24,14 +24,14 @@ import (
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/sim_"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationRawStorage_Test struct {
 	suite.Suite
-	sut   *sim.RawStorage
+	sut   *sim_.RawStorage
 	timer *mocked.Timer
 }
 
@@ -46,7 +46,7 @@ func TestRawStorage(t *testing.T) {
 
 func (suite *SimulationRawStorage_Test) SetupTest() {
 	suite.timer = &mocked.Timer{}
-	suite.sut = &sim.RawStorage{
+	suite.sut = &sim_.RawStorage{
 		FreeStorageValue: initialFreeStorage,
 		Timer:            suite.timer}
 }

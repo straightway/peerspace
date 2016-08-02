@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package sim_
 
 import (
 	"bytes"

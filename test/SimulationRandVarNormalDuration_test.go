@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/impl/simulation/randvar"
+	"github.com/straightway/straightway/sim/randvar"
 	"github.com/stretchr/testify/suite"
 )
 

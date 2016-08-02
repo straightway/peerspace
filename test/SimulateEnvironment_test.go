@@ -20,11 +20,11 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/impl/simulation"
+	"github.com/straightway/straightway/sim"
 )
 
 func TestSimulationEnvironment(t *testing.T) {
-	env := simulation.NewSimulationEnvironment(2)
+	env := sim.NewSimulationEnvironment(2)
 	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
 	env.Scheduler.Run()
 }

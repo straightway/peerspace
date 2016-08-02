@@ -23,21 +23,21 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/impl/simulation"
+	"github.com/straightway/straightway/isim"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	isimulation "github.com/straightway/straightway/simulation"
+	"github.com/straightway/straightway/sim"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationUpload_Test struct {
 	suite.Suite
-	sut             *simulation.Upload
-	scheduler       *simulation.EventScheduler
-	user            *simulation.User
+	sut             *sim.Upload
+	scheduler       *sim.EventScheduler
+	user            *sim.User
 	node            *mocked.Node
-	rawStorage      *simulation.RawStorage
+	rawStorage      *sim.RawStorage
 	sizeRandVar     *mocked.Float64RandVar
 	durationRandVar *mocked.DurationRandVar
 	offlineTime     time.Time
@@ -56,24 +56,24 @@ var (
 )
 
 func (suite *SimulationUpload_Test) SetupTest() {
-	suite.scheduler = &simulation.EventScheduler{}
-	suite.rawStorage = &simulation.RawStorage{}
+	suite.scheduler = &sim.EventScheduler{}
+	suite.rawStorage = &sim.RawStorage{}
 	suite.node = mocked.NewNode("1")
 	suite.sizeRandVar = mocked.NewFloat64RandVar(float64(defaultDataSize))
 	suite.durationRandVar = mocked.NewDurationRandVar(activityDuration)
-	suite.user = &simulation.User{
+	suite.user = &sim.User{
 		Scheduler: suite.scheduler,
 		Node:      suite.node}
 	suite.scheduler.Schedule(general.ParseDuration("1000h"), func() {
 		suite.scheduler.Stop()
 	})
 	randSource := rand.NewSource(12345)
-	suite.sut = &simulation.Upload{
+	suite.sut = &sim.Upload{
 		User:               suite.user,
 		Configuration:      peer.DefaultConfiguration(),
 		Delay:              suite.durationRandVar,
 		DataSize:           suite.sizeRandVar,
-		IdGenerator:        &simulation.IdGenerator{RandSource: randSource},
+		IdGenerator:        &sim.IdGenerator{RandSource: randSource},
 		ChunkCreator:       suite.rawStorage,
 		AttractionRatio:    mocked.NewFloat64RandVar(1.0),
 		AudienceProvider:   mocked.NewSimulationAudienceProvider(),
@@ -228,7 +228,7 @@ func (suite *SimulationUpload_Test) createConsumers(count int) (consumers []*moc
 	return
 }
 
-func (suite *SimulationUpload_Test) addAudience(consumer isimulation.DataConsumer) {
+func (suite *SimulationUpload_Test) addAudience(consumer isim.DataConsumer) {
 	audience := append(suite.sut.AudienceProvider.Audience(), consumer)
 	suite.sut.AudienceProvider = mocked.NewSimulationAudienceProvider(audience...)
 }

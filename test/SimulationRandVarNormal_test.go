@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/straightway/straightway/impl/simulation/randvar"
+	"github.com/straightway/straightway/sim/randvar"
 	"github.com/stretchr/testify/suite"
 )
 

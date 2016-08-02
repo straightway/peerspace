@@ -19,7 +19,7 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/impl/simulation"
+	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
@@ -30,7 +30,7 @@ import (
 type SimulationStateStorage_Test struct {
 	suite.Suite
 	connectors []peer.Connector
-	sut        *simulation.StateStorage
+	sut        *sim.StateStorage
 }
 
 func TestSimulationStateStorage(t *testing.T) {
@@ -41,7 +41,7 @@ func (suite *SimulationStateStorage_Test) SetupTest() {
 	suite.connectors = []peer.Connector{
 		mocked.CreatePeerConnector(),
 		mocked.CreatePeerConnector()}
-	suite.sut = &simulation.StateStorage{
+	suite.sut = &sim.StateStorage{
 		Connectors: suite.connectors}
 }
 

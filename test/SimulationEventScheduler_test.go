@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/impl/simulation"
+	"github.com/straightway/straightway/sim"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationEventScheduler_Test struct {
 	suite.Suite
-	sut *simulation.EventScheduler
+	sut *sim.EventScheduler
 }
 
 const timeFormat = "2006-01-02 15:04:05"
@@ -37,7 +37,7 @@ func TestSimulationEventScheduler(t *testing.T) {
 }
 
 func (suite *SimulationEventScheduler_Test) SetupTest() {
-	suite.sut = &simulation.EventScheduler{}
+	suite.sut = &sim.EventScheduler{}
 }
 
 func (suite *SimulationEventScheduler_Test) TearDownTest() {

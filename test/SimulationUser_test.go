@@ -21,17 +21,17 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/impl/simulation"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/sim"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationUser_Test struct {
 	suite.Suite
-	sut       *simulation.User
-	scheduler *simulation.EventScheduler
+	sut       *sim.User
+	scheduler *sim.EventScheduler
 	node      *mocked.Node
 	activity  *mocked.SimulationUserActivity
 }
@@ -44,10 +44,10 @@ var startupDuration = general.ParseDuration("8h")
 var stopDuration = general.ParseDuration("1000h")
 
 func (suite *SimulationUser_Test) SetupTest() {
-	suite.scheduler = &simulation.EventScheduler{}
+	suite.scheduler = &sim.EventScheduler{}
 	suite.node = mocked.NewNode("nodeId")
 	suite.activity = mocked.NewSimulationUserActivity()
-	suite.sut = &simulation.User{
+	suite.sut = &sim.User{
 		Scheduler:       suite.scheduler,
 		Node:            suite.node,
 		StartupDuration: mocked.NewDurationRandVar(startupDuration),

@@ -14,14 +14,14 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package sim
 
 import (
 	"time"
 
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/simulation"
-	"github.com/straightway/straightway/simulation/randvar"
+	"github.com/straightway/straightway/isim"
+	"github.com/straightway/straightway/isim/randvar"
 )
 
 type User struct {
@@ -29,7 +29,7 @@ type User struct {
 	Scheduler         *EventScheduler
 	StartupDuration   randvar.Duration
 	OnlineDuration    randvar.Duration
-	OnlineActivity    simulation.UserActivity
+	OnlineActivity    isim.UserActivity
 	attractiveQueries []peer.Query
 	nextOfflineTime   time.Time
 }

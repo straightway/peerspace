@@ -14,10 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package isim
 
-import "time"
+import "github.com/straightway/straightway/peer"
 
-type UserActivity interface {
-	ScheduleUntil(maxTime time.Time)
+type DataConsumer interface {
+	AttractTo(query peer.Query)
 }

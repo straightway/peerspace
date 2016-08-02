@@ -14,10 +14,27 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package sim
 
-import "github.com/straightway/straightway/peer"
+import (
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/peer"
+)
 
-type DataConsumer interface {
-	AttractTo(query peer.Query)
+type StateStorage struct {
+	Connectors []peer.Connector
+}
+
+func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
+	return this.Connectors
+}
+
+func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
+	return general.Contains(this.Connectors, peer)
+}
+
+func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
+	if this.IsKnownPeer(peer) == false {
+		this.Connectors = append(this.Connectors, peer)
+	}
 }

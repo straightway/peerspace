@@ -17,19 +17,19 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/simulation"
+	"github.com/straightway/straightway/isim"
 )
 
 type SimulationAudienceProvider struct {
 	Base
 }
 
-func NewSimulationAudienceProvider(audience ...simulation.DataConsumer) *SimulationAudienceProvider {
+func NewSimulationAudienceProvider(audience ...isim.DataConsumer) *SimulationAudienceProvider {
 	result := &SimulationAudienceProvider{}
 	result.On("Audience").Return(audience)
 	return result
 }
 
-func (m *SimulationAudienceProvider) Audience() []simulation.DataConsumer {
-	return m.Called().Get(0).([]simulation.DataConsumer)
+func (m *SimulationAudienceProvider) Audience() []isim.DataConsumer {
+	return m.Called().Get(0).([]isim.DataConsumer)
 }

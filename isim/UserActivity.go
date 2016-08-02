@@ -14,27 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package isim
 
-import (
-	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/peer"
-)
+import "time"
 
-type StateStorage struct {
-	Connectors []peer.Connector
-}
-
-func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
-	return this.Connectors
-}
-
-func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
-	return general.Contains(this.Connectors, peer)
-}
-
-func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
-	if this.IsKnownPeer(peer) == false {
-		this.Connectors = append(this.Connectors, peer)
-	}
+type UserActivity interface {
+	ScheduleUntil(maxTime time.Time)
 }

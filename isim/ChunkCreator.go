@@ -14,8 +14,12 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package isim
 
-type AudienceProvider interface {
-	Audience() []DataConsumer
+import (
+	"github.com/straightway/straightway/data"
+)
+
+type ChunkCreator interface {
+	CreateChunk(key data.Key, virtualSize uint64) *data.Chunk
 }

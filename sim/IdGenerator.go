@@ -14,12 +14,30 @@
    limitations under the License.
 ****************************************************************************/
 
-package simulation
+package sim
 
 import (
-	"github.com/straightway/straightway/data"
+	"math/rand"
 )
 
-type ChunkCreator interface {
-	CreateChunk(key data.Key, virtualSize uint64) *data.Chunk
+type IdGenerator struct {
+	RandSource rand.Source
+}
+
+var characters = []byte{
+	'0', '1', '2', '3', '4', '5', '6', '7',
+	'8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+	'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+	'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'}
+
+func (this *IdGenerator) NextId() string {
+	dice := rand.New(this.RandSource)
+	result := [12]byte{}
+	nextChars := dice.Int63()
+	for i := range result {
+		result[i] = characters[byte(nextChars&int64(31))]
+		nextChars = nextChars >> 5
+	}
+
+	return string(result[0:8])
 }

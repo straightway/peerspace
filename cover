@@ -4,7 +4,6 @@ cd $GOPATH/src
 FILES=`find github.com/straightway/straightway/ -iname ".git" -prune -or -type d -not -empty | grep -v "uml" | grep -v ".git" | grep -v "test" | grep -v "mocked" | grep -v "main" | grep -vE "straightway/impl$" | grep -vE "/$" | tr '\n' ','`
 cd $CURR_PATH
 COVERFILE=`mktemp`
-echo $FILES
-go test -coverprofile $COVERFILE -coverpkg "${FILES::-1}" github.com/straightway/straightway/test #2> /dev/null
+go test -coverprofile $COVERFILE -coverpkg "${FILES::-1}" github.com/straightway/straightway/test 2> /dev/null
 go tool cover -func=$COVERFILE | grep -vE "100.0%$"
 rm $COVERFILE

@@ -61,10 +61,6 @@ func (this *Environment) Audience() []simulation.DataConsumer {
 	return result
 }
 
-func (this *Environment) Users() []*User {
-	return this.users
-}
-
 func (this *Environment) addNewUser() *User {
 	newUser := this.createUser()
 	this.users = append(this.users, newUser)

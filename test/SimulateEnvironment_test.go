@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package main
+package test
 
 import (
 	"testing"
@@ -23,7 +23,7 @@ import (
 	"github.com/straightway/straightway/impl/simulation"
 )
 
-func TestSimulatedNetwork(t *testing.T) {
+func TestSimulationEnvironment(t *testing.T) {
 	env := simulation.NewSimulationEnvironment(2)
 	env.Scheduler.Schedule(general.ParseDuration("24h"), func() { env.Scheduler.Stop() })
 	env.Scheduler.Run()

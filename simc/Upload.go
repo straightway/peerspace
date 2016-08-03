@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/randvar"
@@ -31,7 +31,7 @@ type Upload struct {
 	Configuration      *peer.Configuration
 	Delay              randvar.Duration
 	DataSize           randvar.Float64
-	IdGenerator        general.IdGenerator
+	IdGenerator        id.Generator
 	ChunkCreator       sim.ChunkCreator
 	AudienceProvider   sim.AudienceProvider
 	AttractionRatio    randvar.Float64

@@ -14,17 +14,14 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package duration
 
-import (
-	"testing"
+import "time"
 
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
-)
-
-func TestSimulationEnvironment(t *testing.T) {
-	env := simc.NewSimulationEnvironment(2)
-	env.Scheduler.Schedule(duration.Parse("24h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+func Parse(durationString string) (result time.Duration) {
+	result, err := time.ParseDuration(durationString)
+	if err != nil {
+		panic(err)
+	}
+	return
 }

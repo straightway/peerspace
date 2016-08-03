@@ -21,11 +21,3 @@ import "time"
 const MaxUnixTime = 0x7FFFFFF1886E08FF
 
 func MaxTime() time.Time { return time.Unix(MaxUnixTime, 0).In(time.UTC) }
-
-func ParseDuration(durationString string) (result time.Duration) {
-	result, err := time.ParseDuration(durationString)
-	if err != nil {
-		panic(err)
-	}
-	return
-}

@@ -18,7 +18,7 @@ package test
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 )
 
 var (
@@ -30,5 +30,5 @@ var (
 	timedKey20   data.Key   = data.Key{Id: queryId, TimeStamp: 20}
 	timedChunk20 data.Chunk = data.Chunk{Key: timedKey20, Data: []byte{0x3, 0x5, 0x7, 0xB, 0xD}}
 
-	onlineDuration = general.ParseDuration("2h")
+	onlineDuration = duration.Parse("2h")
 )

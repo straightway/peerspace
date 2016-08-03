@@ -22,10 +22,10 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -64,7 +64,7 @@ func (suite *SimulationUpload_Test) SetupTest() {
 	suite.user = &simc.User{
 		Scheduler: suite.scheduler,
 		Node:      suite.node}
-	suite.scheduler.Schedule(general.ParseDuration("1000h"), func() {
+	suite.scheduler.Schedule(duration.Parse("1000h"), func() {
 		suite.scheduler.Stop()
 	})
 	randSource := rand.NewSource(12345)

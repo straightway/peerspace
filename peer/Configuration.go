@@ -20,7 +20,7 @@ package peer
 import (
 	"time"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 )
 
 type Configuration struct {
@@ -36,6 +36,6 @@ func DefaultConfiguration() *Configuration {
 		MaxConnections:      20,
 		MaxAnnouncedPeers:   50,
 		MaxChunkSize:        0xffff,
-		TimedQueryTimeout:   general.ParseDuration("1h"),
-		UntimedQueryTimeout: general.ParseDuration("5m")}
+		TimedQueryTimeout:   duration.Parse("1h"),
+		UntimedQueryTimeout: duration.Parse("5m")}
 }

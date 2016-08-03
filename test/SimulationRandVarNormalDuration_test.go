@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/simc/randvar"
 	"github.com/stretchr/testify/suite"
 )
@@ -43,8 +43,8 @@ func (suite *SimulationRandvarNormalDuration_Test) SetupTest() {
 // Tests
 
 func (suite *SimulationRandvarNormalDuration_Test) TestMeanValueIsAsSpecified() {
-	meanDuration := general.ParseDuration("1m")
-	stdDeviation := general.ParseDuration("1ms")
+	meanDuration := duration.Parse("1m")
+	stdDeviation := duration.Parse("1ms")
 	sut := randvar.NewNormalDuration(suite.randSource, meanDuration, stdDeviation)
 	actMean, actStdDeviation := determineMeanAndStdDeviationDuration(sut, 2000, meanDuration)
 

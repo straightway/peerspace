@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/suite"
 )
@@ -52,14 +52,14 @@ func (suite *SimulationEventScheduler_Test) Test_Run_OnInitialStateDoesNothing()
 
 func (suite *SimulationEventScheduler_Test) Test_Run_ExecutesPreScheduledEvent() {
 	wasCalled := false
-	suite.sut.Schedule(general.ParseDuration("10s"), func() { wasCalled = true })
+	suite.sut.Schedule(duration.Parse("10s"), func() { wasCalled = true })
 	suite.Assert().False(wasCalled)
 	suite.sut.Run()
 	suite.Assert().True(wasCalled)
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Run_ActionAtScheduledTime() {
-	eventDuration := general.ParseDuration("10s")
+	eventDuration := duration.Parse("10s")
 	suite.sut.Schedule(eventDuration, func() {
 		suite.Assert().Equal(time.Time{}.In(time.UTC).Add(eventDuration), suite.sut.Time())
 	})
@@ -67,7 +67,7 @@ func (suite *SimulationEventScheduler_Test) Test_Run_ActionAtScheduledTime() {
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Run_AdvancesTimeWithEvent() {
-	eventDuration := general.ParseDuration("10s")
+	eventDuration := duration.Parse("10s")
 	suite.sut.Schedule(eventDuration, func() {})
 	suite.Assert().Equal(time.Time{}.In(time.UTC), suite.sut.Time())
 	suite.sut.Run()
@@ -76,13 +76,13 @@ func (suite *SimulationEventScheduler_Test) Test_Run_AdvancesTimeWithEvent() {
 
 func (suite *SimulationEventScheduler_Test) Test_Run_ExecutesEventsInTimedOrder() {
 	eventIndex := 0
-	duration2 := general.ParseDuration("15s")
+	duration2 := duration.Parse("15s")
 	suite.sut.Schedule(duration2, func() {
 		suite.Assert().Equal(1, eventIndex)
 		suite.Assert().Equal(time.Time{}.In(time.UTC).Add(duration2), suite.sut.Time())
 		eventIndex++
 	})
-	duration1 := general.ParseDuration("10s")
+	duration1 := duration.Parse("10s")
 	suite.sut.Schedule(duration1, func() {
 		suite.Assert().Equal(0, eventIndex)
 		suite.Assert().Equal(time.Time{}.In(time.UTC).Add(duration1), suite.sut.Time())
@@ -93,7 +93,7 @@ func (suite *SimulationEventScheduler_Test) Test_Run_ExecutesEventsInTimedOrder(
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Schedule_ChainedEvents() {
-	eventDuration := general.ParseDuration("10s")
+	eventDuration := duration.Parse("10s")
 	wasCalled := false
 	suite.sut.Schedule(eventDuration, func() {
 		suite.sut.Schedule(eventDuration, func() { wasCalled = true })
@@ -131,7 +131,7 @@ func (suite *SimulationEventScheduler_Test) Test_ScheduleNextDayTime_InFuture() 
 	targetDateTime, err := time.Parse(timeFormat, "2000-01-02 08:15:00")
 	suite.Assert().Nil(err)
 	suite.sut.ScheduleAbsolute(startDateTime, func() {
-		r := suite.sut.ScheduleNextDayTime(1, general.ParseDuration("8h15m"), func() {
+		r := suite.sut.ScheduleNextDayTime(1, duration.Parse("8h15m"), func() {
 			wasCalled = true
 			suite.Assert().Equal(targetDateTime, suite.sut.Time())
 		})
@@ -147,7 +147,7 @@ func (suite *SimulationEventScheduler_Test) Test_ScheduleNextDayTime_InPast() {
 	startDateTime, err := time.Parse(timeFormat, "2000-01-01 09:00:00")
 	suite.Assert().Nil(err)
 	suite.sut.ScheduleAbsolute(startDateTime, func() {
-		r := suite.sut.ScheduleNextDayTime(0, general.ParseDuration("8h15m"), func() {
+		r := suite.sut.ScheduleNextDayTime(0, duration.Parse("8h15m"), func() {
 			suite.Assert().Fail("Schedule date is in the past, shall not be scheduled")
 		})
 		suite.Assert().False(r)
@@ -157,19 +157,19 @@ func (suite *SimulationEventScheduler_Test) Test_ScheduleNextDayTime_InPast() {
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Stop_StopsAfterCurrentEvent() {
-	suite.sut.Schedule(general.ParseDuration("10s"), func() {
+	suite.sut.Schedule(duration.Parse("10s"), func() {
 		suite.sut.Stop()
 	})
-	suite.sut.Schedule(general.ParseDuration("20s"), func() {
+	suite.sut.Schedule(duration.Parse("20s"), func() {
 		suite.Assert().Fail("Should not be executed as the scheduler is stopped before")
 	})
 	suite.sut.Run()
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Stop_IgnoresFollowingEvents() {
-	suite.sut.Schedule(general.ParseDuration("10s"), func() {
+	suite.sut.Schedule(duration.Parse("10s"), func() {
 		suite.sut.Stop()
-		suite.sut.Schedule(general.ParseDuration("20s"), func() {
+		suite.sut.Schedule(duration.Parse("20s"), func() {
 			suite.Assert().Fail("Should not be executed as the scheduler is stopped before")
 		})
 	})
@@ -177,10 +177,10 @@ func (suite *SimulationEventScheduler_Test) Test_Stop_IgnoresFollowingEvents() {
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Stop_ClearsRemainingEvents() {
-	suite.sut.Schedule(general.ParseDuration("10s"), func() {
+	suite.sut.Schedule(duration.Parse("10s"), func() {
 		suite.sut.Stop()
 	})
-	suite.sut.Schedule(general.ParseDuration("20s"), func() {
+	suite.sut.Schedule(duration.Parse("20s"), func() {
 		suite.Assert().Fail("Should not be executed as the scheduler is stopped before")
 	})
 	suite.sut.Run()

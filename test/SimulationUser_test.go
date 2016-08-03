@@ -22,6 +22,7 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/mock"
@@ -40,8 +41,8 @@ func TestSimulationUser(t *testing.T) {
 	suite.Run(t, new(SimulationUser_Test))
 }
 
-var startupDuration = general.ParseDuration("8h")
-var stopDuration = general.ParseDuration("1000h")
+var startupDuration = duration.Parse("8h")
+var stopDuration = duration.Parse("1000h")
 
 func (suite *SimulationUser_Test) SetupTest() {
 	suite.scheduler = &simc.EventScheduler{}

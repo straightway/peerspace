@@ -22,7 +22,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/peerc"
@@ -84,8 +84,8 @@ func (this *Environment) createUser() *User {
 	newUser := &User{
 		Scheduler:       &this.Scheduler,
 		Node:            node,
-		StartupDuration: randvar.NewNormalDuration(this.randSource, general.ParseDuration("8h"), general.ParseDuration("2h")),
-		OnlineDuration:  randvar.NewNormalDuration(this.randSource, general.ParseDuration("2h"), general.ParseDuration("2h"))}
+		StartupDuration: randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
+		OnlineDuration:  randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h"))}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser
@@ -168,7 +168,7 @@ func (this *Environment) createActivity(
 	return &Upload{
 		User:               user,
 		Configuration:      configuration,
-		Delay:              randvar.NewNormalDuration(this.randSource, general.ParseDuration("15m"), general.ParseDuration("30m")),
+		Delay:              randvar.NewNormalDuration(this.randSource, duration.Parse("15m"), duration.Parse("30m")),
 		DataSize:           randvar.NewNormalFloat64(this.randSource, 32000, 32000),
 		IdGenerator:        &IdGenerator{RandSource: this.randSource},
 		ChunkCreator:       chunkCreator,

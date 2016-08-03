@@ -20,29 +20,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/stretchr/testify/suite"
 )
 
 // Test suite
 
-type TimeTools_Test struct {
+type GeneralDurationParse_Test struct {
 	suite.Suite
 }
 
-func TestTimeTools(t *testing.T) {
-	suite.Run(t, new(TimeTools_Test))
+func TestGeneralDurationParse(t *testing.T) {
+	suite.Run(t, new(GeneralDurationParse_Test))
 }
 
 // Tests
 
-func (suite *TimeTools_Test) Test_ParseDuration_Successful() {
+func (suite *GeneralDurationParse_Test) Test_ParseDuration_Successful() {
 	durationString := "2h"
 	expected, _ := time.ParseDuration(durationString)
-	actual := general.ParseDuration(durationString)
+	actual := duration.Parse(durationString)
 	suite.Assert().Equal(expected, actual)
 }
 
-func (suite *TimeTools_Test) Test_ParseDuration_InvalidFormat() {
-	suite.Assert().Panics(func() { general.ParseDuration("") })
+func (suite *GeneralDurationParse_Test) Test_ParseDuration_InvalidFormat() {
+	suite.Assert().Panics(func() { duration.Parse("") })
 }

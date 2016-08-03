@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -32,7 +32,7 @@ type QueryStrategy struct {
 func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryStrategy {
 	result := &QueryStrategy{}
 	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
-	result.On("TimeoutFor", mock.Anything).Return(general.ParseDuration("2h"))
+	result.On("TimeoutFor", mock.Anything).Return(duration.Parse("2h"))
 	result.On("IsQueryAccepted", mock.Anything, mock.Anything).Return(true)
 	return result
 }

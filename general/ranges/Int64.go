@@ -14,26 +14,26 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package ranges
 
 import "fmt"
 
-type RangeInt64 [2]int64
+type Int64 [2]int64
 
-func (this RangeInt64) IntersectsWith(other RangeInt64) bool {
+func (this Int64) IntersectsWith(other Int64) bool {
 	return this.isValid() && other.isValid() && !this.notIntersectingWith(other)
 }
 
-func (this RangeInt64) String() string {
+func (this Int64) String() string {
 	return fmt.Sprintf("[%v,%v[", this[0], this[1])
 }
 
 // Private
 
-func (this RangeInt64) isValid() bool {
+func (this Int64) isValid() bool {
 	return this[0] <= this[1]
 }
 
-func (this RangeInt64) notIntersectingWith(other RangeInt64) bool {
+func (this Int64) notIntersectingWith(other Int64) bool {
 	return this[1] <= other[0] || other[1] <= this[0]
 }

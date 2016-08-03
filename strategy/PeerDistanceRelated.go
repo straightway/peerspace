@@ -22,6 +22,7 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/ranges"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -39,7 +40,7 @@ func (this *PeerDistanceRelated) Distance(peer peer.Connector, key data.Key) uin
 
 func (this *PeerDistanceRelated) Distances(peer peer.Connector, query data.Query) []uint64 {
 	result := make([]uint64, 0, 0)
-	queryRange := general.RangeInt64{query.TimeFrom, query.TimeTo + 1}
+	queryRange := ranges.Int64{query.TimeFrom, query.TimeTo + 1}
 	for _, timestampRange := range this.timestampRangesForQuery(query) {
 		if queryRange.IntersectsWith(timestampRange) {
 			result = append(result, this.distanceForQueryTimeRange(peer, query, timestampRange))
@@ -62,17 +63,17 @@ func (this *PeerDistanceRelated) Priority(chunk *data.Chunk) (float32, time.Time
 // Private
 
 func (this *PeerDistanceRelated) distanceForQueryTimeRange(
-	peer peer.Connector, query data.Query, timepointRange general.RangeInt64) uint64 {
+	peer peer.Connector, query data.Query, timepointRange ranges.Int64) uint64 {
 	equivalentKey := data.Key{Id: query.Id, TimeStamp: timepointRange[1] - 1}
 	return this.Distance(peer, equivalentKey)
 }
 
-func (this *PeerDistanceRelated) timestampRangesForQuery(query data.Query) []general.RangeInt64 {
+func (this *PeerDistanceRelated) timestampRangesForQuery(query data.Query) []ranges.Int64 {
 	timestampAges := this.timestampAgesForQuery(query)
 	numRanges := len(timestampAges) - 2
-	result := make([]general.RangeInt64, 0, 0)
+	result := make([]ranges.Int64, 0, 0)
 	for i := numRanges; 0 <= i; i-- {
-		result = append(result, general.RangeInt64{timestampAges[i], timestampAges[i+1] + 1})
+		result = append(result, ranges.Int64{timestampAges[i], timestampAges[i+1] + 1})
 	}
 
 	return result

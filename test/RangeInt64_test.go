@@ -19,7 +19,7 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/ranges"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -32,64 +32,64 @@ func TestRange(t *testing.T) {
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_NotIntersecting_SmallerFirst() {
-	a := general.RangeInt64{5, 10}
-	b := general.RangeInt64{10, 20}
+	a := ranges.Int64{5, 10}
+	b := ranges.Int64{10, 20}
 	suite.Assert().False(a.IntersectsWith(b))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_NotIntersecting_LargerFirst() {
-	a := general.RangeInt64{5, 10}
-	b := general.RangeInt64{10, 20}
+	a := ranges.Int64{5, 10}
+	b := ranges.Int64{10, 20}
 	suite.Assert().False(b.IntersectsWith(a))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_SameRange() {
-	a := general.RangeInt64{5, 10}
+	a := ranges.Int64{5, 10}
 	suite.Assert().True(a.IntersectsWith(a))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_IncludingRange_SmallerFirst() {
-	a := general.RangeInt64{5, 10}
-	b := general.RangeInt64{6, 9}
+	a := ranges.Int64{5, 10}
+	b := ranges.Int64{6, 9}
 	suite.Assert().True(a.IntersectsWith(b))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_IncludingRange_LargerFirst() {
-	a := general.RangeInt64{5, 10}
-	b := general.RangeInt64{6, 9}
+	a := ranges.Int64{5, 10}
+	b := ranges.Int64{6, 9}
 	suite.Assert().True(b.IntersectsWith(a))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_OverlappingRange_SmallerFirst() {
-	a := general.RangeInt64{5, 10}
-	b := general.RangeInt64{3, 7}
+	a := ranges.Int64{5, 10}
+	b := ranges.Int64{3, 7}
 	suite.Assert().True(a.IntersectsWith(b))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_OverlappingRange_LargerFirst() {
-	a := general.RangeInt64{5, 10}
-	b := general.RangeInt64{3, 7}
+	a := ranges.Int64{5, 10}
+	b := ranges.Int64{3, 7}
 	suite.Assert().True(b.IntersectsWith(a))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_InvalidRange_InvalidFirst() {
-	a := general.RangeInt64{10, 5}
-	b := general.RangeInt64{0, 20}
+	a := ranges.Int64{10, 5}
+	b := ranges.Int64{0, 20}
 	suite.Assert().False(a.IntersectsWith(b))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_InvalidRange_InvalidLast() {
-	a := general.RangeInt64{10, 5}
-	b := general.RangeInt64{0, 20}
+	a := ranges.Int64{10, 5}
+	b := ranges.Int64{0, 20}
 	suite.Assert().False(b.IntersectsWith(a))
 }
 
 func (suite *RangeInt64_Test) Test_IntersectsWith_InvalidRange_Both() {
-	a := general.RangeInt64{10, 5}
-	b := general.RangeInt64{7, 3}
+	a := ranges.Int64{10, 5}
+	b := ranges.Int64{7, 3}
 	suite.Assert().False(b.IntersectsWith(a))
 }
 
 func (suite *RangeInt64_Test) Test_String() {
-	suite.Assert().Equal("[3,5[", general.RangeInt64{3, 5}.String())
+	suite.Assert().Equal("[3,5[", ranges.Int64{3, 5}.String())
 }

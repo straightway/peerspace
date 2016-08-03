@@ -14,10 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package times
 
 import "time"
 
-const MaxUnixTime = 0x7FFFFFF1886E08FF
+const MaxUnix = 0x7FFFFFF1886E08FF
 
-func MaxTime() time.Time { return time.Unix(MaxUnixTime, 0).In(time.UTC) }
+func Max() time.Time { return time.Unix(MaxUnix, 0).In(time.UTC) }

@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/ranges"
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -111,7 +111,7 @@ func (this *PeerDistanceRelated) distanceIdToKey(peerId string, key data.Key) ui
 func (this *PeerDistanceRelated) timestampAgeMarker(key data.Key) (byte, time.Time) {
 	keyTimeStamp := key.TimeStamp
 	ageTable := this.timestampAgeTable()
-	expirationTime := general.MaxTime()
+	expirationTime := times.Max()
 	for i, timeStampFromTable := range ageTable {
 		if keyTimeStamp <= timeStampFromTable {
 			return byte(i + 1), expirationTime

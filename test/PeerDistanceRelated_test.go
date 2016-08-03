@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/strategy"
 	"github.com/stretchr/testify/suite"
@@ -125,7 +125,7 @@ func (suite *PeerDistanceRelated_Test) Test_TimedKey_HasSameIdNext10Years() {
 func (suite *PeerDistanceRelated_Test) Test_TimedKey_HasAlwaysSameIdAfter10Years() {
 	suite.advanceTimeByDays(3650, 0)
 	earlyDistance := suite.sut.Distance(suite.peer, recentKey)
-	suite.timer.CurrentTime = general.MaxTime()
+	suite.timer.CurrentTime = times.Max()
 	lateDistance := suite.sut.Distance(suite.peer, recentKey)
 	suite.Assert().Equal(earlyDistance, lateDistance)
 }
@@ -166,7 +166,7 @@ func (suite *PeerDistanceRelated_Test) Test_Priority_MaxDistanceYieldsPositivePr
 
 func (suite *PeerDistanceRelated_Test) Test_Priority_PriorityOfUntimedKeyExpiresNever() {
 	_, expiration := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId)}})
-	suite.Assert().Equal(general.MaxTime(), expiration)
+	suite.Assert().Equal(times.Max(), expiration)
 }
 
 func (suite *PeerDistanceRelated_Test) Test_Priority_PriorityOfFreshTimedKeyExpiresAfter1Day() {
@@ -199,7 +199,7 @@ func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationAfterTenYears() {
 	currTime := suite.timer.Time()
 	startTimeStamp := currTime.AddDate(0, 0, -3650)
 	_, expiration := suite.sut.Priority(&data.Chunk{Key: data.Key{Id: data.Id(keyId), TimeStamp: startTimeStamp.Unix()}})
-	suite.Assert().Equal(general.MaxTime(), expiration)
+	suite.Assert().Equal(times.Max(), expiration)
 }
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQuery_EqualsKeyDistance() {

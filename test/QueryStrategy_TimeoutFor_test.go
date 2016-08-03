@@ -19,8 +19,8 @@ package test
 import (
 	"testing"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -35,13 +35,13 @@ func TestQueryStrategyTimeoutFor(t *testing.T) {
 func (suite *QueryStrategy_TimeoutFor_Test) TestTimeoutForTimedQueriesIsTakenFromConfiguration() {
 	timeout := general.ParseDuration("10ns")
 	suite.configuration.TimedQueryTimeout = timeout
-	result := suite.sut.TimeoutFor(peer.Query{Id: queryId, TimeFrom: 1})
+	result := suite.sut.TimeoutFor(data.Query{Id: queryId, TimeFrom: 1})
 	suite.Assert().Equal(timeout, result)
 }
 
 func (suite *QueryStrategy_TimeoutFor_Test) TestTimeoutForUntimedQueriesIsTakenFromConfiguration() {
 	timeout := general.ParseDuration("10ms")
 	suite.configuration.UntimedQueryTimeout = timeout
-	result := suite.sut.TimeoutFor(peer.Query{Id: queryId})
+	result := suite.sut.TimeoutFor(data.Query{Id: queryId})
 	suite.Assert().Equal(timeout, result)
 }

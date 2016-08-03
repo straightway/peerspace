@@ -16,10 +16,14 @@
 
 package peer
 
-import "time"
+import (
+	"time"
+
+	"github.com/straightway/straightway/data"
+)
 
 type QueryStrategy interface {
-	IsQueryAccepted(query Query, receiver Pusher) bool
-	ForwardTargetsFor(query Query, receiver Pusher) []Connector
-	TimeoutFor(query Query) time.Duration
+	IsQueryAccepted(query data.Query, receiver Pusher) bool
+	ForwardTargetsFor(query data.Query, receiver Pusher) []Connector
+	TimeoutFor(query data.Query) time.Duration
 }

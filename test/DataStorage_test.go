@@ -23,7 +23,6 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -42,7 +41,7 @@ func TestDataStorage(t *testing.T) {
 
 func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
 	suite.raw.Store(&untimedChunk, 0.0, general.MaxTime())
-	query := peer.Query{Id: queryId}
+	query := data.Query{Id: queryId}
 	result := suite.sut.Query(query)
 	suite.raw.AssertCalledOnce(suite.T(), "Query", query)
 	suite.Assert().Equal([]*data.Chunk{&untimedChunk}, result)
@@ -50,7 +49,7 @@ func (suite *DataStorage_Test) Test_Query_IsForwardedToRawStorage() {
 
 func (suite *DataStorage_Test) Test_Query_LeadsToRePrioritizationOfResult() {
 	suite.raw.Store(&untimedChunk, -10.0, time.Unix(0, 0).In(time.UTC))
-	query := peer.Query{Id: queryId}
+	query := data.Query{Id: queryId}
 	result := suite.sut.Query(query)
 	suite.raw.AssertCalledOnce(suite.T(), "RePrioritize", untimedChunk.Key, float32(0.0), general.MaxTime())
 	suite.Assert().Equal([]*data.Chunk{&untimedChunk}, result)

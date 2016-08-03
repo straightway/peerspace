@@ -20,6 +20,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 )
@@ -30,11 +31,11 @@ type Query struct {
 	Configuration          *peer.Configuration
 }
 
-func (this *Query) IsQueryAccepted(query peer.Query, receiver peer.Pusher) bool {
+func (this *Query) IsQueryAccepted(query data.Query, receiver peer.Pusher) bool {
 	return true
 }
 
-func (this *Query) ForwardTargetsFor(query peer.Query, receiver peer.Pusher) []peer.Connector {
+func (this *Query) ForwardTargetsFor(query data.Query, receiver peer.Pusher) []peer.Connector {
 	allConnections := this.ConnectionInfoProvider.ConnectedPeers()
 
 	seletor := nearestPeerSelector{Query: query, PeerDistanceCalculator: this.PeerDistanceCalculator}
@@ -45,7 +46,7 @@ func (this *Query) ForwardTargetsFor(query peer.Query, receiver peer.Pusher) []p
 	})).([]peer.Connector)
 }
 
-func (this *Query) TimeoutFor(query peer.Query) time.Duration {
+func (this *Query) TimeoutFor(query data.Query) time.Duration {
 	if query.IsTimed() {
 		return this.Configuration.TimedQueryTimeout
 	} else {
@@ -56,7 +57,7 @@ func (this *Query) TimeoutFor(query peer.Query) time.Duration {
 // Private
 
 type nearestPeerSelector struct {
-	Query                  peer.Query
+	Query                  data.Query
 	PeerDistanceCalculator PeerDistanceCalculator
 	nearestPeers           []peer.Connector
 	nearestPeerDistances   []uint64

@@ -23,7 +23,6 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
@@ -96,7 +95,7 @@ func (suite *SimulationRawStorage_Test) Test_Store_CanBeOverridden() {
 	suite.sut.Store(chunk, 0.0, time.Time{})
 	expirationTime := time.Unix(10, 0).In(time.UTC)
 	suite.sut.Store(chunk, 1.0, expirationTime)
-	queryResult := suite.sut.Query(peer.Query{Id: untimedKey.Id})
+	queryResult := suite.sut.Query(data.Query{Id: untimedKey.Id})
 	suite.Assert().Equal(
 		[]storage.DataRecord{storage.DataRecord{Chunk: chunk, Priority: 1.0, PrioExpirationTime: expirationTime}},
 		queryResult)
@@ -130,7 +129,7 @@ func (suite *SimulationRawStorage_Test) Test_Query_UntimedReturnsSingleResult() 
 	suite.sut.Store(chunk, 0.0, time.Time{})
 	otherChunk := suite.sut.CreateChunk(timedKey10, chunkSize)
 	suite.sut.Store(otherChunk, 0.0, time.Time{})
-	queryResult := suite.sut.Query(peer.Query{Id: untimedKey.Id})
+	queryResult := suite.sut.Query(data.Query{Id: untimedKey.Id})
 	suite.Assert().Equal([]storage.DataRecord{storage.DataRecord{Chunk: chunk}}, queryResult)
 }
 
@@ -143,7 +142,7 @@ func (suite *SimulationRawStorage_Test) Test_RePrioritize_AssignsNewValues() {
 	suite.sut.Store(chunk, 0.0, time.Time{})
 	expirationTime := time.Unix(10, 0).In(time.UTC)
 	suite.sut.RePrioritize(untimedKey, 1.0, expirationTime)
-	queryResult := suite.sut.Query(peer.Query{Id: untimedKey.Id})
+	queryResult := suite.sut.Query(data.Query{Id: untimedKey.Id})
 	suite.Assert().Equal(
 		[]storage.DataRecord{storage.DataRecord{Chunk: chunk, Priority: 1.0, PrioExpirationTime: expirationTime}},
 		queryResult)

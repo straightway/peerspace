@@ -79,7 +79,7 @@ func (this *Upload) attractToAudience(chunk *data.Chunk) {
 		permutatedAudience[i] = audience[j]
 	}
 
-	chunkQuery := peer.Query{Id: chunk.Key.Id}
+	chunkQuery := data.Query{Id: chunk.Key.Id}
 	for _, consumer := range permutatedAudience[0:numberOfAttractions] {
 		consumer.AttractTo(chunkQuery)
 	}

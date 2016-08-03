@@ -77,7 +77,7 @@ func (this *RawStorage) Delete(key data.Key) {
 	}).([]storage.DataRecord)
 }
 
-func (this *RawStorage) Query(query peer.Query) []storage.DataRecord {
+func (this *RawStorage) Query(query data.Query) []storage.DataRecord {
 	result := make([]storage.DataRecord, 0, 0)
 	for _, record := range this.storedData {
 		if query.Matches(record.Chunk.Key) {

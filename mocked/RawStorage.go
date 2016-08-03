@@ -102,7 +102,7 @@ func (m *RawStorage) Delete(key data.Key) {
 	m.deleteInternal(key)
 }
 
-func (m *RawStorage) Query(query peer.Query) []storage.DataRecord {
+func (m *RawStorage) Query(query data.Query) []storage.DataRecord {
 	m.Called(query)
 	result := make([]storage.DataRecord, 0)
 	for _, record := range m.Data {

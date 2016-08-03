@@ -20,9 +20,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -112,7 +112,7 @@ func (suite *SimulationUser_Test) TestUserIsIdentifyable() {
 }
 
 func (suite *SimulationUser_Test) TestUserCanBeAttractedToData() {
-	query := peer.Query{Id: queryId}
+	query := data.Query{Id: queryId}
 	suite.sut.AttractTo(query)
 
 	poppedQuery, ok := suite.sut.PopAttractiveQuery()
@@ -121,7 +121,7 @@ func (suite *SimulationUser_Test) TestUserCanBeAttractedToData() {
 
 	poppedQuery, ok = suite.sut.PopAttractiveQuery()
 	suite.Assert().False(ok)
-	suite.Assert().Equal(peer.Query{}, poppedQuery)
+	suite.Assert().Equal(data.Query{}, poppedQuery)
 }
 
 // Private

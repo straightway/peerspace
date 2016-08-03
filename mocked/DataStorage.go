@@ -18,7 +18,6 @@ package mocked
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -49,7 +48,7 @@ func (this *DataStorage) ConsiderStorage(data *data.Chunk) {
 	}
 }
 
-func (this *DataStorage) Query(query peer.Query) []*data.Chunk {
+func (this *DataStorage) Query(query data.Query) []*data.Chunk {
 	this.Called(query)
 	result := make([]*data.Chunk, 0)
 	for _, chunk := range this.data {

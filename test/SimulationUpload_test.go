@@ -126,10 +126,10 @@ func (suite *SimulationUpload_Test) Test_ScheduleUntil_PushesDataAtDefinedTimes(
 }
 
 func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAudience() {
-	var expectedQueries []peer.Query = nil
+	var expectedQueries []data.Query = nil
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
 		chunk := args[0].(*data.Chunk)
-		expectedQueries = append(expectedQueries, peer.Query{Id: chunk.Key.Id})
+		expectedQueries = append(expectedQueries, data.Query{Id: chunk.Key.Id})
 	})
 	consumer := mocked.NewSimulationDataConsumer()
 	suite.addAudience(consumer)

@@ -16,8 +16,8 @@
 
 package sim
 
-import "github.com/straightway/straightway/peer"
+import "github.com/straightway/straightway/data"
 
 type DataConsumer interface {
-	AttractTo(query peer.Query)
+	AttractTo(query data.Query)
 }

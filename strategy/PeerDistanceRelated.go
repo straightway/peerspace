@@ -37,7 +37,7 @@ func (this *PeerDistanceRelated) Distance(peer peer.Connector, key data.Key) uin
 	return this.distanceIdToKey(peer.Id(), key)
 }
 
-func (this *PeerDistanceRelated) Distances(peer peer.Connector, query peer.Query) []uint64 {
+func (this *PeerDistanceRelated) Distances(peer peer.Connector, query data.Query) []uint64 {
 	result := make([]uint64, 0, 0)
 	queryRange := general.RangeInt64{query.TimeFrom, query.TimeTo + 1}
 	for _, timestampRange := range this.timestampRangesForQuery(query) {
@@ -62,12 +62,12 @@ func (this *PeerDistanceRelated) Priority(chunk *data.Chunk) (float32, time.Time
 // Private
 
 func (this *PeerDistanceRelated) distanceForQueryTimeRange(
-	peer peer.Connector, query peer.Query, timepointRange general.RangeInt64) uint64 {
+	peer peer.Connector, query data.Query, timepointRange general.RangeInt64) uint64 {
 	equivalentKey := data.Key{Id: query.Id, TimeStamp: timepointRange[1] - 1}
 	return this.Distance(peer, equivalentKey)
 }
 
-func (this *PeerDistanceRelated) timestampRangesForQuery(query peer.Query) []general.RangeInt64 {
+func (this *PeerDistanceRelated) timestampRangesForQuery(query data.Query) []general.RangeInt64 {
 	timestampAges := this.timestampAgesForQuery(query)
 	numRanges := len(timestampAges) - 2
 	result := make([]general.RangeInt64, 0, 0)
@@ -78,7 +78,7 @@ func (this *PeerDistanceRelated) timestampRangesForQuery(query peer.Query) []gen
 	return result
 }
 
-func (this *PeerDistanceRelated) timestampAgesForQuery(query peer.Query) []int64 {
+func (this *PeerDistanceRelated) timestampAgesForQuery(query data.Query) []int64 {
 	timestampAges := []int64{0}
 	if query.IsTimed() {
 		timestampAges = append(timestampAges, this.timestampAgeTable()...)

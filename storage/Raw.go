@@ -21,13 +21,12 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/peer"
 )
 
 type ChunkOrder func(a, b *data.Key) bool
 
 type Raw interface {
-	Query(peer.Query) []DataRecord
+	Query(data.Query) []DataRecord
 	Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time)
 	Delete(data.Key)
 	SizeOf(*data.Chunk) uint64

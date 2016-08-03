@@ -22,7 +22,6 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -58,18 +57,18 @@ func (suite *Node_Query_Test) TearDownTest() {
 
 func (suite *Node_Query_Test) Test_Query_LocallyStoredItemIsPushedToQueryNode() {
 	suite.SetDataStorage(mocked.NewDataStorage(&untimedChunk))
-	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.Query(data.Query{Id: untimedKey.Id})
 	suite.assertQueryResult(&untimedChunk)
 }
 
 func (suite *Node_Query_Test) Test_Query_NotLocallyStoredItemIsNotDirectlyPushedBack() {
-	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.Query(data.Query{Id: untimedKey.Id})
 	suite.assertQueryResult( /*nothing*/ )
 }
 
 func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
 	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
-	query := peer.Query{Id: untimedKey.Id}
+	query := data.Query{Id: untimedKey.Id}
 	suite.Query(query)
 	fwdPeer.AssertCalledOnce(suite.T(), "Query", query, suite.node)
 }
@@ -77,7 +76,7 @@ func (suite *Node_Query_Test) Test_Query_LocallyFailedQueryIsForwarded() {
 func (suite *Node_Query_Test) Test_Query_UntimedQueryIsNotForwardedAfterImmediateResult() {
 	suite.Push(&untimedChunk)
 	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
-	query := peer.Query{Id: untimedKey.Id}
+	query := data.Query{Id: untimedKey.Id}
 	suite.Query(query)
 	fwdPeer.AssertNotCalled(suite.T(), "Query", query, suite.node)
 }
@@ -85,14 +84,14 @@ func (suite *Node_Query_Test) Test_Query_UntimedQueryIsNotForwardedAfterImmediat
 func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsForwardedAfterImmediateResult() {
 	suite.Push(&timedChunk10)
 	fwdPeer := suite.AddKnownConnectedPeer(DoForward(true))
-	query := peer.Query{Id: timedKey10.Id, TimeFrom: 5, TimeTo: 30}
+	query := data.Query{Id: timedKey10.Id, TimeFrom: 5, TimeTo: 30}
 	suite.Query(query)
 	fwdPeer.AssertCalledOnce(suite.T(), "Query", query, suite.node)
 }
 
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.Query(data.Query{Id: untimedKey.Id})
 	suite.Push(&untimedChunk)
 	suite.assertQueryResult(&untimedChunk)
 	suite.Push(&untimedChunk)
@@ -102,8 +101,8 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipleReceivers() {
 	otherQueryPeer := mocked.CreatePeerConnector()
 	suite.AddKnownConnectedPeer(DoForward(true))
-	suite.Query(peer.Query{Id: untimedKey.Id})
-	suite.node.Query(peer.Query{Id: untimedKey.Id}, otherQueryPeer)
+	suite.Query(data.Query{Id: untimedKey.Id})
+	suite.node.Query(data.Query{Id: untimedKey.Id}, otherQueryPeer)
 
 	suite.Push(&untimedChunk)
 
@@ -113,21 +112,21 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipl
 
 func (suite *Node_Query_Test) Test_Query_ResultIsSentOnceIfPeerIsAlsoForwardTarget() {
 	suite.queryPeer = suite.AddKnownConnectedPeer(DoForward(true))
-	suite.Query(peer.Query{Id: untimedKey.Id})
+	suite.Query(data.Query{Id: untimedKey.Id})
 	suite.Push(&untimedChunk)
 	suite.assertQueryResult(&untimedChunk)
 }
 
 func (suite *Node_Query_Test) Test_Query_ReceiverIsPassedToForwardStrategy() {
 	suite.queryPeer = suite.AddKnownConnectedPeer(DoForward(true))
-	query := peer.Query{Id: untimedKey.Id}
+	query := data.Query{Id: untimedKey.Id}
 	suite.Query(query)
 	suite.queryStrategy.AssertCalledOnce(suite.T(), "ForwardTargetsFor", suite.queryPeer, query)
 }
 
 func (suite *Node_Query_Test) Test_Query_IsDiscardedAfterTimeout() {
 	suite.AddKnownConnectedPeer(DoForward(true))
-	query := peer.Query{Id: untimedKey.Id}
+	query := data.Query{Id: untimedKey.Id}
 	suite.Query(query)
 	suite.advanceTimeByQueryTimeoutFactor(query, 1.1)
 	suite.clearTimedOutQueries()
@@ -139,7 +138,7 @@ func (suite *Node_Query_Test) Test_Query_IsDiscardedAfterTimeout() {
 
 func (suite *Node_Query_Test) Test_Query_IsNotDiscardedBeforeTimeout() {
 	suite.AddKnownConnectedPeer(DoForward(true))
-	query := peer.Query{Id: untimedKey.Id}
+	query := data.Query{Id: untimedKey.Id}
 	suite.Query(query)
 	suite.advanceTimeByQueryTimeoutFactor(query, 0.5)
 	suite.clearTimedOutQueries()
@@ -150,7 +149,7 @@ func (suite *Node_Query_Test) Test_Query_IsNotDiscardedBeforeTimeout() {
 }
 
 func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeYieldsMultipleResults() {
-	suite.Query(peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
+	suite.Query(data.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
 	suite.Push(&timedChunk10)
 	suite.Push(&timedChunk20)
 	suite.assertQueryResult(&timedChunk10, &timedChunk20)
@@ -158,13 +157,13 @@ func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeYieldsMultipleResults(
 
 func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsNotDiscardedAfterImmediateResult() {
 	suite.Push(&timedChunk10)
-	suite.Query(peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
+	suite.Query(data.Query{Id: queryId, TimeFrom: 10, TimeTo: 20})
 	suite.Push(&timedChunk20)
 	suite.assertQueryResult(&timedChunk10, &timedChunk20)
 }
 
 func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsDiscardedAfterTimeout() {
-	query := peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20}
+	query := data.Query{Id: queryId, TimeFrom: 10, TimeTo: 20}
 	suite.Query(query)
 	suite.advanceTimeByQueryTimeoutFactor(query, 1.1)
 	suite.Push(&timedChunk10)
@@ -173,7 +172,7 @@ func (suite *Node_Query_Test) Test_Query_ForTimeStampRangeIsDiscardedAfterTimeou
 }
 
 func (suite *Node_Query_Test) Test_Query_NotAcceptedQueryIsImmediatelyDiscarded() {
-	query := peer.Query{Id: queryId, TimeFrom: 10, TimeTo: 20}
+	query := data.Query{Id: queryId, TimeFrom: 10, TimeTo: 20}
 	suite.queryStrategy.ExpectedCalls = nil
 	suite.queryStrategy.On("IsQueryAccepted", query, suite.queryPeer).Return(false)
 	suite.Query(query)
@@ -182,7 +181,7 @@ func (suite *Node_Query_Test) Test_Query_NotAcceptedQueryIsImmediatelyDiscarded(
 
 // Private
 
-func (suite *Node_Query_Test) advanceTimeByQueryTimeoutFactor(query peer.Query, factor float32) {
+func (suite *Node_Query_Test) advanceTimeByQueryTimeoutFactor(query data.Query, factor float32) {
 	timeout := suite.queryStrategy.TimeoutFor(query)
 	suite.AdvanceTimeBy(time.Duration(float32(timeout) * factor))
 }
@@ -196,6 +195,6 @@ func (suite *Node_Query_Test) assertQueryResult(chunks ...*data.Chunk) {
 	suite.queryPeer.Calls = nil
 }
 
-func (suite *Node_Query_Test) Query(query peer.Query) {
+func (suite *Node_Query_Test) Query(query data.Query) {
 	suite.node.Query(query, suite.queryPeer)
 }

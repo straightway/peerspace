@@ -42,7 +42,7 @@ type Node struct {
 }
 
 type pendingQuery struct {
-	query          peer.Query
+	query          data.Query
 	expirationTime time.Time
 	receivers      []peer.Pusher
 }
@@ -146,7 +146,7 @@ func (this *Node) Push(data *data.Chunk, origin general.Identifyable) {
 	this.removeObsoleteQueries(data.Key)
 }
 
-func (this *Node) Query(query peer.Query, receiver peer.Pusher) {
+func (this *Node) Query(query data.Query, receiver peer.Pusher) {
 	if !this.QueryStrategy.IsQueryAccepted(query, receiver) {
 		return
 	}
@@ -232,14 +232,14 @@ func (this *Node) pendingQueriesForKey(key data.Key) []*pendingQuery {
 	return result
 }
 
-func (this *Node) forwardQuery(query peer.Query, receiver peer.Pusher) {
+func (this *Node) forwardQuery(query data.Query, receiver peer.Pusher) {
 	fwdPeers := this.QueryStrategy.ForwardTargetsFor(query, receiver)
 	for _, p := range fwdPeers {
 		p.Query(query, this)
 	}
 }
 
-func (this *Node) registerPendingQuery(query peer.Query, receiver peer.Pusher) {
+func (this *Node) registerPendingQuery(query data.Query, receiver peer.Pusher) {
 	for _, pending := range this.pendingQueries {
 		if pending.query == query {
 			pending.AddReceiver(receiver, this)

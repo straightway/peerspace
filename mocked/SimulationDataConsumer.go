@@ -17,7 +17,7 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/data"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -31,6 +31,6 @@ func NewSimulationDataConsumer() *SimulationDataConsumer {
 	return result
 }
 
-func (m *SimulationDataConsumer) AttractTo(query peer.Query) {
+func (m *SimulationDataConsumer) AttractTo(query data.Query) {
 	m.Called(query)
 }

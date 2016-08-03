@@ -14,27 +14,23 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
-
-import "github.com/straightway/straightway/data"
-
-// TODO Check if this is the right package for this type
+package data
 
 type Query struct {
-	Id       data.Id
+	Id       Id
 	TimeFrom int64
 	TimeTo   int64
 }
 
-func QueryExactlyKey(key data.Key) Query {
+func QueryExactlyKey(key Key) Query {
 	return Query{Id: key.Id, TimeTo: key.TimeStamp, TimeFrom: key.TimeStamp}
 }
 
-func (this *Query) Matches(key data.Key) bool {
+func (this *Query) Matches(key Key) bool {
 	return this.Id == key.Id && this.TimeFrom <= key.TimeStamp && key.TimeStamp <= this.TimeTo
 }
 
-func (this *Query) MatchesOnly(key data.Key) bool {
+func (this *Query) MatchesOnly(key Key) bool {
 	return this.Id == key.Id && this.TimeFrom == key.TimeStamp && this.TimeTo == key.TimeStamp
 }
 

@@ -23,7 +23,6 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/strategy"
 	"github.com/stretchr/testify/suite"
 )
@@ -204,7 +203,7 @@ func (suite *PeerDistanceRelated_Test) Test_Priority_ExpirationAfterTenYears() {
 }
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQuery_EqualsKeyDistance() {
-	query := peer.Query{Id: keyId}
+	query := data.Query{Id: keyId}
 	key := data.Key{Id: data.Id(keyId)}
 	distances := suite.sut.Distances(suite.peer, query)
 	expectedDistances := []uint64{suite.sut.Distance(suite.peer, key)}
@@ -213,7 +212,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForUntimedQuery_EqualsKeyD
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_SingleTimePoint_EqualsKeyDistance() {
 	currTime := suite.timer.Time().Unix()
-	query := peer.Query{Id: keyId, TimeFrom: currTime, TimeTo: currTime}
+	query := data.Query{Id: keyId, TimeFrom: currTime, TimeTo: currTime}
 	key := data.Key{Id: data.Id(keyId), TimeStamp: currTime}
 	distances := suite.sut.Distances(suite.peer, query)
 	expectedDistances := []uint64{suite.sut.Distance(suite.peer, key)}
@@ -222,7 +221,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_SingleTimePo
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_CoveringAllData() {
 	currTime := suite.timer.Time()
-	query := peer.Query{Id: keyId, TimeFrom: -400, TimeTo: currTime.Unix()}
+	query := data.Query{Id: keyId, TimeFrom: -400, TimeTo: currTime.Unix()}
 	distances := suite.sut.Distances(suite.peer, query)
 	expectedDistances := []uint64{
 		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.Unix()}),
@@ -236,7 +235,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_CoveringAllD
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_CoveringAllPastData() {
 	currTime := suite.timer.Time()
-	query := peer.Query{Id: keyId, TimeFrom: 0, TimeTo: currTime.AddDate(0, 0, -10).Unix()}
+	query := data.Query{Id: keyId, TimeFrom: 0, TimeTo: currTime.AddDate(0, 0, -10).Unix()}
 	distances := suite.sut.Distances(suite.peer, query)
 	expectedDistances := []uint64{
 		suite.sut.Distance(suite.peer, data.Key{Id: data.Id(keyId), TimeStamp: currTime.AddDate(0, 0, -7).Unix()}),
@@ -248,7 +247,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_CoveringAllP
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_OverlappingNotAllIntervals() {
 	currTime := suite.timer.Time()
-	query := peer.Query{
+	query := data.Query{
 		Id:       keyId,
 		TimeFrom: currTime.AddDate(0, 0, -400).Unix(),
 		TimeTo:   currTime.AddDate(0, 0, -10).Unix()}
@@ -262,7 +261,7 @@ func (suite *PeerDistanceRelated_Test) Test_Distances_ForTimedQuery_OverlappingN
 
 func (suite *PeerDistanceRelated_Test) Test_Distances_ForInvlidTimedQuery_IsEmpty() {
 	currTime := suite.timer.Time()
-	query := peer.Query{
+	query := data.Query{
 		Id:       keyId,
 		TimeFrom: currTime.AddDate(0, 0, -10).Unix(),
 		TimeTo:   currTime.AddDate(0, 0, -400).Unix()}

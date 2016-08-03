@@ -38,7 +38,7 @@ func (m *PeerDistanceCalculator) Distance(peer peer.Connector, key data.Key) uin
 	return args.Get(0).(uint64)
 }
 
-func (m *PeerDistanceCalculator) Distances(peer peer.Connector, query peer.Query) []uint64 {
+func (m *PeerDistanceCalculator) Distances(peer peer.Connector, query data.Query) []uint64 {
 	args := m.Called(peer, query)
 	return args.Get(0).([]uint64)
 }

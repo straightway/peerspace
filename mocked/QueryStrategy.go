@@ -19,6 +19,7 @@ package mocked
 import (
 	"time"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
@@ -36,17 +37,17 @@ func NewQueryForwardStrategy(resultPeers []peer.Connector) *QueryStrategy {
 	return result
 }
 
-func (m *QueryStrategy) IsQueryAccepted(query peer.Query, receiver peer.Pusher) bool {
+func (m *QueryStrategy) IsQueryAccepted(query data.Query, receiver peer.Pusher) bool {
 	args := m.Called(query, receiver)
 	return args.Get(0).(bool)
 }
 
-func (m *QueryStrategy) ForwardTargetsFor(query peer.Query, receiver peer.Pusher) []peer.Connector {
+func (m *QueryStrategy) ForwardTargetsFor(query data.Query, receiver peer.Pusher) []peer.Connector {
 	args := m.Called(receiver, query)
 	return args.Get(0).([]peer.Connector)
 }
 
-func (m *QueryStrategy) TimeoutFor(query peer.Query) time.Duration {
+func (m *QueryStrategy) TimeoutFor(query data.Query) time.Duration {
 	args := m.Called(query)
 	return args.Get(0).(time.Duration)
 }

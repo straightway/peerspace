@@ -19,6 +19,7 @@ package test
 import (
 	"testing"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
@@ -46,20 +47,20 @@ func TestQueryStrategyForwardTargetsFor(t *testing.T) {
 // Tests
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNoConnectionNoForwardTarget() {
-	result := suite.sut.ForwardTargetsFor(peer.Query{Id: queryId}, suite.origin)
+	result := suite.sut.ForwardTargetsFor(data.Query{Id: queryId}, suite.origin)
 	suite.Assert().Empty(result)
 }
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestQueryIsNotForwardedBack() {
 	suite.connectionInfoProvider.AllConnectedPeers =
 		append(suite.connectionInfoProvider.AllConnectedPeers, suite.origin)
-	result := suite.sut.ForwardTargetsFor(peer.Query{Id: queryId}, suite.origin)
+	result := suite.sut.ForwardTargetsFor(data.Query{Id: queryId}, suite.origin)
 	suite.Assert().Empty(result)
 }
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestSingleConnectionIsSelected() {
 	connectedPeer := suite.createConnectedPeer()
-	result := suite.sut.ForwardTargetsFor(peer.Query{Id: queryId}, suite.origin)
+	result := suite.sut.ForwardTargetsFor(data.Query{Id: queryId}, suite.origin)
 	suite.Assert().Equal([]peer.Connector{connectedPeer}, result)
 }
 
@@ -67,7 +68,7 @@ func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelectedForU
 	nearPeer := suite.createConnectedPeer()
 	farPeer := suite.createConnectedPeer()
 	suite.distanceCalculator.ExpectedCalls = nil
-	query := peer.Query{Id: queryId}
+	query := data.Query{Id: queryId}
 	suite.distanceCalculator.On("Distances", nearPeer, query).Return([]uint64{1})
 	suite.distanceCalculator.On("Distances", farPeer, query).Return([]uint64{2})
 	result := suite.sut.ForwardTargetsFor(query, suite.origin)
@@ -79,7 +80,7 @@ func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeersAreSelectedFo
 	nearPeer2 := suite.createConnectedPeer()
 	farPeer := suite.createConnectedPeer()
 	suite.distanceCalculator.ExpectedCalls = nil
-	query := peer.Query{Id: queryId, TimeFrom: 1, TimeTo: 2}
+	query := data.Query{Id: queryId, TimeFrom: 1, TimeTo: 2}
 	suite.distanceCalculator.On("Distances", nearPeer1, query).Return([]uint64{1, 2})
 	suite.distanceCalculator.On("Distances", nearPeer2, query).Return([]uint64{2, 1})
 	suite.distanceCalculator.On("Distances", farPeer, query).Return([]uint64{3, 3})
@@ -91,7 +92,7 @@ func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeersAreNotListedT
 	nearPeer := suite.createConnectedPeer()
 	farPeer := suite.createConnectedPeer()
 	suite.distanceCalculator.ExpectedCalls = nil
-	query := peer.Query{Id: queryId, TimeFrom: 1, TimeTo: 2}
+	query := data.Query{Id: queryId, TimeFrom: 1, TimeTo: 2}
 	suite.distanceCalculator.On("Distances", nearPeer, query).Return([]uint64{1, 1})
 	suite.distanceCalculator.On("Distances", farPeer, query).Return([]uint64{2, 2})
 	result := suite.sut.ForwardTargetsFor(query, suite.origin)

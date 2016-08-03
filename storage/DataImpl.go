@@ -51,7 +51,7 @@ func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
 	}
 }
 
-func (this *DataImpl) Query(query peer.Query) []*data.Chunk {
+func (this *DataImpl) Query(query data.Query) []*data.Chunk {
 	queryResult := this.RawStorage.Query(query)
 	for _, data := range queryResult {
 		prio, expiration := this.PriorityGenerator.Priority(data.Chunk)

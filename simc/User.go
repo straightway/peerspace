@@ -19,6 +19,7 @@ package simc
 import (
 	"time"
 
+	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/randvar"
@@ -30,7 +31,7 @@ type User struct {
 	StartupDuration   randvar.Duration
 	OnlineDuration    randvar.Duration
 	OnlineActivity    sim.UserActivity
-	attractiveQueries []peer.Query
+	attractiveQueries []data.Query
 	nextOfflineTime   time.Time
 }
 
@@ -42,11 +43,11 @@ func (this *User) Activate() {
 	this.schedule(this.StartupDuration, this.doStartup)
 }
 
-func (this *User) AttractTo(query peer.Query) {
+func (this *User) AttractTo(query data.Query) {
 	this.attractiveQueries = append(this.attractiveQueries, query)
 }
 
-func (this *User) PopAttractiveQuery() (query peer.Query, isFound bool) {
+func (this *User) PopAttractiveQuery() (query data.Query, isFound bool) {
 	isFound = 0 < len(this.attractiveQueries)
 	if isFound {
 		query = this.attractiveQueries[0]

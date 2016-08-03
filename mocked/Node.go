@@ -88,6 +88,6 @@ func (m *Node) Push(data *data.Chunk, origin general.Identifyable) {
 	m.Called(data, origin)
 }
 
-func (m *Node) Query(query peer.Query, receiver peer.Pusher) {
+func (m *Node) Query(query data.Query, receiver peer.Pusher) {
 	m.Called(query, receiver)
 }

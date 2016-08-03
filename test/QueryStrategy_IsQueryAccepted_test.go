@@ -19,7 +19,7 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/data"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -32,5 +32,5 @@ func TestQueryStrategyIsQueryAccepted(t *testing.T) {
 }
 
 func (suite *QueryStrategy_IsQueryAccepted_Test) TestAlwaysTrue() {
-	suite.Assert().True(suite.sut.IsQueryAccepted(peer.Query{}, nil))
+	suite.Assert().True(suite.sut.IsQueryAccepted(data.Query{}, nil))
 }

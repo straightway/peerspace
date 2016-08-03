@@ -78,7 +78,7 @@ func (m *PeerConnector) Push(data *data.Chunk, origin general.Identifyable) {
 	m.Called(data, origin)
 }
 
-func (m *PeerConnector) Query(query peer.Query, receiver peer.Pusher) {
+func (m *PeerConnector) Query(query data.Query, receiver peer.Pusher) {
 	m.Called(query, receiver)
 }
 

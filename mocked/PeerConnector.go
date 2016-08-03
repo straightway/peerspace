@@ -21,6 +21,7 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -50,7 +51,7 @@ func (this *PeerConnector) Id() string {
 }
 
 func (this *PeerConnector) Equal(other general.Equaler) bool {
-	otherIdentifable, ok := other.(general.Identifyable)
+	otherIdentifable, ok := other.(id.Holder)
 	return ok && otherIdentifable.Id() == this.Id()
 }
 
@@ -74,7 +75,7 @@ func (m *PeerConnector) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *PeerConnector) Push(data *data.Chunk, origin general.Identifyable) {
+func (m *PeerConnector) Push(data *data.Chunk, origin id.Holder) {
 	m.Called(data, origin)
 }
 

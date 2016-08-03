@@ -18,10 +18,10 @@ package peer
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 )
 
 type DataStrategy interface {
-	IsChunkAccepted(data *data.Chunk, origin general.Identifyable) bool
-	ForwardTargetsFor(key data.Key, origin general.Identifyable) []Connector
+	IsChunkAccepted(data *data.Chunk, origin id.Holder) bool
+	ForwardTargetsFor(key data.Key, origin id.Holder) []Connector
 }

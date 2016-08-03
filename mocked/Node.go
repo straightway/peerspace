@@ -19,6 +19,7 @@ package mocked
 import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -84,7 +85,7 @@ func (m *Node) RequestPeers(receiver peer.Connector) {
 	m.Called(receiver)
 }
 
-func (m *Node) Push(data *data.Chunk, origin general.Identifyable) {
+func (m *Node) Push(data *data.Chunk, origin id.Holder) {
 	m.Called(data, origin)
 }
 

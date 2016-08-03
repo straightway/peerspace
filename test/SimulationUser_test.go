@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/mock"
@@ -108,7 +108,7 @@ func (suite *SimulationUser_Test) TestOnlineActionIsNotExecutedWhenOffline() {
 }
 
 func (suite *SimulationUser_Test) TestUserIsIdentifyable() {
-	var identifyable general.Identifyable = suite.sut
+	var identifyable id.Holder = suite.sut
 	suite.Assert().Equal("UserOf_"+suite.sut.Node.Id(), identifyable.Id())
 }
 

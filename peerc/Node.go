@@ -21,6 +21,7 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -129,7 +130,7 @@ func (this *Node) ConnectingPeers() []peer.Connector {
 	return append([]peer.Connector(nil), this.connectingPeers...)
 }
 
-func (this *Node) Push(data *data.Chunk, origin general.Identifyable) {
+func (this *Node) Push(data *data.Chunk, origin id.Holder) {
 	if data == nil {
 		return
 	}
@@ -212,7 +213,7 @@ func (this *Node) confirmConnectionWith(peer peer.Connector) {
 	peer.RequestPeers(this)
 }
 
-func (this *Node) dataForwardPeers(origin general.Identifyable, key data.Key) []peer.Connector {
+func (this *Node) dataForwardPeers(origin id.Holder, key data.Key) []peer.Connector {
 	forwardPeers := this.DataStrategy.ForwardTargetsFor(key, origin)
 	for _, query := range this.pendingQueriesForKey(key) {
 		return general.SetUnion(forwardPeers, query.receivers).([]peer.Connector)

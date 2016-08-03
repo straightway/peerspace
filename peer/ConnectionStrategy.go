@@ -16,9 +16,9 @@
 
 package peer
 
-import "github.com/straightway/straightway/general"
+import "github.com/straightway/straightway/general/id"
 
 type ConnectionStrategy interface {
 	PeersToConnect(allPeers []Connector) []Connector
-	IsConnectionAcceptedWith(peer general.Identifyable) bool
+	IsConnectionAcceptedWith(peer id.Holder) bool
 }

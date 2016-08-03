@@ -14,8 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package id
 
-type Identifyable interface {
+type Holder interface {
 	Id() string
 }

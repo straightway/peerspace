@@ -20,7 +20,7 @@ import (
 	"math"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -30,11 +30,11 @@ type Data struct {
 	PeerDistanceCalculator PeerDistanceCalculator
 }
 
-func (this *Data) IsChunkAccepted(data *data.Chunk, origin general.Identifyable) bool {
+func (this *Data) IsChunkAccepted(data *data.Chunk, origin id.Holder) bool {
 	return uint64(len(data.Data)) <= this.Configuration.MaxChunkSize
 }
 
-func (this *Data) ForwardTargetsFor(key data.Key, origin general.Identifyable) []peer.Connector {
+func (this *Data) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Connector {
 	var nearestPeer = this.nearestPeer(key)
 	if nearestPeer != nil && origin.Id() != nearestPeer.Id() {
 		return []peer.Connector{nearestPeer}

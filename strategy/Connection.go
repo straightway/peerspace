@@ -20,6 +20,7 @@ import (
 	"math/rand"
 
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -45,7 +46,7 @@ func (this *Connection) PeersToConnect(allPeers []peer.Connector) []peer.Connect
 	}
 }
 
-func (this *Connection) IsConnectionAcceptedWith(peer general.Identifyable) bool {
+func (this *Connection) IsConnectionAcceptedWith(peer id.Holder) bool {
 	return len(this.existingConnections()) < this.Configuration.MaxConnections
 }
 

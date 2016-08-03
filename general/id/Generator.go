@@ -14,6 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package data
+package id
 
-type Id string
+type Generator interface {
+	NextId() string
+}

@@ -52,7 +52,7 @@ func (this *Upload) ScheduleUntil(maxTime time.Time) {
 
 func (this *Upload) doPush() {
 	newDataChunk := this.ChunkCreator.CreateChunk(
-		data.Key{Id: data.Id(this.IdGenerator.NextId())},
+		data.Key{Id: this.IdGenerator.NextId()},
 		this.nextChunkSize())
 	this.User.Node.Push(newDataChunk, this.User)
 	this.attractToAudience(newDataChunk)

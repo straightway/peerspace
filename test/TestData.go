@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	queryId      data.Id    = data.Id("1234")
+	queryId      string     = "1234"
 	untimedKey   data.Key   = data.Key{Id: queryId}
 	untimedChunk data.Chunk = data.Chunk{Key: untimedKey, Data: []byte{0x2, 0x3, 0x5, 0x7, 0xB}}
 	timedKey10   data.Key   = data.Key{Id: queryId, TimeStamp: 10}

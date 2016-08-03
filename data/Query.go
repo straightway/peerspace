@@ -17,7 +17,7 @@
 package data
 
 type Query struct {
-	Id       Id
+	Id       string
 	TimeFrom int64
 	TimeTo   int64
 }

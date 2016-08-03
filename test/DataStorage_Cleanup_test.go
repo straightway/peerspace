@@ -124,7 +124,7 @@ var nextChunkId = 0
 func createTestChunkOfSize(size int) *data.Chunk {
 	nextChunkId++
 	id := fmt.Sprintf("%v", nextChunkId)
-	return &data.Chunk{Key: data.Key{Id: data.Id(id)}, Data: make([]byte, size, size)}
+	return &data.Chunk{Key: data.Key{Id: id}, Data: make([]byte, size, size)}
 }
 
 func (suite *DataStorage_Cleanup_Test) createTestChunksOfSize(size, number int) (result []*data.Chunk) {

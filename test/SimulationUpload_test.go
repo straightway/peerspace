@@ -26,18 +26,18 @@ import (
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/sim_"
+	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationUpload_Test struct {
 	suite.Suite
-	sut             *sim_.Upload
-	scheduler       *sim_.EventScheduler
-	user            *sim_.User
+	sut             *simc.Upload
+	scheduler       *simc.EventScheduler
+	user            *simc.User
 	node            *mocked.Node
-	rawStorage      *sim_.RawStorage
+	rawStorage      *simc.RawStorage
 	sizeRandVar     *mocked.Float64RandVar
 	durationRandVar *mocked.DurationRandVar
 	offlineTime     time.Time
@@ -56,24 +56,24 @@ var (
 )
 
 func (suite *SimulationUpload_Test) SetupTest() {
-	suite.scheduler = &sim_.EventScheduler{}
-	suite.rawStorage = &sim_.RawStorage{}
+	suite.scheduler = &simc.EventScheduler{}
+	suite.rawStorage = &simc.RawStorage{}
 	suite.node = mocked.NewNode("1")
 	suite.sizeRandVar = mocked.NewFloat64RandVar(float64(defaultDataSize))
 	suite.durationRandVar = mocked.NewDurationRandVar(activityDuration)
-	suite.user = &sim_.User{
+	suite.user = &simc.User{
 		Scheduler: suite.scheduler,
 		Node:      suite.node}
 	suite.scheduler.Schedule(general.ParseDuration("1000h"), func() {
 		suite.scheduler.Stop()
 	})
 	randSource := rand.NewSource(12345)
-	suite.sut = &sim_.Upload{
+	suite.sut = &simc.Upload{
 		User:               suite.user,
 		Configuration:      peer.DefaultConfiguration(),
 		Delay:              suite.durationRandVar,
 		DataSize:           suite.sizeRandVar,
-		IdGenerator:        &sim_.IdGenerator{RandSource: randSource},
+		IdGenerator:        &simc.IdGenerator{RandSource: randSource},
 		ChunkCreator:       suite.rawStorage,
 		AttractionRatio:    mocked.NewFloat64RandVar(1.0),
 		AudienceProvider:   mocked.NewSimulationAudienceProvider(),

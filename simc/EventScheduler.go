@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim_
+package simc
 
 import (
 	"sort"

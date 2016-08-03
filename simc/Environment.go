@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim_
+package simc
 
 import (
 	"fmt"
@@ -23,10 +23,11 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general"
-	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
-	"github.com/straightway/straightway/sim_/randvar"
+	"github.com/straightway/straightway/peerc"
+	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/simc/randvar"
 	"github.com/straightway/straightway/storage"
 	"github.com/straightway/straightway/strategy"
 )
@@ -100,7 +101,7 @@ func (this *Environment) createNode() (peer.Node, *peer.Configuration, *RawStora
 		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
 	stateStorage := this.createStateStorage()
 	dataStorage, rawStorage := this.createDataStorage(peerDistanceRelated)
-	newNode := &peer.NodeImpl{
+	newNode := &peerc.Node{
 		Identifier:           nodeId,
 		StateStorage:         stateStorage,
 		DataStorage:          dataStorage,

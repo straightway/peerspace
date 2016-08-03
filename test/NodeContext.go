@@ -23,13 +23,14 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/peerc"
 	"github.com/stretchr/testify/mock"
 )
 
 type DoForward bool
 
 type NodeContext struct {
-	node                 *peer.NodeImpl
+	node                 *peerc.Node
 	dataStorage          *mocked.DataStorage
 	stateStorage         *mocked.StateStorage
 	announcementStrategy *mocked.AnnouncementStrategy
@@ -146,7 +147,7 @@ func (this *NodeContext) createSut() {
 	if this.dataStorage == nil {
 		this.dataStorage = mocked.NewDataStorage(nil)
 	}
-	this.node = &peer.NodeImpl{
+	this.node = &peerc.Node{
 		StateStorage:         this.stateStorage,
 		DataStorage:          this.dataStorage,
 		AnnouncementStrategy: this.announcementStrategy,

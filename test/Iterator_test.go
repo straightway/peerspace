@@ -19,7 +19,8 @@ package test
 import (
 	"testing"
 
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -36,18 +37,18 @@ func TestIterator(t *testing.T) {
 // Tests
 
 func (suite *Iterator_Test) Test_Loop_WithEmptyIterator_DoesNothing() {
-	sut := general.Iterator(func() (interface{}, bool) { return nil, false })
-	sut.Loop(func(interface{}) general.LoopControl { panic("No iteration expected") })
+	sut := loop.Iterator(func() (interface{}, bool) { return nil, false })
+	sut.Loop(func(interface{}) loop.Control { panic("No iteration expected") })
 }
 
 func (suite *Iterator_Test) Test_Loop_WithNonEmptyIterator_YieldsValues() {
 	values := []int{2, 3, 5}
-	sut := general.Iterate(values)
+	sut := slice.Iterate(values)
 	result := make([]int, 0)
 
-	sut.Loop(func(item interface{}) general.LoopControl {
+	sut.Loop(func(item interface{}) loop.Control {
 		result = append(result, item.(int))
-		return general.Continue
+		return loop.Continue
 	})
 
 	suite.Assert().Equal(values, result)
@@ -55,12 +56,12 @@ func (suite *Iterator_Test) Test_Loop_WithNonEmptyIterator_YieldsValues() {
 
 func (suite *Iterator_Test) Test_Loop_BreakOnfirstItem_YieldsOnlyOneItem() {
 	values := []int{2, 3, 5}
-	sut := general.Iterate(values)
+	sut := slice.Iterate(values)
 	result := make([]int, 0)
 
-	sut.Loop(func(item interface{}) general.LoopControl {
+	sut.Loop(func(item interface{}) loop.Control {
 		result = append(result, item.(int))
-		return general.Break
+		return loop.Break
 	})
 
 	suite.Assert().Equal(values[0:1], result)

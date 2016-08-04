@@ -21,6 +21,7 @@ import (
 
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -53,8 +54,8 @@ func (this *Connection) IsConnectionAcceptedWith(peer id.Holder) bool {
 func (this *Connection) existingConnectionsFilteredFrom(allPeers []peer.Connector) []peer.Connector {
 	filteredPeers := append([]peer.Connector(nil), allPeers...)
 	omittedPeers := this.existingConnections()
-	return general.RemoveItemsIf(filteredPeers, func(item interface{}) bool {
-		return general.Contains(omittedPeers, item.(general.Equaler))
+	return slice.RemoveItemsIf(filteredPeers, func(item interface{}) bool {
+		return slice.Contains(omittedPeers, item.(general.Equaler))
 	}).([]peer.Connector)
 }
 

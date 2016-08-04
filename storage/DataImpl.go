@@ -18,7 +18,7 @@ package storage
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -76,11 +76,11 @@ func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete 
 		return nil, true
 	}
 
-	this.RawStorage.LeastImportantData().Loop(func(item interface{}) general.LoopControl {
+	this.RawStorage.LeastImportantData().Loop(func(item interface{}) loop.Control {
 		chunk := item.(DataRecord).Chunk
 		keysToDelete = append(keysToDelete, chunk.Key)
 		freeStorage += this.RawStorage.SizeOf(chunk)
-		return general.BreakIf(chunkSize <= freeStorage)
+		return loop.BreakIf(chunkSize <= freeStorage)
 	})
 
 	return keysToDelete, chunkSize <= freeStorage

@@ -14,27 +14,15 @@
    limitations under the License.
 ****************************************************************************/
 
-package simc
+package loop
 
-import (
-	"github.com/straightway/straightway/general/slice"
-	"github.com/straightway/straightway/peer"
-)
+type Iterator func() (interface{}, bool)
 
-type StateStorage struct {
-	Connectors []peer.Connector
-}
-
-func (this *StateStorage) GetAllKnownPeers() []peer.Connector {
-	return this.Connectors
-}
-
-func (this *StateStorage) IsKnownPeer(peer peer.Connector) bool {
-	return slice.Contains(this.Connectors, peer)
-}
-
-func (this *StateStorage) AddKnownPeer(peer peer.Connector) {
-	if this.IsKnownPeer(peer) == false {
-		this.Connectors = append(this.Connectors, peer)
+func (this Iterator) Loop(body func(interface{}) Control) {
+	iterFunc := (func() (interface{}, bool))(this)
+	for i, isFound := iterFunc(); isFound; i, isFound = iterFunc() {
+		if body(i) == Break {
+			break
+		}
 	}
 }

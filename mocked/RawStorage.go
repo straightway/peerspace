@@ -23,7 +23,8 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/mock"
@@ -114,9 +115,9 @@ func (m *RawStorage) Query(query data.Query) []storage.DataRecord {
 	return result
 }
 
-func (m *RawStorage) LeastImportantData() general.Iterator {
+func (m *RawStorage) LeastImportantData() loop.Iterator {
 	m.Called()
-	return general.Iterate(m.Data)
+	return slice.Iterate(m.Data)
 }
 
 func (m *RawStorage) ExpiredData() []storage.DataRecord {

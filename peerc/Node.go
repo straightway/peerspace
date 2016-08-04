@@ -22,6 +22,7 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -82,7 +83,7 @@ func (this *Node) ShutDown() {
 }
 
 func (this *Node) RequestConnectionWith(peer peer.Connector) {
-	if general.Contains(this.connectedPeers, peer) {
+	if slice.Contains(this.connectedPeers, peer) {
 		return
 	}
 
@@ -115,11 +116,11 @@ func (this *Node) RequestPeers(receiver peer.Connector) {
 }
 
 func (this *Node) IsConnectionPendingWith(peer peer.Connector) bool {
-	return general.Contains(this.connectingPeers, peer)
+	return slice.Contains(this.connectingPeers, peer)
 }
 
 func (this *Node) IsConnectedWith(peer peer.Connector) bool {
-	return general.Contains(this.connectedPeers, peer)
+	return slice.Contains(this.connectedPeers, peer)
 }
 
 func (this *Node) ConnectedPeers() []peer.Connector {
@@ -187,7 +188,7 @@ func (this *Node) isConnectionAcceptedWith(peer peer.Connector) bool {
 }
 
 func (this *Node) isConnectionPendingWith(peer peer.Connector) bool {
-	return general.Contains(this.connectingPeers, peer)
+	return slice.Contains(this.connectingPeers, peer)
 }
 
 func (this *Node) refuseConnectionWith(peer peer.Connector) {
@@ -200,7 +201,7 @@ func (this *Node) acceptConnectionWith(peer peer.Connector) {
 }
 
 func removePeer(peers []peer.Connector, peerToRemove peer.Connector) []peer.Connector {
-	return general.RemoveItemsIf(peers, func(p interface{}) bool {
+	return slice.RemoveItemsIf(peers, func(p interface{}) bool {
 		return peerToRemove.Equal(p.(peer.Connector))
 	}).([]peer.Connector)
 }
@@ -216,7 +217,7 @@ func (this *Node) confirmConnectionWith(peer peer.Connector) {
 func (this *Node) dataForwardPeers(origin id.Holder, key data.Key) []peer.Connector {
 	forwardPeers := this.DataStrategy.ForwardTargetsFor(key, origin)
 	for _, query := range this.pendingQueriesForKey(key) {
-		return general.SetUnion(forwardPeers, query.receivers).([]peer.Connector)
+		return slice.SetUnion(forwardPeers, query.receivers).([]peer.Connector)
 	}
 
 	return forwardPeers
@@ -259,7 +260,7 @@ func (this *Node) removeObsoleteQueries(fulfilledQueryKey data.Key) {
 }
 
 func (this *Node) removeExactlyMatchedPendingQueries(fulfilledQueryKey data.Key) {
-	this.pendingQueries = general.RemoveItemsIf(this.pendingQueries, func(item interface{}) bool {
+	this.pendingQueries = slice.RemoveItemsIf(this.pendingQueries, func(item interface{}) bool {
 		pending := item.(*pendingQuery)
 		return pending.query.MatchesOnly(fulfilledQueryKey)
 	}).([]*pendingQuery)

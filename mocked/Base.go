@@ -17,7 +17,7 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -26,7 +26,7 @@ type Base struct {
 }
 
 func (m *Base) OnNew(methodName string, arguments ...interface{}) *mock.Call {
-	m.ExpectedCalls = general.RemoveItemsIf(m.ExpectedCalls, func(item interface{}) bool {
+	m.ExpectedCalls = slice.RemoveItemsIf(m.ExpectedCalls, func(item interface{}) bool {
 		call := item.(*mock.Call)
 		return call.Method == methodName
 	}).([]*mock.Call)

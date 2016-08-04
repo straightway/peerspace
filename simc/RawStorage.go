@@ -24,7 +24,8 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/storage"
 )
@@ -67,7 +68,7 @@ func (this *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpiratio
 }
 
 func (this *RawStorage) Delete(key data.Key) {
-	this.storedData = general.RemoveItemsIf(this.storedData, func(item interface{}) bool {
+	this.storedData = slice.RemoveItemsIf(this.storedData, func(item interface{}) bool {
 		dataRecord := item.(storage.DataRecord)
 		isFound := dataRecord.Chunk.Key == key
 		if isFound {
@@ -88,8 +89,8 @@ func (this *RawStorage) Query(query data.Query) []storage.DataRecord {
 	return result
 }
 
-func (this *RawStorage) LeastImportantData() general.Iterator {
-	return general.Iterate(storage.ToChunkSlice(this.storedData))
+func (this *RawStorage) LeastImportantData() loop.Iterator {
+	return slice.Iterate(storage.ToChunkSlice(this.storedData))
 }
 
 func (this *RawStorage) ExpiredData() []storage.DataRecord {

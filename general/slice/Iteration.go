@@ -14,16 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package slice
 
-import "reflect"
+import (
+	"reflect"
 
-type Iterator func() (interface{}, bool)
+	"github.com/straightway/straightway/general/loop"
+)
 
-func Iterate(slice interface{}) Iterator {
+func Iterate(slice interface{}) loop.Iterator {
 	index := 0
 	itemsSlice := reflect.ValueOf(slice)
-	return Iterator(func() (result interface{}, isFound bool) {
+	return loop.Iterator(func() (result interface{}, isFound bool) {
 		if index < itemsSlice.Len() {
 			isFound = true
 			result = itemsSlice.Index(index).Interface()
@@ -31,13 +33,4 @@ func Iterate(slice interface{}) Iterator {
 		}
 		return
 	})
-}
-
-func (this Iterator) Loop(body func(interface{}) LoopControl) {
-	iterFunc := (func() (interface{}, bool))(this)
-	for i, isFound := iterFunc(); isFound; i, isFound = iterFunc() {
-		if body(i) == Break {
-			break
-		}
-	}
 }

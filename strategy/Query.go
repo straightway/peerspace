@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -41,7 +41,7 @@ func (this *Query) ForwardTargetsFor(query data.Query, receiver peer.Pusher) []p
 	seletor := nearestPeerSelector{Query: query, PeerDistanceCalculator: this.PeerDistanceCalculator}
 	nearestPeers := seletor.NearestPeers(allConnections)
 
-	return general.SetUnion(general.RemoveItemsIf(nearestPeers, func(item interface{}) bool {
+	return slice.SetUnion(slice.RemoveItemsIf(nearestPeers, func(item interface{}) bool {
 		return item.(peer.Connector).Equal(receiver)
 	})).([]peer.Connector)
 }

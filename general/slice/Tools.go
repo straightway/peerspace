@@ -14,29 +14,21 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package slice
 
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
 )
 
-type LoopControl bool
-
-const (
-	Break    = LoopControl(false)
-	Continue = LoopControl(true)
-)
-
-func BreakIf(cond bool) LoopControl {
-	return LoopControl(!cond)
-}
-
-func Contains(slice interface{}, itemToCompare Equaler) bool {
+func Contains(slice interface{}, itemToCompare general.Equaler) bool {
 	itemFound := false
-	ForEachSliceItem(slice, func(c interface{}) LoopControl {
+	ForEachItem(slice, func(c interface{}) loop.Control {
 		itemFound = areEqualEqualers(c, itemToCompare)
-		return BreakIf(itemFound)
+		return loop.BreakIf(itemFound)
 	})
 
 	return itemFound
@@ -65,7 +57,7 @@ func SetUnion(slices ...interface{}) interface{} {
 	}
 }
 
-func ForEachSliceItem(slice interface{}, do func(item interface{}) LoopControl) {
+func ForEachItem(slice interface{}, do func(item interface{}) loop.Control) {
 	if slice == nil {
 		return
 	}
@@ -75,7 +67,7 @@ func ForEachSliceItem(slice interface{}, do func(item interface{}) LoopControl) 
 	case reflect.Slice:
 		itemsSlice := reflect.ValueOf(slice)
 		for i := 0; i < itemsSlice.Len(); i++ {
-			if do(itemsSlice.Index(i).Interface()) == Break {
+			if do(itemsSlice.Index(i).Interface()) == loop.Break {
 				break
 			}
 		}
@@ -105,6 +97,8 @@ func RemoveItemsIf(slice interface{}, predicate func(item interface{}) bool) int
 	return result.Interface()
 }
 
+// Private
+
 func interfaceOrNil(value reflect.Value) interface{} {
 	ivalue := value.Interface()
 	if ivalue != nil && value.Kind() >= reflect.Array && value.Kind() != reflect.Struct && value.IsNil() {
@@ -119,12 +113,12 @@ func makeEmptySliceOfSameTypeAs(a interface{}) reflect.Value {
 }
 
 func addDisjoint(dst reflect.Value, src interface{}) reflect.Value {
-	ForEachSliceItem(src, func(item interface{}) LoopControl {
-		if !Contains(dst.Interface(), item.(Equaler)) {
+	ForEachItem(src, func(item interface{}) loop.Control {
+		if !Contains(dst.Interface(), item.(general.Equaler)) {
 			dst = reflect.Append(dst, reflect.ValueOf(item))
 		}
 
-		return Continue
+		return loop.Continue
 	})
 
 	return dst
@@ -135,7 +129,7 @@ func areEqualEqualers(a interface{}, b interface{}) bool {
 		return a == nil
 	}
 
-	compareA, okA := a.(Equaler)
-	compareB, okB := b.(Equaler)
+	compareA, okA := a.(general.Equaler)
+	compareB, okB := b.(general.Equaler)
 	return okA && okB && compareA.Equal(compareB)
 }

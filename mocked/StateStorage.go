@@ -17,7 +17,7 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 )
@@ -42,7 +42,7 @@ func (m *StateStorage) GetAllKnownPeers() []peer.Connector {
 
 func (m *StateStorage) IsKnownPeer(peer peer.Connector) bool {
 	m.Called(peer)
-	return general.Contains(m.KnownPeers, peer)
+	return slice.Contains(m.KnownPeers, peer)
 }
 
 func (m *StateStorage) AddKnownPeer(peer peer.Connector) {

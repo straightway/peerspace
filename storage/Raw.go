@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
 )
 
 type ChunkOrder func(a, b *data.Key) bool
@@ -31,7 +31,7 @@ type Raw interface {
 	Delete(data.Key)
 	SizeOf(*data.Chunk) uint64
 	FreeStorage() uint64
-	LeastImportantData() general.Iterator
+	LeastImportantData() loop.Iterator
 	ExpiredData() []DataRecord
 	RePrioritize(data.Key, float32, time.Time)
 }

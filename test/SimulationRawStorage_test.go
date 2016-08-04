@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/storage"
@@ -172,9 +172,9 @@ func (suite *SimulationRawStorage_Test) Test_ExpiredData_YieldsExpiredData() {
 
 func (suite *SimulationRawStorage_Test) leastImportantData() []*data.Chunk {
 	result := make([]*data.Chunk, 0, 0)
-	suite.sut.LeastImportantData().Loop(func(item interface{}) general.LoopControl {
+	suite.sut.LeastImportantData().Loop(func(item interface{}) loop.Control {
 		result = append(result, item.(*data.Chunk))
-		return general.Continue
+		return loop.Continue
 	})
 	return result
 }

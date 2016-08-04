@@ -17,14 +17,14 @@
 package mocked
 
 import (
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/general/times"
 )
 
 type RawStorageWithLifeCycle struct {
 	*RawStorage
 }
 
-func NewRawStorageWithLifeCycle(timer peer.Timer) *RawStorageWithLifeCycle {
+func NewRawStorageWithLifeCycle(timer times.Provider) *RawStorageWithLifeCycle {
 	result := &RawStorageWithLifeCycle{}
 	result.RawStorage = NewRawStorage(timer)
 	result.On("Startup").Return()

@@ -25,7 +25,7 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/general/slice"
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/mock"
 )
@@ -34,10 +34,10 @@ type RawStorage struct {
 	Base
 	CurrentFreeStorage uint64
 	Data               []storage.DataRecord
-	Timer              peer.Timer
+	Timer              times.Provider
 }
 
-func NewRawStorage(timer peer.Timer) *RawStorage {
+func NewRawStorage(timer times.Provider) *RawStorage {
 	result := &RawStorage{CurrentFreeStorage: math.MaxInt32, Timer: timer}
 	result.On("FreeStorage").Return()
 	result.On("SizeOf", mock.Anything).Return()

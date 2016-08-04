@@ -28,7 +28,7 @@ import (
 
 type PeerDistanceRelated struct {
 	Hasher      hash.Hash64
-	Timer       peer.Timer
+	Timer       times.Provider
 	LocalPeerId string
 }
 

@@ -26,13 +26,13 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/general/slice"
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/storage"
 )
 
 type RawStorage struct {
 	FreeStorageValue uint64
-	Timer            peer.Timer
+	Timer            times.Provider
 	storedData       []storage.DataRecord
 }
 

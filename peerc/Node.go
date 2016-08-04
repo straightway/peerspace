@@ -23,6 +23,7 @@ import (
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/slice"
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -34,7 +35,7 @@ type Node struct {
 	DataStrategy         peer.DataStrategy
 	QueryStrategy        peer.QueryStrategy
 	ConnectionStrategy   peer.ConnectionStrategy
-	Timer                peer.Timer
+	Timer                times.Provider
 	Configuration        *peer.Configuration
 
 	connectingPeers []peer.Connector

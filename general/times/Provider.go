@@ -14,10 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package times
 
 import "time"
 
-type Timer interface {
+type Provider interface {
 	Time() time.Time
 }

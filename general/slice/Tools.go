@@ -27,7 +27,7 @@ import (
 func Contains(slice interface{}, itemToCompare general.Equaler) bool {
 	itemFound := false
 	ForEachItem(slice, func(c interface{}) loop.Control {
-		itemFound = areEqualEqualers(c, itemToCompare)
+		itemFound = general.AreEqual(c, itemToCompare)
 		return loop.BreakIf(itemFound)
 	})
 
@@ -122,14 +122,4 @@ func addDisjoint(dst reflect.Value, src interface{}) reflect.Value {
 	})
 
 	return dst
-}
-
-func areEqualEqualers(a interface{}, b interface{}) bool {
-	if b == nil {
-		return a == nil
-	}
-
-	compareA, okA := a.(general.Equaler)
-	compareB, okB := b.(general.Equaler)
-	return okA && okB && compareA.Equal(compareB)
 }

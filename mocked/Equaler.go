@@ -14,22 +14,23 @@
    limitations under the License.
 ****************************************************************************/
 
-package general
+package mocked
 
-//import "reflect"
+import (
+	"github.com/straightway/straightway/general"
+	"github.com/stretchr/testify/mock"
+)
 
-type Equaler interface {
-	Equal(other Equaler) bool
+type Equaler struct {
+	Base
 }
 
-func AreEqual(a interface{}, b interface{}) bool {
-	aEqualer, aIsEqualer := a.(Equaler)
-	bEqualer, bIsEqualer := b.(Equaler)
-	if aIsEqualer && bIsEqualer {
-		return aEqualer.Equal(bEqualer)
-	} else if aIsEqualer == bIsEqualer {
-		return a == b
-	} else {
-		return false
-	}
+func NewEqualer(isEqual bool) *Equaler {
+	result := &Equaler{}
+	result.On("Equal", mock.Anything).Return(isEqual)
+	return result
+}
+
+func (m *Equaler) Equal(other general.Equaler) bool {
+	return m.Called(other).Get(0).(bool)
 }

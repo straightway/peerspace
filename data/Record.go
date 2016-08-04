@@ -14,28 +14,26 @@
    limitations under the License.
 ****************************************************************************/
 
-package storage
+package data
 
 import (
 	"time"
-
-	"github.com/straightway/straightway/data"
 )
 
-type DataRecord struct {
-	Chunk              *data.Chunk
+type Record struct {
+	Chunk              *Chunk
 	Priority           float32
 	PrioExpirationTime time.Time
 }
 
-type DataRecordByPriority []DataRecord
+type RecordByPriority []Record
 
-func (a DataRecordByPriority) Len() int           { return len(a) }
-func (a DataRecordByPriority) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a DataRecordByPriority) Less(i, j int) bool { return a[i].Priority < a[j].Priority }
+func (a RecordByPriority) Len() int           { return len(a) }
+func (a RecordByPriority) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a RecordByPriority) Less(i, j int) bool { return a[i].Priority < a[j].Priority }
 
-func ToChunkSlice(records []DataRecord) []*data.Chunk {
-	result := make([]*data.Chunk, len(records))
+func SelectChunks(records []Record) []*Chunk {
+	result := make([]*Chunk, len(records))
 	for i, r := range records {
 		result[i] = r.Chunk
 	}

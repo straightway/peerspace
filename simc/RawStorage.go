@@ -27,13 +27,12 @@ import (
 	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/general/times"
-	"github.com/straightway/straightway/storage"
 )
 
 type RawStorage struct {
 	FreeStorageValue uint64
 	Timer            times.Provider
-	storedData       []storage.DataRecord
+	storedData       []data.Record
 }
 
 func (this *RawStorage) CreateChunk(key data.Key, virtualSize uint64) *data.Chunk {
@@ -59,27 +58,27 @@ func (this *RawStorage) SizeOf(chunk *data.Chunk) uint64 {
 func (this *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time) {
 	this.Delete(chunk.Key)
 	this.FreeStorageValue -= this.SizeOf(chunk)
-	dataRecord := storage.DataRecord{
+	dataRecord := data.Record{
 		Chunk:              chunk,
 		Priority:           priority,
 		PrioExpirationTime: prioExpirationTime}
 	this.storedData = append(this.storedData, dataRecord)
-	sort.Sort(storage.DataRecordByPriority(this.storedData))
+	sort.Sort(data.RecordByPriority(this.storedData))
 }
 
 func (this *RawStorage) Delete(key data.Key) {
 	this.storedData = slice.RemoveItemsIf(this.storedData, func(item interface{}) bool {
-		dataRecord := item.(storage.DataRecord)
+		dataRecord := item.(data.Record)
 		isFound := dataRecord.Chunk.Key == key
 		if isFound {
 			this.FreeStorageValue += this.SizeOf(dataRecord.Chunk)
 		}
 		return isFound
-	}).([]storage.DataRecord)
+	}).([]data.Record)
 }
 
-func (this *RawStorage) Query(query data.Query) []storage.DataRecord {
-	result := make([]storage.DataRecord, 0, 0)
+func (this *RawStorage) Query(query data.Query) []data.Record {
+	result := make([]data.Record, 0, 0)
 	for _, record := range this.storedData {
 		if query.Matches(record.Chunk.Key) {
 			result = append(result, record)
@@ -90,11 +89,11 @@ func (this *RawStorage) Query(query data.Query) []storage.DataRecord {
 }
 
 func (this *RawStorage) LeastImportantData() loop.Iterator {
-	return slice.Iterate(storage.ToChunkSlice(this.storedData))
+	return slice.Iterate(data.SelectChunks(this.storedData))
 }
 
-func (this *RawStorage) ExpiredData() []storage.DataRecord {
-	result := make([]storage.DataRecord, 0, 0)
+func (this *RawStorage) ExpiredData() []data.Record {
+	result := make([]data.Record, 0, 0)
 	now := this.Timer.Time()
 	for _, record := range this.storedData {
 		if !now.Before(record.PrioExpirationTime) {

@@ -57,7 +57,7 @@ func (this *DataImpl) Query(query data.Query) []*data.Chunk {
 		prio, expiration := this.PriorityGenerator.Priority(data.Chunk)
 		this.RawStorage.RePrioritize(data.Chunk.Key, prio, expiration)
 	}
-	return ToChunkSlice(queryResult)
+	return data.SelectChunks(queryResult)
 }
 
 // Private
@@ -77,7 +77,7 @@ func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete 
 	}
 
 	this.RawStorage.LeastImportantData().Loop(func(item interface{}) loop.Control {
-		chunk := item.(DataRecord).Chunk
+		chunk := item.(data.Record).Chunk
 		keysToDelete = append(keysToDelete, chunk.Key)
 		freeStorage += this.RawStorage.SizeOf(chunk)
 		return loop.BreakIf(chunkSize <= freeStorage)

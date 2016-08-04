@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -35,13 +34,13 @@ func TestDataRecord(t *testing.T) {
 }
 
 func (suite *DataRecord_Test) Test_ToChunkSlice_Empty() {
-	results := storage.ToChunkSlice(make([]storage.DataRecord, 0))
+	results := data.SelectChunks(make([]data.Record, 0))
 	suite.Assert().Empty(results)
 }
 
 func (suite *DataRecord_Test) Test_ToChunkSlice_NonEmpty() {
-	record1 := storage.DataRecord{Chunk: &untimedChunk}
-	record2 := storage.DataRecord{Chunk: &timedChunk10}
-	results := storage.ToChunkSlice([]storage.DataRecord{record1, record2})
+	record1 := data.Record{Chunk: &untimedChunk}
+	record2 := data.Record{Chunk: &timedChunk10}
+	results := data.SelectChunks([]data.Record{record1, record2})
 	suite.Assert().Equal([]*data.Chunk{record1.Chunk, record2.Chunk}, results)
 }

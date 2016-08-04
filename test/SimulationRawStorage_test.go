@@ -24,7 +24,6 @@ import (
 	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/simc"
-	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -97,7 +96,7 @@ func (suite *SimulationRawStorage_Test) Test_Store_CanBeOverridden() {
 	suite.sut.Store(chunk, 1.0, expirationTime)
 	queryResult := suite.sut.Query(data.Query{Id: untimedKey.Id})
 	suite.Assert().Equal(
-		[]storage.DataRecord{storage.DataRecord{Chunk: chunk, Priority: 1.0, PrioExpirationTime: expirationTime}},
+		[]data.Record{data.Record{Chunk: chunk, Priority: 1.0, PrioExpirationTime: expirationTime}},
 		queryResult)
 }
 
@@ -130,7 +129,7 @@ func (suite *SimulationRawStorage_Test) Test_Query_UntimedReturnsSingleResult() 
 	otherChunk := suite.sut.CreateChunk(timedKey10, chunkSize)
 	suite.sut.Store(otherChunk, 0.0, time.Time{})
 	queryResult := suite.sut.Query(data.Query{Id: untimedKey.Id})
-	suite.Assert().Equal([]storage.DataRecord{storage.DataRecord{Chunk: chunk}}, queryResult)
+	suite.Assert().Equal([]data.Record{data.Record{Chunk: chunk}}, queryResult)
 }
 
 func (suite *SimulationRawStorage_Test) Test_RePrioritize_PanicsIfDataNotPresent() {
@@ -144,7 +143,7 @@ func (suite *SimulationRawStorage_Test) Test_RePrioritize_AssignsNewValues() {
 	suite.sut.RePrioritize(untimedKey, 1.0, expirationTime)
 	queryResult := suite.sut.Query(data.Query{Id: untimedKey.Id})
 	suite.Assert().Equal(
-		[]storage.DataRecord{storage.DataRecord{Chunk: chunk, Priority: 1.0, PrioExpirationTime: expirationTime}},
+		[]data.Record{data.Record{Chunk: chunk, Priority: 1.0, PrioExpirationTime: expirationTime}},
 		queryResult)
 }
 
@@ -164,7 +163,7 @@ func (suite *SimulationRawStorage_Test) Test_ExpiredData_YieldsExpiredData() {
 	suite.sut.Store(chunk, 0.0, expirationTime)
 	suite.timer.CurrentTime = expirationTime
 	suite.Assert().Equal(
-		[]storage.DataRecord{storage.DataRecord{Chunk: chunk, Priority: 0.0, PrioExpirationTime: expirationTime}},
+		[]data.Record{data.Record{Chunk: chunk, Priority: 0.0, PrioExpirationTime: expirationTime}},
 		suite.sut.ExpiredData())
 }
 

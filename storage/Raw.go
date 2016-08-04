@@ -26,12 +26,12 @@ import (
 type ChunkOrder func(a, b *data.Key) bool
 
 type Raw interface {
-	Query(data.Query) []DataRecord
+	Query(data.Query) []data.Record
 	Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time)
 	Delete(data.Key)
 	SizeOf(*data.Chunk) uint64
 	FreeStorage() uint64
 	LeastImportantData() loop.Iterator
-	ExpiredData() []DataRecord
+	ExpiredData() []data.Record
 	RePrioritize(data.Key, float32, time.Time)
 }

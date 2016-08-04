@@ -26,14 +26,13 @@ import (
 	"github.com/straightway/straightway/general/loop"
 	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/general/times"
-	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/mock"
 )
 
 type RawStorage struct {
 	Base
 	CurrentFreeStorage uint64
-	Data               []storage.DataRecord
+	Data               []data.Record
 	Timer              times.Provider
 }
 
@@ -72,13 +71,13 @@ func (m *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTi
 			m.FreeStorage()))
 	}
 	m.CurrentFreeStorage -= chunkSize
-	record := storage.DataRecord{
+	record := data.Record{
 		Chunk:              chunk,
 		Priority:           priority,
 		PrioExpirationTime: prioExpirationTime}
 
 	m.Data = append(m.Data, record)
-	sort.Sort(storage.DataRecordByPriority(m.Data))
+	sort.Sort(data.RecordByPriority(m.Data))
 }
 
 func (m *RawStorage) RePrioritize(key data.Key, priority float32, prioExpirationTime time.Time) {
@@ -91,7 +90,7 @@ func (m *RawStorage) RePrioritize(key data.Key, priority float32, prioExpiration
 		r.Priority = priority
 		r.PrioExpirationTime = prioExpirationTime
 		m.Data[i] = r
-		sort.Sort(storage.DataRecordByPriority(m.Data))
+		sort.Sort(data.RecordByPriority(m.Data))
 		return
 	}
 
@@ -103,9 +102,9 @@ func (m *RawStorage) Delete(key data.Key) {
 	m.deleteInternal(key)
 }
 
-func (m *RawStorage) Query(query data.Query) []storage.DataRecord {
+func (m *RawStorage) Query(query data.Query) []data.Record {
 	m.Called(query)
-	result := make([]storage.DataRecord, 0)
+	result := make([]data.Record, 0)
 	for _, record := range m.Data {
 		if query.Matches(record.Chunk.Key) {
 			result = append(result, record)
@@ -120,9 +119,9 @@ func (m *RawStorage) LeastImportantData() loop.Iterator {
 	return slice.Iterate(m.Data)
 }
 
-func (m *RawStorage) ExpiredData() []storage.DataRecord {
+func (m *RawStorage) ExpiredData() []data.Record {
 	m.Called()
-	result := make([]storage.DataRecord, 0)
+	result := make([]data.Record, 0)
 	now := m.Timer.Time()
 	for _, record := range m.Data {
 		if record.PrioExpirationTime.Before(now) {

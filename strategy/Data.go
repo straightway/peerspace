@@ -19,13 +19,14 @@ package strategy
 import (
 	"math"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
 type Data struct {
-	Configuration          *peer.Configuration
+	Configuration          *app.Configuration
 	ConnectionInfoProvider ConnectionInfoProvider
 	PeerDistanceCalculator PeerDistanceCalculator
 }

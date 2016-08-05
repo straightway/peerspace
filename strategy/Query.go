@@ -20,6 +20,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
@@ -28,7 +29,7 @@ import (
 type Query struct {
 	ConnectionInfoProvider ConnectionInfoProvider
 	PeerDistanceCalculator PeerDistanceCalculator
-	Configuration          *peer.Configuration
+	Configuration          *app.Configuration
 }
 
 func (this *Query) IsQueryAccepted(query data.Query, receiver peer.Pusher) bool {

@@ -19,6 +19,7 @@ package peerc
 import (
 	"time"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
@@ -36,7 +37,7 @@ type Node struct {
 	QueryStrategy        peer.QueryStrategy
 	ConnectionStrategy   peer.ConnectionStrategy
 	Timer                times.Provider
-	Configuration        *peer.Configuration
+	Configuration        *app.Configuration
 
 	connectingPeers []peer.Connector
 	connectedPeers  []peer.Connector

@@ -19,11 +19,12 @@ package strategy
 import (
 	"math/rand"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/peer"
 )
 
 type Announcement struct {
-	Configuration *peer.Configuration
+	Configuration *app.Configuration
 	RandomSource  rand.Source
 	StateStorage  peer.StateStorage
 }

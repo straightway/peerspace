@@ -22,6 +22,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
@@ -91,10 +92,10 @@ func (this *Environment) createUser() *User {
 	return newUser
 }
 
-func (this *Environment) createNode() (peer.Node, *peer.Configuration, *RawStorage) {
+func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorage) {
 	this.nextNodeId++
 	nodeId := fmt.Sprintf("%v", this.nextNodeId)
-	configuration := peer.DefaultConfiguration()
+	configuration := app.DefaultConfiguration()
 	peerDistanceRelated := &strategy.PeerDistanceRelated{
 		LocalPeerId: nodeId,
 		Timer:       &this.Scheduler,
@@ -134,7 +135,7 @@ func (this *Environment) createDataStorage(
 }
 
 func (this *Environment) createDataStrategy(
-	configuration *peer.Configuration,
+	configuration *app.Configuration,
 	peerDistanceCalculator strategy.PeerDistanceCalculator,
 	connectionInfoProvider strategy.ConnectionInfoProvider) peer.DataStrategy {
 	return &strategy.Data{
@@ -144,7 +145,7 @@ func (this *Environment) createDataStrategy(
 }
 
 func (this *Environment) createAnnouncementStrategy(
-	configuration *peer.Configuration,
+	configuration *app.Configuration,
 	stateStorage peer.StateStorage) peer.AnnouncementStrategy {
 	return &strategy.Announcement{
 		Configuration: configuration,
@@ -153,7 +154,7 @@ func (this *Environment) createAnnouncementStrategy(
 }
 
 func (this *Environment) createConnecionStrategy(
-	configuration *peer.Configuration,
+	configuration *app.Configuration,
 	connectionInfoProvider strategy.ConnectionInfoProvider) peer.ConnectionStrategy {
 	return &strategy.Connection{
 		Configuration:          configuration,
@@ -163,7 +164,7 @@ func (this *Environment) createConnecionStrategy(
 
 func (this *Environment) createActivity(
 	user *User,
-	configuration *peer.Configuration,
+	configuration *app.Configuration,
 	chunkCreator sim.ChunkCreator) sim.UserActivity {
 	return &Upload{
 		User:               user,

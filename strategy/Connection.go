@@ -19,6 +19,7 @@ package strategy
 import (
 	"math/rand"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/slice"
@@ -26,7 +27,7 @@ import (
 )
 
 type Connection struct {
-	Configuration          *peer.Configuration
+	Configuration          *app.Configuration
 	ConnectionInfoProvider ConnectionInfoProvider
 	RandSource             rand.Source
 }

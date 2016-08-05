@@ -21,10 +21,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/mock"
@@ -70,7 +70,7 @@ func (suite *SimulationUpload_Test) SetupTest() {
 	randSource := rand.NewSource(12345)
 	suite.sut = &simc.Upload{
 		User:               suite.user,
-		Configuration:      peer.DefaultConfiguration(),
+		Configuration:      app.DefaultConfiguration(),
 		Delay:              suite.durationRandVar,
 		DataSize:           suite.sizeRandVar,
 		IdGenerator:        &simc.IdGenerator{RandSource: randSource},

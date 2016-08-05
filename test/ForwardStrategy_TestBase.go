@@ -17,8 +17,8 @@
 package test
 
 import (
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -26,14 +26,14 @@ import (
 
 type ForwardStrategy_TestBase struct {
 	suite.Suite
-	configuration          *peer.Configuration
+	configuration          *app.Configuration
 	connectionInfoProvider *mocked.ConnectionInfoProvider
 	distanceCalculator     *mocked.PeerDistanceCalculator
 	origin                 *mocked.PeerConnector
 }
 
 func (suite *ForwardStrategy_TestBase) SetupTest() {
-	suite.configuration = peer.DefaultConfiguration()
+	suite.configuration = app.DefaultConfiguration()
 	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
 	suite.origin = mocked.CreatePeerConnector()
 	suite.distanceCalculator = mocked.NewPeerDistanceCalculator()

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/strategy"
@@ -31,12 +32,12 @@ type ConnectionStrategy_TestBase struct {
 	sut                    *strategy.Connection
 	connectionInfoProvider *mocked.ConnectionInfoProvider
 	allConnectors          []peer.Connector
-	configuration          *peer.Configuration
+	configuration          *app.Configuration
 }
 
 func (suite *ConnectionStrategy_TestBase) SetupTest() {
 	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
-	suite.configuration = peer.DefaultConfiguration()
+	suite.configuration = app.DefaultConfiguration()
 	suite.sut = &strategy.Connection{
 		ConnectionInfoProvider: suite.connectionInfoProvider,
 		Configuration:          suite.configuration,

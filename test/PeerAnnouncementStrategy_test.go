@@ -20,8 +20,8 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/strategy"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,7 +31,7 @@ import (
 type PeerAnnouncementStrategy_Test struct {
 	suite.Suite
 	sut           *strategy.Announcement
-	configuration *peer.Configuration
+	configuration *app.Configuration
 	stateStorage  *mocked.StateStorage
 }
 
@@ -40,7 +40,7 @@ func TestPeerAnnouncementStrategy(t *testing.T) {
 }
 
 func (suite *PeerAnnouncementStrategy_Test) SetupTest() {
-	suite.configuration = peer.DefaultConfiguration()
+	suite.configuration = app.DefaultConfiguration()
 	suite.configuration.MaxAnnouncedPeers = 3
 	suite.stateStorage = mocked.NewStateStorage()
 	suite.sut = &strategy.Announcement{

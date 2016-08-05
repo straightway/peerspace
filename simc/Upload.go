@@ -19,16 +19,16 @@ package simc
 import (
 	"time"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/id"
-	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/randvar"
 )
 
 type Upload struct {
 	User               *User
-	Configuration      *peer.Configuration
+	Configuration      *app.Configuration
 	Delay              randvar.Duration
 	DataSize           randvar.Float64
 	IdGenerator        id.Generator

@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
@@ -42,7 +43,7 @@ type NodeContext struct {
 	notConnectedPeers    []*mocked.PeerConnector
 	forwardPeers         []*mocked.PeerConnector
 	timer                *mocked.Timer
-	configuration        *peer.Configuration
+	configuration        *app.Configuration
 }
 
 // Construction
@@ -57,7 +58,7 @@ func NewNodeContext() *NodeContext {
 		connectedPeers:       []*mocked.PeerConnector{},
 		notConnectedPeers:    []*mocked.PeerConnector{},
 		timer:                &mocked.Timer{},
-		configuration:        &peer.Configuration{}}
+		configuration:        &app.Configuration{}}
 
 	return newNodeContext
 }

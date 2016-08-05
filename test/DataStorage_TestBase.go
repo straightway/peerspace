@@ -17,9 +17,9 @@
 package test
 
 import (
+	"github.com/straightway/straightway/datac"
 	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/storage"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -27,7 +27,7 @@ import (
 
 type DataStorage_TestBase struct {
 	suite.Suite
-	sut   *storage.DataImpl
+	sut   *datac.Storage
 	raw   *mocked.RawStorageWithLifeCycle
 	timer *mocked.Timer
 }
@@ -35,7 +35,7 @@ type DataStorage_TestBase struct {
 func (suite *DataStorage_TestBase) SetupTest() {
 	suite.timer = &mocked.Timer{}
 	suite.raw = mocked.NewRawStorageWithLifeCycle(suite.timer)
-	suite.sut = &storage.DataImpl{
+	suite.sut = &datac.Storage{
 		RawStorage:        suite.raw,
 		PriorityGenerator: mocked.NewPriorityGenerator(0.0, times.Max())}
 }

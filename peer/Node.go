@@ -16,7 +16,9 @@
 
 package peer
 
+import "github.com/straightway/straightway/general"
+
 type Node interface {
-	LifeCycle
+	general.LifeCycle
 	Connector
 }

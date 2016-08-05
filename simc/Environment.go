@@ -23,13 +23,14 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/app"
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/datac"
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/peerc"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc/randvar"
-	"github.com/straightway/straightway/storage"
 	"github.com/straightway/straightway/strategy"
 )
 
@@ -124,11 +125,11 @@ func (this *Environment) createStateStorage() peer.StateStorage {
 }
 
 func (this *Environment) createDataStorage(
-	priorityGenerator storage.PriorityGenerator) (dataStorage peer.DataStorage, rawStorage *RawStorage) {
+	priorityGenerator data.PriorityGenerator) (dataStorage data.Storage, rawStorage *RawStorage) {
 	rawStorage = &RawStorage{
 		FreeStorageValue: 2 * gb,
 		Timer:            &this.Scheduler}
-	dataStorage = &storage.DataImpl{
+	dataStorage = &datac.Storage{
 		PriorityGenerator: priorityGenerator,
 		RawStorage:        rawStorage}
 	return

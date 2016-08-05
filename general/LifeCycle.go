@@ -14,14 +14,9 @@
    limitations under the License.
 ****************************************************************************/
 
-package storage
+package general
 
-import (
-	"time"
-
-	"github.com/straightway/straightway/data"
-)
-
-type PriorityGenerator interface {
-	Priority(*data.Chunk) (prio float32, expirationTime time.Time)
+type LifeCycle interface {
+	Startup()
+	ShutDown()
 }

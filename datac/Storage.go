@@ -14,34 +14,34 @@
    limitations under the License.
 ****************************************************************************/
 
-package storage
+package datac
 
 import (
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/loop"
-	"github.com/straightway/straightway/peer"
 )
 
-type DataImpl struct {
-	PriorityGenerator PriorityGenerator
-	RawStorage        Raw
+type Storage struct {
+	PriorityGenerator data.PriorityGenerator
+	RawStorage        data.RawStorage
 }
 
-func (this *DataImpl) Startup() {
-	lifeCycle, ok := this.RawStorage.(peer.LifeCycle)
+func (this *Storage) Startup() {
+	lifeCycle, ok := this.RawStorage.(general.LifeCycle)
 	if ok {
 		lifeCycle.Startup()
 	}
 }
 
-func (this *DataImpl) ShutDown() {
-	lifeCycle, ok := this.RawStorage.(peer.LifeCycle)
+func (this *Storage) ShutDown() {
+	lifeCycle, ok := this.RawStorage.(general.LifeCycle)
 	if ok {
 		lifeCycle.ShutDown()
 	}
 }
 
-func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
+func (this *Storage) ConsiderStorage(chunk *data.Chunk) {
 	this.rePrioritizeChunksWithExpiredPrio()
 	keysToDelete, success := this.getChunkKeysToFreeStorage(this.RawStorage.SizeOf(chunk))
 	if success {
@@ -51,7 +51,7 @@ func (this *DataImpl) ConsiderStorage(chunk *data.Chunk) {
 	}
 }
 
-func (this *DataImpl) Query(query data.Query) []*data.Chunk {
+func (this *Storage) Query(query data.Query) []*data.Chunk {
 	queryResult := this.RawStorage.Query(query)
 	for _, data := range queryResult {
 		prio, expiration := this.PriorityGenerator.Priority(data.Chunk)
@@ -62,7 +62,7 @@ func (this *DataImpl) Query(query data.Query) []*data.Chunk {
 
 // Private
 
-func (this *DataImpl) rePrioritizeChunksWithExpiredPrio() {
+func (this *Storage) rePrioritizeChunksWithExpiredPrio() {
 	chunksWithExpiredPrio := this.RawStorage.ExpiredData()
 	for _, chunk := range chunksWithExpiredPrio {
 		prio, expiration := this.PriorityGenerator.Priority(chunk.Chunk)
@@ -70,7 +70,7 @@ func (this *DataImpl) rePrioritizeChunksWithExpiredPrio() {
 	}
 }
 
-func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete []data.Key, success bool) {
+func (this *Storage) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete []data.Key, success bool) {
 	freeStorage := this.RawStorage.FreeStorage()
 	if chunkSize <= freeStorage {
 		return nil, true
@@ -86,7 +86,7 @@ func (this *DataImpl) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete 
 	return keysToDelete, chunkSize <= freeStorage
 }
 
-func (this *DataImpl) deleteKeys(keysToDelete []data.Key) {
+func (this *Storage) deleteKeys(keysToDelete []data.Key) {
 	for _, key := range keysToDelete {
 		this.RawStorage.Delete(key)
 	}

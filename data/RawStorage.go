@@ -14,24 +14,21 @@
    limitations under the License.
 ****************************************************************************/
 
-package storage
+package data
 
 import (
 	"time"
 
-	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/loop"
 )
 
-type ChunkOrder func(a, b *data.Key) bool
-
-type Raw interface {
-	Query(data.Query) []data.Record
-	Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time)
-	Delete(data.Key)
-	SizeOf(*data.Chunk) uint64
+type RawStorage interface {
+	Query(Query) []Record
+	Store(chunk *Chunk, priority float32, prioExpirationTime time.Time)
+	Delete(Key)
+	SizeOf(*Chunk) uint64
 	FreeStorage() uint64
 	LeastImportantData() loop.Iterator
-	ExpiredData() []data.Record
-	RePrioritize(data.Key, float32, time.Time)
+	ExpiredData() []Record
+	RePrioritize(Key, float32, time.Time)
 }

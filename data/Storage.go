@@ -14,9 +14,12 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package data
 
-type LifeCycle interface {
-	Startup()
-	ShutDown()
+import "github.com/straightway/straightway/general"
+
+type Storage interface {
+	general.LifeCycle
+	ConsiderStorage(*Chunk)
+	Query(Query) []*Chunk
 }

@@ -31,7 +31,7 @@ import (
 type Node struct {
 	Identifier           string
 	StateStorage         peer.StateStorage
-	DataStorage          peer.DataStorage
+	DataStorage          data.Storage
 	AnnouncementStrategy peer.AnnouncementStrategy
 	DataStrategy         peer.DataStrategy
 	QueryStrategy        peer.QueryStrategy

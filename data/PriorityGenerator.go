@@ -14,12 +14,12 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package data
 
-import "github.com/straightway/straightway/data"
+import (
+	"time"
+)
 
-type DataStorage interface {
-	LifeCycle
-	ConsiderStorage(*data.Chunk)
-	Query(data.Query) []*data.Chunk
+type PriorityGenerator interface {
+	Priority(*Chunk) (prio float32, expirationTime time.Time)
 }

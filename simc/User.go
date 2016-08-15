@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/randvar"
@@ -38,6 +40,13 @@ type User struct {
 func (this *User) Id() string {
 	return "UserOf_" + this.Node.Id()
 }
+
+func (this *User) Equal(other general.Equaler) bool {
+	otherUser, isOtherUser := other.(*User)
+	return isOtherUser && otherUser.Id() == this.Id()
+}
+
+func (this *User) Push(data *data.Chunk, origin id.Holder) {}
 
 func (this *User) Activate() {
 	this.schedule(this.StartupDuration, this.doStartup)

@@ -32,15 +32,11 @@ import (
 )
 
 type SimulationUpload_Test struct {
-	suite.Suite
+	SimulationActionTestBase
 	sut             *simc.Upload
-	scheduler       *simc.EventScheduler
-	user            *simc.User
-	node            *mocked.Node
 	rawStorage      *simc.RawStorage
 	sizeRandVar     *mocked.Float64RandVar
 	durationRandVar *mocked.DurationRandVar
-	offlineTime     time.Time
 }
 
 func TestSimulationUpload(t *testing.T) {
@@ -56,14 +52,10 @@ var (
 )
 
 func (suite *SimulationUpload_Test) SetupTest() {
-	suite.scheduler = &simc.EventScheduler{}
+	suite.SimulationActionTestBase.SetupTest()
 	suite.rawStorage = &simc.RawStorage{}
-	suite.node = mocked.NewNode("1")
 	suite.sizeRandVar = mocked.NewFloat64RandVar(float64(defaultDataSize))
 	suite.durationRandVar = mocked.NewDurationRandVar(activityDuration)
-	suite.user = &simc.User{
-		Scheduler: suite.scheduler,
-		Node:      suite.node}
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() {
 		suite.scheduler.Stop()
 	})
@@ -78,15 +70,11 @@ func (suite *SimulationUpload_Test) SetupTest() {
 		AttractionRatio:    mocked.NewFloat64RandVar(1.0),
 		AudienceProvider:   mocked.NewSimulationAudienceProvider(),
 		AudiencePermutator: rand.New(randSource)}
-	now := suite.scheduler.Time()
-	suite.offlineTime = now.Add(onlineDuration)
 }
 
 func (suite *SimulationUpload_Test) TearDownTest() {
+	suite.SimulationActionTestBase.TearDownTest()
 	suite.sut = nil
-	suite.scheduler = nil
-	suite.node = nil
-	suite.user = nil
 	suite.rawStorage = nil
 	suite.durationRandVar = nil
 	suite.sizeRandVar = nil

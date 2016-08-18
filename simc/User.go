@@ -46,7 +46,9 @@ func (this *User) Equal(other general.Equaler) bool {
 	return isOtherUser && otherUser.Id() == this.Id()
 }
 
-func (this *User) Push(data *data.Chunk, origin id.Holder) {}
+func (this *User) Push(data *data.Chunk, origin id.Holder) {
+	println("Received data")
+}
 
 func (this *User) Activate() {
 	this.schedule(this.StartupDuration, this.doStartup)

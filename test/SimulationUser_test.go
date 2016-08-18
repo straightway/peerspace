@@ -125,6 +125,24 @@ func (suite *SimulationUser_Test) TestUserCanBeAttractedToData() {
 	suite.Assert().Equal(data.Query{}, poppedQuery)
 }
 
+func (suite *SimulationUser_Test) Test_Equal_UsersWithSameIdAreEqual() {
+	user1 := &simc.User{NodeInstance: mocked.NewNode("nodeId")}
+	user2 := &simc.User{NodeInstance: mocked.NewNode("nodeId")}
+	suite.Assert().True(user1.Equal(user2))
+}
+
+func (suite *SimulationUser_Test) Test_Equal_UsersWithDifferentIdsAreNotEqual() {
+	user1 := &simc.User{NodeInstance: mocked.NewNode("nodeId1")}
+	user2 := &simc.User{NodeInstance: mocked.NewNode("nodeId2")}
+	suite.Assert().False(user1.Equal(user2))
+}
+
+func (suite *SimulationUser_Test) Test_Equal_UsersDifferFromOtherTypesInstances() {
+	user := &simc.User{NodeInstance: mocked.NewNode("nodeId")}
+	other := mocked.NewNode("nodeId")
+	suite.Assert().False(user.Equal(other))
+}
+
 // Private
 
 func (suite *SimulationUser_Test) assertScheduledAfter(duration time.Duration, methodName string, arguments ...interface{}) {

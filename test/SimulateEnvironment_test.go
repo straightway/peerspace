@@ -25,6 +25,6 @@ import (
 
 func TestSimulationEnvironment(t *testing.T) {
 	env := simc.NewSimulationEnvironment(2)
-	env.Scheduler.Schedule(duration.Parse("24h"), func() { env.Scheduler.Stop() })
+	env.Scheduler.Schedule(duration.Parse("240h"), func() { env.Scheduler.Stop() })
 	env.Scheduler.Run()
 }

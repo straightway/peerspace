@@ -113,6 +113,7 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 		Configuration:        configuration}
 	newNode.DataStrategy = this.createDataStrategy(configuration, peerDistanceRelated, newNode)
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
+	newNode.QueryStrategy = this.createQueryStrategy(configuration, peerDistanceRelated, newNode)
 	return newNode, configuration, rawStorage
 }
 
@@ -164,7 +165,26 @@ func (this *Environment) createConnecionStrategy(
 		RandSource:             this.randSource}
 }
 
+func (this *Environment) createQueryStrategy(
+	configuration *app.Configuration,
+	peerDistanceCalculator strategy.PeerDistanceCalculator,
+	connectionInfoProvider strategy.ConnectionInfoProvider) peer.QueryStrategy {
+	return &strategy.Query{
+		ConnectionInfoProvider: connectionInfoProvider,
+		PeerDistanceCalculator: peerDistanceCalculator,
+		Configuration:          configuration}
+}
+
 func (this *Environment) createActivity(
+	user *User,
+	configuration *app.Configuration,
+	chunkCreator sim.ChunkCreator) sim.UserActivity {
+	return activity.NewCombined(
+		this.createUploadActivity(user, configuration, chunkCreator),
+		this.createQueryActivity(user))
+}
+
+func (this *Environment) createUploadActivity(
 	user *User,
 	configuration *app.Configuration,
 	chunkCreator sim.ChunkCreator) sim.UserActivity {
@@ -178,4 +198,12 @@ func (this *Environment) createActivity(
 		AudienceProvider:   this,
 		AttractionRatio:    randvar.NewNormalFloat64(this.randSource, 0.3, 0.1),
 		AudiencePermutator: rand.New(this.randSource)}
+}
+
+func (this *Environment) createQueryActivity(
+	user *User) sim.UserActivity {
+	return &activity.Query{
+		Scheduler:          user.Scheduler(),
+		User:               user,
+		QueryPauseDuration: randvar.NewNormalDuration(this.randSource, duration.Parse("5m"), duration.Parse("10m"))}
 }

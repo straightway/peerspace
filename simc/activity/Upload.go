@@ -14,7 +14,7 @@
    limitations under the License.
 ****************************************************************************/
 
-package simc
+package activity
 
 import (
 	"time"
@@ -27,7 +27,7 @@ import (
 )
 
 type Upload struct {
-	User               *User
+	User               sim.User
 	Configuration      *app.Configuration
 	Delay              randvar.Duration
 	DataSize           randvar.Float64
@@ -39,7 +39,7 @@ type Upload struct {
 }
 
 func (this *Upload) ScheduleUntil(maxTime time.Time) {
-	scheduler := this.User.Scheduler
+	scheduler := this.User.Scheduler()
 	now := scheduler.Time()
 	nextActionTime := now.Add(this.Delay.NextSample())
 	for !maxTime.Before(nextActionTime) {
@@ -54,7 +54,7 @@ func (this *Upload) doPush() {
 	newDataChunk := this.ChunkCreator.CreateChunk(
 		data.Key{Id: this.IdGenerator.NextId()},
 		this.nextChunkSize())
-	this.User.Node.Push(newDataChunk, this.User)
+	this.User.Node().Push(newDataChunk, this.User)
 	this.attractToAudience(newDataChunk)
 }
 

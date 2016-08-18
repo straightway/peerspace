@@ -37,8 +37,8 @@ func (suite *SimulationActionTestBase) SetupTest() {
 	suite.scheduler = &simc.EventScheduler{}
 	suite.node = mocked.NewNode("1")
 	suite.user = &simc.User{
-		Scheduler: suite.scheduler,
-		Node:      suite.node}
+		SchedulerInstance: suite.scheduler,
+		NodeInstance:      suite.node}
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() {
 		suite.scheduler.Stop()
 	})

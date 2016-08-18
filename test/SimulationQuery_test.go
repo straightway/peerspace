@@ -23,14 +23,14 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/simc/activity"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationQuery_Test struct {
 	SimulationActionTestBase
-	sut                *simc.Query
+	sut                *activity.Query
 	queryPauseDuration time.Duration
 }
 
@@ -41,7 +41,7 @@ func TestSimulationQuery(t *testing.T) {
 func (suite *SimulationQuery_Test) SetupTest() {
 	suite.SimulationActionTestBase.SetupTest()
 	suite.queryPauseDuration = duration.Parse("30m")
-	suite.sut = &simc.Query{
+	suite.sut = &activity.Query{
 		Scheduler:          suite.scheduler,
 		User:               suite.user,
 		QueryPauseDuration: mocked.NewDurationRandVar(suite.queryPauseDuration)}

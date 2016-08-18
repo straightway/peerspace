@@ -27,13 +27,14 @@ import (
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/simc/activity"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationUpload_Test struct {
 	SimulationActionTestBase
-	sut             *simc.Upload
+	sut             *activity.Upload
 	rawStorage      *simc.RawStorage
 	sizeRandVar     *mocked.Float64RandVar
 	durationRandVar *mocked.DurationRandVar
@@ -60,7 +61,7 @@ func (suite *SimulationUpload_Test) SetupTest() {
 		suite.scheduler.Stop()
 	})
 	randSource := rand.NewSource(12345)
-	suite.sut = &simc.Upload{
+	suite.sut = &activity.Upload{
 		User:               suite.user,
 		Configuration:      app.DefaultConfiguration(),
 		Delay:              suite.durationRandVar,

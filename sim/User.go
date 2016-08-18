@@ -14,33 +14,17 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package sim
 
 import (
-	"testing"
-	"time"
-
-	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/simc/activity"
-	"github.com/stretchr/testify/suite"
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/peer"
 )
 
-type SimulationCombinedActivity_Test struct {
-	suite.Suite
-}
-
-func TestSimulationCombinedActivity(t *testing.T) {
-	suite.Run(t, new(SimulationCombinedActivity_Test))
-}
-
-// Test
-
-func (suite *SimulationCombinedActivity_Test) Test_ScheduleUntil_ForwardsToAllChildren() {
-	child1 := mocked.NewSimulationUserActivity()
-	child2 := mocked.NewSimulationUserActivity()
-	sut := activity.NewCombined(child1, child2)
-	t := time.Date(2000, 5, 7, 11, 37, 13, 7, time.UTC)
-	sut.ScheduleUntil(t)
-	child1.AssertCalledOnce(suite.T(), "ScheduleUntil", t)
-	child2.AssertCalledOnce(suite.T(), "ScheduleUntil", t)
+type User interface {
+	peer.Pusher
+	Node() peer.Node
+	Scheduler() EventScheduler
+	AttractTo(query data.Query)
+	PopAttractiveQuery() (query data.Query, isFound bool)
 }

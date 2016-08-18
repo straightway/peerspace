@@ -14,17 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package simc
+package activity
 
 import (
 	"time"
 
+	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/randvar"
 )
 
 type Query struct {
-	Scheduler          *EventScheduler
-	User               *User
+	Scheduler          sim.EventScheduler
+	User               sim.User
 	QueryPauseDuration randvar.Duration
 }
 
@@ -45,6 +46,6 @@ func (this *Query) ScheduleUntil(maxTime time.Time) {
 func (this *Query) doQuery() {
 	query, isQueryFound := this.User.PopAttractiveQuery()
 	if isQueryFound {
-		this.User.Node.Query(query, this.User)
+		this.User.Node().Query(query, this.User)
 	}
 }

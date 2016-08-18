@@ -28,8 +28,8 @@ import (
 )
 
 type User struct {
-	Node              peer.Node
-	Scheduler         *EventScheduler
+	NodeInstance      peer.Node
+	SchedulerInstance sim.EventScheduler
 	StartupDuration   randvar.Duration
 	OnlineDuration    randvar.Duration
 	OnlineActivity    sim.UserActivity
@@ -38,7 +38,7 @@ type User struct {
 }
 
 func (this *User) Id() string {
-	return "UserOf_" + this.Node.Id()
+	return "UserOf_" + this.NodeInstance.Id()
 }
 
 func (this *User) Equal(other general.Equaler) bool {
@@ -66,21 +66,29 @@ func (this *User) PopAttractiveQuery() (query data.Query, isFound bool) {
 	return
 }
 
+func (this *User) Node() peer.Node {
+	return this.NodeInstance
+}
+
+func (this *User) Scheduler() sim.EventScheduler {
+	return this.SchedulerInstance
+}
+
 // Private
 
 func (this *User) doStartup() {
-	this.Node.Startup()
+	this.NodeInstance.Startup()
 	this.nextOfflineTime = this.schedule(this.OnlineDuration, this.doShutDown)
 	this.OnlineActivity.ScheduleUntil(this.nextOfflineTime)
 }
 
 func (this *User) doShutDown() {
-	this.Node.ShutDown()
+	this.NodeInstance.ShutDown()
 	this.Activate()
 }
 
 func (this *User) schedule(duration randvar.Duration, action func()) time.Time {
 	actionDuration := duration.NextSample()
-	this.Scheduler.Schedule(actionDuration, action)
-	return this.Scheduler.Time().Add(actionDuration)
+	this.SchedulerInstance.Schedule(actionDuration, action)
+	return this.SchedulerInstance.Time().Add(actionDuration)
 }

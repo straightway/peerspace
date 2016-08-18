@@ -49,11 +49,11 @@ func (suite *SimulationUser_Test) SetupTest() {
 	suite.node = mocked.NewNode("nodeId")
 	suite.activity = mocked.NewSimulationUserActivity()
 	suite.sut = &simc.User{
-		Scheduler:       suite.scheduler,
-		Node:            suite.node,
-		StartupDuration: mocked.NewDurationRandVar(startupDuration),
-		OnlineDuration:  mocked.NewDurationRandVar(onlineDuration),
-		OnlineActivity:  suite.activity}
+		SchedulerInstance: suite.scheduler,
+		NodeInstance:      suite.node,
+		StartupDuration:   mocked.NewDurationRandVar(startupDuration),
+		OnlineDuration:    mocked.NewDurationRandVar(onlineDuration),
+		OnlineActivity:    suite.activity}
 	suite.sut.Activate()
 	suite.scheduler.Schedule(stopDuration, func() {
 		panic("Simulation did not stop")
@@ -109,7 +109,7 @@ func (suite *SimulationUser_Test) TestOnlineActionIsNotExecutedWhenOffline() {
 
 func (suite *SimulationUser_Test) TestUserIsIdentifyable() {
 	var identifyable id.Holder = suite.sut
-	suite.Assert().Equal("UserOf_"+suite.sut.Node.Id(), identifyable.Id())
+	suite.Assert().Equal("UserOf_"+suite.sut.Node().Id(), identifyable.Id())
 }
 
 func (suite *SimulationUser_Test) TestUserCanBeAttractedToData() {

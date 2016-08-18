@@ -30,6 +30,7 @@ import (
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/peerc"
 	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/simc/activity"
 	"github.com/straightway/straightway/simc/randvar"
 	"github.com/straightway/straightway/strategy"
 )
@@ -73,21 +74,21 @@ func (this *Environment) addNewUser() *User {
 func (this *Environment) createSeedNode() {
 	node, _, _ := this.createNode()
 	this.initialUser = &User{
-		Scheduler:       &this.Scheduler,
-		Node:            node,
-		StartupDuration: randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
-		OnlineDuration:  randvar.NewNormalDuration(this.randSource, time.Duration(-1), time.Duration(0)),
-		OnlineActivity:  mocked.NewSimulationUserActivity()}
+		SchedulerInstance: &this.Scheduler,
+		NodeInstance:      node,
+		StartupDuration:   randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
+		OnlineDuration:    randvar.NewNormalDuration(this.randSource, time.Duration(-1), time.Duration(0)),
+		OnlineActivity:    mocked.NewSimulationUserActivity()}
 	this.initialUser.Activate()
 }
 
 func (this *Environment) createUser() *User {
 	node, configuration, rawStorage := this.createNode()
 	newUser := &User{
-		Scheduler:       &this.Scheduler,
-		Node:            node,
-		StartupDuration: randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
-		OnlineDuration:  randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h"))}
+		SchedulerInstance: &this.Scheduler,
+		NodeInstance:      node,
+		StartupDuration:   randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
+		OnlineDuration:    randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h"))}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser
@@ -118,7 +119,7 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 func (this *Environment) createStateStorage() peer.StateStorage {
 	stateStorage := &StateStorage{}
 	if 0 < len(this.users) {
-		stateStorage.AddKnownPeer(this.initialUser.Node)
+		stateStorage.AddKnownPeer(this.initialUser.Node())
 	}
 
 	return stateStorage
@@ -167,7 +168,7 @@ func (this *Environment) createActivity(
 	user *User,
 	configuration *app.Configuration,
 	chunkCreator sim.ChunkCreator) sim.UserActivity {
-	return &Upload{
+	return &activity.Upload{
 		User:               user,
 		Configuration:      configuration,
 		Delay:              randvar.NewNormalDuration(this.randSource, duration.Parse("15m"), duration.Parse("30m")),

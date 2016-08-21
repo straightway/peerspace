@@ -85,10 +85,11 @@ func (this *Environment) createSeedNode() {
 func (this *Environment) createUser() *User {
 	node, configuration, rawStorage := this.createNode()
 	newUser := &User{
-		SchedulerInstance: &this.Scheduler,
-		NodeInstance:      node,
-		StartupDuration:   randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
-		OnlineDuration:    randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h"))}
+		SchedulerInstance:    &this.Scheduler,
+		NodeInstance:         node,
+		StartupDuration:      randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
+		OnlineDuration:       randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h")),
+		QuerySampleCollector: mocked.NewSimulationMeasureSampleCollector()}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser

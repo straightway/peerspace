@@ -31,10 +31,11 @@ import (
 
 type SimulationUser_Test struct {
 	suite.Suite
-	sut       *simc.User
-	scheduler *simc.EventScheduler
-	node      *mocked.Node
-	activity  *mocked.SimulationUserActivity
+	sut                  *simc.User
+	scheduler            *simc.EventScheduler
+	node                 *mocked.Node
+	activity             *mocked.SimulationUserActivity
+	querySampleCollector *mocked.SimulationMeasureSampleCollector
 }
 
 func TestSimulationUser(t *testing.T) {
@@ -48,12 +49,14 @@ func (suite *SimulationUser_Test) SetupTest() {
 	suite.scheduler = &simc.EventScheduler{}
 	suite.node = mocked.NewNode("nodeId")
 	suite.activity = mocked.NewSimulationUserActivity()
+	suite.querySampleCollector = mocked.NewSimulationMeasureSampleCollector()
 	suite.sut = &simc.User{
-		SchedulerInstance: suite.scheduler,
-		NodeInstance:      suite.node,
-		StartupDuration:   mocked.NewDurationRandVar(startupDuration),
-		OnlineDuration:    mocked.NewDurationRandVar(onlineDuration),
-		OnlineActivity:    suite.activity}
+		SchedulerInstance:    suite.scheduler,
+		NodeInstance:         suite.node,
+		StartupDuration:      mocked.NewDurationRandVar(startupDuration),
+		OnlineDuration:       mocked.NewDurationRandVar(onlineDuration),
+		OnlineActivity:       suite.activity,
+		QuerySampleCollector: suite.querySampleCollector}
 	suite.sut.Activate()
 	suite.scheduler.Schedule(stopDuration, func() {
 		panic("Simulation did not stop")
@@ -64,6 +67,7 @@ func (suite *SimulationUser_Test) TearDownTest() {
 	suite.sut = nil
 	suite.scheduler = nil
 	suite.node = nil
+	suite.querySampleCollector = nil
 }
 
 func (suite *SimulationUser_Test) TestNodeStartupIsScheduled() {
@@ -141,6 +145,63 @@ func (suite *SimulationUser_Test) Test_Equal_UsersDifferFromOtherTypesInstances(
 	user := &simc.User{NodeInstance: mocked.NewNode("nodeId")}
 	other := mocked.NewNode("nodeId")
 	suite.Assert().False(user.Equal(other))
+}
+
+func (suite *SimulationUser_Test) Test_Push_AddsToQueryTimeSampleCollector() {
+	query := data.Query{Id: untimedKey.Id}
+	suite.sut.AttractTo(query)
+	_, _ = suite.sut.PopAttractiveQuery()
+	d := duration.Parse("10m")
+	suite.scheduler.Schedule(d, func() {
+		suite.sut.Push(&untimedChunk, nil)
+		suite.scheduler.Stop()
+	})
+	suite.scheduler.Run()
+	suite.querySampleCollector.AssertCalledOnce(suite.T(), "AddSample", d.Seconds())
+}
+
+func (suite *SimulationUser_Test) Test_Push_AddsToQueryTimeSampleCollectorOnlyForMatchingQueries() {
+	query := data.Query{Id: untimedKey.Id}
+	otherQuery := data.Query{Id: otherId}
+	suite.sut.AttractTo(query)
+	suite.sut.AttractTo(otherQuery)
+	_, _ = suite.sut.PopAttractiveQuery()
+	_, _ = suite.sut.PopAttractiveQuery()
+	suite.sut.Push(&untimedChunk, nil)
+	suite.querySampleCollector.AssertCalledOnce(suite.T(), "AddSample", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) Test_Push_SamplesQueryDurationOnlyOnce() {
+	query := data.Query{Id: untimedKey.Id}
+	suite.sut.AttractTo(query)
+	_, _ = suite.sut.PopAttractiveQuery()
+	suite.sut.Push(&untimedChunk, nil)
+	suite.sut.Push(&untimedChunk, nil)
+	suite.querySampleCollector.AssertCalledOnce(suite.T(), "AddSample", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) Test_Push_LeavesOtherQueriesActive() {
+	otherQuery1 := data.Query{Id: otherId + "1"}
+	query := data.Query{Id: untimedKey.Id}
+	otherQuery2 := data.Query{Id: otherId + "2"}
+	suite.sut.AttractTo(otherQuery1)
+	suite.sut.AttractTo(query)
+	suite.sut.AttractTo(otherQuery2)
+	_, _ = suite.sut.PopAttractiveQuery()
+	_, _ = suite.sut.PopAttractiveQuery()
+	_, _ = suite.sut.PopAttractiveQuery()
+	suite.sut.Push(&data.Chunk{Key: data.Key{Id: otherId + "1"}}, nil)
+	suite.sut.Push(&untimedChunk, nil)
+	suite.sut.Push(&data.Chunk{Key: data.Key{Id: otherId + "2"}}, nil)
+	suite.querySampleCollector.AssertNumberOfCalls(suite.T(), "AddSample", 3)
+}
+
+func (suite *SimulationUser_Test) Test_Push_UnqueriedDataChunksAreNotSampled() {
+	query := data.Query{Id: untimedKey.Id}
+	suite.sut.AttractTo(query)
+	_, _ = suite.sut.PopAttractiveQuery()
+	suite.sut.Push(&data.Chunk{Key: data.Key{Id: otherId}}, nil)
+	suite.querySampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
 }
 
 // Private

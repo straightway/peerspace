@@ -14,22 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package measure
 
-import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general/duration"
-)
-
-var (
-	queryId      string     = "1234"
-	otherId      string     = "abcd"
-	untimedKey   data.Key   = data.Key{Id: queryId}
-	untimedChunk data.Chunk = data.Chunk{Key: untimedKey, Data: []byte{0x2, 0x3, 0x5, 0x7, 0xB}}
-	timedKey10   data.Key   = data.Key{Id: queryId, TimeStamp: 10}
-	timedChunk10 data.Chunk = data.Chunk{Key: timedKey10, Data: []byte{0x2, 0x3, 0x5, 0x7, 0xB}}
-	timedKey20   data.Key   = data.Key{Id: queryId, TimeStamp: 20}
-	timedChunk20 data.Chunk = data.Chunk{Key: timedKey20, Data: []byte{0x3, 0x5, 0x7, 0xB, 0xD}}
-
-	onlineDuration = duration.Parse("2h")
-)
+type SampleCollector interface {
+	AddSample(sample float64)
+}

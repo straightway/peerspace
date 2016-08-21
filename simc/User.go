@@ -24,17 +24,25 @@ import (
 	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/sim/measure"
 	"github.com/straightway/straightway/sim/randvar"
 )
 
 type User struct {
-	NodeInstance      peer.Node
-	SchedulerInstance sim.EventScheduler
-	StartupDuration   randvar.Duration
-	OnlineDuration    randvar.Duration
-	OnlineActivity    sim.UserActivity
-	attractiveQueries []data.Query
-	nextOfflineTime   time.Time
+	NodeInstance         peer.Node
+	SchedulerInstance    sim.EventScheduler
+	StartupDuration      randvar.Duration
+	OnlineDuration       randvar.Duration
+	OnlineActivity       sim.UserActivity
+	QuerySampleCollector measure.SampleCollector
+	attractiveQueries    []data.Query
+	pendingQueries       []queryRecord
+	nextOfflineTime      time.Time
+}
+
+type queryRecord struct {
+	query     data.Query
+	startTime time.Time
 }
 
 func (this *User) Id() string {
@@ -47,7 +55,15 @@ func (this *User) Equal(other general.Equaler) bool {
 }
 
 func (this *User) Push(data *data.Chunk, origin id.Holder) {
-	println("Received data")
+	currTime := this.Scheduler().Time()
+	for i, qr := range this.pendingQueries {
+		if qr.query.Matches(data.Key) {
+			queryDuration := currTime.Sub(qr.startTime)
+			this.QuerySampleCollector.AddSample(queryDuration.Seconds())
+			this.pendingQueries = append(this.pendingQueries[:i], this.pendingQueries[i+1:]...)
+			break
+		}
+	}
 }
 
 func (this *User) Activate() {
@@ -63,6 +79,8 @@ func (this *User) PopAttractiveQuery() (query data.Query, isFound bool) {
 	if isFound {
 		query = this.attractiveQueries[0]
 		this.attractiveQueries = this.attractiveQueries[1:]
+		qr := queryRecord{query: query, startTime: this.Scheduler().Time()}
+		this.pendingQueries = append(this.pendingQueries, qr)
 	}
 
 	return

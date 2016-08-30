@@ -18,10 +18,10 @@ package strategy
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/general/id"
 )
 
 type PeerDistanceCalculator interface {
-	Distance(peer.Connector, data.Key) uint64
-	Distances(peer.Connector, data.Query) []uint64
+	Distance(id.Holder, data.Key) uint64
+	Distances(id.Holder, data.Query) []uint64
 }

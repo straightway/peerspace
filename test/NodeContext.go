@@ -140,8 +140,8 @@ func AssertPushed(t *testing.T, receiver *mocked.PeerConnector, chunks ...*data.
 func (this *NodeContext) setupPeers() {
 	this.stateStorage = mocked.NewStateStorage(this.knownPeers...)
 	this.connectionStrategy = mocked.NewConnectionStrategy(mocked.IPeerConnectors(this.connectedPeers))
-	this.dataStrategy = mocked.NewDataStrategy(mocked.IPeerConnectors(this.forwardPeers))
-	this.queryStrategy = mocked.NewQueryForwardStrategy(mocked.IPeerConnectors(this.forwardPeers))
+	this.dataStrategy = mocked.NewDataStrategy(mocked.IPushers(this.forwardPeers))
+	this.queryStrategy = mocked.NewQueryForwardStrategy(mocked.IQueryables(this.forwardPeers))
 }
 
 func (this *NodeContext) createSut() {

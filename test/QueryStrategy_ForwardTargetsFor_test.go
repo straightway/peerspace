@@ -61,18 +61,19 @@ func (suite *QueryStrategy_ForwardTargetsFor_Test) TestQueryIsNotForwardedBack()
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestSingleConnectionIsSelected() {
 	connectedPeer := suite.createConnectedPeer()
 	result := suite.sut.ForwardTargetsFor(data.Query{Id: queryId}, suite.origin)
-	suite.Assert().Equal([]peer.Connector{connectedPeer}, result)
+	suite.Assert().Equal([]peer.Queryable{connectedPeer}, result)
 }
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelectedForUntimedQuery() {
 	nearPeer := suite.createConnectedPeer()
 	farPeer := suite.createConnectedPeer()
+
 	suite.distanceCalculator.ExpectedCalls = nil
 	query := data.Query{Id: queryId}
 	suite.distanceCalculator.On("Distances", nearPeer, query).Return([]uint64{1})
 	suite.distanceCalculator.On("Distances", farPeer, query).Return([]uint64{2})
 	result := suite.sut.ForwardTargetsFor(query, suite.origin)
-	suite.Assert().Equal([]peer.Connector{nearPeer}, result)
+	suite.Assert().Equal([]peer.Queryable{nearPeer}, result)
 }
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeersAreSelectedForTimedQuery() {
@@ -85,7 +86,7 @@ func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeersAreSelectedFo
 	suite.distanceCalculator.On("Distances", nearPeer2, query).Return([]uint64{2, 1})
 	suite.distanceCalculator.On("Distances", farPeer, query).Return([]uint64{3, 3})
 	result := suite.sut.ForwardTargetsFor(query, suite.origin)
-	suite.Assert().Equal([]peer.Connector{nearPeer1, nearPeer2}, result)
+	suite.Assert().Equal([]peer.Queryable{nearPeer1, nearPeer2}, result)
 }
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeersAreNotListedTwice() {
@@ -96,5 +97,5 @@ func (suite *QueryStrategy_ForwardTargetsFor_Test) TestNearestPeersAreNotListedT
 	suite.distanceCalculator.On("Distances", nearPeer, query).Return([]uint64{1, 1})
 	suite.distanceCalculator.On("Distances", farPeer, query).Return([]uint64{2, 2})
 	result := suite.sut.ForwardTargetsFor(query, suite.origin)
-	suite.Assert().Equal([]peer.Connector{nearPeer}, result)
+	suite.Assert().Equal([]peer.Queryable{nearPeer}, result)
 }

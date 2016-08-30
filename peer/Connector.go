@@ -16,7 +16,14 @@
 
 package peer
 
+import (
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
+)
+
 type Connector interface {
+	id.Holder
+	general.Equaler
 	Pusher
 	Queryable
 	RequestConnectionWith(peer Connector)

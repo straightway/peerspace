@@ -23,5 +23,5 @@ import (
 
 type DataStrategy interface {
 	IsChunkAccepted(data *data.Chunk, origin id.Holder) bool
-	ForwardTargetsFor(key data.Key, origin id.Holder) []Connector
+	ForwardTargetsFor(key data.Key, origin id.Holder) []Pusher
 }

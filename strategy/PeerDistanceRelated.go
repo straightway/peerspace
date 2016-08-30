@@ -21,9 +21,9 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/ranges"
 	"github.com/straightway/straightway/general/times"
-	"github.com/straightway/straightway/peer"
 )
 
 type PeerDistanceRelated struct {
@@ -34,11 +34,11 @@ type PeerDistanceRelated struct {
 
 var expirationTimespans = []int{3650, 365, 30, 7, 1}
 
-func (this *PeerDistanceRelated) Distance(peer peer.Connector, key data.Key) uint64 {
+func (this *PeerDistanceRelated) Distance(peer id.Holder, key data.Key) uint64 {
 	return this.distanceIdToKey(peer.Id(), key)
 }
 
-func (this *PeerDistanceRelated) Distances(peer peer.Connector, query data.Query) []uint64 {
+func (this *PeerDistanceRelated) Distances(peer id.Holder, query data.Query) []uint64 {
 	result := make([]uint64, 0, 0)
 	queryRange := ranges.Int64{query.TimeFrom, query.TimeTo + 1}
 	for _, timestampRange := range this.timestampRangesForQuery(query) {
@@ -63,7 +63,7 @@ func (this *PeerDistanceRelated) Priority(chunk *data.Chunk) (float32, time.Time
 // Private
 
 func (this *PeerDistanceRelated) distanceForQueryTimeRange(
-	peer peer.Connector, query data.Query, timepointRange ranges.Int64) uint64 {
+	peer id.Holder, query data.Query, timepointRange ranges.Int64) uint64 {
 	equivalentKey := data.Key{Id: query.Id, TimeStamp: timepointRange[1] - 1}
 	return this.Distance(peer, equivalentKey)
 }

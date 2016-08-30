@@ -57,7 +57,7 @@ func (suite *DataStrategy_ForwardTargetsFor_Test) TestChunkIsNotForwardedBack() 
 func (suite *DataStrategy_ForwardTargetsFor_Test) TestSingleConnectionIsSelected() {
 	connectedPeer := suite.createConnectedPeer()
 	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
-	suite.Assert().Equal([]peer.Connector{connectedPeer}, result)
+	suite.Assert().Equal([]peer.Pusher{connectedPeer}, result)
 }
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelected() {
@@ -67,5 +67,5 @@ func (suite *DataStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelected() {
 	suite.distanceCalculator.On("Distance", nearPeer, untimedKey).Return(uint64(1))
 	suite.distanceCalculator.On("Distance", farPeer, untimedKey).Return(uint64(2))
 	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
-	suite.Assert().Equal([]peer.Connector{nearPeer}, result)
+	suite.Assert().Equal([]peer.Pusher{nearPeer}, result)
 }

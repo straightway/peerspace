@@ -150,7 +150,7 @@ func (this *Node) Push(data *data.Chunk, origin id.Holder) {
 	this.removeObsoleteQueries(data.Key)
 }
 
-func (this *Node) Query(query data.Query, receiver peer.Pusher) {
+func (this *Node) Query(query data.Query, receiver peer.PusherWithId) {
 	if !this.QueryStrategy.IsQueryAccepted(query, receiver) {
 		return
 	}
@@ -216,10 +216,10 @@ func (this *Node) confirmConnectionWith(peer peer.Connector) {
 	peer.RequestPeers(this)
 }
 
-func (this *Node) dataForwardPeers(origin id.Holder, key data.Key) []peer.Connector {
+func (this *Node) dataForwardPeers(origin id.Holder, key data.Key) []peer.Pusher {
 	forwardPeers := this.DataStrategy.ForwardTargetsFor(key, origin)
 	for _, query := range this.pendingQueriesForKey(key) {
-		return slice.SetUnion(forwardPeers, query.receivers).([]peer.Connector)
+		return slice.SetUnion(forwardPeers, query.receivers).([]peer.Pusher)
 	}
 
 	return forwardPeers
@@ -236,7 +236,7 @@ func (this *Node) pendingQueriesForKey(key data.Key) []*pendingQuery {
 	return result
 }
 
-func (this *Node) forwardQuery(query data.Query, receiver peer.Pusher) {
+func (this *Node) forwardQuery(query data.Query, receiver peer.PusherWithId) {
 	fwdPeers := this.QueryStrategy.ForwardTargetsFor(query, receiver)
 	for _, p := range fwdPeers {
 		p.Query(query, this)

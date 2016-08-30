@@ -16,8 +16,10 @@
 
 package peer
 
-import "github.com/straightway/straightway/data"
+import (
+	"github.com/straightway/straightway/data"
+)
 
 type Queryable interface {
-	Query(query data.Query, receiver Pusher)
+	Query(query data.Query, receiver PusherWithId)
 }

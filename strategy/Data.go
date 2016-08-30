@@ -35,12 +35,12 @@ func (this *Data) IsChunkAccepted(data *data.Chunk, origin id.Holder) bool {
 	return uint64(len(data.Data)) <= this.Configuration.MaxChunkSize
 }
 
-func (this *Data) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Connector {
+func (this *Data) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Pusher {
 	var nearestPeer = this.nearestPeer(key)
 	if nearestPeer != nil && origin.Id() != nearestPeer.Id() {
-		return []peer.Connector{nearestPeer}
+		return []peer.Pusher{nearestPeer}
 	} else {
-		return []peer.Connector{}
+		return []peer.Pusher{}
 	}
 }
 

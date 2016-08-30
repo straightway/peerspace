@@ -18,7 +18,7 @@ package mocked
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
+	"github.com/straightway/straightway/general/id"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -33,12 +33,12 @@ func NewPeerDistanceCalculator() *PeerDistanceCalculator {
 	return result
 }
 
-func (m *PeerDistanceCalculator) Distance(peer peer.Connector, key data.Key) uint64 {
+func (m *PeerDistanceCalculator) Distance(peer id.Holder, key data.Key) uint64 {
 	args := m.Called(peer, key)
 	return args.Get(0).(uint64)
 }
 
-func (m *PeerDistanceCalculator) Distances(peer peer.Connector, query data.Query) []uint64 {
+func (m *PeerDistanceCalculator) Distances(peer id.Holder, query data.Query) []uint64 {
 	args := m.Called(peer, query)
 	return args.Get(0).([]uint64)
 }

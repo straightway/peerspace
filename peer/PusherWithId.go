@@ -14,17 +14,15 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package peer
 
 import (
-	"testing"
-
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 )
 
-func TestSimulationEnvironment(t *testing.T) {
-	env := simc.NewSimulationEnvironment(10)
-	env.Scheduler.Schedule(duration.Parse("240h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+type PusherWithId interface {
+	id.Holder
+	general.Equaler
+	Pusher
 }

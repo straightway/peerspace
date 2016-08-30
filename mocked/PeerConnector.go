@@ -79,12 +79,28 @@ func (m *PeerConnector) Push(data *data.Chunk, origin id.Holder) {
 	m.Called(data, origin)
 }
 
-func (m *PeerConnector) Query(query data.Query, receiver peer.Pusher) {
+func (m *PeerConnector) Query(query data.Query, receiver peer.PusherWithId) {
 	m.Called(query, receiver)
 }
 
 func IPeerConnectors(cs []*PeerConnector) []peer.Connector {
 	result := make([]peer.Connector, len(cs))
+	for i, peer := range cs {
+		result[i] = peer
+	}
+	return result
+}
+
+func IPushers(cs []*PeerConnector) []peer.Pusher {
+	result := make([]peer.Pusher, len(cs))
+	for i, peer := range cs {
+		result[i] = peer
+	}
+	return result
+}
+
+func IQueryables(cs []*PeerConnector) []peer.Queryable {
+	result := make([]peer.Queryable, len(cs))
 	for i, peer := range cs {
 		result[i] = peer
 	}

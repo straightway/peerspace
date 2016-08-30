@@ -24,6 +24,6 @@ import (
 
 type QueryStrategy interface {
 	IsQueryAccepted(query data.Query, receiver Pusher) bool
-	ForwardTargetsFor(query data.Query, receiver Pusher) []Connector
+	ForwardTargetsFor(query data.Query, receiver PusherWithId) []Queryable
 	TimeoutFor(query data.Query) time.Duration
 }

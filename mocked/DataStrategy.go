@@ -27,7 +27,7 @@ type DataStrategy struct {
 	Base
 }
 
-func NewDataStrategy(resultPeers []peer.Connector) *DataStrategy {
+func NewDataStrategy(resultPeers []peer.Pusher) *DataStrategy {
 	result := &DataStrategy{}
 	result.On("ForwardTargetsFor", mock.Anything, mock.Anything).Return(resultPeers)
 	result.On("IsChunkAccepted", mock.Anything, mock.Anything).Return(true)
@@ -39,7 +39,7 @@ func (m *DataStrategy) IsChunkAccepted(chunk *data.Chunk, origin id.Holder) bool
 	return args.Get(0).(bool)
 }
 
-func (m *DataStrategy) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Connector {
+func (m *DataStrategy) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Pusher {
 	args := m.Called(key, origin)
-	return args.Get(0).([]peer.Connector)
+	return args.Get(0).([]peer.Pusher)
 }

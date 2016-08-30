@@ -18,10 +18,14 @@ package sim
 
 import (
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
 type User interface {
+	id.Holder
+	general.Equaler
 	peer.Pusher
 	Node() peer.Node
 	Scheduler() EventScheduler

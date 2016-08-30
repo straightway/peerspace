@@ -97,6 +97,15 @@ func RemoveItemsIf(slice interface{}, predicate func(item interface{}) bool) int
 	return result.Interface()
 }
 
+func Cast(from interface{}, to interface{}) interface{} {
+	result := makeEmptySliceOfSameTypeAs(to)
+	ForEachItem(from, func(item interface{}) loop.Control {
+		result = reflect.Append(result, reflect.ValueOf(item))
+		return loop.Continue
+	})
+	return interfaceOrNil(result)
+}
+
 // Private
 
 func interfaceOrNil(value reflect.Value) interface{} {

@@ -70,10 +70,18 @@ func (this *Upload) nextChunkSize() uint64 {
 }
 
 func (this *Upload) attractToAudience(chunk *data.Chunk) {
-	attractionRatio := this.AttractionRatio.NextSample()
 	audience := this.AudienceProvider.Audience()
+
+	attractionRatio := this.AttractionRatio.NextSample()
 	audienceCount := len(audience)
 	numberOfAttractions := int(float64(audienceCount) * attractionRatio)
+	if numberOfAttractions < 0 {
+		numberOfAttractions = 0
+	}
+	if audienceCount < numberOfAttractions {
+		numberOfAttractions = audienceCount
+	}
+
 	permutatedAudience := make([]sim.DataConsumer, audienceCount, audienceCount)
 	for i, j := range this.AudiencePermutator.Perm(audienceCount) {
 		permutatedAudience[i] = audience[j]

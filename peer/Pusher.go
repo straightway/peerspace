@@ -18,12 +18,9 @@ package peer
 
 import (
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
 )
 
 type Pusher interface {
-	id.Holder
-	general.Equaler
 	Push(data *data.Chunk, origin id.Holder)
 }

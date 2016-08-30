@@ -31,6 +31,7 @@ import (
 	"github.com/straightway/straightway/peerc"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc/activity"
+	"github.com/straightway/straightway/simc/measure"
 	"github.com/straightway/straightway/simc/randvar"
 	"github.com/straightway/straightway/strategy"
 )
@@ -40,16 +41,18 @@ const (
 )
 
 type Environment struct {
-	Scheduler   EventScheduler
-	users       []*User
-	nextNodeId  uint
-	randSource  rand.Source
-	initialUser *User
+	Scheduler            EventScheduler
+	users                []*User
+	nextNodeId           uint
+	randSource           rand.Source
+	initialUser          *User
+	QueryDurationMeasure *measure.Discrete
 }
 
 func NewSimulationEnvironment(numberOfUsers int) *Environment {
 	result := &Environment{
-		randSource: rand.NewSource(12345)}
+		randSource:           rand.NewSource(12345),
+		QueryDurationMeasure: &measure.Discrete{}}
 	result.createSeedNode()
 	for i := 0; i < numberOfUsers; i++ {
 		result.addNewUser()
@@ -89,7 +92,7 @@ func (this *Environment) createUser() *User {
 		NodeInstance:         node,
 		StartupDuration:      randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
 		OnlineDuration:       randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h")),
-		QuerySampleCollector: mocked.NewSimulationMeasureSampleCollector()}
+		QuerySampleCollector: this.QueryDurationMeasure}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser

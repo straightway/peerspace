@@ -14,19 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package mocked
 
-import (
-	"fmt"
-	"testing"
+type IdHolder struct {
+	Base
+}
 
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
-)
+func NewIdHolder(id string) *IdHolder {
+	result := &IdHolder{}
+	result.On("Id").Return(id)
+	return result
+}
 
-func TestSimulationEnvironment(t *testing.T) {
-	env := simc.NewSimulationEnvironment(5)
-	env.Scheduler.Schedule(duration.Parse("240h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
-	fmt.Printf("query duration: %v\n", env.QueryDurationMeasure)
+func (m *IdHolder) Id() string {
+	return m.Called().Get(0).(string)
 }

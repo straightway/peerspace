@@ -77,8 +77,7 @@ func (this *Upload) attractToAudience(chunk *data.Chunk) {
 	numberOfAttractions := int(float64(audienceCount) * attractionRatio)
 	if numberOfAttractions < 0 {
 		numberOfAttractions = 0
-	}
-	if audienceCount < numberOfAttractions {
+	} else if audienceCount < numberOfAttractions {
 		numberOfAttractions = audienceCount
 	}
 

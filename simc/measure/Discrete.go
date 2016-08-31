@@ -16,7 +16,10 @@
 
 package measure
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 type Discrete struct {
 	numSamples uint
@@ -45,4 +48,12 @@ func (this *Discrete) Variance() float64 {
 	}
 
 	return this.m2 / (float64(this.numSamples) - 1)
+}
+
+func (this *Discrete) NumberOfSamples() uint {
+	return this.numSamples
+}
+
+func (this *Discrete) String() string {
+	return fmt.Sprintf("%v+/-%v (%v samples)", this.Mean(), math.Sqrt(this.Variance()), this.NumberOfSamples())
 }

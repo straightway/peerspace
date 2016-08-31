@@ -49,13 +49,13 @@ func (suite *Node_Connection_Test) TearDownTest() {
 }
 
 func (suite *Node_Connection_Test) TestSuccessfulConnectionIsAcknowledged() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
 }
 
 func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	suite.connectionStrategy.ExpectedCalls = nil
 	suite.connectionStrategy.On("IsConnectionAcceptedWith", mock.Anything).Return(false)
 
@@ -66,8 +66,8 @@ func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
 }
 
 func (suite *Node_Connection_Test) TestRefusedPeerIsNotConnected() {
-	acceptedPeerNode := mocked.CreatePeerConnector()
-	refusedPeerNode := mocked.CreatePeerConnector()
+	acceptedPeerNode := mocked.NewPeerConnector()
+	refusedPeerNode := mocked.NewPeerConnector()
 	suite.connectionStrategy.ExpectedCalls = nil
 	suite.connectionStrategy.On("IsConnectionAcceptedWith", refusedPeerNode).Return(false)
 	suite.connectionStrategy.On("IsConnectionAcceptedWith", acceptedPeerNode).Return(true)
@@ -78,15 +78,15 @@ func (suite *Node_Connection_Test) TestRefusedPeerIsNotConnected() {
 }
 
 func (suite *Node_Connection_Test) TestRequestForAlreadyAcceptedConnectionIsIgnored() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
 	suite.node.RequestConnectionWith(peerNode)
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", mock.Anything)
 }
 
 func (suite *Node_Connection_Test) TestPeersAreIdentifiedByIdOnConnectionRequestCheck() {
-	peerNode := mocked.CreatePeerConnector()
-	samePeerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
+	samePeerNode := mocked.NewPeerConnector()
 	samePeerNode.Identifier = peerNode.Identifier
 	suite.node.RequestConnectionWith(peerNode)
 	suite.node.RequestConnectionWith(samePeerNode)
@@ -134,13 +134,13 @@ func (suite *Node_Connection_Test) TestRefusedConnectionsAreNotPending() {
 }
 
 func (suite *Node_Connection_Test) TestSuccessfulConnectionsAreConnected() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
 	assert.True(suite.T(), suite.node.IsConnectedWith(peerNode))
 }
 
 func (suite *Node_Connection_Test) TestClosedConnectionsAreNotConnected() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
 	suite.node.CloseConnectionWith(peerNode)
 	assert.False(suite.T(), suite.node.IsConnectedWith(peerNode))
@@ -168,8 +168,8 @@ func (suite *Node_Connection_Test) Test_ConnectingPeers_ContainsConnectingPeers(
 
 func (suite *Node_Connection_Test) Test_AnnouncePeers_NewPeersAreStoredAsKnownPeers() {
 	suite.node.Startup()
-	announcedPeer1 := mocked.CreatePeerConnector()
-	announcedPeer2 := mocked.CreatePeerConnector()
+	announcedPeer1 := mocked.NewPeerConnector()
+	announcedPeer2 := mocked.NewPeerConnector()
 	suite.node.AnnouncePeers([]peer.Connector{announcedPeer1, announcedPeer2})
 	suite.stateStorage.AssertCalled(suite.T(), "AddKnownPeer", announcedPeer1)
 	suite.stateStorage.AssertCalled(suite.T(), "AddKnownPeer", announcedPeer2)
@@ -186,7 +186,7 @@ func (suite *Node_Connection_Test) Test_AnnouncePeers_AlreadyKnownPeersAreIgnore
 
 func (suite *Node_Connection_Test) Test_AnnouncePeers_NewAnnouncedPeerIsConnectedIfAccepted() {
 	suite.node.Startup()
-	announcedPeer := mocked.CreatePeerConnector()
+	announcedPeer := mocked.NewPeerConnector()
 	announcedPeers := []peer.Connector{announcedPeer}
 	suite.node.AnnouncePeers(announcedPeers)
 	announcedPeer.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
@@ -197,7 +197,7 @@ func (suite *Node_Connection_Test) Test_AnnouncePeers_NewAnnouncedPeerIsNotConne
 	suite.node.Startup()
 	suite.connectionStrategy.ExpectedCalls = nil
 	suite.connectionStrategy.On("IsConnectionAcceptedWith", mock.Anything).Return(false)
-	announcedPeer := mocked.CreatePeerConnector()
+	announcedPeer := mocked.NewPeerConnector()
 	suite.node.AnnouncePeers([]peer.Connector{announcedPeer})
 	announcedPeer.AssertNotCalled(suite.T(), "RequestConnectionWith", suite.node)
 }
@@ -221,7 +221,7 @@ func (suite *Node_Connection_Test) TestPeersAreNotRequestedAfterConnectionIsConf
 }
 
 func (suite *Node_Connection_Test) TestPeersAreRequestedAfterUnknownPeerConnectsSuccessfully() {
-	connectingPeer := mocked.CreatePeerConnector()
+	connectingPeer := mocked.NewPeerConnector()
 	suite.node.Startup()
 	connectingPeer.AssertNotCalled(suite.T(), "RequestPeers", mock.Anything)
 	suite.node.RequestConnectionWith(connectingPeer)
@@ -229,7 +229,7 @@ func (suite *Node_Connection_Test) TestPeersAreRequestedAfterUnknownPeerConnects
 }
 
 func (suite *Node_Connection_Test) TestPeersAreNotRequestedAfterPeerConnectIsRejected() {
-	connectingPeer := mocked.CreatePeerConnector()
+	connectingPeer := mocked.NewPeerConnector()
 	suite.connectionStrategy.ExpectedCalls = nil
 	suite.connectionStrategy.On("IsConnectionAcceptedWith", mock.Anything).Return(false)
 	suite.connectionStrategy.On("PeersToConnect", mock.Anything).Return([]peer.Connector{})

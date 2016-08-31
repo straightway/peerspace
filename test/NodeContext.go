@@ -66,7 +66,7 @@ func NewNodeContext() *NodeContext {
 // Public
 
 func (this *NodeContext) AddKnownUnconnectedPeer() *mocked.PeerConnector {
-	peer := &mocked.PeerConnector{}
+	peer := mocked.NewPeerConnector()
 	this.knownPeers = append(this.knownPeers, peer)
 	this.notConnectedPeers = append(this.notConnectedPeers, peer)
 	this.SetUp()
@@ -74,7 +74,7 @@ func (this *NodeContext) AddKnownUnconnectedPeer() *mocked.PeerConnector {
 }
 
 func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) *mocked.PeerConnector {
-	peer := mocked.CreatePeerConnector()
+	peer := mocked.NewPeerConnector()
 	this.knownPeers = append(this.knownPeers, peer)
 	this.connectedPeers = append(this.connectedPeers, peer)
 	if bool(forward) {

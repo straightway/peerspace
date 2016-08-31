@@ -42,7 +42,7 @@ func (suite *Node_Query_Test) SetupTest() {
 	suite.NodeContext = NewNodeContext()
 	suite.AddKnownConnectedPeer(DoForward(true))
 	suite.queryStrategy.On("TimeoutFor", mock.Anything).Return(time.Duration(30) * time.Second)
-	suite.queryPeer = mocked.CreatePeerConnector()
+	suite.queryPeer = mocked.NewPeerConnector()
 	suite.node.Startup()
 	suite.ConfirmConnectedPeers()
 }
@@ -99,7 +99,7 @@ func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedOnce() {
 }
 
 func (suite *Node_Query_Test) Test_Query_ReceivedQueryResultIsForwardedToMultipleReceivers() {
-	otherQueryPeer := mocked.CreatePeerConnector()
+	otherQueryPeer := mocked.NewPeerConnector()
 	suite.AddKnownConnectedPeer(DoForward(true))
 	suite.Query(data.Query{Id: untimedKey.Id})
 	suite.node.Query(data.Query{Id: untimedKey.Id}, otherQueryPeer)

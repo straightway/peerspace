@@ -56,7 +56,7 @@ func TestPeerDistanceCalculator(t *testing.T) {
 }
 
 func (suite *PeerDistanceRelated_Test) SetupTest() {
-	suite.peer = mocked.CreatePeerConnector()
+	suite.peer = mocked.NewPeerConnector()
 	suite.peer.Identifier = peerId
 
 	suite.hasher = mocked.NewHash64()

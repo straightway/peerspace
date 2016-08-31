@@ -66,7 +66,8 @@ func (suite *ConnectionStrategy_TestBase) addConnectingPeer() {
 var nextPeerId = 0
 
 func (suite *ConnectionStrategy_TestBase) createPeerConnector() *mocked.PeerConnector {
-	result := &mocked.PeerConnector{Identifier: fmt.Sprintf("%v", nextPeerId)}
+	result := mocked.NewPeerConnector()
+	result.Identifier = fmt.Sprintf("%v", nextPeerId)
 	suite.allConnectors = append(suite.allConnectors, result)
 	nextPeerId++
 	return result

@@ -39,8 +39,8 @@ func TestSimulationStateStorage(t *testing.T) {
 
 func (suite *SimulationStateStorage_Test) SetupTest() {
 	suite.connectors = []peer.Connector{
-		mocked.CreatePeerConnector(),
-		mocked.CreatePeerConnector()}
+		mocked.NewPeerConnector(),
+		mocked.NewPeerConnector()}
 	suite.sut = &simc.StateStorage{
 		Connectors: suite.connectors}
 }
@@ -61,12 +61,12 @@ func (suite *SimulationStateStorage_Test) Test_IsKnownPeer_ContainedPeer() {
 }
 
 func (suite *SimulationStateStorage_Test) Test_IsKnownPeer_NotContainedPeer() {
-	notContainedPeer := mocked.CreatePeerConnector()
+	notContainedPeer := mocked.NewPeerConnector()
 	suite.Assert().False(suite.sut.IsKnownPeer(notContainedPeer))
 }
 
 func (suite *SimulationStateStorage_Test) Test_AddKnownPeer_NewPeer() {
-	notContainedPeer := mocked.CreatePeerConnector()
+	notContainedPeer := mocked.NewPeerConnector()
 	suite.sut.AddKnownPeer(notContainedPeer)
 	suite.Assert().True(suite.sut.IsKnownPeer(notContainedPeer))
 }

@@ -62,7 +62,7 @@ func (suite *PeerAnnouncementStrategy_Test) Test_NoKnownPeers_NoPeersToAnnounce(
 }
 
 func (suite *PeerAnnouncementStrategy_Test) Test_SingleKnownPeer_IsReturned() {
-	suite.stateStorage.KnownPeers = append(suite.stateStorage.KnownPeers, mocked.CreatePeerConnector())
+	suite.stateStorage.KnownPeers = append(suite.stateStorage.KnownPeers, mocked.NewPeerConnector())
 	result := suite.sut.AnnouncedPeers()
 	suite.Assert().Equal(suite.stateStorage.KnownPeers, result)
 }
@@ -98,6 +98,6 @@ func (suite *PeerAnnouncementStrategy_Test) Test_ManyKnownPeers_ReturnsDifferent
 
 func (suite *PeerAnnouncementStrategy_Test) createKnownPeers(count int) {
 	for i := 0; i < count; i++ {
-		suite.stateStorage.KnownPeers = append(suite.stateStorage.KnownPeers, mocked.CreatePeerConnector())
+		suite.stateStorage.KnownPeers = append(suite.stateStorage.KnownPeers, mocked.NewPeerConnector())
 	}
 }

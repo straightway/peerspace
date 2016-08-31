@@ -32,7 +32,7 @@ type QueryStrategy_ForwardTargetsFor_Test struct {
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) SetupTest() {
 	suite.QueryStrategy_TestBase.SetupTest()
-	suite.origin = mocked.CreatePeerConnector()
+	suite.origin = mocked.NewPeerConnector()
 }
 
 func (suite *QueryStrategy_ForwardTargetsFor_Test) TearDownTest() {

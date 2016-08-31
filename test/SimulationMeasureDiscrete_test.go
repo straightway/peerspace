@@ -77,6 +77,18 @@ func (suite *SimulationMeasureDiscrete_Test) Test_OneSample_YieldsProperVariance
 	suite.Assert().Equal(variance(samples), suite.sut.Variance())
 }
 
+func (suite *SimulationMeasureDiscrete_Test) Test_NumberOfSamples() {
+	suite.sut.AddSample(float64(11.0))
+	suite.sut.AddSample(float64(5.0))
+	suite.Assert().Equal(uint(2), suite.sut.NumberOfSamples())
+}
+
+func (suite *SimulationMeasureDiscrete_Test) Test_String() {
+	suite.sut.AddSample(math.Sqrt(0.5))
+	suite.sut.AddSample(-math.Sqrt(0.5))
+	suite.Assert().Equal("0+/-1 (2 samples)", suite.sut.String())
+}
+
 // Private
 
 func variance(samples []float64) float64 {

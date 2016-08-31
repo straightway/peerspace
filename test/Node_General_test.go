@@ -51,14 +51,14 @@ func (suite *Node_General_Test) Test_Id_IsSameAsIdentifier() {
 }
 
 func (suite *Node_General_Test) Test_Equal_WithSameID() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	peerNode.Identifier = "1"
 	suite.node.Identifier = "1"
 	assert.True(suite.T(), suite.node.Equal(peerNode))
 }
 
 func (suite *Node_General_Test) Test_Equal_NotWithDifferentID() {
-	peerNode := mocked.CreatePeerConnector()
+	peerNode := mocked.NewPeerConnector()
 	peerNode.Identifier = "1"
 	suite.node.Identifier = "2"
 	assert.False(suite.T(), suite.node.Equal(peerNode))

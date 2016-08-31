@@ -33,26 +33,30 @@ type PeerConnector struct {
 
 var objectCount = 0
 
-func CreatePeerConnector() *PeerConnector {
+func NewPeerConnector() *PeerConnector {
 	peer := &PeerConnector{}
 	peer.Identifier = fmt.Sprintf("%v", objectCount)
 	objectCount++
-	peer.On("Push", mock.Anything, mock.Anything)
-	peer.On("CloseConnectionWith", mock.Anything)
-	peer.On("RequestConnectionWith", mock.Anything)
-	peer.On("AnnouncePeers", mock.Anything)
-	peer.On("RequestPeers", mock.Anything)
-	peer.On("Query", mock.Anything, mock.Anything)
+	peer.On("Id").Return()
+	peer.On("Equal", mock.Anything).Return()
+	peer.On("Push", mock.Anything, mock.Anything).Return()
+	peer.On("CloseConnectionWith", mock.Anything).Return()
+	peer.On("RequestConnectionWith", mock.Anything).Return()
+	peer.On("AnnouncePeers", mock.Anything).Return()
+	peer.On("RequestPeers", mock.Anything).Return()
+	peer.On("Query", mock.Anything, mock.Anything).Return()
 	return peer
 }
 
-func (this *PeerConnector) Id() string {
-	return this.Identifier
+func (m *PeerConnector) Id() string {
+	m.Called()
+	return m.Identifier
 }
 
-func (this *PeerConnector) Equal(other general.Equaler) bool {
+func (m *PeerConnector) Equal(other general.Equaler) bool {
+	m.Called(other)
 	otherIdentifable, ok := other.(id.Holder)
-	return ok && otherIdentifable.Id() == this.Id()
+	return ok && otherIdentifable.Id() == m.Id()
 }
 
 func (m *PeerConnector) Startup() {

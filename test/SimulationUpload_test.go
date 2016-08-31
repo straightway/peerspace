@@ -130,23 +130,15 @@ func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAu
 }
 
 func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToPartialAudience() {
-	consumers := suite.createConsumers(10)
+	suite.assertPartialAttaction(0.5, 10, 5)
+}
 
-	attractionRatio := 0.5
-	suite.sut.AttractionRatio = mocked.NewFloat64RandVar(attractionRatio)
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_DoesNotAnnouncePushedChunksIfAtteactionRatioIsBelowZero() {
+	suite.assertPartialAttaction(-0.1, 10, 0)
+}
 
-	suite.sut.ScheduleUntil(suite.scheduler.Time().Add(activityDuration))
-	suite.scheduler.Run()
-
-	numberOfAttractions := 0
-	for _, consumer := range consumers {
-		if consumer.WasCalled("AttractTo") {
-			numberOfAttractions++
-		}
-	}
-
-	expectedNumberOfAttractions := int(float64(len(consumers)) * attractionRatio)
-	suite.Assert().Equal(expectedNumberOfAttractions, numberOfAttractions)
+func (suite *SimulationUpload_Test) Test_ScheduleUntil_AnnouncesPushedChunksToAllIfAttractionRatioIsAboveOne() {
+	suite.assertPartialAttaction(1.1, 10, 10)
 }
 
 func (suite *SimulationUpload_Test) Test_ScheduleUntil_AttractedParialAudienceIsRandom() {
@@ -206,6 +198,25 @@ func (suite *SimulationUpload_Test) Test_ScheduleUntil_DoesNotCreateEmptyChunks(
 }
 
 // Private
+
+func (suite *SimulationUpload_Test) assertPartialAttaction(
+	ratio float64, numConsumers int, expectedAttraction int) {
+	consumers := suite.createConsumers(numConsumers)
+
+	suite.sut.AttractionRatio = mocked.NewFloat64RandVar(ratio)
+
+	suite.sut.ScheduleUntil(suite.scheduler.Time().Add(activityDuration))
+	suite.scheduler.Run()
+
+	numberOfAttractions := 0
+	for _, consumer := range consumers {
+		if consumer.WasCalled("AttractTo") {
+			numberOfAttractions++
+		}
+	}
+
+	suite.Assert().Equal(expectedAttraction, numberOfAttractions)
+}
 
 func (suite *SimulationUpload_Test) createConsumers(count int) (consumers []*mocked.SimulationDataConsumer) {
 	for i := 0; i < count; i++ {

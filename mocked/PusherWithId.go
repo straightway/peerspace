@@ -14,19 +14,35 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package mocked
 
 import (
-	"fmt"
-	"testing"
-
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestSimulationEnvironment(t *testing.T) {
-	env := simc.NewSimulationEnvironment(5)
-	env.Scheduler.Schedule(duration.Parse("240h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
-	fmt.Printf("query duration: %v\n", env.QueryDurationMeasure)
+type PusherWithId struct {
+	Base
+}
+
+func NewPusherWithId(id string) *PusherWithId {
+	result := &PusherWithId{}
+	result.On("Id").Return(id)
+	result.On("Equal", mock.Anything).Return(false)
+	result.On("Push", mock.Anything, mock.Anything).Return()
+	return result
+}
+
+func (m *PusherWithId) Id() string {
+	return m.Called().Get(0).(string)
+}
+
+func (m *PusherWithId) Equal(other general.Equaler) bool {
+	return m.Called(other).Get(0).(bool)
+}
+
+func (m *PusherWithId) Push(data *data.Chunk, origin id.Holder) {
+	m.Called(data, origin)
 }

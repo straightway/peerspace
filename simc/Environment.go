@@ -106,8 +106,8 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 		LocalPeerId: nodeId,
 		Timer:       &this.Scheduler,
 		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
-	stateStorage := this.createStateStorage()
 	dataStorage, rawStorage := this.createDataStorage(peerDistanceRelated)
+	stateStorage := this.createStateStorage(rawStorage)
 	newNode := &peerc.Node{
 		Identifier:           nodeId,
 		StateStorage:         stateStorage,
@@ -121,10 +121,16 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 	return newNode, configuration, rawStorage
 }
 
-func (this *Environment) createStateStorage() peer.StateStorage {
+func (this *Environment) createStateStorage(rawStorage data.RawStorage) peer.StateStorage {
 	stateStorage := &StateStorage{}
 	if 0 < len(this.users) {
-		stateStorage.AddKnownPeer(this.initialUser.Node())
+		networkAccessedNode := &NetworkPeerConnector{
+			Wrapped:        this.initialUser.Node(),
+			EventScheduler: &this.Scheduler,
+			RawStorage:     rawStorage,
+			Latency:        duration.Parse("50ms"),
+			Bandwidth:      1024 * 1024}
+		stateStorage.AddKnownPeer(networkAccessedNode)
 	}
 
 	return stateStorage

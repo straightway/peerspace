@@ -35,7 +35,7 @@ type ForwardStrategy_TestBase struct {
 func (suite *ForwardStrategy_TestBase) SetupTest() {
 	suite.configuration = app.DefaultConfiguration()
 	suite.connectionInfoProvider = mocked.NewConnectionInfoProvider()
-	suite.origin = mocked.CreatePeerConnector()
+	suite.origin = mocked.NewPeerConnector()
 	suite.distanceCalculator = mocked.NewPeerDistanceCalculator()
 }
 
@@ -49,7 +49,7 @@ func (suite *ForwardStrategy_TestBase) TearDownTest() {
 // Private
 
 func (suite *ForwardStrategy_TestBase) createConnectedPeer() *mocked.PeerConnector {
-	connectedPeer := mocked.CreatePeerConnector()
+	connectedPeer := mocked.NewPeerConnector()
 	suite.connectionInfoProvider.AllConnectedPeers =
 		append(suite.connectionInfoProvider.AllConnectedPeers, connectedPeer)
 	return connectedPeer

@@ -27,5 +27,8 @@ type EventScheduler interface {
 	Schedule(duration time.Duration, action func())
 	ScheduleAbsolute(time time.Time, action func())
 	Run()
+	ExecNext() bool
 	Stop()
+	Resume()
+	Reset()
 }

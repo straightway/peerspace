@@ -21,13 +21,14 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationEventScheduler_Test struct {
 	suite.Suite
-	sut *simc.EventScheduler
+	sut sim.EventScheduler
 }
 
 const timeFormat = "2006-01-02 15:04:05"
@@ -124,38 +125,6 @@ func (suite *SimulationEventScheduler_Test) Test_ScheduleAbsolute() {
 	suite.Assert().True(wasCalled)
 }
 
-func (suite *SimulationEventScheduler_Test) Test_ScheduleNextDayTime_InFuture() {
-	wasCalled := false
-	startDateTime, err := time.Parse(timeFormat, "2000-01-01 09:00:00")
-	suite.Assert().Nil(err)
-	targetDateTime, err := time.Parse(timeFormat, "2000-01-02 08:15:00")
-	suite.Assert().Nil(err)
-	suite.sut.ScheduleAbsolute(startDateTime, func() {
-		r := suite.sut.ScheduleNextDayTime(1, duration.Parse("8h15m"), func() {
-			wasCalled = true
-			suite.Assert().Equal(targetDateTime, suite.sut.Time())
-		})
-		suite.Assert().True(r)
-	})
-
-	suite.sut.Run()
-
-	suite.Assert().True(wasCalled)
-}
-
-func (suite *SimulationEventScheduler_Test) Test_ScheduleNextDayTime_InPast() {
-	startDateTime, err := time.Parse(timeFormat, "2000-01-01 09:00:00")
-	suite.Assert().Nil(err)
-	suite.sut.ScheduleAbsolute(startDateTime, func() {
-		r := suite.sut.ScheduleNextDayTime(0, duration.Parse("8h15m"), func() {
-			suite.Assert().Fail("Schedule date is in the past, shall not be scheduled")
-		})
-		suite.Assert().False(r)
-	})
-
-	suite.sut.Run()
-}
-
 func (suite *SimulationEventScheduler_Test) Test_Stop_StopsAfterCurrentEvent() {
 	suite.sut.Schedule(duration.Parse("10s"), func() {
 		suite.sut.Stop()
@@ -176,13 +145,71 @@ func (suite *SimulationEventScheduler_Test) Test_Stop_IgnoresFollowingEvents() {
 	suite.sut.Run()
 }
 
-func (suite *SimulationEventScheduler_Test) Test_Stop_ClearsRemainingEvents() {
-	suite.sut.Schedule(duration.Parse("10s"), func() {
-		suite.sut.Stop()
-	})
+func (suite *SimulationEventScheduler_Test) Test_Reset_ClearsRemainingEvents() {
 	suite.sut.Schedule(duration.Parse("20s"), func() {
 		suite.Assert().Fail("Should not be executed as the scheduler is stopped before")
 	})
+	suite.sut.Reset()
 	suite.sut.Run()
-	suite.sut.Run()
+}
+
+func (suite *SimulationEventScheduler_Test) Test_Reset_ResumesForNewEvents() {
+	suite.sut.Schedule(time.Duration(0), func() {
+		suite.Assert().Fail("Should not be executed as the scheduler is stopped before")
+	})
+	suite.sut.Stop()
+	suite.sut.Reset()
+	isExecuted := false
+	suite.sut.Schedule(time.Duration(1), func() { isExecuted = true })
+	suite.Assert().True(suite.sut.ExecNext())
+	suite.Assert().True(isExecuted)
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_ReturnsFalseWithoutEvents() {
+	suite.Assert().False(suite.sut.ExecNext())
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_ReturnsTrueWithEvents() {
+	suite.sut.Schedule(time.Duration(0), func() {})
+	suite.Assert().True(suite.sut.ExecNext())
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_ExecutesNextEvent() {
+	isExecuted := false
+	suite.sut.Schedule(time.Duration(0), func() { isExecuted = true })
+	suite.sut.ExecNext()
+	suite.Assert().True(isExecuted)
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_ExecutesOneEvent() {
+	suite.sut.Schedule(time.Duration(0), func() {})
+	suite.sut.Schedule(time.Duration(1), func() {
+		suite.Assert().Fail("Second event should not be executed")
+	})
+	suite.Assert().True(suite.sut.ExecNext())
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_SetsTime() {
+	duration := time.Duration(1)
+	expectedExecutionTime := suite.sut.Time().Add(duration)
+	suite.sut.Schedule(duration, func() {})
+	suite.sut.ExecNext()
+	suite.Assert().Equal(expectedExecutionTime, suite.sut.Time())
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_ExecutesNotIfStopped() {
+	suite.sut.Schedule(time.Duration(0), func() {
+		suite.Assert().Fail("Event should not be executed")
+	})
+	suite.sut.Stop()
+	suite.Assert().False(suite.sut.ExecNext())
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_ExecutesNextEventIsStoppedAndResumed() {
+	isExecuted := false
+	suite.sut.Schedule(time.Duration(0), func() { isExecuted = true })
+	suite.sut.Stop()
+	suite.sut.Resume()
+	suite.sut.ExecNext()
+	suite.Assert().True(isExecuted)
 }

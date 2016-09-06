@@ -14,16 +14,33 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package mocked
 
-import (
-	"time"
+type SimulationController struct {
+	Base
+}
 
-	"github.com/straightway/straightway/general/times"
-)
+func NewSimulationController() *SimulationController {
+	result := &SimulationController{}
+	result.On("Run").Return()
+	result.On("Stop").Return()
+	result.On("Resume").Return()
+	result.On("Reset").Return()
+	return result
+}
 
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+func (m *SimulationController) Run() {
+	m.Called()
+}
+
+func (m *SimulationController) Stop() {
+	m.Called()
+}
+
+func (m *SimulationController) Resume() {
+	m.Called()
+}
+
+func (m *SimulationController) Reset() {
+	m.Called()
 }

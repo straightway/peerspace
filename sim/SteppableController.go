@@ -16,14 +16,7 @@
 
 package sim
 
-import (
-	"time"
-
-	"github.com/straightway/straightway/general/times"
-)
-
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+type SteppableController interface {
+	Controller
+	ExecNext() bool
 }

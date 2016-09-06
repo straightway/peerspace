@@ -14,14 +14,17 @@
    limitations under the License.
 ****************************************************************************/
 
-package ui
+package uic
 
 import (
 	"github.com/andlabs/ui"
+	"github.com/straightway/straightway/general/gui"
+	sui "github.com/straightway/straightway/simc/ui"
 )
 
 type MainWindow struct {
 	*ui.Window
+	Controller sui.Controller
 }
 
 func NewMainWindow() *MainWindow {
@@ -47,7 +50,7 @@ func NewMainWindow() *MainWindow {
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)
 
-	labelVCenter := NewVCenteredLabel("01.01.0000 00:00:00.000")
+	labelVCenter := gui.NewVCenteredLabel("01.01.0000 00:00:00.000")
 	commandBar.Append(labelVCenter, false)
 
 	mainArea := ui.NewHorizontalBox()

@@ -14,16 +14,14 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package uic
 
 import (
-	"time"
-
-	"github.com/straightway/straightway/general/times"
+	"github.com/andlabs/ui"
 )
 
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+type ToolkitAdapter struct{}
+
+func (this *ToolkitAdapter) Enqueue(action func()) {
+	ui.QueueMain(action)
 }

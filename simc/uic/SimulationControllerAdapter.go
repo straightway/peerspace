@@ -14,16 +14,38 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package uic
 
 import (
-	"time"
-
-	"github.com/straightway/straightway/general/times"
+	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/simc/ui"
 )
 
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+type SimulationControllerAdapter struct {
+	SimulationController sim.SteppableController
+	ToolkitAdapter       ui.ToolkitAdapter
+}
+
+func (this *SimulationControllerAdapter) Run() {
+	this.ToolkitAdapter.Enqueue(this.execNextStep)
+}
+
+func (this *SimulationControllerAdapter) Stop() {
+	this.SimulationController.Stop()
+}
+
+func (this *SimulationControllerAdapter) Resume() {
+	this.SimulationController.Resume()
+}
+
+func (this *SimulationControllerAdapter) Reset() {
+	this.SimulationController.Reset()
+}
+
+// Private
+
+func (this *SimulationControllerAdapter) execNextStep() {
+	if this.SimulationController.ExecNext() {
+		this.ToolkitAdapter.Enqueue(this.execNextStep)
+	}
 }

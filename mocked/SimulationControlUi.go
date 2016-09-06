@@ -14,16 +14,30 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package mocked
 
-import (
-	"time"
+import "github.com/stretchr/testify/mock"
 
-	"github.com/straightway/straightway/general/times"
-)
+type SimulationControlUi struct {
+	Base
+}
 
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+func NewSimulationControlUi() *SimulationControlUi {
+	result := &SimulationControlUi{}
+	result.On("SetStartEnabled", mock.Anything).Return()
+	result.On("SetStopEnabled", mock.Anything).Return()
+	result.On("SetPauseEnabled", mock.Anything).Return()
+	return result
+}
+
+func (m *SimulationControlUi) SetStartEnabled(enabled bool) {
+	m.Called(enabled)
+}
+
+func (m *SimulationControlUi) SetStopEnabled(enabled bool) {
+	m.Called(enabled)
+}
+
+func (m *SimulationControlUi) SetPauseEnabled(enabled bool) {
+	m.Called(enabled)
 }

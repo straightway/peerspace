@@ -14,16 +14,32 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package gui
 
 import (
-	"time"
-
-	"github.com/straightway/straightway/general/times"
+	"github.com/andlabs/ui"
 )
 
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+type VCenteredLabel struct {
+	ui.Control
+	label *ui.Label
+}
+
+func NewVCenteredLabel(text string) *VCenteredLabel {
+	layout := ui.NewVerticalBox()
+	result := &VCenteredLabel{
+		Control: layout,
+		label:   ui.NewLabel(text)}
+	layout.Append(ui.NewVerticalBox(), true)
+	layout.Append(result.label, false)
+	layout.Append(ui.NewVerticalBox(), true)
+	return result
+}
+
+func (this *VCenteredLabel) Text() string {
+	return this.label.Text()
+}
+
+func (this *VCenteredLabel) SetText(text string) {
+	this.label.SetText(text)
 }

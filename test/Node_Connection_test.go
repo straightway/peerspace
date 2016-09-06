@@ -48,6 +48,8 @@ func (suite *Node_Connection_Test) TearDownTest() {
 	suite.NodeContext = nil
 }
 
+// Tests
+
 func (suite *Node_Connection_Test) TestSuccessfulConnectionIsAcknowledged() {
 	peerNode := mocked.NewPeerConnector()
 	suite.node.RequestConnectionWith(peerNode)

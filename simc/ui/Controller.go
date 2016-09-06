@@ -16,30 +16,8 @@
 
 package ui
 
-import (
-	"github.com/andlabs/ui"
-)
-
-type VCenteredLabel struct {
-	ui.Control
-	label *ui.Label
-}
-
-func NewVCenteredLabel(text string) *VCenteredLabel {
-	layout := ui.NewVerticalBox()
-	result := &VCenteredLabel{
-		Control: layout,
-		label:   ui.NewLabel(text)}
-	layout.Append(ui.NewVerticalBox(), true)
-	layout.Append(result.label, false)
-	layout.Append(ui.NewVerticalBox(), true)
-	return result
-}
-
-func (this *VCenteredLabel) Text() string {
-	return this.label.Text()
-}
-
-func (this *VCenteredLabel) SetText(text string) {
-	this.label.SetText(text)
+type Controller interface {
+	Start()
+	Stop()
+	Pause()
 }

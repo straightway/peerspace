@@ -14,16 +14,22 @@
    limitations under the License.
 ****************************************************************************/
 
-package sim
+package mocked
 
-import (
-	"time"
+import "github.com/stretchr/testify/mock"
 
-	"github.com/straightway/straightway/general/times"
-)
+type UiToolkitAdapter struct {
+	Base
+	LastAction func()
+}
 
-type EventScheduler interface {
-	times.Provider
-	Schedule(duration time.Duration, action func())
-	ScheduleAbsolute(time time.Time, action func())
+func NewUiToolkitAdapter() *UiToolkitAdapter {
+	result := &UiToolkitAdapter{}
+	result.On("Enqueue", mock.Anything).Return()
+	return result
+}
+
+func (m *UiToolkitAdapter) Enqueue(action func()) {
+	m.Called(action)
+	m.LastAction = action
 }

@@ -21,14 +21,13 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationEventScheduler_Test struct {
 	suite.Suite
-	sut sim.EventScheduler
+	sut *simc.EventScheduler
 }
 
 const timeFormat = "2006-01-02 15:04:05"

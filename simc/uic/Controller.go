@@ -23,28 +23,37 @@ import (
 
 type Controller struct {
 	SimulationController sim.Controller
-	UiControl            ui.SimulationControl
+	ui                   ui.SimulationUi
+}
+
+func (this *Controller) SetUi(ui ui.SimulationUi) {
+	this.ui = ui
+	this.SimulationController.Stop()
+	this.SimulationController.Reset()
+	ui.SetStartEnabled(true)
+	ui.SetPauseEnabled(false)
+	ui.SetStopEnabled(false)
 }
 
 func (this *Controller) Start() {
-	this.UiControl.SetStartEnabled(false)
-	this.UiControl.SetPauseEnabled(true)
-	this.UiControl.SetStopEnabled(true)
+	this.ui.SetStartEnabled(false)
+	this.ui.SetPauseEnabled(true)
+	this.ui.SetStopEnabled(true)
 	this.SimulationController.Run()
 }
 
 func (this *Controller) Stop() {
-	this.UiControl.SetStartEnabled(true)
-	this.UiControl.SetPauseEnabled(false)
-	this.UiControl.SetStopEnabled(false)
+	this.ui.SetStartEnabled(true)
+	this.ui.SetPauseEnabled(false)
+	this.ui.SetStopEnabled(false)
 	this.SimulationController.Stop()
 	this.SimulationController.Reset()
 }
 
 func (this *Controller) Pause() {
-	this.UiControl.SetStartEnabled(true)
-	this.UiControl.SetPauseEnabled(false)
-	this.UiControl.SetStopEnabled(true)
+	this.ui.SetStartEnabled(true)
+	this.ui.SetPauseEnabled(false)
+	this.ui.SetStopEnabled(true)
 	this.SimulationController.Stop()
 	this.SimulationController.Resume()
 }

@@ -19,15 +19,16 @@ package main
 import (
 	goui "github.com/andlabs/ui"
 	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/simc/gui"
 	"github.com/straightway/straightway/simc/uic"
 )
 
 func main() {
 	err := goui.Main(func() {
-		mainWindow := uic.NewMainWindow()
 		eventScheduler := &simc.EventScheduler{}
-		mainWindow.Controller = &uic.Controller{
+		controller := &uic.Controller{
 			SimulationController: eventScheduler}
+		mainWindow := gui.NewMainWindow(controller)
 		mainWindow.Show()
 	})
 	if err != nil {

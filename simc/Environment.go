@@ -46,19 +46,25 @@ type Environment struct {
 	nextNodeId           uint
 	randSource           rand.Source
 	initialUser          *User
-	QueryDurationMeasure *measure.Discrete
+	queryDurationMeasure *measure.Discrete
 }
 
 func NewSimulationEnvironment(numberOfUsers int) *Environment {
 	result := &Environment{
 		randSource:           rand.NewSource(12345),
-		QueryDurationMeasure: &measure.Discrete{}}
+		queryDurationMeasure: &measure.Discrete{}}
 	result.createSeedNode()
 	for i := 0; i < numberOfUsers; i++ {
 		result.addNewUser()
 	}
 	return result
 }
+
+func (this *Environment) QueryDurationMeasure() *measure.Discrete {
+	return this.queryDurationMeasure
+}
+
+// Private
 
 func (this *Environment) Audience() []sim.DataConsumer {
 	result := make([]sim.DataConsumer, len(this.users), len(this.users))
@@ -92,7 +98,7 @@ func (this *Environment) createUser() *User {
 		NodeInstance:         node,
 		StartupDuration:      randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
 		OnlineDuration:       randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h")),
-		QuerySampleCollector: this.QueryDurationMeasure}
+		QuerySampleCollector: this.queryDurationMeasure}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser

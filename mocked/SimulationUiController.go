@@ -14,14 +14,28 @@
    limitations under the License.
 ****************************************************************************/
 
-package uic
+package mocked
 
-import (
-	"github.com/andlabs/ui"
-)
+type SimulationUiController struct {
+	Base
+}
 
-type ToolkitAdapter struct{}
+func NewSimulationUiController() *SimulationUiController {
+	result := &SimulationUiController{}
+	result.On("Start").Return()
+	result.On("Stop").Return()
+	result.On("Pause").Return()
+	return result
+}
 
-func (this *ToolkitAdapter) Enqueue(action func()) {
-	ui.QueueMain(action)
+func (m *SimulationUiController) Start() {
+	m.Called()
+}
+
+func (m *SimulationUiController) Stop() {
+	m.Called()
+}
+
+func (m *SimulationUiController) Pause() {
+	m.Called()
 }

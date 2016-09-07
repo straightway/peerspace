@@ -28,7 +28,7 @@ type SimulationUiController_Test struct {
 	suite.Suite
 	sut                  *uic.Controller
 	simulationController *mocked.SimulationController
-	uiControl            *mocked.SimulationControlUi
+	ui                   *mocked.SimulationUi
 }
 
 func TestSimulationUiController(t *testing.T) {
@@ -37,16 +37,18 @@ func TestSimulationUiController(t *testing.T) {
 
 func (suite *SimulationUiController_Test) SetupTest() {
 	suite.simulationController = mocked.NewSimulationController()
-	suite.uiControl = mocked.NewSimulationControlUi()
+	suite.ui = mocked.NewSimulationUi()
 	suite.sut = &uic.Controller{
-		SimulationController: suite.simulationController,
-		UiControl:            suite.uiControl}
+		SimulationController: suite.simulationController}
+	suite.sut.SetUi(suite.ui)
+	suite.ui.Calls = nil
+	suite.simulationController.Calls = nil
 }
 
 func (suite *SimulationUiController_Test) TearDownTest() {
 	suite.sut = nil
 	suite.simulationController = nil
-	suite.uiControl = nil
+	suite.ui = nil
 }
 
 // Tests
@@ -58,9 +60,9 @@ func (suite *SimulationUiController_Test) Test_Start_StartsSimulation() {
 
 func (suite *SimulationUiController_Test) Test_Start_SetsButtonStates() {
 	suite.sut.Start()
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetStartEnabled", false)
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetPauseEnabled", true)
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetStopEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", true)
 }
 
 func (suite *SimulationUiController_Test) Test_Stop_StopsAndResetsSimulation() {
@@ -71,9 +73,9 @@ func (suite *SimulationUiController_Test) Test_Stop_StopsAndResetsSimulation() {
 
 func (suite *SimulationUiController_Test) Test_Stop_SetsButtonStates() {
 	suite.sut.Stop()
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
 }
 
 func (suite *SimulationUiController_Test) Test_Pause_StopsAndResumesSimulation() {
@@ -84,7 +86,20 @@ func (suite *SimulationUiController_Test) Test_Pause_StopsAndResumesSimulation()
 
 func (suite *SimulationUiController_Test) Test_Pause_SetsButtonStates() {
 	suite.sut.Pause()
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
-	suite.uiControl.AssertCalledOnce(suite.T(), "SetStopEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", true)
+}
+
+func (suite *SimulationUiController_Test) Test_SetUi_StopsSimulation() {
+	suite.sut.SetUi(suite.ui)
+	suite.simulationController.AssertCalledOnce(suite.T(), "Stop")
+	suite.simulationController.AssertCalledOnce(suite.T(), "Reset")
+}
+
+func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialButtonStates() {
+	suite.sut.SetUi(suite.ui)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
 }

@@ -14,10 +14,14 @@
    limitations under the License.
 ****************************************************************************/
 
-package ui
+package gui
 
-type SimulationControl interface {
-	SetStartEnabled(enabled bool)
-	SetStopEnabled(enabled bool)
-	SetPauseEnabled(enabled bool)
+import (
+	"github.com/andlabs/ui"
+)
+
+type ToolkitAdapter struct{}
+
+func (this *ToolkitAdapter) Enqueue(action func()) {
+	ui.QueueMain(action)
 }

@@ -18,26 +18,26 @@ package mocked
 
 import "github.com/stretchr/testify/mock"
 
-type SimulationControlUi struct {
+type SimulationUi struct {
 	Base
 }
 
-func NewSimulationControlUi() *SimulationControlUi {
-	result := &SimulationControlUi{}
+func NewSimulationUi() *SimulationUi {
+	result := &SimulationUi{}
 	result.On("SetStartEnabled", mock.Anything).Return()
 	result.On("SetStopEnabled", mock.Anything).Return()
 	result.On("SetPauseEnabled", mock.Anything).Return()
 	return result
 }
 
-func (m *SimulationControlUi) SetStartEnabled(enabled bool) {
+func (m *SimulationUi) SetStartEnabled(enabled bool) {
 	m.Called(enabled)
 }
 
-func (m *SimulationControlUi) SetStopEnabled(enabled bool) {
+func (m *SimulationUi) SetStopEnabled(enabled bool) {
 	m.Called(enabled)
 }
 
-func (m *SimulationControlUi) SetPauseEnabled(enabled bool) {
+func (m *SimulationUi) SetPauseEnabled(enabled bool) {
 	m.Called(enabled)
 }

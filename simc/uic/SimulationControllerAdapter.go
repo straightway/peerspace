@@ -17,8 +17,8 @@
 package uic
 
 import (
+	"github.com/straightway/straightway/general/ui"
 	"github.com/straightway/straightway/sim"
-	"github.com/straightway/straightway/simc/ui"
 )
 
 type SimulationControllerAdapter struct {

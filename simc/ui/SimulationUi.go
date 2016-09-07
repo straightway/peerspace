@@ -14,19 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package ui
 
-import (
-	"fmt"
-	"testing"
-
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
-)
-
-func TestSimulationEnvironment(t *testing.T) {
-	env := simc.NewSimulationEnvironment(5)
-	env.Scheduler.Schedule(duration.Parse("240h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
-	fmt.Printf("query duration: %v\n", env.QueryDurationMeasure())
+type SimulationUi interface {
+	SetStartEnabled(enabled bool)
+	SetStopEnabled(enabled bool)
+	SetPauseEnabled(enabled bool)
 }

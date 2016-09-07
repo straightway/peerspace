@@ -26,7 +26,7 @@ import (
 
 func TestSimulationEnvironment(t *testing.T) {
 	env := simc.NewSimulationEnvironment(5)
-	env.Scheduler.Schedule(duration.Parse("240h"), func() { env.Scheduler.Stop() })
-	env.Scheduler.Run()
+	env.Scheduler().Schedule(duration.Parse("240h"), func() { env.Controller().Stop() })
+	env.Controller().Run()
 	fmt.Printf("query duration: %v\n", env.QueryDurationMeasure())
 }

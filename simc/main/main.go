@@ -25,6 +25,7 @@ import (
 
 func main() {
 	err := goui.Main(func() {
+		environment := simc.NewSimulationEnvironment(100)
 		eventScheduler := &simc.EventScheduler{}
 		controller := &uic.Controller{
 			SimulationController: eventScheduler}

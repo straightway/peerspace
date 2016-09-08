@@ -18,6 +18,7 @@ package mocked
 
 type SimulationController struct {
 	Base
+	ExecEventHandlers []func()
 }
 
 func NewSimulationController() *SimulationController {
@@ -26,6 +27,7 @@ func NewSimulationController() *SimulationController {
 	result.On("Stop").Return()
 	result.On("Resume").Return()
 	result.On("Reset").Return()
+	result.On("RegisterForExecEvent").Return()
 	return result
 }
 
@@ -43,4 +45,9 @@ func (m *SimulationController) Resume() {
 
 func (m *SimulationController) Reset() {
 	m.Called()
+}
+
+func (m *SimulationController) RegisterForExecEvent(callback func()) {
+	m.Called()
+	m.ExecEventHandlers = append(m.ExecEventHandlers, callback)
 }

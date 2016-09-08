@@ -16,7 +16,11 @@
 
 package mocked
 
-import "github.com/stretchr/testify/mock"
+import (
+	"time"
+
+	"github.com/stretchr/testify/mock"
+)
 
 type SimulationUi struct {
 	Base
@@ -27,6 +31,7 @@ func NewSimulationUi() *SimulationUi {
 	result.On("SetStartEnabled", mock.Anything).Return()
 	result.On("SetStopEnabled", mock.Anything).Return()
 	result.On("SetPauseEnabled", mock.Anything).Return()
+	result.On("SetSimulationTime", mock.Anything).Return()
 	return result
 }
 
@@ -40,4 +45,8 @@ func (m *SimulationUi) SetStopEnabled(enabled bool) {
 
 func (m *SimulationUi) SetPauseEnabled(enabled bool) {
 	m.Called(enabled)
+}
+
+func (m *SimulationUi) SetSimulationTime(time time.Time) {
+	m.Called(time)
 }

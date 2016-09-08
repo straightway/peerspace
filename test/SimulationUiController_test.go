@@ -18,17 +18,20 @@ package test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/simc/ui"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/stretchr/testify/suite"
 )
 
 type SimulationUiController_Test struct {
 	suite.Suite
-	sut                  *uic.Controller
-	simulationController *mocked.SimulationController
+	sut                  ui.Controller
+	simulationController *mocked.SimulationSteppableController
 	ui                   *mocked.SimulationUi
+	timeProvider         *mocked.Timer
 }
 
 func TestSimulationUiController(t *testing.T) {
@@ -36,10 +39,10 @@ func TestSimulationUiController(t *testing.T) {
 }
 
 func (suite *SimulationUiController_Test) SetupTest() {
-	suite.simulationController = mocked.NewSimulationController()
+	suite.timeProvider = &mocked.Timer{CurrentTime: time.Unix(123456, 0).In(time.UTC)}
+	suite.simulationController = mocked.NewSimulationSteppableController()
 	suite.ui = mocked.NewSimulationUi()
-	suite.sut = &uic.Controller{
-		SimulationController: suite.simulationController}
+	suite.sut = uic.NewController(suite.timeProvider, suite.simulationController)
 	suite.sut.SetUi(suite.ui)
 	suite.ui.Calls = nil
 	suite.simulationController.Calls = nil
@@ -49,9 +52,19 @@ func (suite *SimulationUiController_Test) TearDownTest() {
 	suite.sut = nil
 	suite.simulationController = nil
 	suite.ui = nil
+	suite.timeProvider = nil
 }
 
 // Tests
+
+func (suite *SimulationUiController_Test) TestConstructorConnectsToSimControllersExecEvent() {
+	suite.Assert().NotEmpty(suite.simulationController.ExecEventHandlers)
+}
+
+func (suite *SimulationUiController_Test) TestSimControllersExecEventTriggerSimulationTimeUpdate() {
+	suite.simulationController.ExecEventHandlers[0]()
+	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.Time())
+}
 
 func (suite *SimulationUiController_Test) Test_Start_StartsSimulation() {
 	suite.sut.Start()
@@ -103,3 +116,18 @@ func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialButtonStates() {
 	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
 	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
 }
+
+// TODO
+/*
+func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialSimulationTime() {
+	suite.sut.SetUi(suite.ui)
+	currentTime := time.Unix(123456, 0).In(time.UTC)
+	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", currentTime)
+}
+
+func (suite *SimulationUiController_Test) Test_SetCurrentTime_SetSimulationTimeInUi() {
+	currentTime := time.Unix(123456, 0).In(time.UTC)
+	suite.sut.SetCurrentTime(currentTime)
+	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", currentTime)
+}
+*/

@@ -18,6 +18,7 @@ package test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/simc/uic"
@@ -32,6 +33,7 @@ type SimulationControllerAdapterTest struct {
 	sut                  *uic.SimulationControllerAdapter
 	simulationController *mocked.SimulationSteppableController
 	uiToolkitAdapter     *mocked.UiToolkitAdapter
+	timeProvider         *mocked.Timer
 }
 
 func TestSimulationControllerAdapter(t *testing.T) {
@@ -41,9 +43,11 @@ func TestSimulationControllerAdapter(t *testing.T) {
 func (suite *SimulationControllerAdapterTest) SetupTest() {
 	suite.uiToolkitAdapter = mocked.NewUiToolkitAdapter()
 	suite.simulationController = mocked.NewSimulationSteppableController()
+	suite.timeProvider = &mocked.Timer{CurrentTime: time.Unix(123456, 0).In(time.UTC)}
 	suite.sut = &uic.SimulationControllerAdapter{
 		SimulationController: suite.simulationController,
-		ToolkitAdapter:       suite.uiToolkitAdapter}
+		ToolkitAdapter:       suite.uiToolkitAdapter,
+		TimeProvider:         suite.timeProvider}
 }
 
 func (suite *SimulationControllerAdapterTest) TearDownTest() {
@@ -63,6 +67,12 @@ func (suite *SimulationControllerAdapterTest) TestEnqueuedActionExecutesNextSimu
 	suite.sut.Run()
 	suite.uiToolkitAdapter.LastAction()
 	suite.simulationController.AssertCalledOnce(suite.T(), "ExecNext")
+}
+
+func (suite *SimulationControllerAdapterTest) TestEnqueuedActionNotifiesTimeUpdater() {
+	suite.sut.Run()
+	suite.uiToolkitAdapter.LastAction()
+	// TODO	suite.timeUpdater.AssertCalledOnce(suite.T(), "SetCurrentTime", suite.timeProvider.CurrentTime)
 }
 
 func (suite *SimulationControllerAdapterTest) TestEnqueuedActionEnqueuesNextActionIfNextSimulationEventExists() {
@@ -93,4 +103,13 @@ func (suite *SimulationControllerAdapterTest) TestResumeResumesController() {
 func (suite *SimulationControllerAdapterTest) TestResetResetsController() {
 	suite.sut.Reset()
 	suite.simulationController.AssertCalledOnce(suite.T(), "Reset")
+}
+
+func (suite *SimulationControllerAdapterTest) TestRegisterForExecEventIsForwardedToController() {
+	callbackExecutions := 0
+	suite.sut.RegisterForExecEvent(func() { callbackExecutions++ })
+	suite.simulationController.AssertCalledOnce(suite.T(), "RegisterForExecEvent")
+	suite.Assert().Equal(1, len(suite.simulationController.ExecEventHandlers))
+	suite.simulationController.ExecEventHandlers[0]()
+	suite.Assert().Equal(1, callbackExecutions)
 }

@@ -17,6 +17,8 @@
 package gui
 
 import (
+	"time"
+
 	"github.com/andlabs/ui"
 	"github.com/straightway/straightway/general/gui"
 	sui "github.com/straightway/straightway/simc/ui"
@@ -24,10 +26,11 @@ import (
 
 type MainWindow struct {
 	*ui.Window
-	controller  sui.Controller
-	startButton *ui.Button
-	stopButton  *ui.Button
-	pauseButton *ui.Button
+	controller            sui.Controller
+	startButton           *ui.Button
+	stopButton            *ui.Button
+	pauseButton           *ui.Button
+	simulationTimeDisplay *gui.VCenteredLabel
 }
 
 func NewMainWindow(controller sui.Controller) *MainWindow {
@@ -46,6 +49,10 @@ func (this *MainWindow) SetStopEnabled(enabled bool) {
 
 func (this *MainWindow) SetPauseEnabled(enabled bool) {
 	setEnabled(this.pauseButton, enabled)
+}
+
+func (this *MainWindow) SetSimulationTime(time time.Time) {
+	this.simulationTimeDisplay.SetText(time.String())
 }
 
 // Event handlers
@@ -87,8 +94,8 @@ func (this *MainWindow) init() {
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)
 
-	simulationTimeDisplay := gui.NewVCenteredLabel("01.01.0000 00:00:00.000")
-	commandBar.Append(simulationTimeDisplay, false)
+	this.simulationTimeDisplay = gui.NewVCenteredLabel("01.01.0000 00:00:00.000")
+	commandBar.Append(this.simulationTimeDisplay, false)
 
 	mainArea := ui.NewHorizontalBox()
 	mainLayout.Append(mainArea, true)

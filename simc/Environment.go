@@ -64,7 +64,7 @@ func (this *Environment) Scheduler() sim.EventScheduler {
 	return &this.scheduler
 }
 
-func (this *Environment) Controller() sim.Controller {
+func (this *Environment) Controller() sim.SteppableController {
 	return &this.scheduler
 }
 

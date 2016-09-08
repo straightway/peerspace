@@ -17,6 +17,7 @@
 package uic
 
 import (
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/general/ui"
 	"github.com/straightway/straightway/sim"
 )
@@ -24,6 +25,7 @@ import (
 type SimulationControllerAdapter struct {
 	SimulationController sim.SteppableController
 	ToolkitAdapter       ui.ToolkitAdapter
+	TimeProvider         times.Provider
 }
 
 func (this *SimulationControllerAdapter) Run() {
@@ -40,6 +42,10 @@ func (this *SimulationControllerAdapter) Resume() {
 
 func (this *SimulationControllerAdapter) Reset() {
 	this.SimulationController.Reset()
+}
+
+func (this SimulationControllerAdapter) RegisterForExecEvent(callback func()) {
+	this.SimulationController.RegisterForExecEvent(callback)
 }
 
 // Private

@@ -16,8 +16,11 @@
 
 package ui
 
+import "time"
+
 type SimulationUi interface {
 	SetStartEnabled(enabled bool)
 	SetStopEnabled(enabled bool)
 	SetPauseEnabled(enabled bool)
+	SetSimulationTime(time time.Time)
 }

@@ -17,18 +17,21 @@
 package main
 
 import (
-	goui "github.com/andlabs/ui"
+	"github.com/andlabs/ui"
+	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/gui"
 	"github.com/straightway/straightway/simc/uic"
 )
 
 func main() {
-	err := goui.Main(func() {
+	err := ui.Main(func() {
 		environment := simc.NewSimulationEnvironment(100)
-		eventScheduler := &simc.EventScheduler{}
-		controller := &uic.Controller{
-			SimulationController: eventScheduler}
+		eventControllerAdapter := &uic.SimulationControllerAdapter{
+			SimulationController: environment.Controller(),
+			ToolkitAdapter:       &ggui.ToolkitAdapter{},
+			TimeProvider:         environment.Scheduler()}
+		controller := uic.NewController(environment.Scheduler(), eventControllerAdapter)
 		mainWindow := gui.NewMainWindow(controller)
 		mainWindow.Show()
 	})

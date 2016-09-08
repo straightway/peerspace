@@ -168,11 +168,24 @@ func (suite *SimulationEventScheduler_Test) Test_ExecNext_ReturnsFalseWithoutEve
 	suite.Assert().False(suite.sut.ExecNext())
 }
 
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_TriggersNoExecEventWithoutSimulationEvents() {
+	suite.sut.RegisterForExecEvent(func() { suite.Fail("Unexpected event") })
+	suite.Assert().NotPanics(func() { suite.sut.ExecNext() })
+}
+
 func (suite *SimulationEventScheduler_Test) Test_ExecNext_ReturnsTrueWithEvents() {
 	suite.sut.Schedule(time.Duration(0), func() {})
 	suite.Assert().True(suite.sut.ExecNext())
 }
 
+func (suite *SimulationEventScheduler_Test) Test_ExecNext_TriggersExecEventWithSimulationEvents() {
+	execEventHandlerCalls := 0
+	suite.sut.RegisterForExecEvent(func() { execEventHandlerCalls++ })
+	suite.sut.RegisterForExecEvent(func() { execEventHandlerCalls++ })
+	suite.sut.Schedule(time.Duration(0), func() {})
+	suite.sut.ExecNext()
+	suite.Assert().Equal(2, execEventHandlerCalls)
+}
 func (suite *SimulationEventScheduler_Test) Test_ExecNext_ExecutesNextEvent() {
 	isExecuted := false
 	suite.sut.Schedule(time.Duration(0), func() { isExecuted = true })

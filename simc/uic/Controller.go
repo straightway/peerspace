@@ -17,43 +17,65 @@
 package uic
 
 import (
+	"time"
+
+	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc/ui"
 )
 
 type Controller struct {
-	SimulationController sim.Controller
+	simulationController sim.Controller
 	ui                   ui.SimulationUi
+	timeProvider         times.Provider
+}
+
+func NewController(
+	timeProvider times.Provider,
+	simulationController sim.Controller) ui.Controller {
+	result := &Controller{
+		simulationController: simulationController,
+		timeProvider:         timeProvider}
+	simulationController.RegisterForExecEvent(result.onExecEvent)
+	return result
+}
+
+func (this *Controller) onExecEvent() {
+	this.ui.SetSimulationTime(this.timeProvider.Time())
 }
 
 func (this *Controller) SetUi(ui ui.SimulationUi) {
 	this.ui = ui
-	this.SimulationController.Stop()
-	this.SimulationController.Reset()
+	this.simulationController.Stop()
+	this.simulationController.Reset()
 	ui.SetStartEnabled(true)
 	ui.SetPauseEnabled(false)
 	ui.SetStopEnabled(false)
+}
+
+func (this *Controller) SetCurrentTime(time time.Time) {
+	this.ui.SetSimulationTime(time)
 }
 
 func (this *Controller) Start() {
 	this.ui.SetStartEnabled(false)
 	this.ui.SetPauseEnabled(true)
 	this.ui.SetStopEnabled(true)
-	this.SimulationController.Run()
+	this.simulationController.Run()
 }
 
 func (this *Controller) Stop() {
 	this.ui.SetStartEnabled(true)
 	this.ui.SetPauseEnabled(false)
 	this.ui.SetStopEnabled(false)
-	this.SimulationController.Stop()
-	this.SimulationController.Reset()
+	this.simulationController.Stop()
+	this.simulationController.Reset()
 }
 
 func (this *Controller) Pause() {
 	this.ui.SetStartEnabled(true)
 	this.ui.SetPauseEnabled(false)
 	this.ui.SetStopEnabled(true)
-	this.SimulationController.Stop()
-	this.SimulationController.Resume()
+	this.simulationController.Stop()
+	this.simulationController.Resume()
 }

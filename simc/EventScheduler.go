@@ -22,9 +22,10 @@ import (
 )
 
 type EventScheduler struct {
-	currentTime time.Time
-	events      []event
-	isStopped   bool
+	currentTime       time.Time
+	events            []event
+	isStopped         bool
+	execEventHandlers []func()
 }
 
 type event struct {
@@ -67,6 +68,10 @@ func (this *EventScheduler) ExecNext() bool {
 	event := this.popEvent()
 	this.execute(event)
 
+	for _, h := range this.execEventHandlers {
+		h()
+	}
+
 	return true
 }
 
@@ -81,6 +86,10 @@ func (this *EventScheduler) Resume() {
 func (this *EventScheduler) Reset() {
 	this.events = nil
 	this.Resume()
+}
+
+func (this *EventScheduler) RegisterForExecEvent(callback func()) {
+	this.execEventHandlers = append(this.execEventHandlers, callback)
 }
 
 // Private

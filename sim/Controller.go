@@ -21,4 +21,5 @@ type Controller interface {
 	Stop()
 	Resume()
 	Reset()
+	RegisterForExecEvent(callback func())
 }

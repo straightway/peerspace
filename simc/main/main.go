@@ -20,8 +20,8 @@ import (
 	"github.com/andlabs/ui"
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
-	"github.com/straightway/straightway/simc/gui"
 	"github.com/straightway/straightway/simc/uic"
+	"github.com/straightway/straightway/simc/uic/gui"
 )
 
 func main() {

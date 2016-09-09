@@ -41,7 +41,7 @@ const (
 )
 
 type Environment struct {
-	scheduler            EventScheduler
+	scheduler            sim.EventScheduler
 	users                []*User
 	nextNodeId           uint
 	randSource           rand.Source
@@ -49,8 +49,11 @@ type Environment struct {
 	queryDurationMeasure *measure.Discrete
 }
 
-func NewSimulationEnvironment(numberOfUsers int) *Environment {
+func NewSimulationEnvironment(
+	scheduler sim.EventScheduler,
+	numberOfUsers int) *Environment {
 	result := &Environment{
+		scheduler:            scheduler,
 		randSource:           rand.NewSource(12345),
 		queryDurationMeasure: &measure.Discrete{}}
 	result.createSeedNode()
@@ -58,14 +61,6 @@ func NewSimulationEnvironment(numberOfUsers int) *Environment {
 		result.addNewUser()
 	}
 	return result
-}
-
-func (this *Environment) Scheduler() sim.EventScheduler {
-	return &this.scheduler
-}
-
-func (this *Environment) Controller() sim.SteppableController {
-	return &this.scheduler
 }
 
 func (this *Environment) QueryDurationMeasure() *measure.Discrete {
@@ -91,7 +86,7 @@ func (this *Environment) addNewUser() *User {
 func (this *Environment) createSeedNode() {
 	node, _, _ := this.createNode()
 	this.initialUser = &User{
-		SchedulerInstance: &this.scheduler,
+		SchedulerInstance: this.scheduler,
 		NodeInstance:      node,
 		StartupDuration:   randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
 		OnlineDuration:    randvar.NewNormalDuration(this.randSource, time.Duration(-1), time.Duration(0)),
@@ -102,7 +97,7 @@ func (this *Environment) createSeedNode() {
 func (this *Environment) createUser() *User {
 	node, configuration, rawStorage := this.createNode()
 	newUser := &User{
-		SchedulerInstance:    &this.scheduler,
+		SchedulerInstance:    this.scheduler,
 		NodeInstance:         node,
 		StartupDuration:      randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
 		OnlineDuration:       randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h")),
@@ -118,7 +113,7 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 	configuration := app.DefaultConfiguration()
 	peerDistanceRelated := &strategy.PeerDistanceRelated{
 		LocalPeerId: nodeId,
-		Timer:       &this.scheduler,
+		Timer:       this.scheduler,
 		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
 	dataStorage, rawStorage := this.createDataStorage(peerDistanceRelated)
 	stateStorage := this.createStateStorage(rawStorage)
@@ -127,7 +122,7 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 		StateStorage:         stateStorage,
 		DataStorage:          dataStorage,
 		AnnouncementStrategy: this.createAnnouncementStrategy(configuration, stateStorage),
-		Timer:                &this.scheduler,
+		Timer:                this.scheduler,
 		Configuration:        configuration}
 	newNode.DataStrategy = this.createDataStrategy(configuration, peerDistanceRelated, newNode)
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
@@ -140,7 +135,7 @@ func (this *Environment) createStateStorage(rawStorage data.RawStorage) peer.Sta
 	if 0 < len(this.users) {
 		networkAccessedNode := &NetworkPeerConnector{
 			Wrapped:        this.initialUser.Node(),
-			EventScheduler: &this.scheduler,
+			EventScheduler: this.scheduler,
 			RawStorage:     rawStorage,
 			Latency:        duration.Parse("50ms"),
 			Bandwidth:      1024 * 1024}
@@ -154,7 +149,7 @@ func (this *Environment) createDataStorage(
 	priorityGenerator data.PriorityGenerator) (dataStorage data.Storage, rawStorage *RawStorage) {
 	rawStorage = &RawStorage{
 		FreeStorageValue: 2 * gb,
-		Timer:            &this.scheduler}
+		Timer:            this.scheduler}
 	dataStorage = &datac.Storage{
 		PriorityGenerator: priorityGenerator,
 		RawStorage:        rawStorage}

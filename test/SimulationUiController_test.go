@@ -118,16 +118,15 @@ func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialButtonStates() {
 }
 
 // TODO
-/*
+
 func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialSimulationTime() {
+	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
 	suite.sut.SetUi(suite.ui)
-	currentTime := time.Unix(123456, 0).In(time.UTC)
-	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", currentTime)
+	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)
 }
 
-func (suite *SimulationUiController_Test) Test_SetCurrentTime_SetSimulationTimeInUi() {
-	currentTime := time.Unix(123456, 0).In(time.UTC)
-	suite.sut.SetCurrentTime(currentTime)
-	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", currentTime)
+func (suite *SimulationUiController_Test) Test_ResgisteredEventHandler_SetSimulationTimeInUi() {
+	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
+	suite.simulationController.ExecEventHandlers[0]()
+	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)
 }
-*/

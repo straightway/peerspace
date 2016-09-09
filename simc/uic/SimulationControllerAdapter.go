@@ -26,9 +26,14 @@ type SimulationControllerAdapter struct {
 	SimulationController sim.SteppableController
 	ToolkitAdapter       ui.ToolkitAdapter
 	TimeProvider         times.Provider
+	EnvironmentFactory   func() interface{}
+	environment          interface{}
 }
 
 func (this *SimulationControllerAdapter) Run() {
+	if this.environment == nil {
+		this.environment = this.EnvironmentFactory()
+	}
 	this.ToolkitAdapter.Enqueue(this.execNextStep)
 }
 
@@ -41,6 +46,7 @@ func (this *SimulationControllerAdapter) Resume() {
 }
 
 func (this *SimulationControllerAdapter) Reset() {
+	this.environment = nil
 	this.SimulationController.Reset()
 }
 

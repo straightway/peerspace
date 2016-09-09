@@ -26,12 +26,13 @@ import (
 
 func main() {
 	err := ui.Main(func() {
-		environment := simc.NewSimulationEnvironment(100)
+		scheduler := &simc.EventScheduler{}
 		eventControllerAdapter := &uic.SimulationControllerAdapter{
-			SimulationController: environment.Controller(),
+			SimulationController: scheduler,
 			ToolkitAdapter:       &ggui.ToolkitAdapter{},
-			TimeProvider:         environment.Scheduler()}
-		controller := uic.NewController(environment.Scheduler(), eventControllerAdapter)
+			TimeProvider:         scheduler,
+			EnvironmentFactory:   func() interface{} { return simc.NewSimulationEnvironment(scheduler, 100) }}
+		controller := uic.NewController(scheduler, eventControllerAdapter)
 		mainWindow := gui.NewMainWindow(controller)
 		mainWindow.Show()
 	})

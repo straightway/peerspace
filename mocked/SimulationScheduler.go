@@ -14,20 +14,36 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package mocked
 
 import (
-	"fmt"
-	"testing"
+	"time"
 
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestSimulationEnvironment(t *testing.T) {
-	scheduler := &simc.EventScheduler{}
-	env := simc.NewSimulationEnvironment(scheduler, 5)
-	scheduler.Schedule(duration.Parse("240h"), func() { scheduler.Stop() })
-	scheduler.Run()
-	fmt.Printf("query duration: %v\n", env.QueryDurationMeasure())
+type SimulationScheduler struct {
+	Base
+	CurrentTime time.Time
+}
+
+func NewSimulationScheduler() *SimulationScheduler {
+	result := &SimulationScheduler{}
+	result.On("Schedule", mock.Anything, mock.Anything).Return()
+	result.On("ScheduleAbsolute", mock.Anything, mock.Anything).Return()
+	result.On("Time").Return()
+	return result
+}
+
+func (m *SimulationScheduler) Schedule(duration time.Duration, action func()) {
+	m.Called(duration, action)
+}
+
+func (m *SimulationScheduler) ScheduleAbsolute(time time.Time, action func()) {
+	m.Called(time, action)
+}
+
+func (m *SimulationScheduler) Time() time.Time {
+	m.Called()
+	return m.CurrentTime
 }

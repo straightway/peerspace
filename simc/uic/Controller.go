@@ -17,8 +17,6 @@
 package uic
 
 import (
-	"time"
-
 	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc/ui"
@@ -51,10 +49,7 @@ func (this *Controller) SetUi(ui ui.SimulationUi) {
 	ui.SetStartEnabled(true)
 	ui.SetPauseEnabled(false)
 	ui.SetStopEnabled(false)
-}
-
-func (this *Controller) SetCurrentTime(time time.Time) {
-	this.ui.SetSimulationTime(time)
+	ui.SetSimulationTime(this.timeProvider.Time())
 }
 
 func (this *Controller) Start() {

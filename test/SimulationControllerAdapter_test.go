@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/mocked"
+	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -32,8 +33,9 @@ type SimulationControllerAdapterTest struct {
 	suite.Suite
 	sut                  *uic.SimulationControllerAdapter
 	simulationController *mocked.SimulationSteppableController
+	simulationScheduler  *mocked.SimulationScheduler
 	uiToolkitAdapter     *mocked.UiToolkitAdapter
-	timeProvider         *mocked.Timer
+	environmentFactory   func() interface{}
 }
 
 func TestSimulationControllerAdapter(t *testing.T) {
@@ -43,11 +45,16 @@ func TestSimulationControllerAdapter(t *testing.T) {
 func (suite *SimulationControllerAdapterTest) SetupTest() {
 	suite.uiToolkitAdapter = mocked.NewUiToolkitAdapter()
 	suite.simulationController = mocked.NewSimulationSteppableController()
-	suite.timeProvider = &mocked.Timer{CurrentTime: time.Unix(123456, 0).In(time.UTC)}
+	suite.simulationScheduler = mocked.NewSimulationScheduler()
+	suite.simulationScheduler.CurrentTime = time.Unix(123456, 0).In(time.UTC)
 	suite.sut = &uic.SimulationControllerAdapter{
 		SimulationController: suite.simulationController,
 		ToolkitAdapter:       suite.uiToolkitAdapter,
-		TimeProvider:         suite.timeProvider}
+		TimeProvider:         suite.simulationScheduler,
+		EnvironmentFactory:   func() interface{} { return suite.environmentFactory() }}
+	suite.environmentFactory = func() interface{} {
+		return simc.NewSimulationEnvironment(suite.simulationScheduler, 1)
+	}
 }
 
 func (suite *SimulationControllerAdapterTest) TearDownTest() {
@@ -67,12 +74,6 @@ func (suite *SimulationControllerAdapterTest) TestEnqueuedActionExecutesNextSimu
 	suite.sut.Run()
 	suite.uiToolkitAdapter.LastAction()
 	suite.simulationController.AssertCalledOnce(suite.T(), "ExecNext")
-}
-
-func (suite *SimulationControllerAdapterTest) TestEnqueuedActionNotifiesTimeUpdater() {
-	suite.sut.Run()
-	suite.uiToolkitAdapter.LastAction()
-	// TODO	suite.timeUpdater.AssertCalledOnce(suite.T(), "SetCurrentTime", suite.timeProvider.CurrentTime)
 }
 
 func (suite *SimulationControllerAdapterTest) TestEnqueuedActionEnqueuesNextActionIfNextSimulationEventExists() {
@@ -112,4 +113,28 @@ func (suite *SimulationControllerAdapterTest) TestRegisterForExecEventIsForwarde
 	suite.Assert().Equal(1, len(suite.simulationController.ExecEventHandlers))
 	suite.simulationController.ExecEventHandlers[0]()
 	suite.Assert().Equal(1, callbackExecutions)
+}
+
+func (suite *SimulationControllerAdapterTest) TestFirstRunCallCreatesEnvironment() {
+	wasCalled := false
+	suite.environmentFactory = func() interface{} { wasCalled = true; return nil }
+	suite.sut.Run()
+	suite.Assert().True(wasCalled)
+}
+
+func (suite *SimulationControllerAdapterTest) TestSecondRunCallDoesNotCreateEnvironment() {
+	suite.sut.Run()
+	wasCalled := false
+	suite.environmentFactory = func() interface{} { wasCalled = true; return nil }
+	suite.sut.Run()
+	suite.Assert().False(wasCalled)
+}
+
+func (suite *SimulationControllerAdapterTest) TestRunResetRunCreatesEnvironment() {
+	suite.sut.Run()
+	suite.sut.Reset()
+	wasCalled := false
+	suite.environmentFactory = func() interface{} { wasCalled = true; return nil }
+	suite.sut.Run()
+	suite.Assert().True(wasCalled)
 }

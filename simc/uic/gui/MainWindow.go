@@ -94,7 +94,7 @@ func (this *MainWindow) init() {
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)
 
-	this.simulationTimeDisplay = gui.NewVCenteredLabel("01.01.0000 00:00:00.000")
+	this.simulationTimeDisplay = gui.NewVCenteredLabel("")
 	commandBar.Append(this.simulationTimeDisplay, false)
 
 	mainArea := ui.NewHorizontalBox()

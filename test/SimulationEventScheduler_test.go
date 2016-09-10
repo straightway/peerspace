@@ -164,6 +164,13 @@ func (suite *SimulationEventScheduler_Test) Test_Reset_ResumesForNewEvents() {
 	suite.Assert().True(isExecuted)
 }
 
+func (suite *SimulationEventScheduler_Test) Test_Reset_ResetsSimulationTime() {
+	suite.sut.Schedule(duration.Parse("20s"), func() {})
+	suite.sut.Run()
+	suite.sut.Reset()
+	suite.Assert().Equal(time.Time{}.In(time.UTC), suite.sut.Time())
+}
+
 func (suite *SimulationEventScheduler_Test) Test_ExecNext_ReturnsFalseWithoutEvents() {
 	suite.Assert().False(suite.sut.ExecNext())
 }

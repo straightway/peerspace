@@ -85,6 +85,7 @@ func (this *EventScheduler) Resume() {
 
 func (this *EventScheduler) Reset() {
 	this.events = nil
+	this.currentTime = time.Time{}
 	this.Resume()
 }
 

@@ -52,7 +52,7 @@ func (this *MainWindow) SetPauseEnabled(enabled bool) {
 }
 
 func (this *MainWindow) SetSimulationTime(time time.Time) {
-	this.simulationTimeDisplay.SetText(time.String())
+	this.simulationTimeDisplay.SetText(time.Format("2006-01-02 15:04:05.000"))
 }
 
 // Event handlers

@@ -66,8 +66,9 @@ func (suite *SimulationUiController_Test) TestSimControllersExecEventTriggerSimu
 	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.Time())
 }
 
-func (suite *SimulationUiController_Test) Test_Start_StartsSimulation() {
+func (suite *SimulationUiController_Test) Test_Start_ResumesAndStartsSimulation() {
 	suite.sut.Start()
+	suite.simulationController.AssertCalledOnce(suite.T(), "Resume")
 	suite.simulationController.AssertCalledOnce(suite.T(), "Run")
 }
 
@@ -91,10 +92,16 @@ func (suite *SimulationUiController_Test) Test_Stop_SetsButtonStates() {
 	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
 }
 
-func (suite *SimulationUiController_Test) Test_Pause_StopsAndResumesSimulation() {
+func (suite *SimulationUiController_Test) Test_Stop_SetsInitialSimulationTime() {
+	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
+	suite.sut.Stop()
+	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)
+}
+
+func (suite *SimulationUiController_Test) Test_Pause_StopsSimulation() {
 	suite.sut.Pause()
 	suite.simulationController.AssertCalledOnce(suite.T(), "Stop")
-	suite.simulationController.AssertCalledOnce(suite.T(), "Resume")
+	suite.simulationController.AssertNotCalled(suite.T(), "Resume")
 }
 
 func (suite *SimulationUiController_Test) Test_Pause_SetsButtonStates() {
@@ -117,15 +124,13 @@ func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialButtonStates() {
 	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
 }
 
-// TODO
-
 func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialSimulationTime() {
 	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
 	suite.sut.SetUi(suite.ui)
 	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)
 }
 
-func (suite *SimulationUiController_Test) Test_ResgisteredEventHandler_SetSimulationTimeInUi() {
+func (suite *SimulationUiController_Test) Test_RegisterEventHandler_SetSimulationTimeInUi() {
 	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
 	suite.simulationController.ExecEventHandlers[0]()
 	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)

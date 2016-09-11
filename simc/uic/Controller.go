@@ -48,23 +48,22 @@ func (this *Controller) SetUi(ui ui.SimulationUi) {
 	this.simulationController.Reset()
 	ui.SetStartEnabled(true)
 	ui.SetPauseEnabled(false)
-	ui.SetStopEnabled(false)
+	ui.SetResetEnabled(false)
 	ui.SetSimulationTime(this.timeProvider.Time())
 }
 
 func (this *Controller) Start() {
 	this.ui.SetStartEnabled(false)
 	this.ui.SetPauseEnabled(true)
-	this.ui.SetStopEnabled(true)
+	this.ui.SetResetEnabled(false)
 	this.simulationController.Resume()
 	this.simulationController.Run()
 }
 
-func (this *Controller) Stop() {
+func (this *Controller) Reset() {
 	this.ui.SetStartEnabled(true)
 	this.ui.SetPauseEnabled(false)
-	this.ui.SetStopEnabled(false)
-	this.simulationController.Stop()
+	this.ui.SetResetEnabled(false)
 	this.simulationController.Reset()
 	this.ui.SetSimulationTime(this.timeProvider.Time())
 }
@@ -72,6 +71,6 @@ func (this *Controller) Stop() {
 func (this *Controller) Pause() {
 	this.ui.SetStartEnabled(true)
 	this.ui.SetPauseEnabled(false)
-	this.ui.SetStopEnabled(true)
+	this.ui.SetResetEnabled(true)
 	this.simulationController.Stop()
 }

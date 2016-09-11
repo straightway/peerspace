@@ -20,7 +20,7 @@ import "time"
 
 type SimulationUi interface {
 	SetStartEnabled(enabled bool)
-	SetStopEnabled(enabled bool)
+	SetResetEnabled(enabled bool)
 	SetPauseEnabled(enabled bool)
 	SetSimulationTime(time time.Time)
 }

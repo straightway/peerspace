@@ -19,6 +19,6 @@ package ui
 type Controller interface {
 	SetUi(ui SimulationUi)
 	Start()
-	Stop()
+	Reset()
 	Pause()
 }

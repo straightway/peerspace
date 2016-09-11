@@ -76,25 +76,25 @@ func (suite *SimulationUiController_Test) Test_Start_SetsButtonStates() {
 	suite.sut.Start()
 	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", false)
 	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", true)
-	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetResetEnabled", false)
 }
 
-func (suite *SimulationUiController_Test) Test_Stop_StopsAndResetsSimulation() {
-	suite.sut.Stop()
-	suite.simulationController.AssertCalledOnce(suite.T(), "Stop")
+func (suite *SimulationUiController_Test) Test_Reset_ResetsSimulation() {
+	suite.sut.Reset()
+	suite.simulationController.AssertNotCalled(suite.T(), "Stop")
 	suite.simulationController.AssertCalledOnce(suite.T(), "Reset")
 }
 
-func (suite *SimulationUiController_Test) Test_Stop_SetsButtonStates() {
-	suite.sut.Stop()
+func (suite *SimulationUiController_Test) Test_Reset_SetsButtonStates() {
+	suite.sut.Reset()
 	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
 	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
-	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetResetEnabled", false)
 }
 
-func (suite *SimulationUiController_Test) Test_Stop_SetsInitialSimulationTime() {
+func (suite *SimulationUiController_Test) Test_Reset_SetsInitialSimulationTime() {
 	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
-	suite.sut.Stop()
+	suite.sut.Reset()
 	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)
 }
 
@@ -108,7 +108,7 @@ func (suite *SimulationUiController_Test) Test_Pause_SetsButtonStates() {
 	suite.sut.Pause()
 	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
 	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
-	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", true)
+	suite.ui.AssertCalledOnce(suite.T(), "SetResetEnabled", true)
 }
 
 func (suite *SimulationUiController_Test) Test_SetUi_StopsSimulation() {
@@ -121,7 +121,7 @@ func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialButtonStates() {
 	suite.sut.SetUi(suite.ui)
 	suite.ui.AssertCalledOnce(suite.T(), "SetStartEnabled", true)
 	suite.ui.AssertCalledOnce(suite.T(), "SetPauseEnabled", false)
-	suite.ui.AssertCalledOnce(suite.T(), "SetStopEnabled", false)
+	suite.ui.AssertCalledOnce(suite.T(), "SetResetEnabled", false)
 }
 
 func (suite *SimulationUiController_Test) Test_SetUi_SetsInitialSimulationTime() {

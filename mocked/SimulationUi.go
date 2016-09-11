@@ -29,7 +29,7 @@ type SimulationUi struct {
 func NewSimulationUi() *SimulationUi {
 	result := &SimulationUi{}
 	result.On("SetStartEnabled", mock.Anything).Return()
-	result.On("SetStopEnabled", mock.Anything).Return()
+	result.On("SetResetEnabled", mock.Anything).Return()
 	result.On("SetPauseEnabled", mock.Anything).Return()
 	result.On("SetSimulationTime", mock.Anything).Return()
 	return result
@@ -39,7 +39,7 @@ func (m *SimulationUi) SetStartEnabled(enabled bool) {
 	m.Called(enabled)
 }
 
-func (m *SimulationUi) SetStopEnabled(enabled bool) {
+func (m *SimulationUi) SetResetEnabled(enabled bool) {
 	m.Called(enabled)
 }
 

@@ -28,7 +28,7 @@ type MainWindow struct {
 	*ui.Window
 	controller            sui.Controller
 	startButton           *ui.Button
-	stopButton            *ui.Button
+	resetButton           *ui.Button
 	pauseButton           *ui.Button
 	simulationTimeDisplay *gui.VCenteredLabel
 }
@@ -43,8 +43,8 @@ func (this *MainWindow) SetStartEnabled(enabled bool) {
 	setEnabled(this.startButton, enabled)
 }
 
-func (this *MainWindow) SetStopEnabled(enabled bool) {
-	setEnabled(this.stopButton, enabled)
+func (this *MainWindow) SetResetEnabled(enabled bool) {
+	setEnabled(this.resetButton, enabled)
 }
 
 func (this *MainWindow) SetPauseEnabled(enabled bool) {
@@ -61,8 +61,8 @@ func (this *MainWindow) onStartClicked(*ui.Button) {
 	this.controller.Start()
 }
 
-func (this *MainWindow) onStopClicked(*ui.Button) {
-	this.controller.Stop()
+func (this *MainWindow) onResetClicked(*ui.Button) {
+	this.controller.Reset()
 }
 
 func (this *MainWindow) onPauseClicked(*ui.Button) {
@@ -79,9 +79,9 @@ func (this *MainWindow) init() {
 	commandBar := ui.NewHorizontalBox()
 	mainLayout.Append(commandBar, false)
 
-	this.stopButton = ui.NewButton("#")
-	this.stopButton.OnClicked(this.onStopClicked)
-	commandBar.Append(this.stopButton, false)
+	this.resetButton = ui.NewButton("|<")
+	this.resetButton.OnClicked(this.onResetClicked)
+	commandBar.Append(this.resetButton, false)
 
 	this.pauseButton = ui.NewButton("||")
 	this.pauseButton.OnClicked(this.onPauseClicked)

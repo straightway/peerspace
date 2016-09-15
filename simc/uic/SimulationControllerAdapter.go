@@ -20,14 +20,15 @@ import (
 	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/general/ui"
 	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/simc"
 )
 
 type SimulationControllerAdapter struct {
 	SimulationController sim.SteppableController
 	ToolkitAdapter       ui.ToolkitAdapter
 	TimeProvider         times.Provider
-	EnvironmentFactory   func() interface{}
-	environment          interface{}
+	EnvironmentFactory   func() *simc.Environment
+	environment          *simc.Environment
 }
 
 func (this *SimulationControllerAdapter) Run() {
@@ -50,8 +51,20 @@ func (this *SimulationControllerAdapter) Reset() {
 	this.SimulationController.Reset()
 }
 
-func (this SimulationControllerAdapter) RegisterForExecEvent(callback func()) {
+func (this *SimulationControllerAdapter) RegisterForExecEvent(callback func()) {
 	this.SimulationController.RegisterForExecEvent(callback)
+}
+
+func (this *SimulationControllerAdapter) Measurements() map[string]string {
+	if this.environment == nil {
+		return nil
+	}
+
+	result := make(map[string]string)
+	result["QueryDuration"] = this.environment.QueryDurationMeasure().String()
+
+	return result
+
 }
 
 // Private

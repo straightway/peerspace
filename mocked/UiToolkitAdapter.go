@@ -26,10 +26,15 @@ type UiToolkitAdapter struct {
 func NewUiToolkitAdapter() *UiToolkitAdapter {
 	result := &UiToolkitAdapter{}
 	result.On("Enqueue", mock.Anything).Return()
+	result.On("Quit").Return()
 	return result
 }
 
 func (m *UiToolkitAdapter) Enqueue(action func()) {
 	m.Called(action)
 	m.LastAction = action
+}
+
+func (m *UiToolkitAdapter) Quit() {
+	m.Called()
 }

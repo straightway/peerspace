@@ -18,7 +18,9 @@ package uic
 
 import (
 	"github.com/straightway/straightway/general/times"
+	gsui "github.com/straightway/straightway/general/ui"
 	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/sim/measure"
 	"github.com/straightway/straightway/simc/ui"
 )
 
@@ -26,20 +28,28 @@ type Controller struct {
 	simulationController sim.Controller
 	ui                   ui.SimulationUi
 	timeProvider         times.Provider
+	toolkitAdapter       gsui.ToolkitAdapter
+	measurementProvider  measure.Provider
 }
 
 func NewController(
 	timeProvider times.Provider,
-	simulationController sim.Controller) ui.Controller {
+	simulationController sim.Controller,
+	measurementProvider measure.Provider,
+	tookitAdapter gsui.ToolkitAdapter) ui.Controller {
 	result := &Controller{
 		simulationController: simulationController,
-		timeProvider:         timeProvider}
+		timeProvider:         timeProvider,
+		measurementProvider:  measurementProvider,
+		toolkitAdapter:       tookitAdapter}
 	simulationController.RegisterForExecEvent(result.onExecEvent)
 	return result
 }
 
 func (this *Controller) onExecEvent() {
 	this.ui.SetSimulationTime(this.timeProvider.Time())
+	measurements := this.measurementProvider.Measurements()
+	this.ui.SetQueryDurationMeasurementValue(measurements["QueryDuration"])
 }
 
 func (this *Controller) SetUi(ui ui.SimulationUi) {
@@ -73,4 +83,9 @@ func (this *Controller) Pause() {
 	this.ui.SetPauseEnabled(false)
 	this.ui.SetResetEnabled(true)
 	this.simulationController.Stop()
+}
+
+func (this *Controller) Quit() {
+	this.simulationController.Stop()
+	this.toolkitAdapter.Quit()
 }

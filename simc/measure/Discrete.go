@@ -55,5 +55,5 @@ func (this *Discrete) NumberOfSamples() uint {
 }
 
 func (this *Discrete) String() string {
-	return fmt.Sprintf("%v+/-%v (%v samples)", this.Mean(), math.Sqrt(this.Variance()), this.NumberOfSamples())
+	return fmt.Sprintf("%6.2f+/-%6.2f (%d samples)", this.Mean(), math.Sqrt(this.Variance()), this.NumberOfSamples())
 }

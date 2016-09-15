@@ -14,9 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package ui
+package sim
 
-type ToolkitAdapter interface {
-	Enqueue(action func())
-	Quit()
+import "github.com/straightway/straightway/sim/measure"
+
+type SimulationState interface {
+	Measurements() map[string]measure.SampleCollector
 }

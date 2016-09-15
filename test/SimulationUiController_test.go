@@ -32,6 +32,8 @@ type SimulationUiController_Test struct {
 	simulationController *mocked.SimulationSteppableController
 	ui                   *mocked.SimulationUi
 	timeProvider         *mocked.Timer
+	measureProvider      *mocked.SimulationMeasureProvider
+	toolkitAdapter       *mocked.UiToolkitAdapter
 }
 
 func TestSimulationUiController(t *testing.T) {
@@ -42,7 +44,13 @@ func (suite *SimulationUiController_Test) SetupTest() {
 	suite.timeProvider = &mocked.Timer{CurrentTime: time.Unix(123456, 0).In(time.UTC)}
 	suite.simulationController = mocked.NewSimulationSteppableController()
 	suite.ui = mocked.NewSimulationUi()
-	suite.sut = uic.NewController(suite.timeProvider, suite.simulationController)
+	suite.toolkitAdapter = mocked.NewUiToolkitAdapter()
+	suite.measureProvider = mocked.NewSimulationMeasureProvider()
+	suite.sut = uic.NewController(
+		suite.timeProvider,
+		suite.simulationController,
+		suite.measureProvider,
+		suite.toolkitAdapter)
 	suite.sut.SetUi(suite.ui)
 	suite.ui.Calls = nil
 	suite.simulationController.Calls = nil
@@ -134,4 +142,21 @@ func (suite *SimulationUiController_Test) Test_RegisterEventHandler_SetSimulatio
 	suite.timeProvider.CurrentTime = time.Unix(123456, 0).In(time.UTC)
 	suite.simulationController.ExecEventHandlers[0]()
 	suite.ui.AssertCalledOnce(suite.T(), "SetSimulationTime", suite.timeProvider.CurrentTime)
+}
+
+func (suite *SimulationUiController_Test) Test_RegisterEventHandler_SetQueryDurationMeasurementInUi() {
+	measurementMap := make(map[string]string)
+	measurementMap["QueryDuration"] = "1234"
+	suite.measureProvider.OnNew("Measurements").Return(measurementMap)
+	suite.simulationController.ExecEventHandlers[0]()
+	suite.ui.AssertCalledOnce(suite.T(), "SetQueryDurationMeasurementValue", "1234")
+}
+func (suite *SimulationUiController_Test) Test_Quit_ForwardsCallToToolkitAdapter() {
+	suite.sut.Quit()
+	suite.toolkitAdapter.AssertCalledOnce(suite.T(), "Quit")
+}
+
+func (suite *SimulationUiController_Test) Test_Quit_StopsSimulation() {
+	suite.sut.Quit()
+	suite.simulationController.AssertCalled(suite.T(), "Stop")
 }

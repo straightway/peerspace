@@ -21,4 +21,5 @@ type Controller interface {
 	Start()
 	Reset()
 	Pause()
+	Quit()
 }

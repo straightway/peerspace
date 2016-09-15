@@ -23,4 +23,5 @@ type SimulationUi interface {
 	SetResetEnabled(enabled bool)
 	SetPauseEnabled(enabled bool)
 	SetSimulationTime(time time.Time)
+	SetQueryDurationMeasurementValue(value string)
 }

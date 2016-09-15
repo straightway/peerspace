@@ -14,9 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package ui
+package measure
 
-type ToolkitAdapter interface {
-	Enqueue(action func())
-	Quit()
+type Provider interface {
+	Measurements() map[string]string
 }

@@ -31,6 +31,7 @@ type MainWindow struct {
 	resetButton           *ui.Button
 	pauseButton           *ui.Button
 	simulationTimeDisplay *gui.VCenteredLabel
+	measurementTable      *gui.TextTable
 }
 
 func NewMainWindow(controller sui.Controller) *MainWindow {
@@ -53,6 +54,10 @@ func (this *MainWindow) SetPauseEnabled(enabled bool) {
 
 func (this *MainWindow) SetSimulationTime(time time.Time) {
 	this.simulationTimeDisplay.SetText(time.Format("2006-01-02 15:04:05.000"))
+}
+
+func (this *MainWindow) SetQueryDurationMeasurementValue(newValue string) {
+	this.measurementTable.SetText(1, 1, newValue)
 }
 
 // Event handlers
@@ -98,11 +103,21 @@ func (this *MainWindow) init() {
 	commandBar.Append(this.simulationTimeDisplay, false)
 
 	mainArea := ui.NewHorizontalBox()
+	mainArea.SetPadded(true)
 	mainLayout.Append(mainArea, true)
+
+	networkDisplay := NewNetworkArea()
+	mainArea.Append(networkDisplay, true)
+
+	this.measurementTable = gui.NewTextTable(2, 2)
+	this.measurementTable.SetText(0, 0, "MEASUREMENT")
+	this.measurementTable.SetText(1, 0, "VALUE")
+	this.measurementTable.SetText(0, 1, "Query duration")
+	mainArea.Append(this.measurementTable, false)
 
 	this.SetChild(mainLayout)
 	this.OnClosing(func(*ui.Window) bool {
-		ui.Quit()
+		this.controller.Quit()
 		return true
 	})
 

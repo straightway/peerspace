@@ -14,9 +14,18 @@
    limitations under the License.
 ****************************************************************************/
 
-package ui
+package mocked
 
-type ToolkitAdapter interface {
-	Enqueue(action func())
-	Quit()
+type SimulationMeasureProvider struct {
+	Base
+}
+
+func NewSimulationMeasureProvider() *SimulationMeasureProvider {
+	result := &SimulationMeasureProvider{}
+	result.On("Measurements").Return(make(map[string]string))
+	return result
+}
+
+func (m *SimulationMeasureProvider) Measurements() map[string]string {
+	return m.Called().Get(0).(map[string]string)
 }

@@ -22,6 +22,7 @@ import (
 
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/simc"
+	measurec "github.com/straightway/straightway/simc/measure"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -35,7 +36,7 @@ type SimulationControllerAdapterTest struct {
 	simulationController *mocked.SimulationSteppableController
 	simulationScheduler  *mocked.SimulationScheduler
 	uiToolkitAdapter     *mocked.UiToolkitAdapter
-	environmentFactory   func() interface{}
+	environmentFactory   func() *simc.Environment
 }
 
 func TestSimulationControllerAdapter(t *testing.T) {
@@ -51,8 +52,8 @@ func (suite *SimulationControllerAdapterTest) SetupTest() {
 		SimulationController: suite.simulationController,
 		ToolkitAdapter:       suite.uiToolkitAdapter,
 		TimeProvider:         suite.simulationScheduler,
-		EnvironmentFactory:   func() interface{} { return suite.environmentFactory() }}
-	suite.environmentFactory = func() interface{} {
+		EnvironmentFactory:   func() *simc.Environment { return suite.environmentFactory() }}
+	suite.environmentFactory = func() *simc.Environment {
 		return simc.NewSimulationEnvironment(suite.simulationScheduler, 1)
 	}
 }
@@ -117,7 +118,7 @@ func (suite *SimulationControllerAdapterTest) TestRegisterForExecEventIsForwarde
 
 func (suite *SimulationControllerAdapterTest) TestFirstRunCallCreatesEnvironment() {
 	wasCalled := false
-	suite.environmentFactory = func() interface{} { wasCalled = true; return nil }
+	suite.environmentFactory = func() *simc.Environment { wasCalled = true; return nil }
 	suite.sut.Run()
 	suite.Assert().True(wasCalled)
 }
@@ -125,7 +126,7 @@ func (suite *SimulationControllerAdapterTest) TestFirstRunCallCreatesEnvironment
 func (suite *SimulationControllerAdapterTest) TestSecondRunCallDoesNotCreateEnvironment() {
 	suite.sut.Run()
 	wasCalled := false
-	suite.environmentFactory = func() interface{} { wasCalled = true; return nil }
+	suite.environmentFactory = func() *simc.Environment { wasCalled = true; return nil }
 	suite.sut.Run()
 	suite.Assert().False(wasCalled)
 }
@@ -134,7 +135,19 @@ func (suite *SimulationControllerAdapterTest) TestRunResetRunCreatesEnvironment(
 	suite.sut.Run()
 	suite.sut.Reset()
 	wasCalled := false
-	suite.environmentFactory = func() interface{} { wasCalled = true; return nil }
+	suite.environmentFactory = func() *simc.Environment { wasCalled = true; return nil }
 	suite.sut.Run()
 	suite.Assert().True(wasCalled)
+}
+
+func (suite *SimulationControllerAdapterTest) TestMeasurementsReturnsEmptyMapForNotStartedSimulation() {
+	result := suite.sut.Measurements()
+	suite.Assert().Empty(result)
+}
+
+func (suite *SimulationControllerAdapterTest) TestMeasurementsReturnsMeasurementsStartedSimulation() {
+	suite.sut.Run()
+	measurements := suite.sut.Measurements()
+	suite.Assert().Equal(1, len(measurements))
+	suite.Assert().Equal((&measurec.Discrete{}).String(), measurements["QueryDuration"])
 }

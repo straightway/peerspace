@@ -32,6 +32,7 @@ func NewSimulationUi() *SimulationUi {
 	result.On("SetResetEnabled", mock.Anything).Return()
 	result.On("SetPauseEnabled", mock.Anything).Return()
 	result.On("SetSimulationTime", mock.Anything).Return()
+	result.On("SetQueryDurationMeasurementValue", mock.Anything).Return()
 	return result
 }
 
@@ -49,4 +50,8 @@ func (m *SimulationUi) SetPauseEnabled(enabled bool) {
 
 func (m *SimulationUi) SetSimulationTime(time time.Time) {
 	m.Called(time)
+}
+
+func (m *SimulationUi) SetQueryDurationMeasurementValue(newValue string) {
+	m.Called(newValue)
 }

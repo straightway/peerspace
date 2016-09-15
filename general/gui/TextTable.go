@@ -20,12 +20,37 @@ import (
 	"github.com/andlabs/ui"
 )
 
-type ToolkitAdapter struct{}
-
-func (this *ToolkitAdapter) Enqueue(action func()) {
-	ui.QueueMain(action)
+type TextTable struct {
+	ui.Control
+	cols   int
+	rows   int
+	labels []*ui.Label
 }
 
-func (this *ToolkitAdapter) Quit() {
-	ui.Quit()
+func NewTextTable(cols, rows int) *TextTable {
+	mainBox := ui.NewHorizontalBox()
+	mainBox.SetPadded(true)
+	labels := make([]*ui.Label, rows*cols)
+	for c := 0; c < cols; c++ {
+		col := ui.NewVerticalBox()
+		col.SetPadded(true)
+		mainBox.Append(col, false)
+		for r := 0; r < rows; r++ {
+			label := ui.NewLabel("")
+			col.Append(label, false)
+			labels[r*cols+c] = label
+		}
+		col.Append(ui.NewHorizontalBox(), true)
+	}
+	mainBox.Append(ui.NewVerticalBox(), true)
+
+	return &TextTable{
+		Control: mainBox,
+		cols:    cols,
+		rows:    rows,
+		labels:  labels}
+}
+
+func (this *TextTable) SetText(col, row int, text string) {
+	this.labels[row*this.cols+col].SetText(text)
 }

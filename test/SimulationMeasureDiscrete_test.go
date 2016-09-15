@@ -86,7 +86,7 @@ func (suite *SimulationMeasureDiscrete_Test) Test_NumberOfSamples() {
 func (suite *SimulationMeasureDiscrete_Test) Test_String() {
 	suite.sut.AddSample(math.Sqrt(0.5))
 	suite.sut.AddSample(-math.Sqrt(0.5))
-	suite.Assert().Equal("     0+/-     1 (2 samples)", suite.sut.String())
+	suite.Assert().Equal("  0.00+/-  1.00 (2 samples)", suite.sut.String())
 }
 
 // Private

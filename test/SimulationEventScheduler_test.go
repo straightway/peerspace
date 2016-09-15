@@ -102,12 +102,11 @@ func (suite *SimulationEventScheduler_Test) Test_Schedule_ChainedEvents() {
 	suite.Assert().True(wasCalled)
 }
 
-func (suite *SimulationEventScheduler_Test) Test_Schedule_IgnoresNegativeTimes() {
+func (suite *SimulationEventScheduler_Test) Test_Schedule_PanicsWithNegativeTimes() {
 	eventDuration := time.Duration(-1)
-	suite.sut.Schedule(eventDuration, func() {
-		panic("Shall not be called")
+	suite.Assert().Panics(func() {
+		suite.sut.Schedule(eventDuration, func() {})
 	})
-	suite.sut.Run()
 }
 
 func (suite *SimulationEventScheduler_Test) Test_ScheduleAbsolute() {
@@ -122,6 +121,16 @@ func (suite *SimulationEventScheduler_Test) Test_ScheduleAbsolute() {
 	suite.sut.Run()
 
 	suite.Assert().True(wasCalled)
+}
+
+func (suite *SimulationEventScheduler_Test) Test_ScheduleAbsolutePanicsWhenSchedulingPastEvent() {
+	targetDateTime, err := time.Parse(timeFormat, "2000-01-01 08:45:13")
+	suite.Assert().Nil(err)
+	suite.sut.ScheduleAbsolute(targetDateTime, func() {})
+	suite.sut.Run()
+	suite.Assert().Panics(func() {
+		suite.sut.ScheduleAbsolute(targetDateTime.Add(-time.Hour), func() {})
+	})
 }
 
 func (suite *SimulationEventScheduler_Test) Test_Stop_StopsAfterCurrentEvent() {

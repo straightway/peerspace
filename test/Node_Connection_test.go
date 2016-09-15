@@ -178,6 +178,12 @@ func (suite *Node_Connection_Test) Test_AnnouncePeers_NewPeersAreStoredAsKnownPe
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "AddKnownPeer", 2)
 }
 
+func (suite *Node_Connection_Test) Test_AnnouncePeers_SelfReferenceIsNotStored() {
+	suite.node.Startup()
+	suite.node.AnnouncePeers([]peer.Connector{suite.node})
+	suite.stateStorage.AssertNotCalled(suite.T(), "AddKnownPeer", mock.Anything)
+}
+
 func (suite *Node_Connection_Test) Test_AnnouncePeers_AlreadyKnownPeersAreIgnored() {
 	announcedPeer := suite.AddKnownUnconnectedPeer()
 	suite.node.Startup()

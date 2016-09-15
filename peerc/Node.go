@@ -104,7 +104,7 @@ func (this *Node) CloseConnectionWith(peer peer.Connector) {
 
 func (this *Node) AnnouncePeers(peers []peer.Connector) {
 	for _, peer := range peers {
-		if this.StateStorage.IsKnownPeer(peer) {
+		if this.Equal(peer) || this.StateStorage.IsKnownPeer(peer) {
 			continue
 		}
 		this.StateStorage.AddKnownPeer(peer)

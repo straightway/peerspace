@@ -20,14 +20,20 @@ import "time"
 
 type DurationRandVar struct {
 	Base
+	samples         []time.Duration
+	nextSampleIndex int
 }
 
-func NewDurationRandVar(sample time.Duration) *DurationRandVar {
+func NewDurationRandVar(samples ...time.Duration) *DurationRandVar {
 	result := &DurationRandVar{}
-	result.On("NextSample").Return(sample)
+	result.samples = samples
+	result.On("NextSample").Return()
 	return result
 }
 
 func (m *DurationRandVar) NextSample() time.Duration {
-	return m.Called().Get(0).(time.Duration)
+	m.Called()
+	nextSample := m.samples[m.nextSampleIndex]
+	m.nextSampleIndex = (m.nextSampleIndex + 1) % len(m.samples)
+	return nextSample
 }

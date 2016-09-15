@@ -17,6 +17,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/andlabs/ui"
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
@@ -25,6 +27,7 @@ import (
 )
 
 func main() {
+	log.SetFlags(0)
 	err := ui.Main(func() {
 		scheduler := &simc.EventScheduler{}
 		toolkitAdapter := &ggui.ToolkitAdapter{}

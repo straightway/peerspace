@@ -14,23 +14,27 @@
    limitations under the License.
 ****************************************************************************/
 
-package test
+package randvar
 
 import (
-	"io/ioutil"
-	"log"
-	"os"
-	"testing"
+	"time"
 
-	"github.com/straightway/straightway/general/duration"
-	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/sim/randvar"
 )
 
-func TestSimulationEnvironment(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-	scheduler := &simc.EventScheduler{}
-	simc.NewSimulationEnvironment(scheduler, 5)
-	scheduler.Schedule(duration.Parse("240h"), func() { scheduler.Stop() })
-	scheduler.Run()
-	log.SetOutput(os.Stderr)
+type PositiveDuration struct {
+	baseRandVar randvar.Duration
+}
+
+func NewPositiveDuration(baseRandVar randvar.Duration) *PositiveDuration {
+	return &PositiveDuration{baseRandVar: baseRandVar}
+}
+
+func (this *PositiveDuration) NextSample() time.Duration {
+	sample := time.Duration(-1)
+	for sample < time.Duration(0) {
+		sample = this.baseRandVar.NextSample()
+	}
+
+	return sample
 }

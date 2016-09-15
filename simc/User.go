@@ -17,6 +17,7 @@
 package simc
 
 import (
+	"log"
 	"time"
 
 	"github.com/straightway/straightway/data"
@@ -97,12 +98,20 @@ func (this *User) Scheduler() sim.EventScheduler {
 // Private
 
 func (this *User) doStartup() {
+	log.Printf(
+		"%v: %v is started",
+		this.SchedulerInstance.Time(),
+		this.Id())
 	this.NodeInstance.Startup()
 	this.nextOfflineTime = this.schedule(this.OnlineDuration, this.doShutDown)
 	this.OnlineActivity.ScheduleUntil(this.nextOfflineTime)
 }
 
 func (this *User) doShutDown() {
+	log.Printf(
+		"%v: %v is shut down",
+		this.SchedulerInstance.Time(),
+		this.Id())
 	this.NodeInstance.ShutDown()
 	this.Activate()
 }

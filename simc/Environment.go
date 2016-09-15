@@ -89,7 +89,7 @@ func (this *Environment) createSeedNode() {
 		SchedulerInstance: this.scheduler,
 		NodeInstance:      node,
 		StartupDuration:   randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
-		OnlineDuration:    randvar.NewNormalDuration(this.randSource, time.Duration(-1), time.Duration(0)),
+		OnlineDuration:    randvar.NewNormalDuration(this.randSource, 2000000*time.Hour, time.Duration(0)),
 		OnlineActivity:    mocked.NewSimulationUserActivity()}
 	this.initialUser.Activate()
 }
@@ -99,8 +99,8 @@ func (this *Environment) createUser() *User {
 	newUser := &User{
 		SchedulerInstance:    this.scheduler,
 		NodeInstance:         node,
-		StartupDuration:      randvar.NewNormalDuration(this.randSource, duration.Parse("8h"), duration.Parse("2h")),
-		OnlineDuration:       randvar.NewNormalDuration(this.randSource, duration.Parse("2h"), duration.Parse("2h")),
+		StartupDuration:      this.newPositiveNormalDuration(duration.Parse("8h"), duration.Parse("2h")),
+		OnlineDuration:       this.newPositiveNormalDuration(duration.Parse("2h"), duration.Parse("2h")),
 		QuerySampleCollector: this.queryDurationMeasure}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
@@ -210,7 +210,7 @@ func (this *Environment) createUploadActivity(
 	return &activity.Upload{
 		User:               user,
 		Configuration:      configuration,
-		Delay:              randvar.NewNormalDuration(this.randSource, duration.Parse("15m"), duration.Parse("30m")),
+		Delay:              this.newPositiveNormalDuration(duration.Parse("15m"), duration.Parse("30m")),
 		DataSize:           randvar.NewNormalFloat64(this.randSource, 32000, 32000),
 		IdGenerator:        &IdGenerator{RandSource: this.randSource},
 		ChunkCreator:       chunkCreator,
@@ -224,5 +224,9 @@ func (this *Environment) createQueryActivity(
 	return &activity.Query{
 		Scheduler:          user.Scheduler(),
 		User:               user,
-		QueryPauseDuration: randvar.NewNormalDuration(this.randSource, duration.Parse("5m"), duration.Parse("10m"))}
+		QueryPauseDuration: this.newPositiveNormalDuration(duration.Parse("5m"), duration.Parse("10m"))}
+}
+
+func (this *Environment) newPositiveNormalDuration(mean, stdDev time.Duration) *randvar.PositiveDuration {
+	return randvar.NewPositiveDuration(randvar.NewNormalDuration(this.randSource, mean, stdDev))
 }

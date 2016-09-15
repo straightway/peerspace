@@ -44,12 +44,18 @@ func (this *EventScheduler) Time() time.Time {
 }
 
 func (this *EventScheduler) Schedule(duration time.Duration, action func()) {
-	if 0 <= duration {
-		this.ScheduleAbsolute(this.currentTime.Add(duration), action)
+	if duration < 0 {
+		panic("Cannot schedule negative duration")
 	}
+
+	this.ScheduleAbsolute(this.currentTime.Add(duration), action)
 }
 
 func (this *EventScheduler) ScheduleAbsolute(time time.Time, action func()) {
+	if time.Before(this.currentTime) {
+		panic("Cannot schedule past event")
+	}
+
 	this.events = append(this.events, event{time: time, action: action})
 	sort.Sort(eventByTime(this.events))
 }

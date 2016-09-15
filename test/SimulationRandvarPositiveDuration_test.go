@@ -17,42 +17,34 @@
 package test
 
 import (
-	"io/ioutil"
-	"log"
-	"os"
+	"math/rand"
+	"testing"
 	"time"
 
-	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/mocked"
-	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/simc/randvar"
 	"github.com/stretchr/testify/suite"
 )
 
-type SimulationActionTestBase struct {
+type SimulationRandvarPositiveDuration_Test struct {
 	suite.Suite
-	scheduler   *simc.EventScheduler
-	user        *simc.User
-	node        *mocked.Node
-	offlineTime time.Time
+	randSource rand.Source
 }
 
-func (suite *SimulationActionTestBase) SetupTest() {
-	log.SetOutput(ioutil.Discard)
-	suite.scheduler = &simc.EventScheduler{}
-	suite.node = mocked.NewNode("1")
-	suite.user = &simc.User{
-		SchedulerInstance: suite.scheduler,
-		NodeInstance:      suite.node}
-	suite.scheduler.Schedule(duration.Parse("1000h"), func() {
-		suite.scheduler.Stop()
-	})
-	now := suite.scheduler.Time()
-	suite.offlineTime = now.Add(onlineDuration)
+func TestSimulationRandvarPositiveDuration(t *testing.T) {
+	suite.Run(t, new(SimulationRandvarPositiveDuration_Test))
 }
 
-func (suite *SimulationActionTestBase) TearDownTest() {
-	suite.scheduler = nil
-	suite.node = nil
-	suite.user = nil
-	log.SetOutput(os.Stderr)
+// Tests
+
+func (suite *SimulationRandvarPositiveDuration_Test) TestNextNotNegativeSampleIsReturned() {
+	baseRandvar := mocked.NewDurationRandVar(0)
+	sut := randvar.NewPositiveDuration(baseRandvar)
+	suite.Assert().Equal(time.Duration(0), sut.NextSample())
+}
+
+func (suite *SimulationRandvarPositiveDuration_Test) TestNegativeBaseSamplesAreIgnored() {
+	baseRandvar := mocked.NewDurationRandVar(-2, -3, 5)
+	sut := randvar.NewPositiveDuration(baseRandvar)
+	suite.Assert().Equal(time.Duration(5), sut.NextSample())
 }

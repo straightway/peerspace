@@ -17,6 +17,9 @@
 package test
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -43,6 +46,7 @@ func TestSimulationNetworkPeerConnector(t *testing.T) {
 }
 
 func (suite *SimulationNetworkPeerConnector_Test) SetupTest() {
+	log.SetOutput(ioutil.Discard)
 	suite.scheduler = &simc.EventScheduler{}
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() { suite.scheduler.Stop() })
 	suite.wrapped = mocked.NewPeerConnector()
@@ -56,6 +60,7 @@ func (suite *SimulationNetworkPeerConnector_Test) TearDownTest() {
 	suite.wrapped = nil
 	suite.sut = nil
 	suite.other = nil
+	log.SetOutput(os.Stderr)
 }
 
 // Tests

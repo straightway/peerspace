@@ -23,6 +23,7 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/measure"
@@ -30,20 +31,31 @@ import (
 )
 
 type User struct {
-	NodeInstance         peer.Node
-	SchedulerInstance    sim.EventScheduler
-	StartupDuration      randvar.Duration
-	OnlineDuration       randvar.Duration
-	OnlineActivity       sim.UserActivity
-	QuerySampleCollector measure.SampleCollector
-	attractiveQueries    []data.Query
-	pendingQueries       []queryRecord
-	nextOfflineTime      time.Time
+	NodeInstance                 peer.Node
+	SchedulerInstance            sim.EventScheduler
+	StartupDuration              randvar.Duration
+	OnlineDuration               randvar.Duration
+	OnlineActivity               sim.UserActivity
+	QueryDurationSampleCollector measure.SampleCollector
+	QuerySuccessSampleCollector  measure.SampleCollector
+	QueryWaitingTimeout          time.Duration
+	attractiveQueries            []data.Query
+	pendingQueries               []queryRecord
+	nextOfflineTime              time.Time
 }
 
 type queryRecord struct {
-	query     data.Query
-	startTime time.Time
+	query          data.Query
+	startTime      time.Time
+	expirationTime time.Time
+}
+
+func (this queryRecord) isExpired(now time.Time) bool {
+	return !now.Before(this.expirationTime)
+}
+
+func (this queryRecord) Equal(other general.Equaler) bool {
+	return other.(queryRecord).query == this.query
 }
 
 func (this *User) Id() string {
@@ -60,7 +72,8 @@ func (this *User) Push(data *data.Chunk, origin id.Holder) {
 	for i, qr := range this.pendingQueries {
 		if qr.query.Matches(data.Key) {
 			queryDuration := currTime.Sub(qr.startTime)
-			this.QuerySampleCollector.AddSample(queryDuration.Seconds())
+			this.QueryDurationSampleCollector.AddSample(queryDuration.Seconds())
+			this.QuerySuccessSampleCollector.AddSample(1.0)
 			this.pendingQueries = append(this.pendingQueries[:i], this.pendingQueries[i+1:]...)
 			break
 		}
@@ -78,10 +91,10 @@ func (this *User) AttractTo(query data.Query) {
 func (this *User) PopAttractiveQuery() (query data.Query, isFound bool) {
 	isFound = 0 < len(this.attractiveQueries)
 	if isFound {
+		// TODO pick random query
 		query = this.attractiveQueries[0]
 		this.attractiveQueries = this.attractiveQueries[1:]
-		qr := queryRecord{query: query, startTime: this.Scheduler().Time()}
-		this.pendingQueries = append(this.pendingQueries, qr)
+		this.registerPendingQuery(query)
 	}
 
 	return
@@ -114,6 +127,57 @@ func (this *User) doShutDown() {
 		this.Id())
 	this.NodeInstance.ShutDown()
 	this.Activate()
+	for _, _ = range this.pendingQueries {
+		this.QuerySuccessSampleCollector.AddSample(0.0)
+	}
+
+	this.pendingQueries = nil
+}
+
+func (this *User) registerPendingQuery(query data.Query) {
+	qr := this.createQueryRecord(query)
+	this.Scheduler().ScheduleAbsolute(qr.expirationTime, this.discardExpiredQueries)
+
+	if this.updatePendingQuery(qr) == false {
+		this.addPendingQuery(qr)
+	}
+}
+
+func (this *User) updatePendingQuery(newQR queryRecord) bool {
+	var existingIndex = slice.IndexOf(this.pendingQueries, newQR)
+	if existingIndex < 0 {
+		return false
+	}
+
+	this.pendingQueries[existingIndex].expirationTime = newQR.expirationTime
+	return true
+}
+
+func (this *User) addPendingQuery(newQR queryRecord) {
+	this.pendingQueries = append(this.pendingQueries, newQR)
+}
+
+func (this *User) createQueryRecord(query data.Query) queryRecord {
+	now := this.Scheduler().Time()
+	expirationTime := now.Add(this.QueryWaitingTimeout)
+	return queryRecord{
+		query:          query,
+		startTime:      now,
+		expirationTime: expirationTime}
+}
+
+func (this *User) discardExpiredQueries() {
+	remainingQueries := make([]queryRecord, 0, len(this.pendingQueries))
+	now := this.Scheduler().Time()
+	for _, q := range this.pendingQueries {
+		if q.isExpired(now) {
+			this.QuerySuccessSampleCollector.AddSample(0.0)
+		} else {
+			remainingQueries = append(remainingQueries, q)
+		}
+	}
+
+	this.pendingQueries = remainingQueries
 }
 
 func (this *User) schedule(duration randvar.Duration, action func()) time.Time {

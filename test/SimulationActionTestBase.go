@@ -41,8 +41,11 @@ func (suite *SimulationActionTestBase) SetupTest() {
 	suite.scheduler = &simc.EventScheduler{}
 	suite.node = mocked.NewNode("1")
 	suite.user = &simc.User{
-		SchedulerInstance: suite.scheduler,
-		NodeInstance:      suite.node}
+		SchedulerInstance:            suite.scheduler,
+		NodeInstance:                 suite.node,
+		QueryWaitingTimeout:              duration.Parse("1h"),
+		QueryDurationSampleCollector: mocked.NewSimulationMeasureSampleCollector(),
+		QuerySuccessSampleCollector:  mocked.NewSimulationMeasureSampleCollector()}
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() {
 		suite.scheduler.Stop()
 	})

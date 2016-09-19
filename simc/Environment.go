@@ -47,6 +47,7 @@ type Environment struct {
 	randSource           rand.Source
 	initialUser          *User
 	queryDurationMeasure *measure.Discrete
+	querySuccessMeasure  *measure.Discrete
 }
 
 func NewSimulationEnvironment(
@@ -55,7 +56,8 @@ func NewSimulationEnvironment(
 	result := &Environment{
 		scheduler:            scheduler,
 		randSource:           rand.NewSource(12345),
-		queryDurationMeasure: &measure.Discrete{}}
+		queryDurationMeasure: &measure.Discrete{},
+		querySuccessMeasure:  &measure.Discrete{}}
 	result.createSeedNode()
 	for i := 0; i < numberOfUsers; i++ {
 		result.addNewUser()
@@ -97,11 +99,13 @@ func (this *Environment) createSeedNode() {
 func (this *Environment) createUser() *User {
 	node, configuration, rawStorage := this.createNode()
 	newUser := &User{
-		SchedulerInstance:    this.scheduler,
-		NodeInstance:         node,
-		StartupDuration:      this.newPositiveNormalDuration(duration.Parse("8h"), duration.Parse("2h")),
-		OnlineDuration:       this.newPositiveNormalDuration(duration.Parse("2h"), duration.Parse("2h")),
-		QuerySampleCollector: this.queryDurationMeasure}
+		SchedulerInstance:            this.scheduler,
+		NodeInstance:                 node,
+		StartupDuration:              this.newPositiveNormalDuration(duration.Parse("8h"), duration.Parse("2h")),
+		OnlineDuration:               this.newPositiveNormalDuration(duration.Parse("2h"), duration.Parse("2h")),
+		QueryDurationSampleCollector: this.queryDurationMeasure,
+		QuerySuccessSampleCollector:  this.querySuccessMeasure,
+		QueryWaitingTimeout:          duration.Parse("5m")}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser

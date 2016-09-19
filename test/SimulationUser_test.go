@@ -17,6 +17,9 @@
 package test
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -31,11 +34,12 @@ import (
 
 type SimulationUser_Test struct {
 	suite.Suite
-	sut                  *simc.User
-	scheduler            *simc.EventScheduler
-	node                 *mocked.Node
-	activity             *mocked.SimulationUserActivity
-	querySampleCollector *mocked.SimulationMeasureSampleCollector
+	sut                          *simc.User
+	scheduler                    *simc.EventScheduler
+	node                         *mocked.Node
+	activity                     *mocked.SimulationUserActivity
+	queryDurationSampleCollector *mocked.SimulationMeasureSampleCollector
+	querySuccessSampleCollector  *mocked.SimulationMeasureSampleCollector
 }
 
 func TestSimulationUser(t *testing.T) {
@@ -44,19 +48,24 @@ func TestSimulationUser(t *testing.T) {
 
 var startupDuration = duration.Parse("8h")
 var stopDuration = duration.Parse("1000h")
+var queryTimeout = duration.Parse("1h")
 
 func (suite *SimulationUser_Test) SetupTest() {
+	log.SetOutput(ioutil.Discard)
 	suite.scheduler = &simc.EventScheduler{}
 	suite.node = mocked.NewNode("nodeId")
 	suite.activity = mocked.NewSimulationUserActivity()
-	suite.querySampleCollector = mocked.NewSimulationMeasureSampleCollector()
+	suite.queryDurationSampleCollector = mocked.NewSimulationMeasureSampleCollector()
+	suite.querySuccessSampleCollector = mocked.NewSimulationMeasureSampleCollector()
 	suite.sut = &simc.User{
-		SchedulerInstance:    suite.scheduler,
-		NodeInstance:         suite.node,
-		StartupDuration:      mocked.NewDurationRandVar(startupDuration),
-		OnlineDuration:       mocked.NewDurationRandVar(onlineDuration),
-		OnlineActivity:       suite.activity,
-		QuerySampleCollector: suite.querySampleCollector}
+		SchedulerInstance:            suite.scheduler,
+		NodeInstance:                 suite.node,
+		StartupDuration:              mocked.NewDurationRandVar(startupDuration),
+		OnlineDuration:               mocked.NewDurationRandVar(onlineDuration),
+		OnlineActivity:               suite.activity,
+		QueryDurationSampleCollector: suite.queryDurationSampleCollector,
+		QuerySuccessSampleCollector:  suite.querySuccessSampleCollector,
+		QueryWaitingTimeout:          queryTimeout}
 	suite.sut.Activate()
 	suite.scheduler.Schedule(stopDuration, func() {
 		panic("Simulation did not stop")
@@ -67,7 +76,8 @@ func (suite *SimulationUser_Test) TearDownTest() {
 	suite.sut = nil
 	suite.scheduler = nil
 	suite.node = nil
-	suite.querySampleCollector = nil
+	suite.queryDurationSampleCollector = nil
+	log.SetOutput(os.Stderr)
 }
 
 func (suite *SimulationUser_Test) TestNodeStartupIsScheduled() {
@@ -93,10 +103,7 @@ func (suite *SimulationUser_Test) TestNodeIsRestartedAfterShutDown() {
 func (suite *SimulationUser_Test) TestOnlineActionIsExecutedWhenOnline() {
 	shutdownTime := suite.scheduler.Time().Add(startupDuration + onlineDuration)
 	suite.activity.AssertNotCalled(suite.T(), "ScheduleUntil", mock.Anything)
-	suite.scheduler.Schedule(startupDuration+onlineDuration+time.Duration(1), func() {
-		suite.scheduler.Stop()
-	})
-	suite.scheduler.Run()
+	suite.runOneOnlineOfflineCycle()
 	suite.activity.AssertCalledOnce(suite.T(), "ScheduleUntil", shutdownTime)
 }
 
@@ -148,63 +155,135 @@ func (suite *SimulationUser_Test) Test_Equal_UsersDifferFromOtherTypesInstances(
 }
 
 func (suite *SimulationUser_Test) Test_Push_AddsToQueryTimeSampleCollector() {
-	query := data.Query{Id: untimedKey.Id}
-	suite.sut.AttractTo(query)
-	_, _ = suite.sut.PopAttractiveQuery()
+	suite.generatedPendingQuery(untimedKey.Id)
 	d := duration.Parse("10m")
 	suite.scheduler.Schedule(d, func() {
 		suite.sut.Push(&untimedChunk, nil)
 		suite.scheduler.Stop()
 	})
 	suite.scheduler.Run()
-	suite.querySampleCollector.AssertCalledOnce(suite.T(), "AddSample", d.Seconds())
+	suite.queryDurationSampleCollector.AssertCalledOnce(suite.T(), "AddSample", d.Seconds())
 }
 
 func (suite *SimulationUser_Test) Test_Push_AddsToQueryTimeSampleCollectorOnlyForMatchingQueries() {
-	query := data.Query{Id: untimedKey.Id}
-	otherQuery := data.Query{Id: otherId}
-	suite.sut.AttractTo(query)
-	suite.sut.AttractTo(otherQuery)
-	_, _ = suite.sut.PopAttractiveQuery()
-	_, _ = suite.sut.PopAttractiveQuery()
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.generatedPendingQuery(otherId)
 	suite.sut.Push(&untimedChunk, nil)
-	suite.querySampleCollector.AssertCalledOnce(suite.T(), "AddSample", mock.Anything)
+	suite.queryDurationSampleCollector.AssertCalledOnce(suite.T(), "AddSample", mock.Anything)
 }
 
 func (suite *SimulationUser_Test) Test_Push_SamplesQueryDurationOnlyOnce() {
-	query := data.Query{Id: untimedKey.Id}
-	suite.sut.AttractTo(query)
-	_, _ = suite.sut.PopAttractiveQuery()
+	suite.generatedPendingQuery(untimedKey.Id)
 	suite.sut.Push(&untimedChunk, nil)
 	suite.sut.Push(&untimedChunk, nil)
-	suite.querySampleCollector.AssertCalledOnce(suite.T(), "AddSample", mock.Anything)
+	suite.queryDurationSampleCollector.AssertCalledOnce(suite.T(), "AddSample", mock.Anything)
 }
 
 func (suite *SimulationUser_Test) Test_Push_LeavesOtherQueriesActive() {
-	otherQuery1 := data.Query{Id: otherId + "1"}
-	query := data.Query{Id: untimedKey.Id}
-	otherQuery2 := data.Query{Id: otherId + "2"}
-	suite.sut.AttractTo(otherQuery1)
-	suite.sut.AttractTo(query)
-	suite.sut.AttractTo(otherQuery2)
-	_, _ = suite.sut.PopAttractiveQuery()
-	_, _ = suite.sut.PopAttractiveQuery()
-	_, _ = suite.sut.PopAttractiveQuery()
+	suite.generatedPendingQuery(otherId + "1")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.generatedPendingQuery(otherId + "2")
 	suite.sut.Push(&data.Chunk{Key: data.Key{Id: otherId + "1"}}, nil)
 	suite.sut.Push(&untimedChunk, nil)
 	suite.sut.Push(&data.Chunk{Key: data.Key{Id: otherId + "2"}}, nil)
-	suite.querySampleCollector.AssertNumberOfCalls(suite.T(), "AddSample", 3)
+	suite.queryDurationSampleCollector.AssertNumberOfCalls(suite.T(), "AddSample", 3)
 }
 
 func (suite *SimulationUser_Test) Test_Push_UnqueriedDataChunksAreNotSampled() {
-	query := data.Query{Id: untimedKey.Id}
-	suite.sut.AttractTo(query)
-	_, _ = suite.sut.PopAttractiveQuery()
+	suite.generatedPendingQuery(untimedKey.Id)
 	suite.sut.Push(&data.Chunk{Key: data.Key{Id: otherId}}, nil)
-	suite.querySampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
+	suite.queryDurationSampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) Test_Shutdown_SamplesAllPendingQueriesAsFailed() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("1000h")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.runOneOnlineOfflineCycle()
+	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
+}
+
+func (suite *SimulationUser_Test) Test_Shutdown_DiscardsAllPendingQueries() {
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.runOneOnlineOfflineCycle()
+	suite.querySuccessSampleCollector.Calls = nil
+	suite.sut.Push(&data.Chunk{Key: data.Key{Id: untimedKey.Id}}, nil)
+	suite.querySuccessSampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) Test_PendingQueryIsSampledAsFailureAfterTimeout() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("1h")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.advanceSimulationTimeBy(duration.Parse("2h"))
+	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
+}
+
+func (suite *SimulationUser_Test) Test_NotPendingQueryIsNotSampled() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("1h")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.sut.Push(&untimedChunk, nil)
+	suite.querySuccessSampleCollector.Calls = nil
+	suite.advanceSimulationTimeBy(duration.Parse("2h"))
+	suite.querySuccessSampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) Test_DiscardedQueryIsNotSampledAsSuccessWithFollowingPush() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("1h")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.advanceSimulationTimeBy(duration.Parse("2h"))
+	suite.querySuccessSampleCollector.Calls = nil
+	suite.sut.Push(&untimedChunk, nil)
+	suite.querySuccessSampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
+}
+
+func (suite *SimulationUser_Test) Test_TwoExpiredQueryAreBothSampledAsFailed() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("60m")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.advanceSimulationTimeBy(duration.Parse("10m"))
+	suite.generatedPendingQuery(otherId)
+	suite.advanceSimulationTimeBy(duration.Parse("51m"))
+	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
+	suite.querySuccessSampleCollector.Calls = nil
+	suite.advanceSimulationTimeBy(duration.Parse("10m"))
+	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
+}
+
+func (suite *SimulationUser_Test) Test_SameQueryArrivingAgainRestartsTimeout() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("60m")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.advanceSimulationTimeBy(duration.Parse("10m"))
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.advanceSimulationTimeBy(duration.Parse("51m"))
+	suite.querySuccessSampleCollector.AssertNotCalled(suite.T(), "AddSample", mock.Anything)
+	suite.querySuccessSampleCollector.Calls = nil
+	suite.advanceSimulationTimeBy(duration.Parse("10m"))
+	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
+}
+
+func (suite *SimulationUser_Test) Test_OtherNotExpiredQueryRemains() {
+	suite.sut.QueryWaitingTimeout = duration.Parse("60m")
+	suite.generatedPendingQuery(untimedKey.Id)
+	suite.advanceSimulationTimeBy(duration.Parse("30m"))
+	suite.generatedPendingQuery(otherId)
+	suite.advanceSimulationTimeBy(duration.Parse("31m"))
+	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
 }
 
 // Private
+
+func (suite *SimulationUser_Test) generatedPendingQuery(id string) {
+	query := data.Query{Id: id}
+	suite.sut.AttractTo(query)
+	_, _ = suite.sut.PopAttractiveQuery()
+}
+
+func (suite *SimulationUser_Test) runOneOnlineOfflineCycle() {
+	suite.advanceSimulationTimeBy(startupDuration + onlineDuration + 1)
+}
+
+func (suite *SimulationUser_Test) advanceSimulationTimeBy(duration time.Duration) {
+	suite.scheduler.Schedule(duration, func() { suite.scheduler.Stop() })
+	suite.scheduler.Run()
+}
 
 func (suite *SimulationUser_Test) assertScheduledAfter(duration time.Duration, methodName string, arguments ...interface{}) {
 	suite.node.AssertNotCalled(suite.T(), methodName, arguments...)

@@ -24,14 +24,23 @@ import (
 	"github.com/straightway/straightway/general/loop"
 )
 
-func Contains(slice interface{}, itemToCompare general.Equaler) bool {
-	itemFound := false
-	ForEachItem(slice, func(c interface{}) loop.Control {
-		itemFound = general.AreEqual(c, itemToCompare)
-		return loop.BreakIf(itemFound)
+func Contains(slice interface{}, itemToCompare interface{}) bool {
+	return 0 <= IndexOf(slice, itemToCompare)
+}
+
+func IndexOf(slice, itemToCheck interface{}) int {
+	i := 0
+	foundIndex := -1
+	ForEachItem(slice, func(c interface{}) (loopControl loop.Control) {
+		if general.AreEqual(c, itemToCheck) {
+			foundIndex = i
+			return loop.Break
+		}
+		i++
+		return loop.Continue
 	})
 
-	return itemFound
+	return foundIndex
 }
 
 func SetUnion(slices ...interface{}) interface{} {

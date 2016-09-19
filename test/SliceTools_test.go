@@ -70,7 +70,7 @@ func (suite *SliceTools_Test) Test_Contains_NilNotContained() {
 }
 
 func (suite *SliceTools_Test) Test_Contains_WithNotEqualerSlice() {
-	assert.False(suite.T(), slice.Contains([]int{2}, intEqualer(2)))
+	assert.True(suite.T(), slice.Contains([]int{2}, 2))
 }
 
 func (suite *SliceTools_Test) Test_Contains_WithNonSliceOrArray() {
@@ -181,6 +181,26 @@ func (suite *SliceTools_Test) Test_RemoveItemsIf_WithPlainStructValues() {
 	var sut []testStruct = []testStruct{testStruct{}, testStruct{}}
 	result := slice.RemoveItemsIf(sut, truePredicate)
 	assert.Empty(suite.T(), result)
+}
+
+func (suite *SliceTools_Test) Test_IndexOf_ReturnsMinusOneForEmptySlice() {
+	var sut = []int{}
+	suite.Assert().Equal(-1, slice.IndexOf(sut, 2))
+}
+
+func (suite *SliceTools_Test) Test_IndexOf_ReturnsZeroIfOnlyElementMatches() {
+	var sut = []int{2}
+	suite.Assert().Equal(0, slice.IndexOf(sut, 2))
+}
+
+func (suite *SliceTools_Test) Test_IndexOf_ReturnsMinusOneIfOnlyElementMatchesNot() {
+	var sut = []int{3}
+	suite.Assert().Equal(-1, slice.IndexOf(sut, 2))
+}
+
+func (suite *SliceTools_Test) Test_IndexOf_ReturnsOneIfSecondElementMatches() {
+	var sut = []int{3, 2}
+	suite.Assert().Equal(1, slice.IndexOf(sut, 2))
 }
 
 // Private

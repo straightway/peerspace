@@ -69,6 +69,10 @@ func (this *Environment) QueryDurationMeasure() *measure.Discrete {
 	return this.queryDurationMeasure
 }
 
+func (this *Environment) QuerySuccessMeasure() *measure.Discrete {
+	return this.querySuccessMeasure
+}
+
 func (this *Environment) Audience() []sim.DataConsumer {
 	result := make([]sim.DataConsumer, len(this.users), len(this.users))
 	for i, u := range this.users {

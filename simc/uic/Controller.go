@@ -50,6 +50,7 @@ func (this *Controller) onExecEvent() {
 	this.ui.SetSimulationTime(this.timeProvider.Time())
 	measurements := this.measurementProvider.Measurements()
 	this.ui.SetQueryDurationMeasurementValue(measurements["QueryDuration"])
+	this.ui.SetQuerySuccessMeasurementValue(measurements["QuerySuccess"])
 }
 
 func (this *Controller) SetUi(ui ui.SimulationUi) {

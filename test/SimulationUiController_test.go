@@ -147,9 +147,11 @@ func (suite *SimulationUiController_Test) Test_RegisterEventHandler_SetSimulatio
 func (suite *SimulationUiController_Test) Test_RegisterEventHandler_SetQueryDurationMeasurementInUi() {
 	measurementMap := make(map[string]string)
 	measurementMap["QueryDuration"] = "1234"
+	measurementMap["QuerySuccess"] = "2345"
 	suite.measureProvider.OnNew("Measurements").Return(measurementMap)
 	suite.simulationController.ExecEventHandlers[0]()
 	suite.ui.AssertCalledOnce(suite.T(), "SetQueryDurationMeasurementValue", "1234")
+	suite.ui.AssertCalledOnce(suite.T(), "SetQuerySuccessMeasurementValue", "2345")
 }
 func (suite *SimulationUiController_Test) Test_Quit_ForwardsCallToToolkitAdapter() {
 	suite.sut.Quit()

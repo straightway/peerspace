@@ -66,25 +66,25 @@ func (suite *SimulationControllerAdapterTest) TearDownTest() {
 
 // Tests
 
-func (suite *SimulationControllerAdapterTest) TestRunEnqueuesActionForNextStep() {
+func (suite *SimulationControllerAdapterTest) Test_Run_EnqueuesActionForNextStep() {
 	suite.sut.Run()
 	suite.uiToolkitAdapter.AssertCalledOnce(suite.T(), "Enqueue", mock.Anything)
 }
 
-func (suite *SimulationControllerAdapterTest) TestEnqueuedActionExecutesNextSimulationEvent() {
+func (suite *SimulationControllerAdapterTest) Test_EnqueuedAction_ExecutesNextSimulationEvent() {
 	suite.sut.Run()
 	suite.uiToolkitAdapter.LastAction()
 	suite.simulationController.AssertCalledOnce(suite.T(), "ExecNext")
 }
 
-func (suite *SimulationControllerAdapterTest) TestEnqueuedActionEnqueuesNextActionIfNextSimulationEventExists() {
+func (suite *SimulationControllerAdapterTest) Test_EnqueuedAction_EnqueuesNextActionIfNextSimulationEventExists() {
 	suite.sut.Run()
 	suite.uiToolkitAdapter.Calls = nil
 	suite.uiToolkitAdapter.LastAction()
 	suite.uiToolkitAdapter.AssertCalledOnce(suite.T(), "Enqueue", mock.Anything)
 }
 
-func (suite *SimulationControllerAdapterTest) TestEnqueuedActionEnqueuesNoActionIfNoSimulationEventExists() {
+func (suite *SimulationControllerAdapterTest) Test_EnqueuedAction_EnqueuesNoActionIfNoSimulationEventExists() {
 	suite.sut.Run()
 	suite.simulationController.OnNew("ExecNext", mock.Anything).Return(false)
 	suite.uiToolkitAdapter.Calls = nil
@@ -92,12 +92,12 @@ func (suite *SimulationControllerAdapterTest) TestEnqueuedActionEnqueuesNoAction
 	suite.uiToolkitAdapter.AssertNotCalled(suite.T(), "Enqueue", mock.Anything)
 }
 
-func (suite *SimulationControllerAdapterTest) TestStopStopsController() {
+func (suite *SimulationControllerAdapterTest) Test_Stop_StopsController() {
 	suite.sut.Stop()
 	suite.simulationController.AssertCalledOnce(suite.T(), "Stop")
 }
 
-func (suite *SimulationControllerAdapterTest) TestResumeResumesController() {
+func (suite *SimulationControllerAdapterTest) Test_Resume_ResumesController() {
 	suite.sut.Resume()
 	suite.simulationController.AssertCalledOnce(suite.T(), "Resume")
 }
@@ -107,7 +107,7 @@ func (suite *SimulationControllerAdapterTest) TestResetResetsController() {
 	suite.simulationController.AssertCalledOnce(suite.T(), "Reset")
 }
 
-func (suite *SimulationControllerAdapterTest) TestRegisterForExecEventIsForwardedToController() {
+func (suite *SimulationControllerAdapterTest) Test_RegisterForExecEvent_IsForwardedToController() {
 	callbackExecutions := 0
 	suite.sut.RegisterForExecEvent(func() { callbackExecutions++ })
 	suite.simulationController.AssertCalledOnce(suite.T(), "RegisterForExecEvent")
@@ -116,14 +116,14 @@ func (suite *SimulationControllerAdapterTest) TestRegisterForExecEventIsForwarde
 	suite.Assert().Equal(1, callbackExecutions)
 }
 
-func (suite *SimulationControllerAdapterTest) TestFirstRunCallCreatesEnvironment() {
+func (suite *SimulationControllerAdapterTest) Test_FirstRunCall_CreatesEnvironment() {
 	wasCalled := false
 	suite.environmentFactory = func() *simc.Environment { wasCalled = true; return nil }
 	suite.sut.Run()
 	suite.Assert().True(wasCalled)
 }
 
-func (suite *SimulationControllerAdapterTest) TestSecondRunCallDoesNotCreateEnvironment() {
+func (suite *SimulationControllerAdapterTest) Test_SecondRunCall_DoesNotCreateEnvironment() {
 	suite.sut.Run()
 	wasCalled := false
 	suite.environmentFactory = func() *simc.Environment { wasCalled = true; return nil }
@@ -131,7 +131,7 @@ func (suite *SimulationControllerAdapterTest) TestSecondRunCallDoesNotCreateEnvi
 	suite.Assert().False(wasCalled)
 }
 
-func (suite *SimulationControllerAdapterTest) TestRunResetRunCreatesEnvironment() {
+func (suite *SimulationControllerAdapterTest) Test_Run_Reset_Run_CreatesEnvironment() {
 	suite.sut.Run()
 	suite.sut.Reset()
 	wasCalled := false
@@ -140,14 +140,15 @@ func (suite *SimulationControllerAdapterTest) TestRunResetRunCreatesEnvironment(
 	suite.Assert().True(wasCalled)
 }
 
-func (suite *SimulationControllerAdapterTest) TestMeasurementsReturnsEmptyMapForNotStartedSimulation() {
+func (suite *SimulationControllerAdapterTest) Test_Measurements_ReturnsEmptyMapForNotStartedSimulation() {
 	result := suite.sut.Measurements()
 	suite.Assert().Empty(result)
 }
 
-func (suite *SimulationControllerAdapterTest) TestMeasurementsReturnsMeasurementsStartedSimulation() {
+func (suite *SimulationControllerAdapterTest) Test_Measurements_ReturnsMeasurementsStartedSimulation() {
 	suite.sut.Run()
 	measurements := suite.sut.Measurements()
-	suite.Assert().Equal(1, len(measurements))
+	suite.Assert().Equal(2, len(measurements))
 	suite.Assert().Equal((&measurec.Discrete{}).String(), measurements["QueryDuration"])
+	suite.Assert().Equal((&measurec.Discrete{}).String(), measurements["QuerySuccess"])
 }

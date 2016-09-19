@@ -62,6 +62,7 @@ func (this *SimulationControllerAdapter) Measurements() map[string]string {
 
 	result := make(map[string]string)
 	result["QueryDuration"] = this.environment.QueryDurationMeasure().String()
+	result["QuerySuccess"] = this.environment.QuerySuccessMeasure().String()
 
 	return result
 

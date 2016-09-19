@@ -60,6 +60,10 @@ func (this *MainWindow) SetQueryDurationMeasurementValue(newValue string) {
 	this.measurementTable.SetText(1, 1, newValue)
 }
 
+func (this *MainWindow) SetQuerySuccessMeasurementValue(newValue string) {
+	this.measurementTable.SetText(1, 2, newValue)
+}
+
 // Event handlers
 
 func (this *MainWindow) onStartClicked(*ui.Button) {
@@ -109,10 +113,11 @@ func (this *MainWindow) init() {
 	networkDisplay := NewNetworkArea()
 	mainArea.Append(networkDisplay, true)
 
-	this.measurementTable = gui.NewTextTable(2, 2)
+	this.measurementTable = gui.NewTextTable(2, 3)
 	this.measurementTable.SetText(0, 0, "MEASUREMENT")
 	this.measurementTable.SetText(1, 0, "VALUE")
 	this.measurementTable.SetText(0, 1, "Query duration")
+	this.measurementTable.SetText(0, 2, "Query success")
 	mainArea.Append(this.measurementTable, false)
 
 	this.SetChild(mainLayout)

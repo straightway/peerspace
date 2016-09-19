@@ -16,16 +16,33 @@
 
 package mocked
 
+import "github.com/stretchr/testify/mock"
+
 type SimulationRandVarPermutator struct {
 	Base
 }
 
 func NewSimulationRandVarPermutator(permutation []int) *SimulationRandVarPermutator {
 	result := &SimulationRandVarPermutator{}
-	result.On("Perm", len(permutation)).Return(permutation)
+	if permutation == nil {
+		result.On("Perm", mock.Anything).Return(nil)
+	} else {
+		result.On("Perm", len(permutation)).Return(permutation)
+	}
 	return result
 }
 
 func (m *SimulationRandVarPermutator) Perm(n int) []int {
-	return m.Called(n).Get(0).([]int)
+	result := m.Called(n).Get(0)
+
+	if result != nil {
+		return result.([]int)
+	}
+
+	identity := make([]int, n)
+	for i := 0; i < n; i++ {
+		identity[i] = i
+	}
+
+	return identity
 }

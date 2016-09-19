@@ -40,6 +40,7 @@ type SimulationUser_Test struct {
 	activity                     *mocked.SimulationUserActivity
 	queryDurationSampleCollector *mocked.SimulationMeasureSampleCollector
 	querySuccessSampleCollector  *mocked.SimulationMeasureSampleCollector
+	querySelectionPermutator     *mocked.SimulationRandVarPermutator
 }
 
 func TestSimulationUser(t *testing.T) {
@@ -57,6 +58,7 @@ func (suite *SimulationUser_Test) SetupTest() {
 	suite.activity = mocked.NewSimulationUserActivity()
 	suite.queryDurationSampleCollector = mocked.NewSimulationMeasureSampleCollector()
 	suite.querySuccessSampleCollector = mocked.NewSimulationMeasureSampleCollector()
+	suite.querySelectionPermutator = mocked.NewSimulationRandVarPermutator(nil)
 	suite.sut = &simc.User{
 		SchedulerInstance:            suite.scheduler,
 		NodeInstance:                 suite.node,
@@ -65,7 +67,8 @@ func (suite *SimulationUser_Test) SetupTest() {
 		OnlineActivity:               suite.activity,
 		QueryDurationSampleCollector: suite.queryDurationSampleCollector,
 		QuerySuccessSampleCollector:  suite.querySuccessSampleCollector,
-		QueryWaitingTimeout:          queryTimeout}
+		QueryWaitingTimeout:          queryTimeout,
+		QuerySelectionPermutator:     suite.querySelectionPermutator}
 	suite.sut.Activate()
 	suite.scheduler.Schedule(stopDuration, func() {
 		panic("Simulation did not stop")
@@ -268,12 +271,25 @@ func (suite *SimulationUser_Test) Test_OtherNotExpiredQueryRemains() {
 	suite.querySuccessSampleCollector.AssertCalledOnce(suite.T(), "AddSample", 0.0)
 }
 
+func (suite *SimulationUser_Test) Test_PopAttractiveQuery_PicksRandomItem() {
+	suite.generatedAttractiveQuery(otherId + "0")
+	suite.generatedAttractiveQuery(otherId + "1")
+	suite.generatedAttractiveQuery(otherId + "2")
+	suite.querySelectionPermutator.OnNew("Perm", 3).Return([]int{1, 2, 0})
+	query, _ := suite.sut.PopAttractiveQuery()
+	suite.Assert().Equal(otherId+"1", query.Id)
+}
+
 // Private
 
 func (suite *SimulationUser_Test) generatedPendingQuery(id string) {
+	suite.generatedAttractiveQuery(id)
+	_, _ = suite.sut.PopAttractiveQuery()
+}
+
+func (suite *SimulationUser_Test) generatedAttractiveQuery(id string) {
 	query := data.Query{Id: id}
 	suite.sut.AttractTo(query)
-	_, _ = suite.sut.PopAttractiveQuery()
 }
 
 func (suite *SimulationUser_Test) runOneOnlineOfflineCycle() {

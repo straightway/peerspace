@@ -92,11 +92,12 @@ func (this *Environment) addNewUser() *User {
 func (this *Environment) createSeedNode() {
 	node, _, _ := this.createNode()
 	this.initialUser = &User{
-		SchedulerInstance: this.scheduler,
-		NodeInstance:      node,
-		StartupDuration:   randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
-		OnlineDuration:    randvar.NewNormalDuration(this.randSource, 2000000*time.Hour, time.Duration(0)),
-		OnlineActivity:    mocked.NewSimulationUserActivity()}
+		SchedulerInstance:        this.scheduler,
+		NodeInstance:             node,
+		StartupDuration:          randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
+		OnlineDuration:           randvar.NewNormalDuration(this.randSource, 2000000*time.Hour, time.Duration(0)),
+		OnlineActivity:           mocked.NewSimulationUserActivity(),
+		QuerySelectionPermutator: rand.New(this.randSource)}
 	this.initialUser.Activate()
 }
 
@@ -109,7 +110,8 @@ func (this *Environment) createUser() *User {
 		OnlineDuration:               this.newPositiveNormalDuration(duration.Parse("2h"), duration.Parse("2h")),
 		QueryDurationSampleCollector: this.queryDurationMeasure,
 		QuerySuccessSampleCollector:  this.querySuccessMeasure,
-		QueryWaitingTimeout:          duration.Parse("5m")}
+		QueryWaitingTimeout:          duration.Parse("5m"),
+		QuerySelectionPermutator:     rand.New(this.randSource)}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser

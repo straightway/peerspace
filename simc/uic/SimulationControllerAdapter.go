@@ -21,6 +21,7 @@ import (
 	"github.com/straightway/straightway/general/ui"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/simc"
+	sui "github.com/straightway/straightway/simc/ui"
 )
 
 type SimulationControllerAdapter struct {
@@ -66,6 +67,14 @@ func (this *SimulationControllerAdapter) Measurements() map[string]string {
 
 	return result
 
+}
+
+func (this *SimulationControllerAdapter) Nodes() []sui.NodeModel {
+	if this.environment == nil {
+		return nil
+	}
+
+	return this.environment.Nodes()
 }
 
 // Private

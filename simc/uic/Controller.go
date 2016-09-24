@@ -37,6 +37,7 @@ func NewController(
 	simulationController sim.Controller,
 	measurementProvider measure.Provider,
 	tookitAdapter gsui.ToolkitAdapter) ui.Controller {
+
 	result := &Controller{
 		simulationController: simulationController,
 		timeProvider:         timeProvider,
@@ -44,13 +45,6 @@ func NewController(
 		toolkitAdapter:       tookitAdapter}
 	simulationController.RegisterForExecEvent(result.onExecEvent)
 	return result
-}
-
-func (this *Controller) onExecEvent() {
-	this.ui.SetSimulationTime(this.timeProvider.Time())
-	measurements := this.measurementProvider.Measurements()
-	this.ui.SetQueryDurationMeasurementValue(measurements["QueryDuration"])
-	this.ui.SetQuerySuccessMeasurementValue(measurements["QuerySuccess"])
 }
 
 func (this *Controller) SetUi(ui ui.SimulationUi) {
@@ -89,4 +83,13 @@ func (this *Controller) Pause() {
 func (this *Controller) Quit() {
 	this.simulationController.Stop()
 	this.toolkitAdapter.Quit()
+}
+
+// Private
+
+func (this *Controller) onExecEvent() {
+	this.ui.SetSimulationTime(this.timeProvider.Time())
+	measurements := this.measurementProvider.Measurements()
+	this.ui.SetQueryDurationMeasurementValue(measurements["QueryDuration"])
+	this.ui.SetQuerySuccessMeasurementValue(measurements["QuerySuccess"])
 }

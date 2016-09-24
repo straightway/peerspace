@@ -146,8 +146,7 @@ func (suite *SimulationUpload_Test) Test_ScheduleUntil_AttractedParialAudienceIs
 
 	attractionRatio := 0.5
 	suite.sut.AttractionRatio = mocked.NewFloat64RandVar(attractionRatio)
-	suite.sut.AudiencePermutator = mocked.NewSimulationRandVarPermutator(
-		[]int{1, 3, 5, 7, 9, 0, 2, 4, 6, 8})
+	suite.sut.AudiencePermutator = mocked.NewSimulationRandVarPermutator(1, 3, 5, 7, 9, 0, 2, 4, 6, 8)
 
 	suite.sut.ScheduleUntil(suite.scheduler.Time().Add(activityDuration))
 	suite.scheduler.Run()

@@ -33,6 +33,7 @@ import (
 	"github.com/straightway/straightway/simc/activity"
 	"github.com/straightway/straightway/simc/measure"
 	"github.com/straightway/straightway/simc/randvar"
+	"github.com/straightway/straightway/simc/ui"
 	"github.com/straightway/straightway/strategy"
 )
 
@@ -43,6 +44,7 @@ const (
 type Environment struct {
 	scheduler            sim.EventScheduler
 	users                []*User
+	uiNodes              map[string]ui.NodeModel
 	nextNodeId           uint
 	randSource           rand.Source
 	initialUser          *User
@@ -57,7 +59,8 @@ func NewSimulationEnvironment(
 		scheduler:            scheduler,
 		randSource:           rand.NewSource(12345),
 		queryDurationMeasure: &measure.Discrete{},
-		querySuccessMeasure:  &measure.Discrete{}}
+		querySuccessMeasure:  &measure.Discrete{},
+		uiNodes:              make(map[string]ui.NodeModel)}
 	result.createSeedNode()
 	for i := 0; i < numberOfUsers; i++ {
 		result.addNewUser()
@@ -74,9 +77,25 @@ func (this *Environment) QuerySuccessMeasure() *measure.Discrete {
 }
 
 func (this *Environment) Audience() []sim.DataConsumer {
-	result := make([]sim.DataConsumer, len(this.users), len(this.users))
+	result := make([]sim.DataConsumer, len(this.users))
 	for i, u := range this.users {
 		result[i] = u
+	}
+	return result
+}
+
+func (this *Environment) Nodes() []ui.NodeModel {
+	result := make([]ui.NodeModel, 0, len(this.uiNodes))
+	for _, node := range this.uiNodes {
+		result = append(result, node)
+	}
+	return result
+}
+
+func (this *Environment) NodeModelForId(id string) ui.NodeModel {
+	result := this.uiNodes[id]
+	if result == nil {
+		panic(fmt.Sprintf("Cannot get node model for %v", id))
 	}
 	return result
 }
@@ -92,12 +111,12 @@ func (this *Environment) addNewUser() *User {
 func (this *Environment) createSeedNode() {
 	node, _, _ := this.createNode()
 	this.initialUser = &User{
-		SchedulerInstance:        this.scheduler,
-		NodeInstance:             node,
-		StartupDuration:          randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
-		OnlineDuration:           randvar.NewNormalDuration(this.randSource, 2000000*time.Hour, time.Duration(0)),
-		OnlineActivity:           mocked.NewSimulationUserActivity(),
-		QuerySelectionPermutator: rand.New(this.randSource)}
+		SchedulerInstance:      this.scheduler,
+		NodeInstance:           node,
+		StartupDuration:        randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
+		OnlineDuration:         randvar.NewNormalDuration(this.randSource, 2000000*time.Hour, time.Duration(0)),
+		OnlineActivity:         mocked.NewSimulationUserActivity(),
+		QuerySelectionSelector: rand.New(this.randSource)}
 	this.initialUser.Activate()
 }
 
@@ -111,7 +130,7 @@ func (this *Environment) createUser() *User {
 		QueryDurationSampleCollector: this.queryDurationMeasure,
 		QuerySuccessSampleCollector:  this.querySuccessMeasure,
 		QueryWaitingTimeout:          duration.Parse("5m"),
-		QuerySelectionPermutator:     rand.New(this.randSource)}
+		QuerySelectionSelector:       rand.New(this.randSource)}
 	newUser.OnlineActivity = this.createActivity(newUser, configuration, rawStorage)
 	newUser.Activate()
 	return newUser
@@ -137,6 +156,7 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 	newNode.DataStrategy = this.createDataStrategy(configuration, peerDistanceRelated, newNode)
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
 	newNode.QueryStrategy = this.createQueryStrategy(configuration, peerDistanceRelated, newNode)
+	this.uiNodes[nodeId] = NewNodeModel(this, newNode)
 	return newNode, configuration, rawStorage
 }
 

@@ -46,7 +46,7 @@ func (suite *SimulationActionTestBase) SetupTest() {
 		QueryWaitingTimeout:          duration.Parse("1h"),
 		QueryDurationSampleCollector: mocked.NewSimulationMeasureSampleCollector(),
 		QuerySuccessSampleCollector:  mocked.NewSimulationMeasureSampleCollector(),
-		QuerySelectionPermutator:     mocked.NewSimulationRandVarPermutator(nil)}
+		QuerySelectionSelector:       mocked.NewSimulationRandVarIntner(0)}
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() {
 		suite.scheduler.Stop()
 	})

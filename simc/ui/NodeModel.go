@@ -14,35 +14,10 @@
    limitations under the License.
 ****************************************************************************/
 
-package mocked
+package ui
 
-import "github.com/stretchr/testify/mock"
-
-type SimulationRandVarPermutator struct {
-	Base
-}
-
-func NewSimulationRandVarPermutator(permutation ...int) *SimulationRandVarPermutator {
-	result := &SimulationRandVarPermutator{}
-	if len(permutation) == 0 {
-		result.On("Perm", mock.Anything).Return(nil)
-	} else {
-		result.On("Perm", len(permutation)).Return(permutation)
-	}
-	return result
-}
-
-func (m *SimulationRandVarPermutator) Perm(n int) []int {
-	result := m.Called(n).Get(0)
-
-	if result != nil {
-		return result.([]int)
-	}
-
-	identity := make([]int, n)
-	for i := 0; i < n; i++ {
-		identity[i] = i
-	}
-
-	return identity
+type NodeModel interface {
+	Position() (x, y float64)
+	SetPosition(x, y float64)
+	Connections() []NodeModel
 }

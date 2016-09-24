@@ -39,7 +39,7 @@ type User struct {
 	QueryDurationSampleCollector measure.SampleCollector
 	QuerySuccessSampleCollector  measure.SampleCollector
 	QueryWaitingTimeout          time.Duration
-	QuerySelectionPermutator     randvar.Permutator
+	QuerySelectionSelector       randvar.Intner
 	attractiveQueries            []data.Query
 	pendingQueries               []queryRecord
 	nextOfflineTime              time.Time
@@ -92,8 +92,7 @@ func (this *User) AttractTo(query data.Query) {
 func (this *User) PopAttractiveQuery() (query data.Query, isFound bool) {
 	isFound = 0 < len(this.attractiveQueries)
 	if isFound {
-		perm := this.QuerySelectionPermutator.Perm(len(this.attractiveQueries))
-		pickedIndex := perm[0]
+		pickedIndex := this.QuerySelectionSelector.Intn(len(this.attractiveQueries))
 		query = this.attractiveQueries[pickedIndex]
 		this.attractiveQueries = append(this.attractiveQueries[0:pickedIndex], this.attractiveQueries[pickedIndex+1:]...)
 		this.registerPendingQuery(query)

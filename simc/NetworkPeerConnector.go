@@ -17,7 +17,7 @@
 package simc
 
 import (
-	"log"
+	//"log"
 	"time"
 
 	"github.com/straightway/straightway/data"
@@ -48,12 +48,12 @@ func (this *NetworkPeerConnector) Push(data *data.Chunk, origin id.Holder) {
 	this.EventScheduler.Schedule(
 		sendDuration,
 		func() {
-			log.Printf(
-				"%v: Pushing %v from %v to %v",
-				this.EventScheduler.Time(),
-				data.Key,
-				origin.Id(),
-				this.Id())
+			/*log.Printf(
+			"%v: Pushing %v from %v to %v",
+			this.EventScheduler.Time(),
+			data.Key,
+			origin.Id(),
+			this.Id())*/
 			this.Wrapped.Push(data, this.tryWrap(origin).(id.Holder))
 		})
 }
@@ -62,12 +62,12 @@ func (this *NetworkPeerConnector) Query(query data.Query, receiver peer.PusherWi
 	this.EventScheduler.Schedule(
 		this.Latency,
 		func() {
-			log.Printf(
-				"%v: Querying %v from %v for %v",
-				this.EventScheduler.Time(),
-				query,
-				this.Id(),
-				receiver.Id())
+			/*log.Printf(
+			"%v: Querying %v from %v for %v",
+			this.EventScheduler.Time(),
+			query,
+			this.Id(),
+			receiver.Id())*/
 			this.Wrapped.Query(query, this.tryWrap(receiver).(peer.PusherWithId))
 		})
 }
@@ -76,11 +76,11 @@ func (this *NetworkPeerConnector) RequestConnectionWith(otherPeer peer.Connector
 	this.EventScheduler.Schedule(
 		this.Latency,
 		func() {
-			log.Printf(
-				"%v: %v requests connection with %v",
-				this.EventScheduler.Time(),
-				otherPeer.Id(),
-				this.Id())
+			/*log.Printf(
+			"%v: %v requests connection with %v",
+			this.EventScheduler.Time(),
+			otherPeer.Id(),
+			this.Id())*/
 			this.Wrapped.RequestConnectionWith(this.tryWrap(otherPeer).(peer.Connector))
 		})
 }
@@ -89,11 +89,11 @@ func (this *NetworkPeerConnector) CloseConnectionWith(otherPeer peer.Connector) 
 	this.EventScheduler.Schedule(
 		this.Latency,
 		func() {
-			log.Printf(
-				"%v: %v closes connection with %v",
-				this.EventScheduler.Time(),
-				otherPeer.Id(),
-				this.Id())
+			/*log.Printf(
+			"%v: %v closes connection with %v",
+			this.EventScheduler.Time(),
+			otherPeer.Id(),
+			this.Id())*/
 			this.Wrapped.CloseConnectionWith(this.tryWrap(otherPeer).(peer.Connector))
 		})
 }
@@ -102,11 +102,11 @@ func (this *NetworkPeerConnector) RequestPeers(receiver peer.Connector) {
 	this.EventScheduler.Schedule(
 		this.Latency,
 		func() {
-			log.Printf(
-				"%v: %v requests peers from %v",
-				this.EventScheduler.Time(),
-				this.Id(),
-				receiver.Id())
+			/*log.Printf(
+			"%v: %v requests peers from %v",
+			this.EventScheduler.Time(),
+			this.Id(),
+			receiver.Id())*/
 			this.Wrapped.RequestPeers(this.tryWrap(receiver).(peer.Connector))
 		})
 }
@@ -121,10 +121,11 @@ func (this *NetworkPeerConnector) AnnouncePeers(peers []peer.Connector) {
 
 	sendDuration := this.sendDurationForSize(peerSizes)
 	this.EventScheduler.Schedule(sendDuration, func() {
-		log.Printf(
-			"%v: %v gets peers announced",
-			this.EventScheduler.Time(),
-			this.Id())
+		/*log.Printf(
+		"%v: %v gets peers %v announced",
+		this.EventScheduler.Time(),
+		this.Id(),
+		len(wrappedPeers))*/
 		this.Wrapped.AnnouncePeers(wrappedPeers)
 	})
 }

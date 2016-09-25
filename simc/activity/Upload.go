@@ -17,7 +17,7 @@
 package activity
 
 import (
-	"log"
+	//"log"
 	"time"
 
 	"github.com/straightway/straightway/app"
@@ -56,11 +56,11 @@ func (this *Upload) doPush() {
 		data.Key{Id: this.IdGenerator.NextId()},
 		this.nextChunkSize())
 
-	log.Printf(
-		"%v: User %v pushes %v into the network",
-		this.User.Scheduler().Time,
-		this.User.Id(),
-		newDataChunk.Key)
+	/*log.Printf(
+	"%v: User %v pushes %v into the network",
+	this.User.Scheduler().Time,
+	this.User.Id(),
+	newDataChunk.Key)*/
 
 	this.User.Node().Push(newDataChunk, this.User)
 	this.attractToAudience(newDataChunk)
@@ -104,10 +104,10 @@ func (this *Upload) attractToAudience(chunk *data.Chunk) {
 		consumer.AttractTo(chunkQuery)
 	}
 
-	log.Printf(
-		"%v: Attracting %v to %v users [%v ]",
-		this.User.Scheduler().Time(),
-		chunkQuery,
-		numberOfAttractions,
-		attractedAudienceString)
+	/*log.Printf(
+	"%v: Attracting %v to %v users [%v ]",
+	this.User.Scheduler().Time(),
+	chunkQuery,
+	numberOfAttractions,
+	attractedAudienceString)*/
 }

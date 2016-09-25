@@ -275,7 +275,8 @@ func (suite *SimulationUser_Test) Test_PopAttractiveQuery_PicksRandomItem() {
 	suite.generatedAttractiveQuery(otherId + "0")
 	suite.generatedAttractiveQuery(otherId + "1")
 	suite.generatedAttractiveQuery(otherId + "2")
-	suite.querySelector.OnNew("Intn", 3).Return(1)
+	suite.querySelector.OnNew("Intn", 3)
+	suite.querySelector.SetValues(1)
 	query, _ := suite.sut.PopAttractiveQuery()
 	suite.Assert().Equal(otherId+"1", query.Id)
 }

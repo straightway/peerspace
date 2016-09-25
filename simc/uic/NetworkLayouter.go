@@ -57,13 +57,23 @@ func (this *NetworkLayouter) ImproveLayoutOf(network ui.NetworkModel) {
 			continue
 		}
 
+		cx, cy := changedNode.Position()
+		ox, oy := otherNode.Position()
+		if cx == ox && cy == oy {
+			cx := float64(this.NodeSelector.Intn(int(this.MaxX-this.MinX))) + this.MinX
+			cy := float64(this.NodeSelector.Intn(int(this.MaxY-this.MinY))) + this.MinY
+			changedNode.SetPosition(cx, cy)
+			return
+		}
+
 		agX, agY := this.forces(changedNode, otherNode)
 		dx += agX
 		dy += agY
 	}
 
 	x, y := changedNode.Position()
-	x, y = this.clip(x+dx*this.TimeFactor, y+dy*this.TimeFactor)
+	timeFactor := this.TimeFactor * float64(len(nodes))
+	x, y = this.clip(x+dx*timeFactor, y+dy*timeFactor)
 
 	changedNode.SetPosition(x, y)
 }
@@ -102,9 +112,6 @@ func (this *NetworkLayouter) forces(a, b ui.NodeModel) (x, y float64) {
 	ax, ay := a.Position()
 	bx, by := b.Position()
 	dx, dy := bx-ax, by-ay
-	if dx == 0.0 && dy == 0.0 {
-		dx = 1.0
-	}
 
 	x, y = this.antiGravityForce(dx, dy)
 

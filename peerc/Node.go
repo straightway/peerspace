@@ -92,6 +92,7 @@ func (this *Node) RequestConnectionWith(peer peer.Connector) {
 	if this.isConnectionAcceptedWith(peer) {
 		this.confirmConnectionWith(peer)
 		this.acceptConnectionWith(peer)
+		this.StateStorage.AddKnownPeer(peer)
 	} else {
 		this.refuseConnectionWith(peer)
 	}

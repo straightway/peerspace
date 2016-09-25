@@ -35,7 +35,7 @@ func main() {
 			SimulationController: scheduler,
 			ToolkitAdapter:       toolkitAdapter,
 			TimeProvider:         scheduler,
-			EnvironmentFactory:   func() *simc.Environment { return simc.NewSimulationEnvironment(scheduler, 1000) }}
+			EnvironmentFactory:   func() *simc.Environment { return simc.NewSimulationEnvironment(scheduler, 100) }}
 		controller := uic.NewController(scheduler, eventControllerAdapter, eventControllerAdapter, toolkitAdapter)
 		mainWindow := gui.NewMainWindow(controller, eventControllerAdapter)
 		mainWindow.Show()

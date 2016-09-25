@@ -68,7 +68,7 @@ func (suite *SimulationUiNetworkLayouterTest) TearDownTest() {
 
 func (suite *SimulationUiNetworkLayouterTest) Test_ImproveLayout_AffectsRandomNode() {
 	suite.createNetworkWithNodeCoordinates(0.0, 0.0, 1.0, 1.0, 0.0, 2.0)
-	suite.setSelectedNode(1)
+	suite.nodeSelector.SetValues(1)
 	suite.sut.ImproveLayoutOf(suite.network)
 	suite.assertNodePosition(0, 0.0, 0.0)
 	suite.Assert().False(suite.isNodePosition(1, 1.0, 1.0))
@@ -85,11 +85,11 @@ func (suite *SimulationUiNetworkLayouterTest) Test_ImproveLayout_SingleNodesNotC
 	suite.assertNodePosition(0, 0.0, 0.0)
 }
 
-func (suite *SimulationUiNetworkLayouterTest) Test_ImproveLayout_TwoUnconnectedNodesAtSamePosDriftInXDirection() {
+func (suite *SimulationUiNetworkLayouterTest) Test_ImproveLayout_TwoUnconnectedNodesAtSamePosJumpsToRandomPosition() {
 	suite.createNetworkWithNodeCoordinates(0.0, 0.0, 0.0, 0.0)
-	moveX := suite.antiGravityForceForDistance1()
+	suite.nodeSelector.SetValues(0, 12, 13)
 	suite.sut.ImproveLayoutOf(suite.network)
-	suite.assertNodePosition(0, moveX, 0.0)
+	suite.assertNodePosition(0, -88.0, -87.0)
 }
 
 func (suite *SimulationUiNetworkLayouterTest) Test_ImproveLayout_TwoUnconnectedNodesDriftByAntiGravityInYDirection() {
@@ -247,11 +247,7 @@ func (suite *SimulationUiNetworkLayouterTest) createNetworkWithNodeCoordinates(n
 	}
 
 	suite.network = mocked.NewSimulationUiNetworkModel(nodes...)
-	suite.setSelectedNode(0)
-}
-
-func (suite *SimulationUiNetworkLayouterTest) setSelectedNode(index int) {
-	suite.nodeSelector.OnNew("Intn", len(suite.nodes)).Return(index)
+	suite.nodeSelector.SetValues(0)
 }
 
 func (suite *SimulationUiNetworkLayouterTest) assertNodePosition(index int, x, y float64) {

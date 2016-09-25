@@ -17,7 +17,7 @@
 package activity
 
 import (
-	"log"
+	//"log"
 	"time"
 
 	"github.com/straightway/straightway/sim"
@@ -47,9 +47,7 @@ func (this *Query) ScheduleUntil(maxTime time.Time) {
 func (this *Query) doQuery() {
 	query, isQueryFound := this.User.PopAttractiveQuery()
 	if isQueryFound {
-		log.Printf("%v: %v queries %v", this.Scheduler.Time(), this.User.Id(), query)
+		//log.Printf("%v: %v queries %v", this.Scheduler.Time(), this.User.Id(), query)
 		this.User.Node().Query(query, this.User)
-	} else {
-		log.Printf("%v: %v has no more queries", this.Scheduler.Time(), this.User.Id())
 	}
 }

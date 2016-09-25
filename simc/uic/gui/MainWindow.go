@@ -47,7 +47,7 @@ func NewMainWindow(controller sui.Controller, networkModel sui.NetworkModel) *Ma
 			NodeSelector:     rand.New(rand.NewSource(12345)),
 			ConnectionForce:  1.0,
 			AnitGravityForce: 100000.0,
-			TimeFactor:       0.005}}
+			TimeFactor:       1e-5}}
 	mainWindow.init()
 	return mainWindow
 }
@@ -129,7 +129,7 @@ func (this *MainWindow) init() {
 		BoundsReceiver: &this.networkLayouter}
 	this.networkDisplay = ui.NewArea(handler)
 	mainArea.Append(this.networkDisplay, true)
-	ui.QueueMain(this.improveNetworkLayout)
+	//ui.QueueMain(this.improveNetworkLayout)
 
 	this.measurementTable = gui.NewTextTable(2, 3)
 	this.measurementTable.SetText(0, 0, "MEASUREMENT")

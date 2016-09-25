@@ -56,6 +56,12 @@ func (suite *Node_Connection_Test) TestSuccessfulConnectionIsAcknowledged() {
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
 }
 
+func (suite *Node_Connection_Test) TestSuccessfulConnectionAddsKnownPeer() {
+	peerNode := mocked.NewPeerConnector()
+	suite.node.RequestConnectionWith(peerNode)
+	suite.stateStorage.AssertCalledOnce(suite.T(), "AddKnownPeer", peerNode)
+}
+
 func (suite *Node_Connection_Test) TestRefusedConnectionIsClosed() {
 	peerNode := mocked.NewPeerConnector()
 	suite.connectionStrategy.ExpectedCalls = nil

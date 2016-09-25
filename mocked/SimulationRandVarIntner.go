@@ -20,14 +20,25 @@ import "github.com/stretchr/testify/mock"
 
 type SimulationRandVarIntner struct {
 	Base
+	values       []int
+	currentIndex int
 }
 
-func NewSimulationRandVarIntner(value int) *SimulationRandVarIntner {
+func NewSimulationRandVarIntner(firstValue int, nextValues ...int) *SimulationRandVarIntner {
 	result := &SimulationRandVarIntner{}
-	result.On("Intn", mock.Anything).Return(value)
+	result.SetValues(firstValue, nextValues...)
+	result.On("Intn", mock.Anything).Return()
 	return result
 }
 
+func (m *SimulationRandVarIntner) SetValues(firstValue int, nextValues ...int) {
+	m.values = append([]int{firstValue}, nextValues...)
+	m.currentIndex = 0
+}
+
 func (m *SimulationRandVarIntner) Intn(n int) int {
-	return m.Called(n).Get(0).(int)
+	m.Called(n)
+	nextValue := m.values[m.currentIndex]
+	m.currentIndex = (m.currentIndex + 1) % len(m.values)
+	return nextValue
 }

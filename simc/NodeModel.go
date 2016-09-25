@@ -17,6 +17,7 @@
 package simc
 
 import (
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/simc/ui"
 	"github.com/straightway/straightway/strategy"
 )
@@ -27,11 +28,19 @@ type NodeModel struct {
 	x, y           float64
 }
 
-func NewNodeModel(nodeModels NodeModelRepository, connectionInfo strategy.ConnectionInfoProvider) *NodeModel {
+func NewNodeModel(
+	nodeModels NodeModelRepository,
+	connectionInfo strategy.ConnectionInfoProvider) *NodeModel {
+
 	result := &NodeModel{
 		nodeModels:     nodeModels,
 		connectionInfo: connectionInfo}
 	return result
+}
+
+func (this *NodeModel) Equal(other general.Equaler) bool {
+	otherNodeModel, isOtherNodeModel := other.(*NodeModel)
+	return isOtherNodeModel && general.AreEqual(this.connectionInfo, otherNodeModel.connectionInfo)
 }
 
 func (this *NodeModel) Position() (x, y float64) {
@@ -44,11 +53,15 @@ func (this *NodeModel) SetPosition(x, y float64) {
 }
 
 func (this *NodeModel) Connections() []ui.NodeModel {
-	peers := this.connectionInfo.ConnectedPeers()
-	result := make([]ui.NodeModel, len(peers))
-	for i, peer := range peers {
-		result[i] = this.nodeModels.NodeModelForId(peer.Id())
+	connectedPeers := this.connectionInfo.ConnectedPeers()
+	//var connectingPeers := this.connectionInfo.ConnectingPeers()
+	result := make([]ui.NodeModel, 0, len(connectedPeers) /*+len(connectingPeers)*/)
+	for _, peer := range connectedPeers {
+		result = append(result, this.nodeModels.NodeModelForId(peer.Id()))
 	}
+	/*for _, peer := range connectingPeers {
+		result = append(result, this.nodeModels.NodeModelForId(peer.Id()))
+	}*/
 
 	return result
 }

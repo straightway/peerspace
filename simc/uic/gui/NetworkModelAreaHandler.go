@@ -85,10 +85,12 @@ func (this *NetworkModelAreaHandler) drawConnection(
 	p.NewFigure(xFrom, yFrom)
 	p.LineTo(xTo, yTo)
 	p.End()
-	stroke := &ui.StrokeParams{Thickness: 1.0, Dashes: []float64{5.0}}
-	if slice.Contains(to.Connections(), from) {
+	stroke := &ui.StrokeParams{Thickness: 1.0}
+	toConnections := to.Connections()
+	if slice.Contains(toConnections, from) {
 		this.handledConnectionNodes = append(this.handledConnectionNodes, connection{to, from})
-		stroke.Dashes = nil
+	} else {
+		stroke.Dashes = []float64{5.0}
 	}
 	dp.Context.Stroke(p, black, stroke)
 	dp.Context.Restore()

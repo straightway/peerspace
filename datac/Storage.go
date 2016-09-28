@@ -60,6 +60,11 @@ func (this *Storage) Query(query data.Query) []*data.Chunk {
 	return data.SelectChunks(queryResult)
 }
 
+func (this *Storage) IsStored(key data.Key) bool {
+	queryResult := this.RawStorage.Query(data.Query{Id: key.Id, TimeFrom: key.TimeStamp, TimeTo: key.TimeStamp})
+	return 0 < len(queryResult)
+}
+
 // Private
 
 func (this *Storage) rePrioritizeChunksWithExpiredPrio() {

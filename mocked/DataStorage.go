@@ -37,6 +37,7 @@ func NewDataStorage(result ...*data.Chunk) *DataStorage {
 	dataStorage.On("Query", mock.Anything).Return()
 	dataStorage.On("Startup").Return()
 	dataStorage.On("ShutDown").Return()
+	dataStorage.On("IsStored", mock.Anything).Return()
 
 	return dataStorage
 }
@@ -58,6 +59,17 @@ func (this *DataStorage) Query(query data.Query) []*data.Chunk {
 	}
 
 	return result
+}
+
+func (this *DataStorage) IsStored(key data.Key) bool {
+	this.Called()
+	for _, chunk := range this.data {
+		if chunk.Key == key {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (this *DataStorage) Startup() {

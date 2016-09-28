@@ -25,6 +25,7 @@ import (
 type Configuration struct {
 	MaxConnections      int
 	MaxChunkSize        uint64
+	ForwardNodes        int
 	MaxAnnouncedPeers   int
 	TimedQueryTimeout   time.Duration
 	UntimedQueryTimeout time.Duration
@@ -35,6 +36,7 @@ func DefaultConfiguration() *Configuration {
 		MaxConnections:      20,
 		MaxAnnouncedPeers:   50,
 		MaxChunkSize:        0xffff,
+		ForwardNodes:        1,
 		TimedQueryTimeout:   duration.Parse("1h"),
 		UntimedQueryTimeout: duration.Parse("5m")}
 }

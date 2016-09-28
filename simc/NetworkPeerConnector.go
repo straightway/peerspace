@@ -45,13 +45,13 @@ func (this *NetworkPeerConnector) Equal(other general.Equaler) bool {
 
 func (this *NetworkPeerConnector) Push(data *data.Chunk, origin id.Holder) {
 	sendDuration := this.sendDurationForSize(this.RawStorage.SizeOf(data))
-	log.Printf(
-		"%v: Will push %v from %v to %v in ",
-		this.EventScheduler.Time(),
-		data.Key,
-		origin.Id(),
-		this.Id(),
-		sendDuration)
+	/*log.Printf(
+	"%v: Will push %v from %v to %v in %v",
+	this.EventScheduler.Time(),
+	data.Key,
+	origin.Id(),
+	this.Id(),
+	sendDuration)*/
 	this.EventScheduler.Schedule(
 		sendDuration,
 		func() {

@@ -17,11 +17,12 @@
 package strategy
 
 import (
-	"math"
+	"sort"
 
 	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -31,31 +32,45 @@ type Data struct {
 	PeerDistanceCalculator PeerDistanceCalculator
 }
 
+type peersByDistance struct {
+	peers                  []peer.Connector
+	peerDistanceCalculator PeerDistanceCalculator
+	key                    data.Key
+}
+
+func (a peersByDistance) Len() int      { return len(a.peers) }
+func (a peersByDistance) Swap(i, j int) { a.peers[i], a.peers[j] = a.peers[j], a.peers[i] }
+func (a peersByDistance) Less(i, j int) bool {
+	return a.peerDistanceCalculator.Distance(a.peers[i], a.key) < a.peerDistanceCalculator.Distance(a.peers[j], a.key)
+}
+
 func (this *Data) IsChunkAccepted(data *data.Chunk, origin id.Holder) bool {
 	return uint64(len(data.Data)) <= this.Configuration.MaxChunkSize
 }
 
 func (this *Data) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Pusher {
-	var nearestPeer = this.nearestPeer(key)
-	if nearestPeer != nil && origin.Id() != nearestPeer.Id() {
-		return []peer.Pusher{nearestPeer}
-	} else {
-		return []peer.Pusher{}
+	nearestPeers := slice.RemoveItemsIf(
+		this.connectdPeersSortedByDistance(key),
+		func(item interface{}) bool {
+			peer := item.(id.Holder)
+			return peer.Id() == origin.Id()
+		}).([]peer.Connector)
+
+	numItems := int(this.Configuration.ForwardNodes)
+	if len(nearestPeers) <= numItems {
+		numItems = len(nearestPeers)
 	}
+
+	return slice.Cast(nearestPeers, []peer.Pusher{}).([]peer.Pusher)[:numItems]
 }
 
 // Private
 
-func (this *Data) nearestPeer(key data.Key) peer.Connector {
-	var nearestPeer peer.Connector = nil
-	var nearestPeerDistance uint64 = math.MaxUint64
-	for _, peer := range this.ConnectionInfoProvider.ConnectedPeers() {
-		currentDist := this.PeerDistanceCalculator.Distance(peer, key)
-		if currentDist < nearestPeerDistance {
-			nearestPeer = peer
-			nearestPeerDistance = currentDist
-		}
-	}
-
-	return nearestPeer
+func (this *Data) connectdPeersSortedByDistance(key data.Key) []peer.Connector {
+	sortablePeers := peersByDistance{
+		peers: this.ConnectionInfoProvider.ConnectedPeers(),
+		peerDistanceCalculator: this.PeerDistanceCalculator,
+		key: key}
+	sort.Sort(sortablePeers)
+	return sortablePeers.peers
 }

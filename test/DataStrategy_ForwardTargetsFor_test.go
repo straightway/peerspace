@@ -19,6 +19,7 @@ package test
 import (
 	"testing"
 
+	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
 )
@@ -33,6 +34,7 @@ func TestDataStrategy_ForwardTargetsFor(t *testing.T) {
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) SetupTest() {
 	suite.DataStrategy_TestBase.SetupTest()
+	suite.configuration.ForwardNodes = 1
 	suite.sut.PeerDistanceCalculator = suite.distanceCalculator
 }
 
@@ -61,11 +63,28 @@ func (suite *DataStrategy_ForwardTargetsFor_Test) TestSingleConnectionIsSelected
 }
 
 func (suite *DataStrategy_ForwardTargetsFor_Test) TestNearestPeerIsSelected() {
-	nearPeer := suite.createConnectedPeer()
-	farPeer := suite.createConnectedPeer()
 	suite.distanceCalculator.ExpectedCalls = nil
-	suite.distanceCalculator.On("Distance", nearPeer, untimedKey).Return(uint64(1))
-	suite.distanceCalculator.On("Distance", farPeer, untimedKey).Return(uint64(2))
+	nearPeer := suite.createPeer(1)
+	suite.createPeer(2)
 	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
 	suite.Assert().Equal([]peer.Pusher{nearPeer}, result)
+}
+
+func (suite *DataStrategy_ForwardTargetsFor_Test) TestConfiguredNumberOfNodesIsSelected() {
+	peers := make([]peer.Pusher, 5)
+	for i := range peers {
+		peers[i] = suite.createPeer(uint64(i))
+	}
+
+	suite.configuration.ForwardNodes = 3
+	result := suite.sut.ForwardTargetsFor(untimedKey, suite.origin)
+	suite.Assert().Equal(peers[:3], result)
+}
+
+// Private
+
+func (suite *DataStrategy_ForwardTargetsFor_Test) createPeer(distance uint64) *mocked.PeerConnector {
+	peer := suite.createConnectedPeer()
+	suite.distanceCalculator.On("Distance", peer, untimedKey).Return(distance)
+	return peer
 }

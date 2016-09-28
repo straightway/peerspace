@@ -88,3 +88,10 @@ func (suite *Node_Sending_Test) Test_Push_NotAcceptedChunkIsImmediatelyDiscarded
 	suite.dataStrategy.AssertNotCalled(
 		suite.T(), "ForwardTargetsFor", mock.Anything, mock.Anything)
 }
+
+func (suite *Node_Sending_Test) Test_Push_AlreadyStoredChunkIsImmediatelyDiscarded() {
+	suite.dataStorage.ConsiderStorage(&untimedChunk)
+	suite.Push(&untimedChunk)
+	suite.dataStrategy.AssertNotCalled(
+		suite.T(), "ForwardTargetsFor", mock.Anything, mock.Anything)
+}

@@ -16,10 +16,13 @@
 
 package data
 
-import "github.com/straightway/straightway/general"
+import (
+	"github.com/straightway/straightway/general"
+)
 
 type Storage interface {
 	general.LifeCycle
 	ConsiderStorage(*Chunk)
 	Query(Query) []*Chunk
+	IsStored(key Key) bool
 }

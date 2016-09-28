@@ -55,6 +55,28 @@ func (suite *DataStorage_Test) Test_Query_LeadsToRePrioritizationOfResult() {
 	suite.Assert().Equal([]*data.Chunk{&untimedChunk}, result)
 }
 
+func (suite *DataStorage_Test) Test_IsStored_ForwardsUntimedQueryToRawStorage() {
+	result := suite.sut.IsStored(untimedKey)
+	suite.raw.AssertCalledOnce(suite.T(), "Query", data.Query{Id: untimedKey.Id})
+	suite.Assert().False(result)
+}
+
+func (suite *DataStorage_Test) Test_IsStored_ForwardsTimedQueryToRawStorage() {
+	result := suite.sut.IsStored(timedKey10)
+	suite.raw.OnNew("query")
+	suite.raw.AssertCalledOnce(
+		suite.T(),
+		"Query",
+		data.Query{Id: timedKey10.Id, TimeFrom: timedKey10.TimeStamp, TimeTo: timedKey10.TimeStamp})
+	suite.Assert().False(result)
+}
+
+func (suite *DataStorage_Test) Test_IsStored_ForwardsYieldsTrueIfRawStorageYieldsResult() {
+	suite.raw.Store(&untimedChunk, 0.0, time.Now())
+	result := suite.sut.IsStored(untimedKey)
+	suite.Assert().True(result)
+}
+
 func (suite *DataStorage_Test) Test_ConsiderStorage_IsForwardedToRawStorage() {
 	suite.sut.ConsiderStorage(&untimedChunk)
 	suite.raw.AssertCalledOnce(suite.T(), "Store", &untimedChunk, mock.Anything, mock.Anything)

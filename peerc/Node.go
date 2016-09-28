@@ -146,6 +146,10 @@ func (this *Node) Push(data *data.Chunk, origin id.Holder) {
 		return
 	}
 
+	if this.DataStorage.IsStored(data.Key) {
+		return
+	}
+
 	for _, p := range this.dataForwardPeers(origin, data.Key) {
 		p.Push(data, this)
 	}

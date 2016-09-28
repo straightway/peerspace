@@ -17,13 +17,11 @@
 package gui
 
 import (
-	"math/rand"
 	"time"
 
 	"github.com/andlabs/ui"
 	"github.com/straightway/straightway/general/gui"
 	sui "github.com/straightway/straightway/simc/ui"
-	"github.com/straightway/straightway/simc/uic"
 )
 
 type MainWindow struct {
@@ -35,19 +33,15 @@ type MainWindow struct {
 	simulationTimeDisplay *gui.VCenteredLabel
 	measurementTable      *gui.TextTable
 	networkModel          sui.NetworkModel
-	networkLayouter       uic.NetworkLayouter
 	networkDisplay        *ui.Area
+	noNetworkPlaceholder  *ui.Label
+	isNetworkDisplayed    bool
 }
 
 func NewMainWindow(controller sui.Controller, networkModel sui.NetworkModel) *MainWindow {
 	mainWindow := &MainWindow{
 		controller:   controller,
-		networkModel: networkModel,
-		networkLayouter: uic.NetworkLayouter{
-			NodeSelector:     rand.New(rand.NewSource(12345)),
-			ConnectionForce:  1.0,
-			AnitGravityForce: 100000.0,
-			TimeFactor:       1e-5}}
+		networkModel: networkModel}
 	mainWindow.init()
 	return mainWindow
 }
@@ -90,6 +84,18 @@ func (this *MainWindow) onPauseClicked(*ui.Button) {
 	this.controller.Pause()
 }
 
+func (this *MainWindow) onDisplayNetworkToggled(*ui.Button) {
+	this.isNetworkDisplayed = !this.isNetworkDisplayed
+	if this.isNetworkDisplayed {
+		this.networkDisplay.Show()
+		this.noNetworkPlaceholder.Hide()
+		ui.QueueMain(this.redrawNetworkDisplay)
+	} else {
+		this.networkDisplay.Hide()
+		this.noNetworkPlaceholder.Show()
+	}
+}
+
 // Private
 
 func (this *MainWindow) init() {
@@ -112,6 +118,10 @@ func (this *MainWindow) init() {
 	this.startButton.OnClicked(this.onStartClicked)
 	commandBar.Append(this.startButton, false)
 
+	displayNetworkButton := ui.NewButton("(o)")
+	displayNetworkButton.OnClicked(this.onDisplayNetworkToggled)
+	commandBar.Append(displayNetworkButton, false)
+
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)
 
@@ -123,13 +133,14 @@ func (this *MainWindow) init() {
 	mainLayout.Append(mainArea, true)
 
 	handler := &NetworkModelAreaHandler{
-		Model:          this.networkModel,
-		NodeSize:       10,
-		NodeColor:      ui.Brush{R: 0.0, B: 0.0, G: 1.0, A: 0.5},
-		BoundsReceiver: &this.networkLayouter}
+		Model:     this.networkModel,
+		NodeSize:  10,
+		NodeColor: ui.Brush{R: 0.0, B: 0.0, G: 1.0, A: 0.5}}
 	this.networkDisplay = ui.NewArea(handler)
 	mainArea.Append(this.networkDisplay, true)
-	//ui.QueueMain(this.improveNetworkLayout)
+	this.noNetworkPlaceholder = ui.NewLabel("Network display disabled")
+	mainArea.Append(this.noNetworkPlaceholder, true)
+	this.networkDisplay.Hide()
 
 	this.measurementTable = gui.NewTextTable(2, 3)
 	this.measurementTable.SetText(0, 0, "MEASUREMENT")
@@ -156,13 +167,11 @@ func setEnabled(control ui.Control, enabled bool) {
 	}
 }
 
-func (this *MainWindow) improveNetworkLayout() {
-	if this.networkModel == nil {
+func (this *MainWindow) redrawNetworkDisplay() {
+	if this.networkModel == nil || this.isNetworkDisplayed == false {
 		return
 	}
 
-	this.networkLayouter.ImproveLayoutOf(this.networkModel)
-	this.networkLayouter.Centralize(this.networkModel)
+	ui.QueueMain(this.redrawNetworkDisplay)
 	this.networkDisplay.QueueRedrawAll()
-	ui.QueueMain(this.improveNetworkLayout)
 }

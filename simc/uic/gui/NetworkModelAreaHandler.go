@@ -28,7 +28,6 @@ type NetworkModelAreaHandler struct {
 	Model                  simui.NetworkModel
 	NodeSize               float64
 	NodeColor              ui.Brush
-	BoundsReceiver         BoundsReceiver
 	handledConnectionNodes []connection
 }
 
@@ -40,25 +39,26 @@ type connection struct {
 var black *ui.Brush = &ui.Brush{R: 0.0, B: 0.0, G: 0.0, A: 1.0}
 
 func (this *NetworkModelAreaHandler) Draw(a *ui.Area, dp *ui.AreaDrawParams) {
-	this.BoundsReceiver.SetBounds(
-		this.NodeSize,
-		this.NodeSize,
-		dp.AreaWidth-this.NodeSize,
-		dp.AreaHeight-this.NodeSize)
-
-	for _, node := range this.Model.Nodes() {
-		this.drawNode(node, dp)
+	nodes := this.Model.Nodes()
+	numNodes := len(nodes)
+	for i, node := range nodes {
+		this.drawNode(i, numNodes, node, dp)
 	}
 	this.handledConnectionNodes = nil
 }
 
 func (this *NetworkModelAreaHandler) drawNode(
+	nodeIndex int,
+	numNodes int,
 	node simui.NodeModel,
 	dp *ui.AreaDrawParams) {
 
+	x, y := position(nodeIndex, numNodes, node, dp)
+	node.SetPosition(x, y)
+
 	dp.Context.Save()
+	dp.Context.Text(x, y, ui.NewTextLayout(node.Id(), ui.LoadClosestFont(&ui.FontDescriptor{Family: "sans", Size: 8.0}), 10.0))
 	p := ui.NewPath(ui.Winding)
-	x, y := node.Position()
 	p.NewFigureWithArc(x, y, this.NodeSize, 0.0, 2.0*math.Pi, false)
 	p.End()
 	dp.Context.Fill(p, &this.NodeColor)
@@ -67,6 +67,20 @@ func (this *NetworkModelAreaHandler) drawNode(
 	for _, connectedNode := range node.Connections() {
 		this.drawConnection(node, connectedNode, dp)
 	}
+}
+
+func position(
+	nodeIndex int,
+	numNodes int,
+	node simui.NodeModel,
+	dp *ui.AreaDrawParams) (x, y float64) {
+
+	gridSize := int(math.Sqrt(float64(numNodes))) + 1
+	x = float64(nodeIndex / gridSize)
+	y = float64(nodeIndex % gridSize)
+	x *= dp.AreaWidth / float64(gridSize)
+	y *= dp.AreaHeight / float64(gridSize)
+	return
 }
 
 func (this *NetworkModelAreaHandler) drawConnection(

@@ -19,6 +19,7 @@ package mocked
 import (
 	"fmt"
 
+	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/simc/ui"
 	"github.com/stretchr/testify/mock"
 )
@@ -29,12 +30,22 @@ type SimulationUiNodeModel struct {
 	x, y        float64
 }
 
-func NewSimulationUiNodeModel(x, y float64) *SimulationUiNodeModel {
+func NewSimulationUiNodeModel(id string, x, y float64) *SimulationUiNodeModel {
 	result := &SimulationUiNodeModel{x: x, y: y}
 	result.On("Position").Return()
 	result.On("SetPosition", mock.Anything, mock.Anything).Return()
 	result.On("Connections").Return()
+	result.On("Id").Return(id)
+	result.On("Equal").Return(false)
 	return result
+}
+
+func (m *SimulationUiNodeModel) Id() string {
+	return m.Called().Get(0).(string)
+}
+
+func (m *SimulationUiNodeModel) Equal(other general.Equaler) bool {
+	return m.Called().Get(0).(bool)
 }
 
 func (m *SimulationUiNodeModel) Position() (x, y float64) {

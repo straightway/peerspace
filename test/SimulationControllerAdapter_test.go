@@ -152,3 +152,15 @@ func (suite *SimulationControllerAdapterTest) Test_Measurements_ReturnsMeasureme
 	suite.Assert().Equal((&measurec.Discrete{}).String(), measurements["QueryDuration"])
 	suite.Assert().Equal((&measurec.Discrete{}).String(), measurements["QuerySuccess"])
 }
+
+func (suite *SimulationControllerAdapterTest) Test_Nodes_ReturnsNodesFromEnvironment() {
+	environment := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
+	suite.environmentFactory = func() *simc.Environment { return environment }
+	suite.sut.Run()
+	suite.Assert().Equal(environment.Nodes(), suite.sut.Nodes())
+}
+
+func (suite *SimulationControllerAdapterTest) Test_Nodes_ReturnsNoNodesWithoutEnvironemnt() {
+	suite.environmentFactory = func() *simc.Environment { return nil }
+	suite.Assert().Empty(suite.sut.Nodes())
+}

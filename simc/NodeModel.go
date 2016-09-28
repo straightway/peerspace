@@ -23,16 +23,19 @@ import (
 )
 
 type NodeModel struct {
+	id             string
 	nodeModels     NodeModelRepository
 	connectionInfo strategy.ConnectionInfoProvider
 	x, y           float64
 }
 
 func NewNodeModel(
+	id string,
 	nodeModels NodeModelRepository,
 	connectionInfo strategy.ConnectionInfoProvider) *NodeModel {
 
 	result := &NodeModel{
+		id:             id,
 		nodeModels:     nodeModels,
 		connectionInfo: connectionInfo}
 	return result
@@ -40,7 +43,11 @@ func NewNodeModel(
 
 func (this *NodeModel) Equal(other general.Equaler) bool {
 	otherNodeModel, isOtherNodeModel := other.(*NodeModel)
-	return isOtherNodeModel && general.AreEqual(this.connectionInfo, otherNodeModel.connectionInfo)
+	return isOtherNodeModel && otherNodeModel.Id() == this.id
+}
+
+func (this *NodeModel) Id() string {
+	return this.id
 }
 
 func (this *NodeModel) Position() (x, y float64) {
@@ -54,14 +61,14 @@ func (this *NodeModel) SetPosition(x, y float64) {
 
 func (this *NodeModel) Connections() []ui.NodeModel {
 	connectedPeers := this.connectionInfo.ConnectedPeers()
-	//var connectingPeers := this.connectionInfo.ConnectingPeers()
-	result := make([]ui.NodeModel, 0, len(connectedPeers) /*+len(connectingPeers)*/)
+	connectingPeers := this.connectionInfo.ConnectingPeers()
+	result := make([]ui.NodeModel, 0, len(connectedPeers)+len(connectingPeers))
 	for _, peer := range connectedPeers {
 		result = append(result, this.nodeModels.NodeModelForId(peer.Id()))
 	}
-	/*for _, peer := range connectingPeers {
+	for _, peer := range connectingPeers {
 		result = append(result, this.nodeModels.NodeModelForId(peer.Id()))
-	}*/
+	}
 
 	return result
 }

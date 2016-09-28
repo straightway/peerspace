@@ -44,7 +44,8 @@ const (
 type Environment struct {
 	scheduler            sim.EventScheduler
 	users                []*User
-	uiNodes              map[string]ui.NodeModel
+	uiNodeForId          map[string]ui.NodeModel
+	uiNodes              []ui.NodeModel
 	nextNodeId           uint
 	randSource           rand.Source
 	initialUser          *User
@@ -60,7 +61,7 @@ func NewSimulationEnvironment(
 		randSource:           rand.NewSource(12345),
 		queryDurationMeasure: &measure.Discrete{},
 		querySuccessMeasure:  &measure.Discrete{},
-		uiNodes:              make(map[string]ui.NodeModel)}
+		uiNodeForId:          make(map[string]ui.NodeModel)}
 	result.createSeedNode()
 	for i := 0; i < numberOfUsers; i++ {
 		result.addNewUser()
@@ -85,15 +86,11 @@ func (this *Environment) Audience() []sim.DataConsumer {
 }
 
 func (this *Environment) Nodes() []ui.NodeModel {
-	result := make([]ui.NodeModel, 0, len(this.uiNodes))
-	for _, node := range this.uiNodes {
-		result = append(result, node)
-	}
-	return result
+	return this.uiNodes
 }
 
 func (this *Environment) NodeModelForId(id string) ui.NodeModel {
-	result := this.uiNodes[id]
+	result := this.uiNodeForId[id]
 	if result == nil {
 		panic(fmt.Sprintf("Cannot get node model for %v", id))
 	}
@@ -156,7 +153,9 @@ func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorag
 	newNode.DataStrategy = this.createDataStrategy(configuration, peerDistanceRelated, newNode)
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
 	newNode.QueryStrategy = this.createQueryStrategy(configuration, peerDistanceRelated, newNode)
-	this.uiNodes[nodeId] = NewNodeModel(this, newNode)
+	nodeModel := NewNodeModel(nodeId, this, newNode)
+	this.uiNodeForId[nodeId] = nodeModel
+	this.uiNodes = append(this.uiNodes, nodeModel)
 	return newNode, configuration, rawStorage
 }
 

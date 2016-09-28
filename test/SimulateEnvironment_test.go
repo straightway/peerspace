@@ -24,6 +24,7 @@ import (
 
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/simc"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSimulationEnvironment(t *testing.T) {
@@ -32,5 +33,28 @@ func TestSimulationEnvironment(t *testing.T) {
 	simc.NewSimulationEnvironment(scheduler, 5)
 	scheduler.Schedule(duration.Parse("240h"), func() { scheduler.Stop() })
 	scheduler.Run()
+	log.SetOutput(os.Stderr)
+}
+
+func TestNodes(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
+	env := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
+	assert.Equal(t, 6, len(env.Nodes())) // +1 seed node
+	log.SetOutput(os.Stderr)
+}
+
+func TestNodeForId_ExistingNode(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
+	env := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
+	for _, node := range env.Nodes() {
+		assert.Equal(t, node, env.NodeModelForId(node.Id()))
+	}
+	log.SetOutput(os.Stderr)
+}
+
+func TestNodeForId_NotExistingNode(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
+	env := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
+	assert.Panics(t, func() { env.NodeModelForId("NotExistingId") })
 	log.SetOutput(os.Stderr)
 }

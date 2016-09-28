@@ -79,6 +79,9 @@ func (this *Node) ShutDown() {
 		peer.CloseConnectionWith(this)
 	}
 
+	this.connectingPeers = nil
+	this.connectedPeers = nil
+
 	if this.DataStorage != nil {
 		this.DataStorage.ShutDown()
 	}

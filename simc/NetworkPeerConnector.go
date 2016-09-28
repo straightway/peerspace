@@ -17,7 +17,7 @@
 package simc
 
 import (
-	//"log"
+	"log"
 	"time"
 
 	"github.com/straightway/straightway/data"
@@ -45,15 +45,22 @@ func (this *NetworkPeerConnector) Equal(other general.Equaler) bool {
 
 func (this *NetworkPeerConnector) Push(data *data.Chunk, origin id.Holder) {
 	sendDuration := this.sendDurationForSize(this.RawStorage.SizeOf(data))
+	log.Printf(
+		"%v: Will push %v from %v to %v in ",
+		this.EventScheduler.Time(),
+		data.Key,
+		origin.Id(),
+		this.Id(),
+		sendDuration)
 	this.EventScheduler.Schedule(
 		sendDuration,
 		func() {
-			/*log.Printf(
-			"%v: Pushing %v from %v to %v",
-			this.EventScheduler.Time(),
-			data.Key,
-			origin.Id(),
-			this.Id())*/
+			log.Printf(
+				"%v: Pushing %v from %v to %v",
+				this.EventScheduler.Time(),
+				data.Key,
+				origin.Id(),
+				this.Id())
 			this.Wrapped.Push(data, this.tryWrap(origin).(id.Holder))
 		})
 }
@@ -62,12 +69,12 @@ func (this *NetworkPeerConnector) Query(query data.Query, receiver peer.PusherWi
 	this.EventScheduler.Schedule(
 		this.Latency,
 		func() {
-			/*log.Printf(
-			"%v: Querying %v from %v for %v",
-			this.EventScheduler.Time(),
-			query,
-			this.Id(),
-			receiver.Id())*/
+			log.Printf(
+				"%v: Querying %v from %v for %v",
+				this.EventScheduler.Time(),
+				query,
+				this.Id(),
+				receiver.Id())
 			this.Wrapped.Query(query, this.tryWrap(receiver).(peer.PusherWithId))
 		})
 }

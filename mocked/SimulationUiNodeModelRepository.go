@@ -14,8 +14,25 @@
    limitations under the License.
 ****************************************************************************/
 
-package gui
+package mocked
 
-type BoundsReceiver interface {
-	SetBounds(minX, minY, maxX, maxY float64)
+import (
+	"github.com/straightway/straightway/simc/ui"
+	"github.com/stretchr/testify/mock"
+)
+
+type SimulationUiNodeModelRepository struct {
+	Base
+	Nodes map[string]ui.NodeModel
+}
+
+func NewSimulationUiNodeModelRepository(nodes ...ui.NodeModel) *SimulationUiNodeModelRepository {
+	result := &SimulationUiNodeModelRepository{Nodes: make(map[string]ui.NodeModel)}
+	result.On("NodeModelForId", mock.Anything).Return()
+	return result
+}
+
+func (m *SimulationUiNodeModelRepository) NodeModelForId(id string) ui.NodeModel {
+	m.Called(id)
+	return m.Nodes[id]
 }

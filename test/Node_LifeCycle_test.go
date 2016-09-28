@@ -128,6 +128,21 @@ func (suite *Node_LifeCycle_Test) Test_ShutDown_ClosesAllOpenConnections() {
 	}
 }
 
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ClearConnectingPeers() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+
+	suite.Assert().Empty(suite.node.ConnectingPeers())
+}
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ClearConnectedPeers() {
+	suite.node.Startup()
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.ShutDown()
+
+	suite.Assert().Empty(suite.node.ConnectedPeers())
+}
+
 func (suite *Node_LifeCycle_Test) Test_ShutDown_ShutsDownDataStorage() {
 	suite.node.Startup()
 	suite.node.ShutDown()

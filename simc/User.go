@@ -17,7 +17,7 @@
 package simc
 
 import (
-	//log"
+	"log"
 	"time"
 
 	"github.com/straightway/straightway/data"
@@ -74,7 +74,7 @@ func (this *User) Push(data *data.Chunk, origin id.Holder) {
 		if qr.query.Matches(data.Key) {
 			queryDuration := currTime.Sub(qr.startTime)
 			this.QueryDurationSampleCollector.AddSample(queryDuration.Seconds())
-			this.QuerySuccessSampleCollector.AddSample(1.0)
+			this.sampleQuerySuccess()
 			this.pendingQueries = append(this.pendingQueries[:i], this.pendingQueries[i+1:]...)
 			break
 		}
@@ -128,11 +128,25 @@ func (this *User) doShutDown() {
 	this.Id())*/
 	this.NodeInstance.ShutDown()
 	this.Activate()
-	for _, _ = range this.pendingQueries {
-		this.QuerySuccessSampleCollector.AddSample(0.0)
+	for _, query := range this.pendingQueries {
+		this.sampleQueryFailure(query)
 	}
 
 	this.pendingQueries = nil
+}
+
+func (this *User) sampleQuerySuccess() {
+	this.QuerySuccessSampleCollector.AddSample(1.0)
+}
+
+func (this *User) sampleQueryFailure(query queryRecord) {
+	log.Printf(
+		"%v: Query for %v failed for %v",
+		this.SchedulerInstance.Time(),
+		query.query,
+		this.Id())
+
+	this.QuerySuccessSampleCollector.AddSample(0.0)
 }
 
 func (this *User) registerPendingQuery(query data.Query) {
@@ -172,7 +186,7 @@ func (this *User) discardExpiredQueries() {
 	now := this.Scheduler().Time()
 	for _, q := range this.pendingQueries {
 		if q.isExpired(now) {
-			this.QuerySuccessSampleCollector.AddSample(0.0)
+			this.sampleQueryFailure(q)
 		} else {
 			remainingQueries = append(remainingQueries, q)
 		}

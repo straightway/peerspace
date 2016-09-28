@@ -17,6 +17,7 @@
 package ui
 
 type NodeModel interface {
+	Id() string
 	Position() (x, y float64)
 	SetPosition(x, y float64)
 	Connections() []NodeModel

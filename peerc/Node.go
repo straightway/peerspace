@@ -38,6 +38,7 @@ type Node struct {
 	ConnectionStrategy   peer.ConnectionStrategy
 	Timer                times.Provider
 	Configuration        *app.Configuration
+	PostConnectAction    func(node peer.Node, peer peer.Connector)
 
 	connectingPeers []peer.Connector
 	connectedPeers  []peer.Connector
@@ -96,6 +97,9 @@ func (this *Node) RequestConnectionWith(peer peer.Connector) {
 		this.confirmConnectionWith(peer)
 		this.acceptConnectionWith(peer)
 		this.StateStorage.AddKnownPeer(peer)
+		if this.PostConnectAction != nil {
+			this.PostConnectAction(this, peer)
+		}
 	} else {
 		this.refuseConnectionWith(peer)
 	}

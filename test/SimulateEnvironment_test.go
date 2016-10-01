@@ -31,7 +31,7 @@ func TestSimulationEnvironment(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 	scheduler := &simc.EventScheduler{}
 	simc.NewSimulationEnvironment(scheduler, 5)
-	scheduler.Schedule(duration.Parse("240h"), func() { scheduler.Stop() })
+	scheduler.Schedule(duration.Parse("10h"), func() { scheduler.Stop() })
 	scheduler.Run()
 	log.SetOutput(os.Stderr)
 }

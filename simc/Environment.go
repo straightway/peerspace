@@ -107,6 +107,11 @@ func (this *Environment) addNewUser() *User {
 
 func (this *Environment) createSeedNode() {
 	node, _, _ := this.createNode()
+	node.PostConnectAction = func(node peer.Node, peer peer.Connector) {
+		node.CloseConnectionWith(peer)
+		peer.CloseConnectionWith(node)
+	}
+
 	this.initialUser = &User{
 		SchedulerInstance:      this.scheduler,
 		NodeInstance:           node,
@@ -133,7 +138,7 @@ func (this *Environment) createUser() *User {
 	return newUser
 }
 
-func (this *Environment) createNode() (peer.Node, *app.Configuration, *RawStorage) {
+func (this *Environment) createNode() (*peerc.Node, *app.Configuration, *RawStorage) {
 	this.nextNodeId++
 	nodeId := fmt.Sprintf("%v", this.nextNodeId)
 	configuration := app.DefaultConfiguration()

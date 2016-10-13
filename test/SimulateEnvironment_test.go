@@ -17,10 +17,10 @@
 package test
 
 import (
-	"io/ioutil"
-	"log"
-	"os"
 	"testing"
+
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/discard"
 
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/simc"
@@ -28,33 +28,29 @@ import (
 )
 
 func TestSimulationEnvironment(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
+	log.SetHandler(discard.Default)
 	scheduler := &simc.EventScheduler{}
 	simc.NewSimulationEnvironment(scheduler, 5)
 	scheduler.Schedule(duration.Parse("10h"), func() { scheduler.Stop() })
 	scheduler.Run()
-	log.SetOutput(os.Stderr)
 }
 
 func TestNodes(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
+	log.SetHandler(discard.Default)
 	env := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
 	assert.Equal(t, 6, len(env.Nodes())) // +1 seed node
-	log.SetOutput(os.Stderr)
 }
 
 func TestNodeForId_ExistingNode(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
+	log.SetHandler(discard.Default)
 	env := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
 	for _, node := range env.Nodes() {
 		assert.Equal(t, node, env.NodeModelForId(node.Id()))
 	}
-	log.SetOutput(os.Stderr)
 }
 
 func TestNodeForId_NotExistingNode(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
+	log.SetHandler(discard.Default)
 	env := simc.NewSimulationEnvironment(&simc.EventScheduler{}, 5)
 	assert.Panics(t, func() { env.NodeModelForId("NotExistingId") })
-	log.SetOutput(os.Stderr)
 }

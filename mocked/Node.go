@@ -36,9 +36,10 @@ func NewNode(id string) *Node {
 	result.On("Equal", mock.Anything).Return(false)
 	result.On("Startup").Return()
 	result.On("ShutDown").Return()
+	result.On("IsStarted").Return()
 	result.On("RequestConnectionWith", mock.Anything).Return()
 	result.On("CloseConnectionWith", mock.Anything).Return()
-	result.On("AnnouncePeers", mock.Anything).Return()
+	result.On("AnnouncePeersFrom", mock.Anything, mock.Anything).Return()
 	result.On("RequestPeers").Return()
 	result.On("Push", mock.Anything, mock.Anything).Return()
 	result.On("Query", mock.Anything, mock.Anything).Return()
@@ -69,6 +70,11 @@ func (m *Node) ShutDown() {
 	m.isStarted = false
 }
 
+func (m *Node) IsStarted() bool {
+	m.Called()
+	return m.isStarted
+}
+
 func (m *Node) RequestConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
@@ -77,8 +83,8 @@ func (m *Node) CloseConnectionWith(peer peer.Connector) {
 	m.Called(peer)
 }
 
-func (m *Node) AnnouncePeers(peers []peer.Connector) {
-	m.Called(peers)
+func (m *Node) AnnouncePeersFrom(from peer.Connector, peers []peer.Connector) {
+	m.Called(from, peers)
 }
 
 func (m *Node) RequestPeers(receiver peer.Connector) {

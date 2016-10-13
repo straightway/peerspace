@@ -17,19 +17,24 @@
 package main
 
 import (
-	"log"
-
 	"github.com/andlabs/ui"
+
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/text"
+
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
+	simlog "github.com/straightway/straightway/simc/log"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/straightway/straightway/simc/uic/gui"
 )
 
 func main() {
-	log.SetFlags(0)
 	err := ui.Main(func() {
 		scheduler := &simc.EventScheduler{}
+		simTimeLogHandler := simlog.NewSimulationTimeHandler(text.Default, scheduler)
+		actionLogger := simlog.NewActionHandler(simTimeLogHandler)
+		log.SetHandler(actionLogger)
 		toolkitAdapter := &ggui.ToolkitAdapter{}
 		eventControllerAdapter := &uic.SimulationControllerAdapter{
 			SimulationController: scheduler,

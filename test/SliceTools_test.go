@@ -203,6 +203,26 @@ func (suite *SliceTools_Test) Test_IndexOf_ReturnsOneIfSecondElementMatches() {
 	suite.Assert().Equal(1, slice.IndexOf(sut, 2))
 }
 
+func (suite *SliceTools_Test) Test_ToString_ReturnsEmptyStringForEmptySlice() {
+	result := slice.ToString([]int{}, "")
+	suite.Assert().Empty(result)
+}
+
+func (suite *SliceTools_Test) Test_ToString_ReturnsSingleStringForSingleElementSlice() {
+	result := slice.ToString([]int{1}, "")
+	suite.Assert().Equal("1", result)
+}
+
+func (suite *SliceTools_Test) Test_ToString_MultiElementSlice() {
+	result := slice.ToString([]int{1, 2, 3}, "")
+	suite.Assert().Equal("123", result)
+}
+
+func (suite *SliceTools_Test) Test_ToString_MultiElementSliceWithSeparator() {
+	result := slice.ToString([]int{1, 2, 3}, ",")
+	suite.Assert().Equal("1,2,3", result)
+}
+
 // Private
 
 func truePredicate(item interface{}) bool {

@@ -17,7 +17,7 @@
 package simc
 
 import (
-	"log"
+	// "log"
 	"time"
 
 	"github.com/straightway/straightway/data"
@@ -140,11 +140,11 @@ func (this *User) sampleQuerySuccess() {
 }
 
 func (this *User) sampleQueryFailure(query queryRecord) {
-	log.Printf(
-		"%v: Query for %v failed for %v",
-		this.SchedulerInstance.Time(),
-		query.query,
-		this.Id())
+	/*log.Printf(
+	"%v: Query for %v failed for %v",
+	this.SchedulerInstance.Time(),
+	query.query,
+	this.Id())*/
 
 	this.QuerySuccessSampleCollector.AddSample(0.0)
 }

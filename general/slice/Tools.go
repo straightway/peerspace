@@ -115,6 +115,21 @@ func Cast(from interface{}, to interface{}) interface{} {
 	return interfaceOrNil(result)
 }
 
+func ToString(slice interface{}, separator string) string {
+	result := ""
+	ForEachItem(slice, func(item interface{}) loop.Control {
+		result = fmt.Sprintf("%v%v%v", result, item, separator)
+		return loop.Continue
+	})
+
+	resultLength := len(result)
+	if 0 < resultLength {
+		result = result[0 : resultLength-len(separator)]
+	}
+
+	return result
+}
+
 // Private
 
 func interfaceOrNil(value reflect.Value) interface{} {

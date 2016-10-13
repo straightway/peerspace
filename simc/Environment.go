@@ -51,21 +51,34 @@ type Environment struct {
 	initialUser          *User
 	queryDurationMeasure *measure.Discrete
 	querySuccessMeasure  *measure.Discrete
+	networkProperties    *NetworkProperties
 }
 
 func NewSimulationEnvironment(
 	scheduler sim.EventScheduler,
 	numberOfUsers int) *Environment {
+
 	result := &Environment{
 		scheduler:            scheduler,
 		randSource:           rand.NewSource(12345),
 		queryDurationMeasure: &measure.Discrete{},
 		querySuccessMeasure:  &measure.Discrete{},
 		uiNodeForId:          make(map[string]ui.NodeModel)}
+	peerDistanceRelated := &strategy.PeerDistanceRelated{
+		LocalPeerId: "",
+		Timer:       scheduler,
+		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
+	_, rawStorage := result.createDataStorage(peerDistanceRelated)
+	result.networkProperties = &NetworkProperties{
+		EventScheduler: scheduler,
+		SizeOfer:       rawStorage,
+		Latency:        duration.Parse("50ms"),
+		Bandwidth:      1024 * 1024}
 	result.createSeedNode()
 	for i := 0; i < numberOfUsers; i++ {
 		result.addNewUser()
 	}
+
 	return result
 }
 
@@ -106,15 +119,27 @@ func (this *Environment) addNewUser() *User {
 }
 
 func (this *Environment) createSeedNode() {
-	node, _, _ := this.createNode()
-	node.PostConnectAction = func(node peer.Node, peer peer.Connector) {
-		node.CloseConnectionWith(peer)
-		peer.CloseConnectionWith(node)
-	}
+	this.nextNodeId++
+	nodeId := fmt.Sprintf("%v", this.nextNodeId)
+	configuration := app.DefaultConfiguration()
+	peerDistanceRelated := &strategy.PeerDistanceRelated{
+		LocalPeerId: nodeId,
+		Timer:       this.scheduler,
+		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
+	_, rawStorage := this.createDataStorage(peerDistanceRelated)
+	stateStorage := this.createStateStorage(rawStorage)
+	newNode := &peerc.SeedNode{}
+	newNode.Identifier = nodeId
+	newNode.StateStorage = stateStorage
+	newNode.Timer = this.scheduler
+	newNode.Configuration = configuration
+	nodeModel := NewNodeModel(nodeId, this, newNode)
+	this.uiNodeForId[nodeId] = nodeModel
+	this.uiNodes = append(this.uiNodes, nodeModel)
 
 	this.initialUser = &User{
 		SchedulerInstance:      this.scheduler,
-		NodeInstance:           node,
+		NodeInstance:           newNode,
 		StartupDuration:        randvar.NewNormalDuration(this.randSource, time.Duration(0), time.Duration(0)),
 		OnlineDuration:         randvar.NewNormalDuration(this.randSource, 2000000*time.Hour, time.Duration(0)),
 		OnlineActivity:         mocked.NewSimulationUserActivity(),
@@ -148,13 +173,13 @@ func (this *Environment) createNode() (*peerc.Node, *app.Configuration, *RawStor
 		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
 	dataStorage, rawStorage := this.createDataStorage(peerDistanceRelated)
 	stateStorage := this.createStateStorage(rawStorage)
-	newNode := &peerc.Node{
-		Identifier:           nodeId,
-		StateStorage:         stateStorage,
-		DataStorage:          dataStorage,
-		AnnouncementStrategy: this.createAnnouncementStrategy(configuration, stateStorage),
-		Timer:                this.scheduler,
-		Configuration:        configuration}
+	newNode := &peerc.Node{}
+	newNode.Identifier = nodeId
+	newNode.StateStorage = stateStorage
+	newNode.DataStorage = dataStorage
+	newNode.AnnouncementStrategy = this.createAnnouncementStrategy(configuration, stateStorage)
+	newNode.Timer = this.scheduler
+	newNode.Configuration = configuration
 	newNode.DataStrategy = this.createDataStrategy(configuration, peerDistanceRelated, newNode)
 	newNode.ConnectionStrategy = this.createConnecionStrategy(configuration, newNode)
 	newNode.QueryStrategy = this.createQueryStrategy(configuration, peerDistanceRelated, newNode)
@@ -167,12 +192,7 @@ func (this *Environment) createNode() (*peerc.Node, *app.Configuration, *RawStor
 func (this *Environment) createStateStorage(rawStorage data.RawStorage) peer.StateStorage {
 	stateStorage := &StateStorage{}
 	if 0 < len(this.users) {
-		networkAccessedNode := &NetworkPeerConnector{
-			Wrapped:        this.initialUser.Node(),
-			EventScheduler: this.scheduler,
-			RawStorage:     rawStorage,
-			Latency:        duration.Parse("50ms"),
-			Bandwidth:      1024 * 1024}
+		networkAccessedNode := NewNetworkPeerConnector(this.initialUser.Node(), this.networkProperties)
 		stateStorage.AddKnownPeer(networkAccessedNode)
 	}
 

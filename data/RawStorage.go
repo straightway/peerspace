@@ -23,10 +23,10 @@ import (
 )
 
 type RawStorage interface {
+	SizeOfer
 	Query(Query) []Record
 	Store(chunk *Chunk, priority float32, prioExpirationTime time.Time)
 	Delete(Key)
-	SizeOf(*Chunk) uint64
 	FreeStorage() uint64
 	LeastImportantData() loop.Iterator
 	ExpiredData() []Record

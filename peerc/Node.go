@@ -19,31 +19,21 @@ package peerc
 import (
 	"time"
 
-	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/slice"
-	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/peer"
 )
 
 type Node struct {
-	Identifier           string
-	StateStorage         peer.StateStorage
+	NodeBase
 	DataStorage          data.Storage
 	AnnouncementStrategy peer.AnnouncementStrategy
 	DataStrategy         peer.DataStrategy
 	QueryStrategy        peer.QueryStrategy
 	ConnectionStrategy   peer.ConnectionStrategy
-	Timer                times.Provider
-	Configuration        *app.Configuration
-	PostConnectAction    func(node peer.Node, peer peer.Connector)
 
-	connectingPeers []peer.Connector
-	connectedPeers  []peer.Connector
-	pendingQueries  []*pendingQuery
-	isStarted       bool
+	pendingQueries []*pendingQuery
 }
 
 type pendingQuery struct {
@@ -57,31 +47,16 @@ func (this *pendingQuery) AddReceiver(receiver peer.Pusher, parent *Node) {
 	this.refreshTimeout(parent)
 }
 
-func (this *Node) Id() string {
-	return this.Identifier
-}
-
-func (this *Node) Equal(other general.Equaler) bool {
-	connector, ok := other.(peer.Connector)
-	return ok && connector.Id() == this.Id()
-}
-
 func (this *Node) Startup() {
+	this.NodeBase.baseStartup()
 	this.pendingQueries = make([]*pendingQuery, 0)
 	this.assertConsistency()
 	this.DataStorage.Startup()
-	this.isStarted = true
 	this.requestPeerConnections()
 }
 
 func (this *Node) ShutDown() {
-	defer func() { this.isStarted = false }()
-	for _, peer := range append(this.connectingPeers, this.connectedPeers...) {
-		peer.CloseConnectionWith(this)
-	}
-
-	this.connectingPeers = nil
-	this.connectedPeers = nil
+	this.NodeBase.baseShutDown(this)
 
 	if this.DataStorage != nil {
 		this.DataStorage.ShutDown()
@@ -97,20 +72,12 @@ func (this *Node) RequestConnectionWith(peer peer.Connector) {
 		this.confirmConnectionWith(peer)
 		this.acceptConnectionWith(peer)
 		this.StateStorage.AddKnownPeer(peer)
-		if this.PostConnectAction != nil {
-			this.PostConnectAction(this, peer)
-		}
 	} else {
 		this.refuseConnectionWith(peer)
 	}
 }
 
-func (this *Node) CloseConnectionWith(peer peer.Connector) {
-	this.connectingPeers = removePeer(this.connectingPeers, peer)
-	this.connectedPeers = removePeer(this.connectedPeers, peer)
-}
-
-func (this *Node) AnnouncePeers(peers []peer.Connector) {
+func (this *Node) AnnouncePeersFrom(from peer.Connector, peers []peer.Connector) {
 	for _, peer := range peers {
 		if this.Equal(peer) || this.StateStorage.IsKnownPeer(peer) {
 			continue
@@ -122,23 +89,7 @@ func (this *Node) AnnouncePeers(peers []peer.Connector) {
 
 func (this *Node) RequestPeers(receiver peer.Connector) {
 	peersToAnnounce := this.AnnouncementStrategy.AnnouncedPeers()
-	receiver.AnnouncePeers(peersToAnnounce)
-}
-
-func (this *Node) IsConnectionPendingWith(peer peer.Connector) bool {
-	return slice.Contains(this.connectingPeers, peer)
-}
-
-func (this *Node) IsConnectedWith(peer peer.Connector) bool {
-	return slice.Contains(this.connectedPeers, peer)
-}
-
-func (this *Node) ConnectedPeers() []peer.Connector {
-	return append([]peer.Connector(nil), this.connectedPeers...)
-}
-
-func (this *Node) ConnectingPeers() []peer.Connector {
-	return append([]peer.Connector(nil), this.connectingPeers...)
+	receiver.AnnouncePeersFrom(this, peersToAnnounce)
 }
 
 func (this *Node) Push(data *data.Chunk, origin id.Holder) {
@@ -178,10 +129,6 @@ func (this *Node) Query(query data.Query, receiver peer.PusherWithId) {
 	}
 }
 
-func (this *Node) IsStarted() bool {
-	return this.isStarted
-}
-
 // Private
 
 func (this *Node) tryConnectWith(peer peer.Connector) {
@@ -201,27 +148,12 @@ func (this *Node) isConnectionAcceptedWith(peer peer.Connector) bool {
 		this.ConnectionStrategy.IsConnectionAcceptedWith(peer)
 }
 
-func (this *Node) isConnectionPendingWith(peer peer.Connector) bool {
-	return slice.Contains(this.connectingPeers, peer)
-}
-
 func (this *Node) refuseConnectionWith(peer peer.Connector) {
 	peer.CloseConnectionWith(this)
 }
 
-func (this *Node) acceptConnectionWith(peer peer.Connector) {
-	this.connectedPeers = append(this.connectedPeers, peer)
-	this.connectingPeers = removePeer(this.connectingPeers, peer)
-}
-
-func removePeer(peers []peer.Connector, peerToRemove peer.Connector) []peer.Connector {
-	return slice.RemoveItemsIf(peers, func(p interface{}) bool {
-		return peerToRemove.Equal(p.(peer.Connector))
-	}).([]peer.Connector)
-}
-
 func (this *Node) confirmConnectionWith(peer peer.Connector) {
-	if this.isConnectionPendingWith(peer) == false {
+	if this.IsConnectionPendingWith(peer) == false {
 		peer.RequestConnectionWith(this)
 	}
 

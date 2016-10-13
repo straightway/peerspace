@@ -56,18 +56,6 @@ func (suite *Node_Connection_Test) TestSuccessfulConnectionIsAcknowledged() {
 	peerNode.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
 }
 
-func (suite *Node_Connection_Test) TestSuccessfulConnectionExecutesPostAction() {
-	peerNode := mocked.NewPeerConnector()
-	numPostConnectActions := 0
-	suite.node.PostConnectAction = func(node peer.Node, peer peer.Connector) {
-		suite.Assert().Equal(suite.node, node)
-		suite.Assert().Equal(peerNode, peer)
-		numPostConnectActions++
-	}
-	suite.node.RequestConnectionWith(peerNode)
-	suite.Assert().Equal(1, numPostConnectActions)
-}
-
 func (suite *Node_Connection_Test) TestSuccessfulConnectionAddsKnownPeer() {
 	peerNode := mocked.NewPeerConnector()
 	suite.node.RequestConnectionWith(peerNode)
@@ -186,45 +174,45 @@ func (suite *Node_Connection_Test) Test_ConnectingPeers_ContainsConnectingPeers(
 	suite.Assert().True(slice.Contains(result, connectingPeer))
 }
 
-func (suite *Node_Connection_Test) Test_AnnouncePeers_NewPeersAreStoredAsKnownPeers() {
+func (suite *Node_Connection_Test) Test_AnnouncePeersFrom_NewPeersAreStoredAsKnownPeers() {
 	suite.node.Startup()
 	announcedPeer1 := mocked.NewPeerConnector()
 	announcedPeer2 := mocked.NewPeerConnector()
-	suite.node.AnnouncePeers([]peer.Connector{announcedPeer1, announcedPeer2})
+	suite.node.AnnouncePeersFrom(nil, []peer.Connector{announcedPeer1, announcedPeer2})
 	suite.stateStorage.AssertCalled(suite.T(), "AddKnownPeer", announcedPeer1)
 	suite.stateStorage.AssertCalled(suite.T(), "AddKnownPeer", announcedPeer2)
 	suite.stateStorage.AssertNumberOfCalls(suite.T(), "AddKnownPeer", 2)
 }
 
-func (suite *Node_Connection_Test) Test_AnnouncePeers_SelfReferenceIsNotStored() {
+func (suite *Node_Connection_Test) Test_AnnouncePeersFrom_SelfReferenceIsNotStored() {
 	suite.node.Startup()
-	suite.node.AnnouncePeers([]peer.Connector{suite.node})
+	suite.node.AnnouncePeersFrom(nil, []peer.Connector{suite.node})
 	suite.stateStorage.AssertNotCalled(suite.T(), "AddKnownPeer", mock.Anything)
 }
 
-func (suite *Node_Connection_Test) Test_AnnouncePeers_AlreadyKnownPeersAreIgnored() {
+func (suite *Node_Connection_Test) Test_AnnouncePeersFrom_AlreadyKnownPeersAreIgnored() {
 	announcedPeer := suite.AddKnownUnconnectedPeer()
 	suite.node.Startup()
-	suite.node.AnnouncePeers([]peer.Connector{announcedPeer})
+	suite.node.AnnouncePeersFrom(nil, []peer.Connector{announcedPeer})
 	suite.stateStorage.AssertNotCalled(suite.T(), "AddKnownPeer", mock.Anything)
 	suite.stateStorage.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
 }
 
-func (suite *Node_Connection_Test) Test_AnnouncePeers_NewAnnouncedPeerIsConnectedIfAccepted() {
+func (suite *Node_Connection_Test) Test_AnnouncePeersFrom_NewAnnouncedPeerIsConnectedIfAccepted() {
 	suite.node.Startup()
 	announcedPeer := mocked.NewPeerConnector()
 	announcedPeers := []peer.Connector{announcedPeer}
-	suite.node.AnnouncePeers(announcedPeers)
+	suite.node.AnnouncePeersFrom(nil, announcedPeers)
 	announcedPeer.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
 	suite.Assert().Equal(announcedPeers, suite.node.ConnectingPeers())
 }
 
-func (suite *Node_Connection_Test) Test_AnnouncePeers_NewAnnouncedPeerIsNotConnectedIfNotAccepted() {
+func (suite *Node_Connection_Test) Test_AnnouncePeersFrom_NewAnnouncedPeerIsNotConnectedIfNotAccepted() {
 	suite.node.Startup()
 	suite.connectionStrategy.ExpectedCalls = nil
 	suite.connectionStrategy.On("IsConnectionAcceptedWith", mock.Anything).Return(false)
 	announcedPeer := mocked.NewPeerConnector()
-	suite.node.AnnouncePeers([]peer.Connector{announcedPeer})
+	suite.node.AnnouncePeersFrom(nil, []peer.Connector{announcedPeer})
 	announcedPeer.AssertNotCalled(suite.T(), "RequestConnectionWith", suite.node)
 }
 
@@ -273,5 +261,5 @@ func (suite *Node_Connection_Test) Test_RequestPeers_SelectsAnnouncedPeersByStra
 	suite.node.Startup()
 	suite.node.RequestPeers(connectedPeer)
 	suite.announcementStrategy.AssertCalledOnce(suite.T(), "AnnouncedPeers")
-	connectedPeer.AssertCalledOnce(suite.T(), "AnnouncePeers", announcedPeers)
+	connectedPeer.AssertCalledOnce(suite.T(), "AnnouncePeersFrom", mock.Anything, announcedPeers)
 }

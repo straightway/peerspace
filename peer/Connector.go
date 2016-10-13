@@ -29,5 +29,5 @@ type Connector interface {
 	RequestConnectionWith(peer Connector)
 	CloseConnectionWith(peer Connector)
 	RequestPeers(receiver Connector)
-	AnnouncePeers(peers []Connector)
+	AnnouncePeersFrom(from Connector, peers []Connector)
 }

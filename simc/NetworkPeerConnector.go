@@ -17,124 +17,143 @@
 package simc
 
 import (
-	"log"
+	"fmt"
+	"reflect"
+	"runtime"
+	"strings"
 	"time"
+
+	"github.com/apex/log"
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
 )
 
-type NetworkPeerConnector struct {
-	Wrapped        peer.Connector
+type NetworkProperties struct {
 	EventScheduler sim.EventScheduler
-	RawStorage     data.RawStorage
+	SizeOfer       data.SizeOfer
 	Latency        time.Duration
 	Bandwidth      float64 // in bytes/s
+	connectors     map[string]*NetworkPeerConnector
+}
+
+type NetworkPeerConnector struct {
+	wrapped    peer.Connector
+	properties *NetworkProperties
+	sendQueue  []sendItem
+}
+
+type sendItem struct {
+	duration   time.Duration
+	sendAction func()
+	detail     log.Fields
+}
+
+func NewNetworkPeerConnector(
+	wrapped peer.Connector,
+	properties *NetworkProperties) *NetworkPeerConnector {
+
+	if properties.connectors == nil {
+		properties.connectors = make(map[string]*NetworkPeerConnector)
+	}
+
+	connector, isFound := properties.connectors[wrapped.Id()]
+	if isFound == false {
+		connector = &NetworkPeerConnector{wrapped: wrapped, properties: properties}
+		properties.connectors[wrapped.Id()] = connector
+	}
+
+	return connector
 }
 
 func (this *NetworkPeerConnector) Id() string {
-	return this.Wrapped.Id()
+	return this.wrapped.Id()
 }
 
 func (this *NetworkPeerConnector) Equal(other general.Equaler) bool {
-	return this.Wrapped.Equal(other)
+	return this.wrapped.Equal(other)
+}
+
+func (this *NetworkPeerConnector) Wrapped() peer.Connector {
+	return this.wrapped
+}
+
+func (this *NetworkPeerConnector) Bandwidth() float64 {
+	return this.properties.Bandwidth
+}
+
+func (this *NetworkPeerConnector) Latency() time.Duration {
+	return this.properties.Latency
 }
 
 func (this *NetworkPeerConnector) Push(data *data.Chunk, origin id.Holder) {
-	sendDuration := this.sendDurationForSize(this.RawStorage.SizeOf(data))
-	/*log.Printf(
-	"%v: Will push %v from %v to %v in %v",
-	this.EventScheduler.Time(),
-	data.Key,
-	origin.Id(),
-	this.Id(),
-	sendDuration)*/
-	this.EventScheduler.Schedule(
+	sendDuration := this.sendDurationForSize(this.properties.SizeOfer.SizeOf(data))
+	this.scheduleFor(
+		origin,
 		sendDuration,
 		func() {
-			log.Printf(
-				"%v: Pushing %v from %v to %v",
-				this.EventScheduler.Time(),
-				data.Key,
-				origin.Id(),
-				this.Id())
-			this.Wrapped.Push(data, this.tryWrap(origin).(id.Holder))
-		})
+			this.wrapped.Push(data, this.tryWrap(origin).(id.Holder))
+		},
+		data.Key)
 }
 
 func (this *NetworkPeerConnector) Query(query data.Query, receiver peer.PusherWithId) {
-	this.EventScheduler.Schedule(
-		this.Latency,
+	this.scheduleFor(
+		receiver,
+		this.properties.Latency,
 		func() {
-			log.Printf(
-				"%v: Querying %v from %v for %v",
-				this.EventScheduler.Time(),
-				query,
-				this.Id(),
-				receiver.Id())
-			this.Wrapped.Query(query, this.tryWrap(receiver).(peer.PusherWithId))
-		})
+			this.wrapped.Query(query, this.tryWrap(receiver).(peer.PusherWithId))
+		},
+		query)
 }
 
 func (this *NetworkPeerConnector) RequestConnectionWith(otherPeer peer.Connector) {
-	this.EventScheduler.Schedule(
-		this.Latency,
+	this.scheduleFor(
+		otherPeer,
+		this.properties.Latency,
 		func() {
-			/*log.Printf(
-			"%v: %v requests connection with %v",
-			this.EventScheduler.Time(),
-			otherPeer.Id(),
-			this.Id())*/
-			this.Wrapped.RequestConnectionWith(this.tryWrap(otherPeer).(peer.Connector))
+			this.wrapped.RequestConnectionWith(this.tryWrap(otherPeer).(*NetworkPeerConnector))
 		})
 }
 
 func (this *NetworkPeerConnector) CloseConnectionWith(otherPeer peer.Connector) {
-	this.EventScheduler.Schedule(
-		this.Latency,
+	this.scheduleFor(
+		otherPeer,
+		this.properties.Latency,
 		func() {
-			/*log.Printf(
-			"%v: %v closes connection with %v",
-			this.EventScheduler.Time(),
-			otherPeer.Id(),
-			this.Id())*/
-			this.Wrapped.CloseConnectionWith(this.tryWrap(otherPeer).(peer.Connector))
+			this.wrapped.CloseConnectionWith(this.tryWrap(otherPeer).(*NetworkPeerConnector))
 		})
 }
 
 func (this *NetworkPeerConnector) RequestPeers(receiver peer.Connector) {
-	this.EventScheduler.Schedule(
-		this.Latency,
+	this.scheduleFor(
+		receiver,
+		this.properties.Latency,
 		func() {
-			/*log.Printf(
-			"%v: %v requests peers from %v",
-			this.EventScheduler.Time(),
-			this.Id(),
-			receiver.Id())*/
-			this.Wrapped.RequestPeers(this.tryWrap(receiver).(peer.Connector))
+			this.wrapped.RequestPeers(this.tryWrap(receiver).(*NetworkPeerConnector))
 		})
 }
 
-func (this *NetworkPeerConnector) AnnouncePeers(peers []peer.Connector) {
+func (this *NetworkPeerConnector) AnnouncePeersFrom(from peer.Connector, peers []peer.Connector) {
 	peerSizes := uint64(0)
 	wrappedPeers := make([]peer.Connector, len(peers))
 	for i, p := range peers {
 		peerSizes += uint64(len(p.Id()))
-		wrappedPeers[i] = this.tryWrap(p).(peer.Connector)
+		wrappedPeers[i] = this.tryWrap(p).(*NetworkPeerConnector)
 	}
 
 	sendDuration := this.sendDurationForSize(peerSizes)
-	this.EventScheduler.Schedule(sendDuration, func() {
-		/*log.Printf(
-		"%v: %v gets peers %v announced",
-		this.EventScheduler.Time(),
-		this.Id(),
-		len(wrappedPeers))*/
-		this.Wrapped.AnnouncePeers(wrappedPeers)
-	})
+	this.scheduleFor(
+		from,
+		sendDuration,
+		func() {
+			this.wrapped.AnnouncePeersFrom(this.tryWrap(from).(peer.Connector), wrappedPeers)
+		},
+		len(peers))
 }
 
 // Private
@@ -144,19 +163,112 @@ func (this *NetworkPeerConnector) tryWrap(obj interface{}) interface{} {
 	if isPeerConnector {
 		_, isAlreadyWrapped := wrapped.(*NetworkPeerConnector)
 		if isAlreadyWrapped == false {
-			return &NetworkPeerConnector{
-				Wrapped:        wrapped,
-				EventScheduler: this.EventScheduler,
-				RawStorage:     this.RawStorage,
-				Latency:        this.Latency,
-				Bandwidth:      this.Bandwidth}
+			return NewNetworkPeerConnector(wrapped, this.properties)
 		}
-	}
+	} /*else {
+		log.Printf("%v: %v of type %t is no peer.Connector", this.properties.EventScheduler.Time(), obj, obj)
+	}*/
 
 	return obj
 }
 
 func (this *NetworkPeerConnector) sendDurationForSize(size uint64) time.Duration {
-	transmissionTime := time.Duration(float64(size)/this.Bandwidth) * time.Second
-	return this.Latency + transmissionTime
+	transmissionTime := time.Duration(float64(size)/this.properties.Bandwidth) * time.Second
+	return this.properties.Latency + transmissionTime
+}
+
+func (this *NetworkPeerConnector) scheduleFor(
+	origin id.Holder,
+	duration time.Duration,
+	action func(),
+	logInfo ...interface{}) {
+
+	originPeer, isPeer := this.tryWrap(origin).(*NetworkPeerConnector)
+	detail := log.Fields{
+		"EntryType":   "NodeAction",
+		"Function":    function(action),
+		"Origin":      origin.Id(),
+		"Destination": this.Id(),
+		"Parameter":   slice.ToString(logInfo, ",")}
+	if isPeer {
+		originPeer.schedule(duration, action, detail)
+	} else {
+		/*log.Printf(
+		"%v: Directly executing %v %v",
+		this.properties.EventScheduler.Time(),
+		origin.Id(),
+		detail)*/
+		action()
+	}
+}
+
+func (this *NetworkPeerConnector) schedule(
+	duration time.Duration,
+	action func(),
+	detail log.Fields) {
+
+	if len(this.sendQueue) == 0 {
+		this.properties.EventScheduler.Schedule(duration, this.sendNextItem)
+	}
+
+	this.sendQueue = append(
+		this.sendQueue,
+		sendItem{
+			duration:   duration,
+			sendAction: action,
+			detail:     detail})
+
+	this.logSendQueue(fmt.Sprintf("New send queue for %v:", this.Id()), detail)
+}
+
+func (this *NetworkPeerConnector) sendNextItem() {
+	switch len(this.sendQueue) {
+	case 0:
+		return
+	case 1:
+		break
+	default:
+		this.properties.EventScheduler.Schedule(this.sendQueue[1].duration, this.sendNextItem)
+	}
+
+	nextItem := this.sendQueue[0]
+	nextItem.detail["SimulationTime"] = this.properties.EventScheduler.Time()
+	log.WithFields(nextItem.detail).Info("Execute")
+
+	nextItem.sendAction()
+	this.sendQueue = this.sendQueue[1:]
+	this.logSendQueue("Resulting send queue", nextItem.detail)
+}
+
+func (this *NetworkPeerConnector) logSendQueue(prefix string, detail log.Fields) {
+	if 0 < len(prefix) {
+		prefix = fmt.Sprintf("%v: %v\n", this.properties.EventScheduler.Time(), prefix)
+	}
+
+	result := make([]log.Fields, len(this.sendQueue))
+	currentDuration := time.Duration(0)
+	for i, item := range this.sendQueue {
+		currentDuration += item.duration
+		itemLog := copyLogFields(item.detail)
+		itemLog["Duration"] = currentDuration
+		result[i] = itemLog
+	}
+
+	detail = copyLogFields(detail)
+	detail["SendQueue"] = result
+	log.WithFields(detail).Info(prefix)
+}
+
+func copyLogFields(src log.Fields) log.Fields {
+	result := log.Fields{}
+	for key, value := range src {
+		result[key] = value
+	}
+	return result
+}
+
+func function(action func()) string {
+	fullName := runtime.FuncForPC(reflect.ValueOf(action).Pointer()).Name()
+	nameComponents := strings.Split(fullName, ".")
+	return nameComponents[len(nameComponents)-2]
 }

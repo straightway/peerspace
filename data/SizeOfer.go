@@ -14,12 +14,8 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package data
 
-import "github.com/straightway/straightway/general"
-
-type Node interface {
-	general.LifeCycle
-	Connector
-	IsStarted() bool
+type SizeOfer interface {
+	SizeOf(*Chunk) uint64
 }

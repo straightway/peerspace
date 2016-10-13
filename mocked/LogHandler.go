@@ -14,12 +14,25 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package mocked
 
-import "github.com/straightway/straightway/general"
+import (
+	"github.com/apex/log"
+	"github.com/stretchr/testify/mock"
+)
 
-type Node interface {
-	general.LifeCycle
-	Connector
-	IsStarted() bool
+type LogHandler struct {
+	Base
+	Error error
+}
+
+func NewLogHandler() *LogHandler {
+	result := &LogHandler{}
+	result.On("HandleLog", mock.Anything).Return()
+	return result
+}
+
+func (m *LogHandler) HandleLog(entry *log.Entry) error {
+	m.Called(entry)
+	return m.Error
 }

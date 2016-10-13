@@ -14,12 +14,29 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package log
 
-import "github.com/straightway/straightway/general"
+import (
+	"github.com/apex/log"
 
-type Node interface {
-	general.LifeCycle
-	Connector
-	IsStarted() bool
+	"github.com/straightway/straightway/general/times"
+)
+
+type SimulationTimeHandler struct {
+	baseHandler log.Handler
+	timer       times.Provider
+}
+
+func NewSimulationTimeHandler(baseHandler log.Handler, timer times.Provider) *SimulationTimeHandler {
+	return &SimulationTimeHandler{baseHandler: baseHandler, timer: timer}
+}
+
+func (this *SimulationTimeHandler) HandleLog(entry *log.Entry) error {
+	entryWithSimulationTime := &log.Entry{
+		Logger:    entry.Logger,
+		Message:   entry.Message,
+		Fields:    entry.Fields,
+		Level:     entry.Level,
+		Timestamp: this.timer.Time()}
+	return this.baseHandler.HandleLog(entryWithSimulationTime)
 }

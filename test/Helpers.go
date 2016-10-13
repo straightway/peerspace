@@ -14,12 +14,19 @@
    limitations under the License.
 ****************************************************************************/
 
-package peer
+package test
 
-import "github.com/straightway/straightway/general"
+import (
+	"testing"
 
-type Node interface {
-	general.LifeCycle
-	Connector
-	IsStarted() bool
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/mocked"
+	"github.com/stretchr/testify/mock"
+)
+
+func AssertPushed(t *testing.T, receiver *mocked.PeerConnector, chunks ...*data.Chunk) {
+	for _, chunk := range chunks {
+		receiver.AssertCalled(t, "Push", chunk, mock.Anything)
+	}
+	receiver.AssertNumberOfCalls(t, "Push", len(chunks))
 }

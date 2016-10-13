@@ -17,148 +17,79 @@
 package test
 
 import (
-	"testing"
-	"time"
-
 	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/mocked"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/peerc"
-	"github.com/stretchr/testify/mock"
 )
 
-type DoForward bool
-
 type NodeContext struct {
+	NodeContextBase
 	node                 *peerc.Node
 	dataStorage          *mocked.DataStorage
-	stateStorage         *mocked.StateStorage
 	announcementStrategy *mocked.AnnouncementStrategy
 	connectionStrategy   *mocked.ConnectionStrategy
 	dataStrategy         *mocked.DataStrategy
 	queryStrategy        *mocked.QueryStrategy
-	knownPeers           []peer.Connector
-	connectedPeers       []*mocked.PeerConnector
-	notConnectedPeers    []*mocked.PeerConnector
-	forwardPeers         []*mocked.PeerConnector
-	timer                *mocked.Timer
-	configuration        *app.Configuration
 }
 
 // Construction
 
 func NewNodeContext() *NodeContext {
 	newNodeContext := &NodeContext{
-		knownPeers:           make([]peer.Connector, 0),
 		connectionStrategy:   mocked.NewConnectionStrategy(nil),
 		announcementStrategy: mocked.NewAnnouncementStrategy(),
 		dataStrategy:         &mocked.DataStrategy{},
-		queryStrategy:        &mocked.QueryStrategy{},
-		connectedPeers:       []*mocked.PeerConnector{},
-		notConnectedPeers:    []*mocked.PeerConnector{},
-		timer:                &mocked.Timer{},
-		configuration:        &app.Configuration{}}
+		queryStrategy:        &mocked.QueryStrategy{}}
+	newNodeContext.timer = &mocked.Timer{}
+	newNodeContext.configuration = &app.Configuration{}
+	newNodeContext.createSut = newNodeContext.createNode
+	newNodeContext.NodeContextBase.setupPeers = newNodeContext.setupPeers
 
 	return newNodeContext
 }
 
 // Public
 
-func (this *NodeContext) AddKnownUnconnectedPeer() *mocked.PeerConnector {
-	peer := mocked.NewPeerConnector()
-	this.knownPeers = append(this.knownPeers, peer)
-	this.notConnectedPeers = append(this.notConnectedPeers, peer)
-	this.SetUp()
-	return peer
-}
-
-func (this *NodeContext) AddKnownConnectedPeer(forward DoForward) *mocked.PeerConnector {
-	peer := mocked.NewPeerConnector()
-	this.knownPeers = append(this.knownPeers, peer)
-	this.connectedPeers = append(this.connectedPeers, peer)
-	if bool(forward) {
-		this.forwardPeers = append(this.forwardPeers, peer)
-	}
-	this.SetUp()
-	if this.node.IsStarted() {
-		this.ConfirmConnectedPeers()
-	}
-	return peer
-}
-
-func (this *NodeContext) ConfirmConnectedPeers() {
-	for _, p := range this.connectedPeers {
-		this.node.RequestConnectionWith(p)
-	}
-}
-
 func (this *NodeContext) SetDataStorage(newDataStorage *mocked.DataStorage) {
 	this.dataStorage = newDataStorage
 	this.SetUp()
-}
-
-func (this *NodeContext) SetUp() {
-	isNodeStarted := this.node != nil && this.node.IsStarted()
-	if isNodeStarted {
-		this.node.ShutDown()
-	}
-	this.setupPeers()
-	this.createSut()
-	if isNodeStarted {
-		this.node.Startup()
-	}
-}
-
-func (this *NodeContext) ShutDownNode() {
-	if this.node != nil {
-		this.node.ShutDown()
-	}
-}
-
-func (this *NodeContext) AdvanceTimeBy(span time.Duration) {
-	this.timer.CurrentTime = this.timer.CurrentTime.Add(span)
-}
-
-func (this *NodeContext) FirstConnectedPeer() peer.Connector {
-	return this.node.ConnectedPeers()[0]
 }
 
 func (this *NodeContext) Push(chunk *data.Chunk) {
 	this.node.Push(chunk, this.FirstConnectedPeer())
 }
 
-func AssertPushed(t *testing.T, receiver *mocked.PeerConnector, chunks ...*data.Chunk) {
-	for _, chunk := range chunks {
-		receiver.AssertCalled(t, "Push", chunk, mock.Anything)
-	}
-	receiver.AssertNumberOfCalls(t, "Push", len(chunks))
+func (this *NodeContext) FirstConnectedPeer() peer.Connector {
+	return this.node.ConnectedPeers()[0]
 }
 
 // Private
 
 func (this *NodeContext) setupPeers() {
-	this.stateStorage = mocked.NewStateStorage(this.knownPeers...)
 	this.connectionStrategy = mocked.NewConnectionStrategy(mocked.IPeerConnectors(this.connectedPeers))
 	this.dataStrategy = mocked.NewDataStrategy(mocked.IPushers(this.forwardPeers))
 	this.queryStrategy = mocked.NewQueryForwardStrategy(mocked.IQueryables(this.forwardPeers))
 }
 
-func (this *NodeContext) createSut() {
+func (this *NodeContext) createNode() peer.Node {
 	if this.dataStorage == nil {
 		this.dataStorage = mocked.NewDataStorage(nil)
 	}
-	this.node = &peerc.Node{
-		StateStorage:         this.stateStorage,
-		DataStorage:          this.dataStorage,
-		AnnouncementStrategy: this.announcementStrategy,
-		DataStrategy:         this.dataStrategy,
-		QueryStrategy:        this.queryStrategy,
-		ConnectionStrategy:   this.connectionStrategy,
-		Timer:                this.timer,
-		Configuration:        this.configuration}
+	this.node = &peerc.Node{}
+	this.node.StateStorage = this.stateStorage
+	this.node.DataStorage = this.dataStorage
+	this.node.AnnouncementStrategy = this.announcementStrategy
+	this.node.DataStrategy = this.dataStrategy
+	this.node.QueryStrategy = this.queryStrategy
+	this.node.ConnectionStrategy = this.connectionStrategy
+	this.node.Timer = this.timer
+	this.node.Configuration = this.configuration
 
 	for _, p := range this.connectedPeers {
 		p.On("RequestConnectionWith", this.node).Return()
 	}
+
+	return this.node
 }

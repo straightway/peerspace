@@ -42,6 +42,9 @@ type logEntry struct {
 	fields  log.Fields
 }
 
+var defaultTimeStamp = time.Unix(12345, 0).In(time.UTC)
+var otherTimeStamp = time.Unix(23456, 0).In(time.UTC)
+
 func TestSimulationLogActionHandler(t *testing.T) {
 	suite.Run(t, new(SimulationLogActionHandlerTest))
 }
@@ -211,6 +214,129 @@ func (suite *SimulationLogActionHandlerTest) Test_EntryTypeNodeSubFields() {
 	suite.baseHandler.AssertNumberOfCalls(suite.T(), "HandleLog", 4)
 }
 
+func (suite *SimulationLogActionHandlerTest) Test_EntryTypeNodeEmptySubFields() {
+	subFields := []log.Fields{}
+	fields := log.Fields{
+		"EntryType":   "NodeAction",
+		"Origin":      1,
+		"Destination": 2,
+		"Function":    "Func",
+		"Parameter":   "Param",
+		"subFields":   subFields}
+
+	suite.setupBaseHandlerForLogs(
+		logEntry{"Info Log 1 Func Param -> 2", log.Fields{}},
+		logEntry{"subFields: Empty", log.Fields{}})
+	entry := log.WithFields(fields)
+	entry.Info("Info Log")
+	suite.baseHandler.AssertNumberOfCalls(suite.T(), "HandleLog", 2)
+}
+
+func (suite *SimulationLogActionHandlerTest) Test_EntryTypeDeferredSubFields_NotLoggedImmediately() {
+	subFields := []log.Fields{log.Fields{"Deferred": true}}
+	fields := log.Fields{
+		"EntryType": "NodeAction",
+		"Function":  "Func",
+		"subFields": subFields}
+
+	suite.setupBaseHandlerForLog("Info Log Func", log.Fields{})
+	entry := log.WithFields(fields)
+	entry.Info("Info Log")
+	suite.baseHandler.AssertNumberOfCalls(suite.T(), "HandleLog", 1)
+}
+
+func (suite *SimulationLogActionHandlerTest) Test_EntryTypeDeferredSubFields_LoggedWhenOriginChanges() {
+	subFields := []log.Fields{log.Fields{"Deferred": true}}
+	fields := log.Fields{
+		"EntryType": "NodeAction",
+		"Origin":    1,
+		"Function":  "Func",
+		"subFields": subFields}
+
+	entry := log.NewEntry(nil)
+	entry.Fields = fields
+	entry.Timestamp = defaultTimeStamp
+	entry.Level = log.InfoLevel
+	entry.Message = "Info Log"
+	suite.sut.HandleLog(entry)
+
+	fields = log.Fields{
+		"EntryType": "NodeAction",
+		"Origin":    2,
+		"Function":  "Func"}
+	suite.setupBaseHandlerForLogs(
+		logEntry{"subFields: Empty", log.Fields{}},
+		logEntry{"Info Log 2 Func", log.Fields{}})
+	entry = log.NewEntry(nil)
+	entry.Fields = fields
+	entry.Timestamp = defaultTimeStamp
+	entry.Level = log.InfoLevel
+	entry.Message = "Info Log"
+	suite.sut.HandleLog(entry)
+	suite.baseHandler.AssertNumberOfCalls(suite.T(), "HandleLog", 3)
+}
+
+func (suite *SimulationLogActionHandlerTest) Test_EntryTypeDeferredSubFields_LoggedWhenTimeChanges() {
+	subFields := []log.Fields{log.Fields{"Deferred": true}}
+	fields := log.Fields{
+		"EntryType": "NodeAction",
+		"Origin":    1,
+		"Function":  "Func",
+		"subFields": subFields}
+
+	entry := log.NewEntry(nil)
+	entry.Fields = fields
+	entry.Timestamp = defaultTimeStamp
+	entry.Level = log.InfoLevel
+	entry.Message = "Info Log"
+	suite.sut.HandleLog(entry)
+
+	suite.setupBaseHandlerForLogs(
+		logEntry{"subFields: Empty", log.Fields{}},
+		logEntry{"Info Log 1 Func", log.Fields{}})
+
+	entry = log.NewEntry(nil)
+	entry.Fields = fields
+	entry.Timestamp = otherTimeStamp
+	entry.Level = log.InfoLevel
+	entry.Message = "Info Log"
+	suite.sut.HandleLog(entry)
+	suite.baseHandler.AssertNumberOfCalls(suite.T(), "HandleLog", 3)
+}
+
+func (suite *SimulationLogActionHandlerTest) Test_EntryTypeDeferredSubFields_LoggedWithOldTimeWhenTimeChanges() {
+	subFields := []log.Fields{log.Fields{"Deferred": true}}
+	fields := log.Fields{
+		"EntryType": "NodeAction",
+		"Origin":    1,
+		"Function":  "Func",
+		"subFields": subFields}
+
+	entry := log.NewEntry(nil)
+	entry.Fields = fields
+	entry.Timestamp = defaultTimeStamp
+	entry.Level = log.InfoLevel
+	entry.Message = "Info Log"
+	suite.sut.HandleLog(entry)
+
+	suite.baseHandler.OnNew("HandleLog", mock.Anything).Run(func(args mock.Arguments) {
+		entryArg := args.Get(0).(*log.Entry)
+		suite.Assert().Equal(defaultTimeStamp, entryArg.Timestamp)
+		suite.baseHandler.OnNew("HandleLog", mock.Anything).Run(func(args mock.Arguments) {
+			entryArg := args.Get(0).(*log.Entry)
+			suite.Assert().Equal(otherTimeStamp, entryArg.Timestamp)
+		})
+	})
+
+	entry = log.NewEntry(nil)
+	entry.Fields = fields
+	entry.Timestamp = otherTimeStamp
+	entry.Level = log.InfoLevel
+	entry.Message = "Info Log"
+	suite.sut.HandleLog(entry)
+	suite.baseHandler.AssertNumberOfCalls(suite.T(), "HandleLog", 3)
+}
+
 func (suite *SimulationLogActionHandlerTest) Test_EntryTypeNodeActionIsFormattedWithDuration() {
 	fields := log.Fields{
 		"EntryType":   "NodeAction",
@@ -244,7 +370,6 @@ func (suite *SimulationLogActionHandlerTest) setupBaseHandlerForLogs(logEntries 
 		nextAssertIndex++
 
 		entryArg := args.Get(0).(*log.Entry)
-
 		suite.Assert().Equal(logEntry.message, entryArg.Message)
 		suite.Assert().Equal(len(logEntry.fields), len(entryArg.Fields))
 		for key, value := range logEntry.fields {

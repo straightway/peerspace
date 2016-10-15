@@ -17,7 +17,6 @@
 package simc
 
 import (
-	"fmt"
 	"reflect"
 	"runtime"
 	"strings"
@@ -218,7 +217,8 @@ func (this *NetworkPeerConnector) schedule(
 			sendAction: action,
 			detail:     detail})
 
-	this.logSendQueue(fmt.Sprintf("New send queue for %v:", this.Id()), detail)
+	this.addSendQueue(detail)
+	log.WithFields(detail).Info("Scheduled")
 }
 
 func (this *NetworkPeerConnector) sendNextItem() {
@@ -232,36 +232,34 @@ func (this *NetworkPeerConnector) sendNextItem() {
 	}
 
 	nextItem := this.sendQueue[0]
-	nextItem.detail["SimulationTime"] = this.properties.EventScheduler.Time()
-	log.WithFields(nextItem.detail).Info("Execute")
 
 	nextItem.sendAction()
 	this.sendQueue = this.sendQueue[1:]
-	this.logSendQueue("Resulting send queue", nextItem.detail)
+	this.addSendQueue(nextItem.detail)
+	log.WithFields(nextItem.detail).Info("Execute")
 }
 
-func (this *NetworkPeerConnector) logSendQueue(prefix string, detail log.Fields) {
-	if 0 < len(prefix) {
-		prefix = fmt.Sprintf("%v: %v\n", this.properties.EventScheduler.Time(), prefix)
-	}
-
-	result := make([]log.Fields, len(this.sendQueue))
+func (this *NetworkPeerConnector) addSendQueue(detail log.Fields) {
+	result := make([]log.Fields, len(this.sendQueue)+1)
 	currentDuration := time.Duration(0)
 	for i, item := range this.sendQueue {
 		currentDuration += item.duration
-		itemLog := copyLogFields(item.detail)
+		itemLog := copyPlainLogFields(item.detail)
 		itemLog["Duration"] = currentDuration
-		result[i] = itemLog
+		result[i+1] = itemLog
 	}
 
-	detail = copyLogFields(detail)
+	result[0] = log.Fields{"Deferred": true}
+
 	detail["SendQueue"] = result
-	log.WithFields(detail).Info(prefix)
 }
 
-func copyLogFields(src log.Fields) log.Fields {
+func copyPlainLogFields(src log.Fields) log.Fields {
 	result := log.Fields{}
 	for key, value := range src {
+		if _, isSubLog := value.([]log.Fields); isSubLog {
+			continue
+		}
 		result[key] = value
 	}
 	return result

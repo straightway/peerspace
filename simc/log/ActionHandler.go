@@ -19,19 +19,53 @@ package log
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/apex/log"
 
 	"github.com/straightway/straightway/general/slice"
+	"github.com/straightway/straightway/general/times"
 )
 
 type ActionHandler struct {
-	baseHandler log.Handler
+	baseHandler       log.Handler
+	deferredSubFields map[string]subField
+	lastLogTime       time.Time
 }
 
 type subField struct {
 	message string
+	origin  interface{}
 	items   []log.Fields
+	logTime time.Time
+}
+
+func (this *subField) log(baseHandler log.Handler, logger *log.Logger) {
+	suffix := ""
+	if len(this.items) == 0 {
+		suffix = ": Empty"
+	}
+
+	logHandler := NewActionHandler(baseHandler)
+	this.logHeading(suffix, logHandler, logger)
+	this.logEntries(logHandler, logger)
+}
+
+func (this *subField) logHeading(suffix string, logHandler log.Handler, logger *log.Logger) {
+	heading := log.NewEntry(logger)
+	heading.Message = fmt.Sprintf("%v%v", this.message, suffix)
+	heading.Timestamp = this.logTime
+	logHandler.HandleLog(heading)
+}
+
+func (this *subField) logEntries(logHandler log.Handler, logger *log.Logger) {
+	for _, subItem := range this.items {
+		itemEntry := log.NewEntry(logger)
+		itemEntry.Message = " "
+		itemEntry.Timestamp = this.logTime
+		itemEntry.Fields = subItem
+		logHandler.HandleLog(itemEntry)
+	}
 }
 
 var formattedFields []string = []string{
@@ -44,44 +78,107 @@ var formattedFields []string = []string{
 	"Destination"}
 
 func NewActionHandler(baseHandler log.Handler) *ActionHandler {
-	return &ActionHandler{baseHandler: baseHandler}
+	return &ActionHandler{
+		baseHandler:       baseHandler,
+		deferredSubFields: make(map[string]subField),
+		lastLogTime:       times.Max()}
 }
 
 func (this *ActionHandler) HandleLog(entry *log.Entry) error {
+	entryTime := entry.Timestamp.In(time.UTC)
+	if entryTime.Equal(this.lastLogTime) == false {
+		this.lastLogTime = entryTime
+		this.logDeferredSubItems(entry.Logger)
+	} else {
+		this.logDeferredFieldsWithDifferentOrigin(entry)
+	}
+
 	entryType := entry.Fields["EntryType"]
 	if entryType != "NodeAction" {
 		return this.baseHandler.HandleLog(entry)
 	}
 
-	formattedEntry := log.NewEntry(entry.Logger)
-	formattedEntry.Message = formattedMessage(entry)
-	formattedEntry.Fields = additionalValues(entry)
-	this.baseHandler.HandleLog(formattedEntry)
-	for _, subField := range subFields(entry) {
-		subFieldHeading := log.NewEntry(entry.Logger)
-		subFieldHeading.Message = subField.message
-		this.baseHandler.HandleLog(subFieldHeading)
-		for _, subItem := range subField.items {
-			itemEntry := log.NewEntry(entry.Logger)
-			itemEntry.Message = " "
-			itemEntry.Fields = subItem
-			this.HandleLog(itemEntry)
-		}
-	}
+	this.logPlain(entry)
+	this.logSubItems(entry)
+
 	return nil
 }
 
 // Private
 
-func subFields(entry *log.Entry) []subField {
+func (this *ActionHandler) logPlain(entry *log.Entry) {
+	formattedEntry := log.NewEntry(entry.Logger)
+	formattedEntry.Message = formattedMessage(entry)
+	formattedEntry.Fields = additionalValues(entry)
+	formattedEntry.Timestamp = entry.Timestamp
+	this.baseHandler.HandleLog(formattedEntry)
+}
+
+func (this *ActionHandler) logSubItems(entry *log.Entry) {
+	for _, subField := range this.subFields(entry) {
+		subField.log(this.baseHandler, entry.Logger)
+	}
+}
+
+func (this *ActionHandler) subFields(entry *log.Entry) []subField {
 	result := []subField{}
+	origin, _ := entry.Fields["Origin"]
+
 	for key, value := range entry.Fields {
 		if isSubField(value) {
-			result = append(result, subField{key, value.([]log.Fields)})
+			fields := value.([]log.Fields)
+			if isDeferred(fields) {
+				this.deferredSubFields[key] = subField{key, origin, fields[1:], entry.Timestamp}
+				continue
+			}
+
+			result = append(result, subField{key, origin, fields, entry.Timestamp})
 		}
 	}
 
 	return result
+}
+
+func (this *ActionHandler) logDeferredFieldsWithDifferentOrigin(entry *log.Entry) {
+	origin, _ := entry.Fields["Origin"]
+	var keysToDelete []string
+	var fieldsToLog []subField
+	for key, value := range this.deferredSubFields {
+		if value.origin != origin {
+			keysToDelete = append(keysToDelete, key)
+			fieldsToLog = append(fieldsToLog, value)
+		}
+	}
+
+	for _, key := range keysToDelete {
+		delete(this.deferredSubFields, key)
+	}
+
+	for _, field := range fieldsToLog {
+		field.log(this.baseHandler, entry.Logger)
+	}
+}
+
+func (this *ActionHandler) logDeferredSubItems(logger *log.Logger) {
+	for _, value := range this.deferredSubFields {
+		value.log(this.baseHandler, logger)
+	}
+
+	this.deferredSubFields = map[string]subField{}
+}
+
+func isDeferred(fields []log.Fields) bool {
+	if len(fields) == 0 {
+		return false
+	}
+
+	deferredValue, isDeferredFound := fields[0]["Deferred"]
+	if isDeferredFound == false {
+		return false
+	}
+
+	idDeferredEnabled, isDeferredFound := deferredValue.(bool)
+	return isDeferredFound && idDeferredEnabled
 }
 
 func formattedMessage(entry *log.Entry) string {

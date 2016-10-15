@@ -223,8 +223,6 @@ func (this *NetworkPeerConnector) schedule(
 
 func (this *NetworkPeerConnector) sendNextItem() {
 	switch len(this.sendQueue) {
-	case 0:
-		return
 	case 1:
 		break
 	default:

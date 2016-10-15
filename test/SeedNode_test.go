@@ -72,16 +72,24 @@ func (suite *SeedNodeTest) Test_Query_IsIgnored() {
 	})
 }
 
-func (suite *SeedNodeTest) Test_AnnouncePeersFrom_IsIgnored() {
-	suite.Assert().NotPanics(func() {
-		suite.node.AnnouncePeersFrom(nil, nil)
-	})
+func (suite *SeedNodeTest) Test_AnnouncePeersFrom_DoesNothing() {
+	from := mocked.NewPeerConnector()
+	announced := mocked.NewPeerConnector()
+	suite.node.RequestConnectionWith(from)
+	suite.stateStorage.Calls = nil
+	suite.node.AnnouncePeersFrom(from, []peer.Connector{announced})
+	suite.stateStorage.AssertNotCalled(suite.T(), "AddKnownPeer", mock.Anything)
+	announced.AssertNotCalled(suite.T(), "RequestConnectionWith", mock.Anything)
 }
 
-func (suite *SeedNodeTest) Test_RequestPeers_IsIgnored() {
-	suite.Assert().NotPanics(func() {
-		suite.node.RequestPeers(nil)
-	})
+func (suite *SeedNodeTest) Test_RequestPeers_DoesNothing() {
+	otherConnected := mocked.NewPeerConnector()
+	suite.node.RequestConnectionWith(otherConnected)
+	receiver := mocked.NewPeerConnector()
+	suite.node.RequestConnectionWith(receiver)
+	receiver.Calls = nil
+	suite.node.RequestPeers(receiver)
+	receiver.AssertNotCalled(suite.T(), "AnnouncePeersFrom", mock.Anything, mock.Anything)
 }
 
 func (suite *SeedNodeTest) Test_RequestConnectionWith_IsAcknowledged() {

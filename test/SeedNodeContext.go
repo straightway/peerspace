@@ -40,8 +40,6 @@ func NewSeedNodeContext() *SeedNodeContext {
 	return newNodeContext
 }
 
-// Public
-
 // Private
 
 func (this *SeedNodeContext) createSeedNode() peer.Node {

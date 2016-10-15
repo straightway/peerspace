@@ -17,11 +17,11 @@
 package test
 
 import (
-	"io/ioutil"
-	"log"
-	"os"
 	"testing"
 	"time"
+
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/discard"
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/duration"
@@ -47,7 +47,7 @@ func TestSimulationNetworkPeerConnector(t *testing.T) {
 }
 
 func (suite *SimulationNetworkPeerConnector_Test) SetupTest() {
-	log.SetOutput(ioutil.Discard)
+	log.SetHandler(discard.New())
 	suite.scheduler = &simc.EventScheduler{}
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() { suite.scheduler.Stop() })
 	suite.wrapped = mocked.NewPeerConnector()
@@ -67,7 +67,6 @@ func (suite *SimulationNetworkPeerConnector_Test) TearDownTest() {
 	suite.wrapped = nil
 	suite.sut = nil
 	suite.others = nil
-	log.SetOutput(os.Stderr)
 }
 
 // Tests

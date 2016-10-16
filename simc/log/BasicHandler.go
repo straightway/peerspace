@@ -20,9 +20,7 @@ var DefaultBasicHandler = NewBasicHandler(os.Stderr)
 
 // New handler.
 func NewBasicHandler(w io.Writer) *BasicHandler {
-	return &BasicHandler{
-		Writer:        w,
-		lastTimestamp: times.Max()}
+	return &BasicHandler{Writer: w, lastTimestamp: times.Max()}
 }
 
 // Strings mapping.
@@ -31,8 +29,7 @@ var levels = [...]string{
 	log.InfoLevel:  "I",
 	log.WarnLevel:  "W",
 	log.ErrorLevel: "E",
-	log.FatalLevel: "F",
-}
+	log.FatalLevel: "F"}
 
 // field used for sorting.
 type field struct {
@@ -40,7 +37,7 @@ type field struct {
 	Value interface{}
 }
 
-func (this *field) String() string {
+func (this field) String() string {
 	return fmt.Sprintf("%v: %v", this.Name, this.Value)
 }
 
@@ -76,7 +73,7 @@ func (h *BasicHandler) HandleLog(e *log.Entry) error {
 	var timestamp string
 	eTimestamp := e.Timestamp.In(time.UTC)
 	if eTimestamp.Equal(h.lastTimestamp) == false {
-		timestamp = e.Timestamp.Format("2006-01-02 15:04:05.9999")
+		timestamp = eTimestamp.Format("2006-01-02 15:04:05.9999")
 		h.lastTimestamp = eTimestamp
 	}
 

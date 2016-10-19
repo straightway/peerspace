@@ -19,7 +19,7 @@ package data
 import (
 	"time"
 
-	"github.com/straightway/straightway/general/loop"
+	"github.com/straightway/straightway/general/iter"
 )
 
 type RawStorage interface {
@@ -28,7 +28,7 @@ type RawStorage interface {
 	Store(chunk *Chunk, priority float32, prioExpirationTime time.Time)
 	Delete(Key)
 	FreeStorage() uint64
-	LeastImportantData() loop.Iterator
+	LeastImportantData() iter.Ator
 	ExpiredData() []Record
 	RePrioritize(Key, float32, time.Time)
 }

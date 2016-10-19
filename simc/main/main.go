@@ -23,6 +23,7 @@ import (
 
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/simc/env"
 	simlog "github.com/straightway/straightway/simc/log"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/straightway/straightway/simc/uic/gui"
@@ -39,7 +40,7 @@ func main() {
 			SimulationController: scheduler,
 			ToolkitAdapter:       toolkitAdapter,
 			TimeProvider:         scheduler,
-			EnvironmentFactory:   func() *simc.Environment { return simc.NewSimulationEnvironment(scheduler, 1000) }}
+			EnvironmentFactory:   func() *env.Environment { return env.New(scheduler, 1000) }}
 		controller := uic.NewController(scheduler, eventControllerAdapter, eventControllerAdapter, toolkitAdapter)
 		mainWindow := gui.NewMainWindow(controller, eventControllerAdapter)
 		mainWindow.Show()

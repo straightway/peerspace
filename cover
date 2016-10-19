@@ -1,9 +1,15 @@
 #!/usr/bin/bash
 CURR_PATH=$PWD
 cd $GOPATH/src
-FILES=`find github.com/straightway/straightway/ -iname ".git" -prune -or -type d -not -empty | grep -v "gui" | grep -v "uml" | grep -v ".git" | grep -v "test" | grep -v "mocked" | grep -v "main" | grep -vE "straightway/impl$" | grep -vE "/$" | tr '\n' ','`
 cd $CURR_PATH
 COVERFILE=`mktemp`
-go test -coverprofile $COVERFILE -coverpkg "${FILES::-1}" github.com/straightway/straightway/test 2> /dev/null
-go tool cover -func=$COVERFILE | grep -vE "100.0%$"
-rm $COVERFILE
+TESTDIRS=`find . -type f -iname "*_test.go" -printf "%h\n" | sort -u`
+for TESTDIR in $TESTDIRS
+do
+	echo $TESTDIR
+	cd $TESTDIR
+	go test -coverprofile $COVERFILE -coverpkg . 2>&1 > /dev/null
+	go tool cover -func=$COVERFILE | grep -v "^total:" | grep -v "Mock.go" | grep -vE "/Test[a-zA-Z0-9_]*\.go" | grep -vE "100.0%$"
+	rm $COVERFILE
+	cd $CURR_PATH
+done

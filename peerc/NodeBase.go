@@ -69,6 +69,8 @@ func (this *NodeBase) ConnectingPeers() []peer.Connector {
 	return append([]peer.Connector(nil), this.connectingPeers...)
 }
 
+// Private
+
 func (this *NodeBase) acceptConnectionWith(peer peer.Connector) {
 	this.connectedPeers = append(this.connectedPeers, peer)
 	this.connectingPeers = removePeer(this.connectingPeers, peer)

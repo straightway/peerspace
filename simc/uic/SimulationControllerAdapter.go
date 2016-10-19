@@ -20,7 +20,7 @@ import (
 	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/general/ui"
 	"github.com/straightway/straightway/sim"
-	"github.com/straightway/straightway/simc"
+	"github.com/straightway/straightway/simc/env"
 	sui "github.com/straightway/straightway/simc/ui"
 )
 
@@ -28,8 +28,8 @@ type SimulationControllerAdapter struct {
 	SimulationController sim.SteppableController
 	ToolkitAdapter       ui.ToolkitAdapter
 	TimeProvider         times.Provider
-	EnvironmentFactory   func() *simc.Environment
-	environment          *simc.Environment
+	EnvironmentFactory   func() *env.Environment
+	environment          *env.Environment
 }
 
 func (this *SimulationControllerAdapter) Run() {

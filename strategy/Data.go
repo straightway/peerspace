@@ -28,7 +28,7 @@ import (
 
 type Data struct {
 	Configuration          *app.Configuration
-	ConnectionInfoProvider ConnectionInfoProvider
+	ConnectionInfoProvider peer.ConnectionInfoProvider
 	PeerDistanceCalculator PeerDistanceCalculator
 }
 

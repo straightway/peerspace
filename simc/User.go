@@ -17,7 +17,6 @@
 package simc
 
 import (
-	// "log"
 	"time"
 
 	"github.com/straightway/straightway/data"

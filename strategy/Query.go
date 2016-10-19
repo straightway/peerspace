@@ -28,7 +28,7 @@ import (
 )
 
 type Query struct {
-	ConnectionInfoProvider ConnectionInfoProvider
+	ConnectionInfoProvider peer.ConnectionInfoProvider
 	PeerDistanceCalculator PeerDistanceCalculator
 	Configuration          *app.Configuration
 }

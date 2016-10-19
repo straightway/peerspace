@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general/loop"
+	"github.com/straightway/straightway/general/iter"
 	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/general/times"
 )
@@ -88,8 +88,8 @@ func (this *RawStorage) Query(query data.Query) []data.Record {
 	return result
 }
 
-func (this *RawStorage) LeastImportantData() loop.Iterator {
-	return slice.Iterate(data.SelectChunks(this.storedData))
+func (this *RawStorage) LeastImportantData() iter.Ator {
+	return iter.OnSlice(data.SelectChunks(this.storedData))
 }
 
 func (this *RawStorage) ExpiredData() []data.Record {

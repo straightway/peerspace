@@ -1,0 +1,150 @@
+/****************************************************************************
+   Copyright 2016 github.com/straightway
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+****************************************************************************/
+
+package peerc
+
+import (
+	"testing"
+
+	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+)
+
+// Test suite
+
+type Node_LifeCycle_Test struct {
+	suite.Suite
+	*TestNodeContext
+}
+
+func TestNodeLifeCycle(t *testing.T) {
+	suite.Run(t, new(Node_LifeCycle_Test))
+}
+
+func (suite *Node_LifeCycle_Test) SetupTest() {
+	suite.TestNodeContext = NewNodeContext()
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.AddKnownUnconnectedPeer()
+	suite.SetUp()
+}
+
+func (suite *Node_LifeCycle_Test) TearDownTest() {
+	suite.ShutDownNode()
+	suite.TestNodeContext = nil
+}
+
+// Tests
+
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutStateStoragePanics() {
+	suite.node.StateStorage = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutForwardStrategyPanics() {
+	suite.node.DataStrategy = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutConnectionStrategyPanics() {
+	suite.node.ConnectionStrategy = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutDataStoragePanics() {
+	suite.node.DataStorage = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutTimerPanics() {
+	suite.node.Timer = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_WithoutConfigurationPanics() {
+	suite.node.Configuration = nil
+	suite.Assert().Panics(func() { suite.node.Startup() })
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_NilNodePanics() {
+	var nilSut peer.Node
+	suite.Assert().Panics(func() {
+		nilSut.Startup()
+	})
+}
+
+func (suite *Node_LifeCycle_Test) Test_IsStarted_FalseInitially() {
+	assert.False(suite.T(), suite.node.IsStarted())
+}
+
+func (suite *Node_LifeCycle_Test) Test_IsStarted_TrueAfterStartup() {
+	suite.node.Startup()
+	assert.True(suite.T(), suite.node.IsStarted())
+}
+
+func (suite *Node_LifeCycle_Test) Test_IsStarted_FalseAfterShutdown() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+	assert.False(suite.T(), suite.node.IsStarted())
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_GetsPeersFromStateStorage() {
+	suite.node.Startup()
+	suite.stateStorage.AssertCalledOnce(suite.T(), "GetAllKnownPeers")
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_ConnectsToPeersAccordingToStrategy() {
+	suite.node.Startup()
+
+	for _, p := range suite.connectedPeers {
+		p.AssertCalledOnce(suite.T(), "RequestConnectionWith", suite.node)
+	}
+}
+
+func (suite *Node_LifeCycle_Test) Test_Startup_StartsDataStorage() {
+	suite.node.Startup()
+	suite.Assert().Equal(1, suite.dataStorage.StartupCalls)
+}
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ClosesAllOpenConnections() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+
+	for _, p := range suite.connectedPeers {
+		p.AssertCalledOnce(suite.T(), "CloseConnectionWith", suite.node)
+	}
+}
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ClearConnectingPeers() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+
+	suite.Assert().Empty(suite.node.ConnectingPeers())
+}
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ClearConnectedPeers() {
+	suite.node.Startup()
+	suite.AddKnownConnectedPeer(DoForward(false))
+	suite.node.ShutDown()
+
+	suite.Assert().Empty(suite.node.ConnectedPeers())
+}
+
+func (suite *Node_LifeCycle_Test) Test_ShutDown_ShutsDownDataStorage() {
+	suite.node.Startup()
+	suite.node.ShutDown()
+	suite.dataStorage.AssertCalledOnce(suite.T(), "ShutDown")
+}

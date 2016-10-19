@@ -95,19 +95,7 @@ func (this *Upload) attractToAudience(chunk *data.Chunk) {
 	}
 
 	chunkQuery := data.Query{Id: chunk.Key.Id}
-	attractedAudienceString := " "
 	for _, consumer := range permutatedAudience[0:numberOfAttractions] {
-		identifyableConsumer, ok := consumer.(id.Holder)
-		if ok {
-			attractedAudienceString += " " + identifyableConsumer.Id()
-		}
 		consumer.AttractTo(chunkQuery)
 	}
-
-	/*log.Printf(
-	"%v: Attracting %v to %v users [%v ]",
-	this.User.Scheduler().Time(),
-	chunkQuery,
-	numberOfAttractions,
-	attractedAudienceString)*/
 }

@@ -81,7 +81,7 @@ func (this *Storage) getChunkKeysToFreeStorage(chunkSize uint64) (keysToDelete [
 		return nil, true
 	}
 
-	this.RawStorage.LeastImportantData().Loop(func(item interface{}) loop.Control {
+	this.RawStorage.LeastImportantData().Do(func(item interface{}) loop.Control {
 		chunk := item.(data.Record).Chunk
 		keysToDelete = append(keysToDelete, chunk.Key)
 		freeStorage += this.RawStorage.SizeOf(chunk)

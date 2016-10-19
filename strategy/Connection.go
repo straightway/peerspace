@@ -28,7 +28,7 @@ import (
 
 type Connection struct {
 	Configuration          *app.Configuration
-	ConnectionInfoProvider ConnectionInfoProvider
+	ConnectionInfoProvider peer.ConnectionInfoProvider
 	RandSource             rand.Source
 }
 

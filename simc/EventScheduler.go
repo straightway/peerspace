@@ -17,15 +17,22 @@
 package simc
 
 import (
-	"sort"
 	"time"
+
+	"github.com/straightway/straightway/general/sorted"
 )
 
 type EventScheduler struct {
 	currentTime       time.Time
-	events            []event
+	events            *sorted.Queue
 	isStopped         bool
 	execEventHandlers []func()
+}
+
+func NewEventScheduler() *EventScheduler {
+	return &EventScheduler{
+		currentTime: time.Time{}.In(time.UTC),
+		events:      sorted.NewQueue()}
 }
 
 type event struct {
@@ -33,14 +40,12 @@ type event struct {
 	action func()
 }
 
-type eventByTime []event
-
-func (a eventByTime) Len() int           { return len(a) }
-func (a eventByTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a eventByTime) Less(i, j int) bool { return a[i].time.Before(a[j].time) }
+func (this *event) IsLessThan(other sorted.Item) bool {
+	return this.time.Before(other.(*event).time)
+}
 
 func (this *EventScheduler) Time() time.Time {
-	return this.currentTime.In(time.UTC)
+	return this.currentTime
 }
 
 func (this *EventScheduler) Schedule(duration time.Duration, action func()) {
@@ -51,13 +56,12 @@ func (this *EventScheduler) Schedule(duration time.Duration, action func()) {
 	this.ScheduleAbsolute(this.currentTime.Add(duration), action)
 }
 
-func (this *EventScheduler) ScheduleAbsolute(time time.Time, action func()) {
-	if time.Before(this.currentTime) {
+func (this *EventScheduler) ScheduleAbsolute(execTime time.Time, action func()) {
+	if execTime.Before(this.currentTime) {
 		panic("Cannot schedule past event")
 	}
 
-	this.events = append(this.events, event{time: time, action: action})
-	sort.Sort(eventByTime(this.events))
+	this.events.Insert(&event{time: execTime.In(time.UTC), action: action})
 }
 
 func (this *EventScheduler) Run() {
@@ -67,12 +71,15 @@ func (this *EventScheduler) Run() {
 }
 
 func (this *EventScheduler) ExecNext() bool {
-	if this.isStopped || this.hasEvent() == false {
+	if this.isStopped {
 		return false
 	}
 
-	event := this.popEvent()
-	this.execute(event)
+	evt := this.events.Pop()
+	if evt == nil {
+		return false
+	}
+	this.execute(evt.(*event))
 
 	for _, h := range this.execEventHandlers {
 		h()
@@ -90,8 +97,8 @@ func (this *EventScheduler) Resume() {
 }
 
 func (this *EventScheduler) Reset() {
-	this.events = nil
-	this.currentTime = time.Time{}
+	this.events = sorted.NewQueue()
+	this.currentTime = time.Time{}.In(time.UTC)
 	this.Resume()
 }
 
@@ -101,15 +108,7 @@ func (this *EventScheduler) RegisterForExecEvent(callback func()) {
 
 // Private
 
-func (this *EventScheduler) hasEvent() bool { return 0 < len(this.events) }
-
-func (this *EventScheduler) popEvent() event {
-	event := this.events[0]
-	this.events = this.events[1:]
-	return event
-}
-
-func (this *EventScheduler) execute(event event) {
+func (this *EventScheduler) execute(event *event) {
 	this.currentTime = event.time
 	event.action()
 }

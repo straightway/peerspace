@@ -28,7 +28,7 @@ import (
 type StateStorage_Test struct {
 	suite.Suite
 	connectors []peer.Connector
-	sut        *StateStorage
+	sut        peer.StateStorage
 }
 
 func TestStateStorage(t *testing.T) {
@@ -39,8 +39,7 @@ func (suite *StateStorage_Test) SetupTest() {
 	suite.connectors = []peer.Connector{
 		peer.NewConnectorMock(),
 		peer.NewConnectorMock()}
-	suite.sut = &StateStorage{
-		Connectors: suite.connectors}
+	suite.sut = NewStateStorage(suite.connectors...)
 }
 
 func (suite *StateStorage_Test) TearDownTest() {

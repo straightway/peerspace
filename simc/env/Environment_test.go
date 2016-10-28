@@ -40,7 +40,7 @@ func TestEnvironment(t *testing.T) {
 
 func (suite *Environment_Test) SetupTest() {
 	log.SetHandler(discard.Default)
-	suite.scheduler = &simc.EventScheduler{}
+	suite.scheduler = simc.NewEventScheduler()
 	suite.sut = New(suite.scheduler, 5)
 }
 

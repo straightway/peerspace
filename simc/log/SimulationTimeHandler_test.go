@@ -33,7 +33,7 @@ import (
 type SimulationTimeHandler_Test struct {
 	suite.Suite
 	sut         *SimulationTimeHandler
-	baseHandler *handlerMock
+	baseHandler *HandlerMock
 	timer       *times.ProviderMock
 }
 
@@ -42,7 +42,8 @@ func TestSimulationTimeHandler(t *testing.T) {
 }
 
 func (suite *SimulationTimeHandler_Test) SetupTest() {
-	suite.baseHandler = newHandlerMock()
+	SetEnabled(true)
+	suite.baseHandler = NewHandlerMock()
 	suite.timer = &times.ProviderMock{}
 	suite.sut = NewSimulationTimeHandler(suite.baseHandler, suite.timer)
 	log.SetHandler(suite.sut)
@@ -78,4 +79,10 @@ func (suite *SimulationTimeHandler_Test) Test() {
 	})
 	suite.Assert().Nil(suite.sut.HandleLog(logEntry))
 	suite.baseHandler.AssertCalledOnce(suite.T(), "HandleLog", mock.Anything)
+}
+
+func (suite *SimulationTimeHandler_Test) Test_HandleLog_DoesNothingIfLoggingIsDisabled() {
+	SetEnabled(false)
+	log.WithFields(log.Fields{}).Info("Info Log")
+	suite.baseHandler.AssertNotCalled(suite.T(), "HandleLog", mock.Anything)
 }

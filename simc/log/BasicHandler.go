@@ -57,6 +57,10 @@ type BasicHandler struct {
 
 // HandleLog implements log.BasicHandler.
 func (h *BasicHandler) HandleLog(e *log.Entry) error {
+	if IsEnabled() == false {
+		return nil
+	}
+
 	var fields []field
 
 	for k, v := range e.Fields {

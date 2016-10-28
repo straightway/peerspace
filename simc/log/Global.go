@@ -16,31 +16,12 @@
 
 package log
 
-import (
-	"github.com/apex/log"
+var isLoggingEnabled = false
 
-	"github.com/straightway/straightway/general/times"
-)
-
-type SimulationTimeHandler struct {
-	baseHandler log.Handler
-	timer       times.Provider
+func IsEnabled() bool {
+	return isLoggingEnabled
 }
 
-func NewSimulationTimeHandler(baseHandler log.Handler, timer times.Provider) *SimulationTimeHandler {
-	return &SimulationTimeHandler{baseHandler: baseHandler, timer: timer}
-}
-
-func (this *SimulationTimeHandler) HandleLog(entry *log.Entry) error {
-	if IsEnabled() == false {
-		return nil
-	}
-
-	entryWithSimulationTime := &log.Entry{
-		Logger:    entry.Logger,
-		Message:   entry.Message,
-		Fields:    entry.Fields,
-		Level:     entry.Level,
-		Timestamp: this.timer.Time()}
-	return this.baseHandler.HandleLog(entryWithSimulationTime)
+func SetEnabled(isEnabled bool) {
+	isLoggingEnabled = isEnabled
 }

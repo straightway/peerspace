@@ -28,7 +28,7 @@ type AreEqual_Test struct {
 	suite.Suite
 }
 
-func TestGeneralAreEqual(t *testing.T) {
+func TestAreEqual(t *testing.T) {
 	suite.Run(t, new(AreEqual_Test))
 }
 

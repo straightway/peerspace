@@ -24,18 +24,18 @@ import (
 	"github.com/straightway/straightway/general/mocked"
 )
 
-type handlerMock struct {
+type HandlerMock struct {
 	mocked.Base
 	Error error
 }
 
-func newHandlerMock() *handlerMock {
-	result := &handlerMock{}
+func NewHandlerMock() *HandlerMock {
+	result := &HandlerMock{}
 	result.On("HandleLog", mock.Anything).Return()
 	return result
 }
 
-func (m *handlerMock) HandleLog(entry *log.Entry) error {
+func (m *HandlerMock) HandleLog(entry *log.Entry) error {
 	m.Called(entry)
 	return m.Error
 }

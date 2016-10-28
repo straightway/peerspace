@@ -85,6 +85,10 @@ func NewActionHandler(baseHandler log.Handler) *ActionHandler {
 }
 
 func (this *ActionHandler) HandleLog(entry *log.Entry) error {
+	if IsEnabled() == false {
+		return nil
+	}
+
 	entryTime := entry.Timestamp.In(time.UTC)
 	if entryTime.Equal(this.lastLogTime) == false {
 		this.lastLogTime = entryTime

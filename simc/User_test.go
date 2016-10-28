@@ -58,7 +58,7 @@ var queryTimeout = duration.Parse("1h")
 
 func (suite *User_Test) SetupTest() {
 	log.SetOutput(ioutil.Discard)
-	suite.scheduler = &EventScheduler{}
+	suite.scheduler = NewEventScheduler()
 	suite.node = peer.NewNodeMock("nodeId")
 	suite.activity = sim.NewUserActivityMock()
 	suite.queryDurationSampleCollector = measure.NewSampleCollectorMock()

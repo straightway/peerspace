@@ -14,38 +14,32 @@
    limitations under the License.
 ****************************************************************************/
 
-package simc
+package log
 
 import (
-	"github.com/straightway/straightway/peer"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-type stateStorage struct {
-	connectors   []peer.Connector
-	connectorIds map[string]bool
+// Test suite
+
+type Global_Test struct {
+	suite.Suite
 }
 
-func NewStateStorage(connectors ...peer.Connector) peer.StateStorage {
-	result := &stateStorage{connectorIds: make(map[string]bool)}
-	for _, connector := range connectors {
-		result.AddKnownPeer(connector)
-	}
-
-	return result
+func TestGlobal(t *testing.T) {
+	suite.Run(t, new(Global_Test))
 }
 
-func (this *stateStorage) GetAllKnownPeers() []peer.Connector {
-	return this.connectors
+func (suite *Global_Test) SetupTest() {
 }
 
-func (this *stateStorage) IsKnownPeer(peer peer.Connector) bool {
-	_, found := this.connectorIds[peer.Id()]
-	return found
+func (suite *Global_Test) TearDownTest() {
 }
 
-func (this *stateStorage) AddKnownPeer(peer peer.Connector) {
-	if this.IsKnownPeer(peer) == false {
-		this.connectors = append(this.connectors, peer)
-		this.connectorIds[peer.Id()] = true
-	}
+func (suite *Global_Test) Test_SetLoggingEnabled_SetsFlag() {
+	oldState := IsEnabled()
+	SetEnabled(!oldState)
+	suite.Assert().NotEqual(oldState, IsEnabled())
 }

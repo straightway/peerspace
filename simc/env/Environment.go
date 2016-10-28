@@ -190,7 +190,7 @@ func (this *Environment) createNode() (*peerc.Node, *app.Configuration, *simc.Ra
 }
 
 func (this *Environment) createStateStorage(rawStorage data.RawStorage) peer.StateStorage {
-	stateStorage := &simc.StateStorage{}
+	stateStorage := simc.NewStateStorage()
 	if 0 < len(this.users) {
 		networkAccessedNode := simc.NewNetworkPeerConnector(this.initialUser.Node(), this.networkProperties)
 		stateStorage.AddKnownPeer(networkAccessedNode)

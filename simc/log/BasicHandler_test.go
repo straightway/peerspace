@@ -59,6 +59,7 @@ func TestBasicHandler(t *testing.T) {
 }
 
 func (suite *BasicHandler_test) SetupTest() {
+	SetEnabled(true)
 	suite.outputStream = new(bytes.Buffer)
 	suite.sut = NewBasicHandler(suite.outputStream)
 	log.SetHandler(suite.sut)
@@ -137,6 +138,12 @@ func (suite *BasicHandler_test) Test_HandleLog_LogsMultipleFieldsSorted() {
 			&basicTimeStamp,
 			"MSG",
 			" [Field1: Value1; Field2: Value2]"})
+}
+
+func (suite *BasicHandler_test) Test_HandleLog_DoesNothingIfLoggingIsDisabled() {
+	SetEnabled(false)
+	suite.log(log.DebugLevel, basicTimeStamp, "MSG", log.Fields{})
+	suite.assertLogOutput()
 }
 
 // Private

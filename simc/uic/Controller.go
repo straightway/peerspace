@@ -25,18 +25,20 @@ import (
 )
 
 type Controller struct {
-	simulationController sim.Controller
-	ui                   ui.SimulationUi
-	timeProvider         times.Provider
-	toolkitAdapter       gsui.ToolkitAdapter
-	measurementProvider  measure.Provider
+	simulationController      sim.Controller
+	ui                        ui.SimulationUi
+	timeProvider              times.Provider
+	toolkitAdapter            gsui.ToolkitAdapter
+	measurementProvider       measure.Provider
+	measurementDisplayCounter int
+	MeasurementUpdateRatio    int
 }
 
 func NewController(
 	timeProvider times.Provider,
 	simulationController sim.Controller,
 	measurementProvider measure.Provider,
-	tookitAdapter gsui.ToolkitAdapter) ui.Controller {
+	tookitAdapter gsui.ToolkitAdapter) *Controller {
 
 	result := &Controller{
 		simulationController: simulationController,
@@ -88,6 +90,12 @@ func (this *Controller) Quit() {
 // Private
 
 func (this *Controller) onExecEvent() {
+	if this.measurementDisplayCounter < this.MeasurementUpdateRatio {
+		this.measurementDisplayCounter++
+		return
+	}
+	this.measurementDisplayCounter = 0
+
 	this.ui.SetSimulationTime(this.timeProvider.Time())
 	measurements := this.measurementProvider.Measurements()
 	this.ui.SetQueryDurationMeasurementValue(measurements["QueryDuration"])

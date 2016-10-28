@@ -32,7 +32,7 @@ import (
 type ActionHandler_Test struct {
 	suite.Suite
 	sut         *ActionHandler
-	baseHandler *handlerMock
+	baseHandler *HandlerMock
 }
 
 type logEntry struct {
@@ -48,7 +48,8 @@ func TestActionHandler(t *testing.T) {
 }
 
 func (suite *ActionHandler_Test) SetupTest() {
-	suite.baseHandler = newHandlerMock()
+	SetEnabled(true)
+	suite.baseHandler = NewHandlerMock()
 	suite.sut = NewActionHandler(suite.baseHandler)
 	log.SetHandler(suite.sut)
 	log.SetLevel(log.DebugLevel)
@@ -349,6 +350,13 @@ func (suite *ActionHandler_Test) Test_EntryTypeNodeActionIsFormattedWithDuration
 	entry := log.WithFields(fields)
 	entry.Info("Info Log")
 	suite.baseHandler.AssertCalledOnce(suite.T(), "HandleLog", mock.Anything)
+
+}
+
+func (suite *ActionHandler_Test) Test_HandleLog_IgnoredIfDisabled() {
+	SetEnabled(false)
+	log.WithFields(log.Fields{}).Info("Info Log")
+	suite.baseHandler.AssertNotCalled(suite.T(), "HandleLog", mock.Anything)
 }
 
 // Private

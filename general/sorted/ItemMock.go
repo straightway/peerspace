@@ -14,38 +14,26 @@
    limitations under the License.
 ****************************************************************************/
 
-package simc
+package sorted
 
 import (
-	"github.com/straightway/straightway/peer"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/straightway/straightway/general/mocked"
 )
 
-type stateStorage struct {
-	connectors   []peer.Connector
-	connectorIds map[string]bool
+type ItemMock struct {
+	mocked.Base
+	orderNumber int
 }
 
-func NewStateStorage(connectors ...peer.Connector) peer.StateStorage {
-	result := &stateStorage{connectorIds: make(map[string]bool)}
-	for _, connector := range connectors {
-		result.AddKnownPeer(connector)
-	}
-
+func NewSortableMock(orderNumber int) *ItemMock {
+	result := &ItemMock{orderNumber: orderNumber}
+	result.On("IsLessThan", mock.Anything)
 	return result
 }
 
-func (this *stateStorage) GetAllKnownPeers() []peer.Connector {
-	return this.connectors
-}
-
-func (this *stateStorage) IsKnownPeer(peer peer.Connector) bool {
-	_, found := this.connectorIds[peer.Id()]
-	return found
-}
-
-func (this *stateStorage) AddKnownPeer(peer peer.Connector) {
-	if this.IsKnownPeer(peer) == false {
-		this.connectors = append(this.connectors, peer)
-		this.connectorIds[peer.Id()] = true
-	}
+func (m *ItemMock) IsLessThan(other Item) bool {
+	m.Called(other)
+	return m.orderNumber < other.(*ItemMock).orderNumber
 }

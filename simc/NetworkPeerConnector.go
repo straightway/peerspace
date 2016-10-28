@@ -30,6 +30,7 @@ import (
 	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim"
+	slog "github.com/straightway/straightway/simc/log"
 )
 
 type NetworkProperties struct {
@@ -218,7 +219,10 @@ func (this *NetworkPeerConnector) schedule(
 			detail:     detail})
 
 	this.addSendQueue(detail)
-	log.WithFields(detail).Info("Scheduled")
+
+	if slog.IsEnabled() {
+		log.WithFields(detail).Info("Scheduled")
+	}
 }
 
 func (this *NetworkPeerConnector) sendNextItem() {
@@ -233,8 +237,10 @@ func (this *NetworkPeerConnector) sendNextItem() {
 
 	nextItem.sendAction()
 	this.sendQueue = this.sendQueue[1:]
-	this.addSendQueue(nextItem.detail)
-	log.WithFields(nextItem.detail).Info("Execute")
+	if slog.IsEnabled() {
+		this.addSendQueue(nextItem.detail)
+		log.WithFields(nextItem.detail).Info("Execute")
+	}
 }
 
 func (this *NetworkPeerConnector) addSendQueue(detail log.Fields) {

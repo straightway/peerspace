@@ -20,21 +20,27 @@ import (
 	"github.com/andlabs/ui"
 
 	"github.com/apex/log"
+	"github.com/apex/log/handlers/discard"
+
+	"github.com/pkg/profile"
 
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/env"
-	simlog "github.com/straightway/straightway/simc/log"
+	//simlog "github.com/straightway/straightway/simc/log"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/straightway/straightway/simc/uic/gui"
 )
 
 func main() {
+	defer profile.Start().Stop()
+
 	err := ui.Main(func() {
-		scheduler := &simc.EventScheduler{}
-		actionLogger := simlog.NewActionHandler(simlog.DefaultBasicHandler)
-		simTimeLogHandler := simlog.NewSimulationTimeHandler(actionLogger, scheduler)
-		log.SetHandler(simTimeLogHandler)
+		scheduler := simc.NewEventScheduler()
+		//actionLogger := simlog.NewActionHandler(simlog.DefaultBasicHandler)
+		//simTimeLogHandler := simlog.NewSimulationTimeHandler(actionLogger, scheduler)
+		//log.SetHandler(simTimeLogHandler)
+		log.SetHandler(discard.New())
 		toolkitAdapter := &ggui.ToolkitAdapter{}
 		eventControllerAdapter := &uic.SimulationControllerAdapter{
 			SimulationController: scheduler,
@@ -42,6 +48,7 @@ func main() {
 			TimeProvider:         scheduler,
 			EnvironmentFactory:   func() *env.Environment { return env.New(scheduler, 1000) }}
 		controller := uic.NewController(scheduler, eventControllerAdapter, eventControllerAdapter, toolkitAdapter)
+		controller.MeasurementUpdateRatio = 10
 		mainWindow := gui.NewMainWindow(controller, eventControllerAdapter)
 		mainWindow.Show()
 	})

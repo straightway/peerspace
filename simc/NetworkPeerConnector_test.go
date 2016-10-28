@@ -23,13 +23,15 @@ import (
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/discard"
 
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general"
 	"github.com/straightway/straightway/general/duration"
 	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
+	slog "github.com/straightway/straightway/simc/log"
 )
 
 type NetworkPeerConnector_Test struct {
@@ -48,7 +50,7 @@ func TestNetworkPeerConnector(t *testing.T) {
 
 func (suite *NetworkPeerConnector_Test) SetupTest() {
 	log.SetHandler(discard.New())
-	suite.scheduler = &EventScheduler{}
+	suite.scheduler = NewEventScheduler()
 	suite.scheduler.Schedule(duration.Parse("1000h"), func() { suite.scheduler.Stop() })
 	suite.wrapped = peer.NewConnectorMock()
 	suite.rawStorage = data.NewRawStorageMock(suite.scheduler)
@@ -320,6 +322,29 @@ func (suite *NetworkPeerConnector_Test) Test_Wrapping_AlwaysYieldsTheSameWrapped
 	otherWrapped.AnnouncePeersFrom(suite.others[0], nil)
 	suite.sut.RequestPeers(suite.others[0])
 	suite.assertCallOnWrappedConnectorAfter(2*suite.sut.Latency(), "RequestPeers", mock.Anything)
+}
+
+func (suite *NetworkPeerConnector_Test) Test_NothingIsLogged_WhenLogIsDisabled() {
+	logHandler := slog.NewHandlerMock()
+	defer log.SetHandler(discard.New())
+	log.SetHandler(logHandler)
+	suite.sut.CloseConnectionWith(suite.others[0])
+	logHandler.AssertNotCalled(suite.T(), "HandleLog", mock.Anything)
+	suite.scheduler.Run()
+	logHandler.AssertNotCalled(suite.T(), "HandleLog", mock.Anything)
+}
+
+func (suite *NetworkPeerConnector_Test) Test_SomethingIsLogged_WhenLogIsDisabled() {
+	logHandler := slog.NewHandlerMock()
+	defer log.SetHandler(discard.New())
+	log.SetHandler(logHandler)
+	slog.SetEnabled(true)
+	defer slog.SetEnabled(false)
+	suite.sut.CloseConnectionWith(suite.others[0])
+	logHandler.AssertCalled(suite.T(), "HandleLog", mock.Anything)
+	logHandler.Calls = nil
+	suite.scheduler.Run()
+	logHandler.AssertCalled(suite.T(), "HandleLog", mock.Anything)
 }
 
 // Private

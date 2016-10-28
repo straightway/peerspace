@@ -155,7 +155,7 @@ func (suite *SimulationControllerAdapter_Test) Test_Measurements_ReturnsMeasurem
 }
 
 func (suite *SimulationControllerAdapter_Test) Test_Nodes_ReturnsNodesFromEnvironment() {
-	environment := env.New(&simc.EventScheduler{}, 5)
+	environment := env.New(simc.NewEventScheduler(), 5)
 	suite.environmentFactory = func() *env.Environment { return environment }
 	suite.sut.Run()
 	suite.Assert().Equal(environment.Nodes(), suite.sut.Nodes())

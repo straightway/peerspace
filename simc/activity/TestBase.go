@@ -42,7 +42,7 @@ type TestBase struct {
 
 func (suite *TestBase) SetupTest() {
 	log.SetOutput(ioutil.Discard)
-	suite.scheduler = &simc.EventScheduler{}
+	suite.scheduler = simc.NewEventScheduler()
 	suite.node = peer.NewNodeMock("1")
 	suite.user = &simc.User{
 		SchedulerInstance:            suite.scheduler,

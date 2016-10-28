@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/straightway/straightway/general/times"
@@ -31,7 +32,7 @@ import (
 
 type Controller_Test struct {
 	suite.Suite
-	sut                  ui.Controller
+	sut                  *Controller
 	simulationController *sim.SteppableControllerMock
 	ui                   *ui.SimulationUiMock
 	timeProvider         *times.ProviderMock
@@ -156,6 +157,21 @@ func (suite *Controller_Test) Test_RegisterEventHandler_SetQueryDurationMeasurem
 	suite.ui.AssertCalledOnce(suite.T(), "SetQueryDurationMeasurementValue", "1234")
 	suite.ui.AssertCalledOnce(suite.T(), "SetQuerySuccessMeasurementValue", "2345")
 }
+
+func (suite *Controller_Test) Test_RegisterEventHandler_UiUpdateDelayedByMeasurementUpdateRatio() {
+	suite.sut.MeasurementUpdateRatio = 1
+	measurementMap := make(map[string]string)
+	measurementMap["QueryDuration"] = "1234"
+	measurementMap["QuerySuccess"] = "2345"
+	suite.measureProvider.OnNew("Measurements").Return(measurementMap)
+	suite.simulationController.ExecEventHandlers[0]()
+	suite.ui.AssertNotCalled(suite.T(), "SetQueryDurationMeasurementValue", mock.Anything)
+	suite.ui.AssertNotCalled(suite.T(), "SetQuerySuccessMeasurementValue", mock.Anything)
+	suite.simulationController.ExecEventHandlers[0]()
+	suite.ui.AssertCalledOnce(suite.T(), "SetQueryDurationMeasurementValue", "1234")
+	suite.ui.AssertCalledOnce(suite.T(), "SetQuerySuccessMeasurementValue", "2345")
+}
+
 func (suite *Controller_Test) Test_Quit_ForwardsCallToToolkitAdapter() {
 	suite.sut.Quit()
 	suite.toolkitAdapter.AssertCalledOnce(suite.T(), "Quit")

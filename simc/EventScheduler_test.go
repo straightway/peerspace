@@ -36,7 +36,7 @@ func TestEventScheduler(t *testing.T) {
 }
 
 func (suite *EventScheduler_Test) SetupTest() {
-	suite.sut = &EventScheduler{}
+	suite.sut = NewEventScheduler()
 }
 
 func (suite *EventScheduler_Test) TearDownTest() {

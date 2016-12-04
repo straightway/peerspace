@@ -27,7 +27,6 @@ import (
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/env"
-	//simlog "github.com/straightway/straightway/simc/log"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/straightway/straightway/simc/uic/gui"
 )
@@ -37,9 +36,6 @@ func main() {
 
 	err := ui.Main(func() {
 		scheduler := simc.NewEventScheduler()
-		//actionLogger := simlog.NewActionHandler(simlog.DefaultBasicHandler)
-		//simTimeLogHandler := simlog.NewSimulationTimeHandler(actionLogger, scheduler)
-		//log.SetHandler(simTimeLogHandler)
 		log.SetHandler(discard.New())
 		toolkitAdapter := &ggui.ToolkitAdapter{}
 		eventControllerAdapter := &uic.SimulationControllerAdapter{
@@ -49,7 +45,7 @@ func main() {
 			EnvironmentFactory:   func() *env.Environment { return env.New(scheduler, 1000) }}
 		controller := uic.NewController(scheduler, eventControllerAdapter, eventControllerAdapter, toolkitAdapter)
 		controller.MeasurementUpdateRatio = 10
-		mainWindow := gui.NewMainWindow(controller, eventControllerAdapter)
+		mainWindow := gui.NewMainWindow(controller, eventControllerAdapter, scheduler)
 		mainWindow.Show()
 	})
 	if err != nil {

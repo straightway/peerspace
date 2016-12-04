@@ -19,8 +19,13 @@ package gui
 import (
 	"time"
 
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/discard"
+
 	"github.com/andlabs/ui"
 	"github.com/straightway/straightway/general/gui"
+	"github.com/straightway/straightway/general/times"
+	simlog "github.com/straightway/straightway/simc/log"
 	sui "github.com/straightway/straightway/simc/ui"
 )
 
@@ -35,13 +40,18 @@ type MainWindow struct {
 	networkModel          sui.NetworkModel
 	networkDisplay        *ui.Area
 	noNetworkPlaceholder  *ui.Label
+	timeProvider          times.Provider
 	isNetworkDisplayed    bool
 }
 
-func NewMainWindow(controller sui.Controller, networkModel sui.NetworkModel) *MainWindow {
+func NewMainWindow(
+	controller sui.Controller,
+	networkModel sui.NetworkModel,
+	timeProvider times.Provider) *MainWindow {
 	mainWindow := &MainWindow{
 		controller:   controller,
-		networkModel: networkModel}
+		networkModel: networkModel,
+		timeProvider: timeProvider}
 	mainWindow.init()
 	return mainWindow
 }
@@ -96,6 +106,17 @@ func (this *MainWindow) onDisplayNetworkToggled(*ui.Button) {
 	}
 }
 
+func (this *MainWindow) onLoggingToggled(checkbox *ui.Checkbox) {
+	simlog.SetEnabled(checkbox.Checked())
+	if checkbox.Checked() {
+		actionLogger := simlog.NewActionHandler(simlog.DefaultBasicHandler)
+		simTimeLogHandler := simlog.NewSimulationTimeHandler(actionLogger, this.timeProvider)
+		log.SetHandler(simTimeLogHandler)
+	} else {
+		log.SetHandler(discard.New())
+	}
+}
+
 // Private
 
 func (this *MainWindow) init() {
@@ -121,6 +142,10 @@ func (this *MainWindow) init() {
 	displayNetworkButton := ui.NewButton("(o)")
 	displayNetworkButton.OnClicked(this.onDisplayNetworkToggled)
 	commandBar.Append(displayNetworkButton, false)
+
+	logCheckbox := ui.NewCheckbox("Log")
+	logCheckbox.OnToggled(this.onLoggingToggled)
+	commandBar.Append(logCheckbox, false)
 
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)

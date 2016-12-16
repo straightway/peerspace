@@ -23,9 +23,11 @@ import (
 	"github.com/apex/log/handlers/discard"
 
 	"github.com/andlabs/ui"
+
 	"github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/general/times"
 	simlog "github.com/straightway/straightway/simc/log"
+	"github.com/straightway/straightway/simc/profiler"
 	sui "github.com/straightway/straightway/simc/ui"
 )
 
@@ -35,13 +37,13 @@ type MainWindow struct {
 	startButton           *ui.Button
 	resetButton           *ui.Button
 	pauseButton           *ui.Button
+	displayNetworkButton  *ui.Checkbox
 	simulationTimeDisplay *gui.VCenteredLabel
 	measurementTable      *gui.TextTable
 	networkModel          sui.NetworkModel
 	networkDisplay        *ui.Area
 	noNetworkPlaceholder  *ui.Label
 	timeProvider          times.Provider
-	isNetworkDisplayed    bool
 }
 
 func NewMainWindow(
@@ -94,9 +96,8 @@ func (this *MainWindow) onPauseClicked(*ui.Button) {
 	this.controller.Pause()
 }
 
-func (this *MainWindow) onDisplayNetworkToggled(*ui.Button) {
-	this.isNetworkDisplayed = !this.isNetworkDisplayed
-	if this.isNetworkDisplayed {
+func (this *MainWindow) onDisplayNetworkToggled(checkbox *ui.Checkbox) {
+	if checkbox.Checked() {
 		this.networkDisplay.Show()
 		this.noNetworkPlaceholder.Hide()
 		ui.QueueMain(this.redrawNetworkDisplay)
@@ -117,6 +118,15 @@ func (this *MainWindow) onLoggingToggled(checkbox *ui.Checkbox) {
 	}
 }
 
+func (this *MainWindow) onProfilingToggled(checkbox *ui.Checkbox) {
+	if checkbox.Checked() {
+		profiler.Start()
+	} else {
+		profiler.Stop()
+	}
+
+}
+
 // Private
 
 func (this *MainWindow) init() {
@@ -125,6 +135,7 @@ func (this *MainWindow) init() {
 	mainLayout := ui.NewVerticalBox()
 
 	commandBar := ui.NewHorizontalBox()
+	commandBar.SetPadded(true)
 	mainLayout.Append(commandBar, false)
 
 	this.resetButton = ui.NewButton("|<")
@@ -139,13 +150,17 @@ func (this *MainWindow) init() {
 	this.startButton.OnClicked(this.onStartClicked)
 	commandBar.Append(this.startButton, false)
 
-	displayNetworkButton := ui.NewButton("(o)")
-	displayNetworkButton.OnClicked(this.onDisplayNetworkToggled)
-	commandBar.Append(displayNetworkButton, false)
+	this.displayNetworkButton = ui.NewCheckbox("Show Network")
+	this.displayNetworkButton.OnToggled(this.onDisplayNetworkToggled)
+	commandBar.Append(this.displayNetworkButton, false)
 
 	logCheckbox := ui.NewCheckbox("Log")
 	logCheckbox.OnToggled(this.onLoggingToggled)
 	commandBar.Append(logCheckbox, false)
+
+	profileCheckbox := ui.NewCheckbox("Profile")
+	profileCheckbox.OnToggled(this.onProfilingToggled)
+	commandBar.Append(profileCheckbox, false)
 
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)
@@ -193,7 +208,7 @@ func setEnabled(control ui.Control, enabled bool) {
 }
 
 func (this *MainWindow) redrawNetworkDisplay() {
-	if this.networkModel == nil || this.isNetworkDisplayed == false {
+	if this.networkModel == nil || this.displayNetworkButton.Checked() == false {
 		return
 	}
 

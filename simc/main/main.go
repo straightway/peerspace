@@ -22,17 +22,16 @@ import (
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/discard"
 
-	"github.com/pkg/profile"
-
 	ggui "github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/env"
+	"github.com/straightway/straightway/simc/profiler"
 	"github.com/straightway/straightway/simc/uic"
 	"github.com/straightway/straightway/simc/uic/gui"
 )
 
 func main() {
-	defer profile.Start().Stop()
+	defer profiler.Stop()
 
 	err := ui.Main(func() {
 		scheduler := simc.NewEventScheduler()

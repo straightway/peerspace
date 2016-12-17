@@ -165,9 +165,7 @@ func (this *NetworkPeerConnector) tryWrap(obj interface{}) interface{} {
 		if isAlreadyWrapped == false {
 			return NewNetworkPeerConnector(wrapped, this.properties)
 		}
-	} /*else {
-		log.Printf("%v: %v of type %t is no peer.Connector", this.properties.EventScheduler.Time(), obj, obj)
-	}*/
+	}
 
 	return obj
 }
@@ -190,14 +188,10 @@ func (this *NetworkPeerConnector) scheduleFor(
 		"Origin":      origin.Id(),
 		"Destination": this.Id(),
 		"Parameter":   slice.ToString(logInfo, ",")}
+
 	if isPeer {
 		originPeer.schedule(duration, action, detail)
 	} else {
-		/*log.Printf(
-		"%v: Directly executing %v %v",
-		this.properties.EventScheduler.Time(),
-		origin.Id(),
-		detail)*/
 		action()
 	}
 }
@@ -218,9 +212,8 @@ func (this *NetworkPeerConnector) schedule(
 			sendAction: action,
 			detail:     detail})
 
-	this.addSendQueue(detail)
-
 	if slog.IsEnabled() {
+		this.addSendQueue(detail)
 		log.WithFields(detail).Info("Scheduled")
 	}
 }
@@ -237,6 +230,7 @@ func (this *NetworkPeerConnector) sendNextItem() {
 
 	nextItem.sendAction()
 	this.sendQueue = this.sendQueue[1:]
+
 	if slog.IsEnabled() {
 		this.addSendQueue(nextItem.detail)
 		log.WithFields(nextItem.detail).Info("Execute")

@@ -334,7 +334,7 @@ func (suite *NetworkPeerConnector_Test) Test_NothingIsLogged_WhenLogIsDisabled()
 	logHandler.AssertNotCalled(suite.T(), "HandleLog", mock.Anything)
 }
 
-func (suite *NetworkPeerConnector_Test) Test_SomethingIsLogged_WhenLogIsDisabled() {
+func (suite *NetworkPeerConnector_Test) Test_SomethingIsLogged_WhenLogIsEnabled() {
 	logHandler := slog.NewHandlerMock()
 	defer log.SetHandler(discard.New())
 	log.SetHandler(logHandler)
@@ -347,7 +347,38 @@ func (suite *NetworkPeerConnector_Test) Test_SomethingIsLogged_WhenLogIsDisabled
 	logHandler.AssertCalled(suite.T(), "HandleLog", mock.Anything)
 }
 
+func (suite *NetworkPeerConnector_Test) Test_SubLogsHaveNoSubSubLogs() {
+	logHandler := &slog.HandlerMock{}
+	logHandler.On("HandleLog", mock.Anything).Run(func(args mock.Arguments) {
+		logEntry := args.Get(0).(*log.Entry)
+		suite.Assert().False(hasSubSubFields(logEntry))
+	})
+	defer log.SetHandler(discard.New())
+	log.SetHandler(logHandler)
+	slog.SetEnabled(true)
+	defer slog.SetEnabled(false)
+
+	suite.sut.RequestConnectionWith(suite.others[0])
+	suite.sut.CloseConnectionWith(suite.others[0])
+}
+
 // Private
+
+func hasSubSubFields(entry *log.Entry) bool {
+	for _, logField := range entry.Fields {
+		subFields, _ := logField.([]log.Fields)
+		for _, subField := range subFields {
+			for _, subFieldEntry := range subField {
+				_, hasSubSubFields := subFieldEntry.([]log.Fields)
+				if hasSubSubFields {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
 
 func (suite *NetworkPeerConnector_Test) wrap(toWrap peer.Connector) *NetworkPeerConnector {
 	return NewNetworkPeerConnector(toWrap, suite.properties)

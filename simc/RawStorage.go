@@ -25,7 +25,6 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/iter"
-	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/general/times"
 )
 
@@ -67,14 +66,13 @@ func (this *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpiratio
 }
 
 func (this *RawStorage) Delete(key data.Key) {
-	this.storedData = slice.RemoveItemsIf(this.storedData, func(item interface{}) bool {
-		dataRecord := item.(data.Record)
-		isFound := dataRecord.Chunk.Key == key
-		if isFound {
+	for i, dataRecord := range this.storedData {
+		if dataRecord.Chunk.Key == key {
 			this.FreeStorageValue += this.SizeOf(dataRecord.Chunk)
+			this.storedData = append(this.storedData[:i], this.storedData[i+1:]...)
+			return
 		}
-		return isFound
-	}).([]data.Record)
+	}
 }
 
 func (this *RawStorage) Query(query data.Query) []data.Record {

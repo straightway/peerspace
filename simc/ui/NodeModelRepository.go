@@ -16,6 +16,8 @@
 
 package ui
 
+import "github.com/straightway/straightway/general/id"
+
 type NodeModelRepository interface {
-	NodeModelForId(id string) NodeModel
+	NodeModelForId(id id.Type) NodeModel
 }

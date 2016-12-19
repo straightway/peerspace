@@ -29,14 +29,14 @@ import (
 
 type ConnectorMock struct {
 	mocked.Base
-	Identifier string
+	Identifier id.Type
 }
 
 var objectCount = 0
 
 func NewConnectorMock() *ConnectorMock {
 	peer := &ConnectorMock{}
-	peer.Identifier = fmt.Sprintf("%v", objectCount)
+	peer.Identifier = id.FromString(fmt.Sprintf("%v", objectCount))
 	objectCount++
 	peer.On("Id").Return()
 	peer.On("Equal", mock.Anything).Return()
@@ -49,7 +49,7 @@ func NewConnectorMock() *ConnectorMock {
 	return peer
 }
 
-func (m *ConnectorMock) Id() string {
+func (m *ConnectorMock) Id() id.Type {
 	m.Called()
 	return m.Identifier
 }

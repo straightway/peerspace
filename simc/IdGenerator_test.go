@@ -21,6 +21,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/straightway/straightway/general/id"
 )
 
 type IdGenerator_Test struct {
@@ -47,7 +49,7 @@ func (suite *IdGenerator_Test) Test_NextId_GeneratesNonEmptyId() {
 }
 
 func (suite *IdGenerator_Test) Test_NextId_GeneratesUniqueIds() {
-	lastId := ""
+	lastId := id.Type{}
 	for i := 0; i < 10; i++ {
 		currId := suite.sut.NextId()
 		suite.Assert().NotEqual(lastId, currId)

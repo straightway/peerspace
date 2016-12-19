@@ -17,5 +17,5 @@
 package id
 
 type Generator interface {
-	NextId() string
+	NextId() Type
 }

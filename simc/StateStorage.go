@@ -17,16 +17,17 @@
 package simc
 
 import (
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
 type stateStorage struct {
 	connectors   []peer.Connector
-	connectorIds map[string]bool
+	connectorIds map[id.Type]bool
 }
 
 func NewStateStorage(connectors ...peer.Connector) peer.StateStorage {
-	result := &stateStorage{connectorIds: make(map[string]bool)}
+	result := &stateStorage{connectorIds: make(map[id.Type]bool)}
 	for _, connector := range connectors {
 		result.AddKnownPeer(connector)
 	}

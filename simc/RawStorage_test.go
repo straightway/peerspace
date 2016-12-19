@@ -44,9 +44,7 @@ func TestRawStorage(t *testing.T) {
 
 func (suite *RawStorage_Test) SetupTest() {
 	suite.timer = &times.ProviderMock{}
-	suite.sut = &RawStorage{
-		FreeStorageValue: initialFreeStorage,
-		Timer:            suite.timer}
+	suite.sut = NewRawStorage(initialFreeStorage, suite.timer)
 }
 
 func (suite *RawStorage_Test) TearDownTest() {
@@ -130,6 +128,15 @@ func (suite *RawStorage_Test) Test_Query_UntimedReturnsSingleResult() {
 	suite.sut.Store(otherChunk, 0.0, time.Time{})
 	queryResult := suite.sut.Query(data.Query{Id: data.UntimedKey.Id})
 	suite.Assert().Equal([]data.Record{data.Record{Chunk: chunk}}, queryResult)
+}
+
+func (suite *RawStorage_Test) Test_Query_TimedReturnsMultipleResult() {
+	chunk := suite.sut.CreateChunk(data.TimedKey10, chunkSize)
+	suite.sut.Store(chunk, 0.0, time.Time{})
+	otherChunk := suite.sut.CreateChunk(data.TimedKey20, chunkSize)
+	suite.sut.Store(otherChunk, 0.0, time.Time{})
+	queryResult := suite.sut.Query(data.Query{Id: data.QueryId, TimeFrom: 0, TimeTo: 20})
+	suite.Assert().Equal([]data.Record{data.Record{Chunk: chunk}, data.Record{Chunk: otherChunk}}, queryResult)
 }
 
 func (suite *RawStorage_Test) Test_RePrioritize_PanicsIfDataNotPresent() {

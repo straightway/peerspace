@@ -32,7 +32,7 @@ type distanceCalculator struct {
 }
 
 func (m distanceCalculator) Distance(peer id.Holder, key data.Key) uint64 {
-	return m.distances[peer.Id()]
+	return m.distances[peer.Id().String()]
 }
 
 func (m distanceCalculator) Distances(peer id.Holder, query data.Query) []uint64 {
@@ -49,10 +49,10 @@ func Test_Data_Sorting(t *testing.T) {
 			peer.NewConnectorMock()},
 		peerDistanceCalculator: distanceCalculator,
 		key: data.UntimedKey}
-	distanceCalculator.distances[toSort.peers[0].Id()] = 0
-	distanceCalculator.distances[toSort.peers[1].Id()] = 3
-	distanceCalculator.distances[toSort.peers[2].Id()] = 1
-	distanceCalculator.distances[toSort.peers[3].Id()] = 2
+	distanceCalculator.distances[toSort.peers[0].Id().String()] = 0
+	distanceCalculator.distances[toSort.peers[1].Id().String()] = 3
+	distanceCalculator.distances[toSort.peers[2].Id().String()] = 1
+	distanceCalculator.distances[toSort.peers[3].Id().String()] = 2
 	expectedOrder := []peer.Connector{toSort.peers[0], toSort.peers[2], toSort.peers[3], toSort.peers[1]}
 	sort.Sort(toSort)
 	assert.Equal(t, expectedOrder, toSort.peers)

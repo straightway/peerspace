@@ -19,6 +19,8 @@ package data
 import (
 	"testing"
 
+	"github.com/straightway/straightway/general/id"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -29,7 +31,7 @@ type Query_Test struct {
 	suite.Suite
 }
 
-var key Key = Key{Id: "123", TimeStamp: 456}
+var key Key = Key{Id: id.FromString("123"), TimeStamp: 456}
 
 func TestQuery(t *testing.T) {
 	suite.Run(t, new(Query_Test))
@@ -66,7 +68,7 @@ func (suite *Query_Test) Test_MatchesNot_SameId_TimestampAboveRange() {
 }
 
 func (suite *Query_Test) Test_MatchesNot_DifferentId_TimestampExactlyRange() {
-	query := Query{Id: "different from " + key.Id, TimeFrom: key.TimeStamp, TimeTo: key.TimeStamp}
+	query := Query{Id: id.FromString("~" + key.Id.String()), TimeFrom: key.TimeStamp, TimeTo: key.TimeStamp}
 	assert.False(suite.T(), query.Matches(key))
 }
 
@@ -77,7 +79,7 @@ func (suite *Query_Test) Test_MatchesOnly_SameId_TimestampExactlyRange() {
 
 func (suite *Query_Test) Test_MatchesOnlyNot_DifferentId_TimestampExactlyRange() {
 	query := QueryExactlyKey(key)
-	query.Id = "different from " + key.Id
+	query.Id = id.FromString("~" + key.Id.String())
 	assert.False(suite.T(), query.MatchesOnly(key))
 }
 
@@ -94,16 +96,16 @@ func (suite *Query_Test) Test_MatchesOnlyNot_SameId_TimestampInRange2() {
 }
 
 func (suite *Query_Test) Test_IsTimed_IdOnlyQuery_False() {
-	query := Query{Id: "Id"}
+	query := Query{Id: id.FromString("Id")}
 	assert.False(suite.T(), query.IsTimed())
 }
 
 func (suite *Query_Test) Test_IsTimed_WithTimeFrom_True() {
-	query := Query{Id: "Id", TimeFrom: 1}
+	query := Query{Id: id.FromString("Id"), TimeFrom: 1}
 	assert.True(suite.T(), query.IsTimed())
 }
 
 func (suite *Query_Test) Test_IsTimed_WithTimeTo_True() {
-	query := Query{Id: "Id", TimeTo: 1}
+	query := Query{Id: id.FromString("Id"), TimeTo: 1}
 	assert.True(suite.T(), query.IsTimed())
 }

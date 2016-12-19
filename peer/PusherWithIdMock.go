@@ -29,7 +29,7 @@ type PusherWithIdMock struct {
 	mocked.Base
 }
 
-func NewPusherWithIdMock(id string) *PusherWithIdMock {
+func NewPusherWithIdMock(id id.Type) *PusherWithIdMock {
 	result := &PusherWithIdMock{}
 	result.On("Id").Return(id)
 	result.On("Equal", mock.Anything).Return(false)
@@ -37,8 +37,8 @@ func NewPusherWithIdMock(id string) *PusherWithIdMock {
 	return result
 }
 
-func (m *PusherWithIdMock) Id() string {
-	return m.Called().Get(0).(string)
+func (m *PusherWithIdMock) Id() id.Type {
+	return m.Called().Get(0).(id.Type)
 }
 
 func (m *PusherWithIdMock) Equal(other general.Equaler) bool {

@@ -17,5 +17,5 @@
 package id
 
 type Holder interface {
-	Id() string
+	Id() Type
 }

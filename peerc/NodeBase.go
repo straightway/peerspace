@@ -19,13 +19,14 @@ package peerc
 import (
 	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/peer"
 )
 
 type NodeBase struct {
-	Identifier    string
+	Identifier    id.Type
 	StateStorage  peer.StateStorage
 	Timer         times.Provider
 	Configuration *app.Configuration
@@ -35,7 +36,7 @@ type NodeBase struct {
 	isStarted       bool
 }
 
-func (this *NodeBase) Id() string {
+func (this *NodeBase) Id() id.Type {
 	return this.Identifier
 }
 

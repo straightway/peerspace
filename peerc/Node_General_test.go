@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -47,20 +48,20 @@ func (suite *Node_General_Test) TearDownTest() {
 }
 
 func (suite *Node_General_Test) Test_Id_IsSameAsIdentifier() {
-	suite.node.Identifier = "id"
+	suite.node.Identifier = id.FromString("id")
 	assert.Equal(suite.T(), suite.node.Identifier, suite.node.Id())
 }
 
 func (suite *Node_General_Test) Test_Equal_WithSameID() {
 	peerNode := peer.NewConnectorMock()
-	peerNode.Identifier = "1"
-	suite.node.Identifier = "1"
+	peerNode.Identifier = id.FromString("1")
+	suite.node.Identifier = id.FromString("1")
 	assert.True(suite.T(), suite.node.Equal(peerNode))
 }
 
 func (suite *Node_General_Test) Test_Equal_NotWithDifferentID() {
 	peerNode := peer.NewConnectorMock()
-	peerNode.Identifier = "1"
-	suite.node.Identifier = "2"
+	peerNode.Identifier = id.FromString("1")
+	suite.node.Identifier = id.FromString("2")
 	assert.False(suite.T(), suite.node.Equal(peerNode))
 }

@@ -38,7 +38,7 @@ type NetworkProperties struct {
 	SizeOfer       data.SizeOfer
 	Latency        time.Duration
 	Bandwidth      float64 // in bytes/s
-	connectors     map[string]*NetworkPeerConnector
+	connectors     map[id.Type]*NetworkPeerConnector
 }
 
 type NetworkPeerConnector struct {
@@ -58,7 +58,7 @@ func NewNetworkPeerConnector(
 	properties *NetworkProperties) *NetworkPeerConnector {
 
 	if properties.connectors == nil {
-		properties.connectors = make(map[string]*NetworkPeerConnector)
+		properties.connectors = make(map[id.Type]*NetworkPeerConnector)
 	}
 
 	connector, isFound := properties.connectors[wrapped.Id()]
@@ -70,7 +70,7 @@ func NewNetworkPeerConnector(
 	return connector
 }
 
-func (this *NetworkPeerConnector) Id() string {
+func (this *NetworkPeerConnector) Id() id.Type {
 	return this.wrapped.Id()
 }
 

@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/simc"
 )
 
@@ -68,7 +69,7 @@ func (suite *Environment_Test) Test_NodeForId_ExistingNode() {
 }
 
 func (suite *Environment_Test) Test_NodeForId_NotExistingNode() {
-	suite.Assert().Panics(func() { suite.sut.NodeModelForId("NotExistingId") })
+	suite.Assert().Panics(func() { suite.sut.NodeModelForId(id.FromString("NotExistingId")) })
 }
 
 func (suite *Environment_Test) Test_QueryDurationMeasure() {

@@ -29,7 +29,7 @@ import (
 type PeerDistanceRelated struct {
 	Hasher      hash.Hash64
 	Timer       times.Provider
-	LocalPeerId string
+	LocalPeerId id.Type
 }
 
 var expirationTimespans = []int{3650, 365, 30, 7, 1}
@@ -91,21 +91,27 @@ func (this *PeerDistanceRelated) timestampAgesForQuery(query data.Query) []int64
 	return timestampAges
 }
 
-func (this *PeerDistanceRelated) distanceIdToKey(peerId string, key data.Key) uint64 {
-	this.Hasher.Reset()
-	this.Hasher.Write([]byte(peerId))
-	peerHash := this.Hasher.Sum64()
+func (this *PeerDistanceRelated) distanceIdToKey(peerId id.Type, key data.Key) uint64 {
+	peerHash := this.getIdHash(peerId)
+	keyHash := this.getKeyHash(key)
+	return peerHash ^ keyHash
+}
 
+func (this *PeerDistanceRelated) getIdHash(id id.Type) uint64 {
 	this.Hasher.Reset()
-	this.Hasher.Write([]byte(key.Id))
+	this.Hasher.Write(id[:])
+	return this.Hasher.Sum64()
+}
+
+func (this *PeerDistanceRelated) getKeyHash(key data.Key) uint64 {
+	this.Hasher.Reset()
+	this.Hasher.Write(key.Id[:])
 	if key.TimeStamp != 0 {
 		ageMarker, _ := this.timestampAgeMarker(key)
 		this.Hasher.Write([]byte{ageMarker})
 	}
 
-	keyHash := this.Hasher.Sum64()
-
-	return peerHash ^ keyHash
+	return this.Hasher.Sum64()
 }
 
 func (this *PeerDistanceRelated) timestampAgeMarker(key data.Key) (byte, time.Time) {

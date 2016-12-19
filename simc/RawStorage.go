@@ -29,9 +29,17 @@ import (
 )
 
 type RawStorage struct {
-	FreeStorageValue uint64
-	Timer            times.Provider
+	freeStorageValue uint64
+	timer            times.Provider
 	storedData       []data.Record
+	storedDataByKey  map[data.Key]data.Record
+}
+
+func NewRawStorage(freeStorage uint64, timer times.Provider) *RawStorage {
+	return &RawStorage{
+		freeStorageValue: freeStorage,
+		timer:            timer,
+		storedDataByKey:  make(map[data.Key]data.Record)}
 }
 
 func (this *RawStorage) CreateChunk(key data.Key, virtualSize uint64) *data.Chunk {
@@ -41,7 +49,7 @@ func (this *RawStorage) CreateChunk(key data.Key, virtualSize uint64) *data.Chun
 }
 
 func (this *RawStorage) FreeStorage() uint64 {
-	return this.FreeStorageValue
+	return this.freeStorageValue
 }
 
 func (this *RawStorage) SizeOf(chunk *data.Chunk) uint64 {
@@ -56,19 +64,27 @@ func (this *RawStorage) SizeOf(chunk *data.Chunk) uint64 {
 
 func (this *RawStorage) Store(chunk *data.Chunk, priority float32, prioExpirationTime time.Time) {
 	this.Delete(chunk.Key)
-	this.FreeStorageValue -= this.SizeOf(chunk)
+
+	this.freeStorageValue -= this.SizeOf(chunk)
 	dataRecord := data.Record{
 		Chunk:              chunk,
 		Priority:           priority,
 		PrioExpirationTime: prioExpirationTime}
 	this.storedData = append(this.storedData, dataRecord)
 	sort.Sort(data.RecordByPriority(this.storedData))
+	this.storedDataByKey[chunk.Key] = dataRecord
 }
 
 func (this *RawStorage) Delete(key data.Key) {
+	_, isStored := this.storedDataByKey[key]
+	if isStored == false {
+		return
+	}
+
+	delete(this.storedDataByKey, key)
 	for i, dataRecord := range this.storedData {
 		if dataRecord.Chunk.Key == key {
-			this.FreeStorageValue += this.SizeOf(dataRecord.Chunk)
+			this.freeStorageValue += this.SizeOf(dataRecord.Chunk)
 			this.storedData = append(this.storedData[:i], this.storedData[i+1:]...)
 			return
 		}
@@ -76,7 +92,11 @@ func (this *RawStorage) Delete(key data.Key) {
 }
 
 func (this *RawStorage) Query(query data.Query) []data.Record {
-	result := make([]data.Record, 0, 0)
+	result := this.tryMatchingUntimedQuery(query)
+	if 0 < len(result) {
+		return result
+	}
+
 	for _, record := range this.storedData {
 		if query.Matches(record.Chunk.Key) {
 			result = append(result, record)
@@ -92,7 +112,7 @@ func (this *RawStorage) LeastImportantData() iter.Ator {
 
 func (this *RawStorage) ExpiredData() []data.Record {
 	result := make([]data.Record, 0, 0)
-	now := this.Timer.Time()
+	now := this.timer.Time()
 	for _, record := range this.storedData {
 		if !now.Before(record.PrioExpirationTime) {
 			result = append(result, record)
@@ -112,4 +132,18 @@ func (this *RawStorage) RePrioritize(key data.Key, prio float32, prioExpTime tim
 	}
 
 	panic(fmt.Sprintf("key %+v not found", key))
+}
+
+// Private
+
+func (this *RawStorage) tryMatchingUntimedQuery(query data.Query) []data.Record {
+	result := make([]data.Record, 0, 1)
+	if query.IsTimed() == false {
+		match, isFound := this.storedDataByKey[data.Key{Id: query.Id, TimeStamp: query.TimeTo}]
+		if isFound {
+			result = append(result, match)
+		}
+	}
+
+	return result
 }

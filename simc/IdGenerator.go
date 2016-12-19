@@ -18,6 +18,8 @@ package simc
 
 import (
 	"math/rand"
+
+	"github.com/straightway/straightway/general/id"
 )
 
 type IdGenerator struct {
@@ -30,14 +32,14 @@ var characters = []byte{
 	'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
 	'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'}
 
-func (this *IdGenerator) NextId() string {
+func (this *IdGenerator) NextId() id.Type {
 	dice := rand.New(this.RandSource)
-	result := [12]byte{}
+	result := id.Type{}
 	nextChars := dice.Int63()
-	for i := range result {
+	for i := 0; i < 12; i++ {
 		result[i] = characters[byte(nextChars&int64(31))]
 		nextChars = nextChars >> 5
 	}
 
-	return string(result[0:8])
+	return result
 }

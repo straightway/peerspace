@@ -59,7 +59,7 @@ var queryTimeout = duration.Parse("1h")
 func (suite *User_Test) SetupTest() {
 	log.SetOutput(ioutil.Discard)
 	suite.scheduler = NewEventScheduler()
-	suite.node = peer.NewNodeMock("nodeId")
+	suite.node = peer.NewNodeMock(id.FromString("nodeId"))
 	suite.activity = sim.NewUserActivityMock()
 	suite.queryDurationSampleCollector = measure.NewSampleCollectorMock()
 	suite.querySuccessSampleCollector = measure.NewSampleCollectorMock()
@@ -128,7 +128,7 @@ func (suite *User_Test) TestOnlineActionIsNotExecutedWhenOffline() {
 
 func (suite *User_Test) TestUserIsIdentifyable() {
 	var identifyable id.Holder = suite.sut
-	suite.Assert().Equal("UserOf_"+suite.sut.Node().Id(), identifyable.Id())
+	suite.Assert().Equal("U_"+suite.sut.Node().Id().String(), identifyable.Id().String())
 }
 
 func (suite *User_Test) TestUserCanBeAttractedToData() {
@@ -145,20 +145,20 @@ func (suite *User_Test) TestUserCanBeAttractedToData() {
 }
 
 func (suite *User_Test) Test_Equal_UsersWithSameIdAreEqual() {
-	user1 := &User{NodeInstance: peer.NewNodeMock("nodeId")}
-	user2 := &User{NodeInstance: peer.NewNodeMock("nodeId")}
+	user1 := &User{NodeInstance: peer.NewNodeMock(id.FromString("nodeId"))}
+	user2 := &User{NodeInstance: peer.NewNodeMock(id.FromString("nodeId"))}
 	suite.Assert().True(user1.Equal(user2))
 }
 
 func (suite *User_Test) Test_Equal_UsersWithDifferentIdsAreNotEqual() {
-	user1 := &User{NodeInstance: peer.NewNodeMock("nodeId1")}
-	user2 := &User{NodeInstance: peer.NewNodeMock("nodeId2")}
+	user1 := &User{NodeInstance: peer.NewNodeMock(id.FromString("nodeId1"))}
+	user2 := &User{NodeInstance: peer.NewNodeMock(id.FromString("nodeId2"))}
 	suite.Assert().False(user1.Equal(user2))
 }
 
 func (suite *User_Test) Test_Equal_UsersDifferFromOtherTypesInstances() {
-	user := &User{NodeInstance: peer.NewNodeMock("nodeId")}
-	other := peer.NewNodeMock("nodeId")
+	user := &User{NodeInstance: peer.NewNodeMock(id.FromString("nodeId"))}
+	other := peer.NewNodeMock(id.FromString("nodeId"))
 	suite.Assert().False(user.Equal(other))
 }
 
@@ -188,12 +188,12 @@ func (suite *User_Test) Test_Push_SamplesQueryDurationOnlyOnce() {
 }
 
 func (suite *User_Test) Test_Push_LeavesOtherQueriesActive() {
-	suite.generatedPendingQuery(data.OtherId + "1")
+	suite.generatedPendingQuery(id.FromString(data.OtherId.String() + "1"))
 	suite.generatedPendingQuery(data.UntimedKey.Id)
-	suite.generatedPendingQuery(data.OtherId + "2")
-	suite.sut.Push(&data.Chunk{Key: data.Key{Id: data.OtherId + "1"}}, nil)
+	suite.generatedPendingQuery(id.FromString(data.OtherId.String() + "2"))
+	suite.sut.Push(&data.Chunk{Key: data.Key{Id: id.FromString(data.OtherId.String() + "1")}}, nil)
 	suite.sut.Push(&data.UntimedChunk, nil)
-	suite.sut.Push(&data.Chunk{Key: data.Key{Id: data.OtherId + "2"}}, nil)
+	suite.sut.Push(&data.Chunk{Key: data.Key{Id: id.FromString(data.OtherId.String() + "2")}}, nil)
 	suite.queryDurationSampleCollector.AssertNumberOfCalls(suite.T(), "AddSample", 3)
 }
 
@@ -277,23 +277,23 @@ func (suite *User_Test) Test_OtherNotExpiredQueryRemains() {
 }
 
 func (suite *User_Test) Test_PopAttractiveQuery_PicksRandomItem() {
-	suite.generatedAttractiveQuery(data.OtherId + "0")
-	suite.generatedAttractiveQuery(data.OtherId + "1")
-	suite.generatedAttractiveQuery(data.OtherId + "2")
+	suite.generatedAttractiveQuery(id.FromString(data.OtherId.String() + "0"))
+	suite.generatedAttractiveQuery(id.FromString(data.OtherId.String() + "1"))
+	suite.generatedAttractiveQuery(id.FromString(data.OtherId.String() + "2"))
 	suite.querySelector.OnNew("Intn", 3)
 	suite.querySelector.SetValues(1)
 	query, _ := suite.sut.PopAttractiveQuery()
-	suite.Assert().Equal(data.OtherId+"1", query.Id)
+	suite.Assert().Equal(id.FromString(data.OtherId.String()+"1"), query.Id)
 }
 
 // Private
 
-func (suite *User_Test) generatedPendingQuery(id string) {
+func (suite *User_Test) generatedPendingQuery(id id.Type) {
 	suite.generatedAttractiveQuery(id)
 	_, _ = suite.sut.PopAttractiveQuery()
 }
 
-func (suite *User_Test) generatedAttractiveQuery(id string) {
+func (suite *User_Test) generatedAttractiveQuery(id id.Type) {
 	query := data.Query{Id: id}
 	suite.sut.AttractTo(query)
 }

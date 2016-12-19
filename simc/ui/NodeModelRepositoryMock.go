@@ -19,21 +19,22 @@ package ui
 import (
 	"github.com/stretchr/testify/mock"
 
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/mocked"
 )
 
 type NodeModelRepositoryMock struct {
 	mocked.Base
-	Nodes map[string]NodeModel
+	Nodes map[id.Type]NodeModel
 }
 
 func NewNodeModelRepositoryMock(nodes ...NodeModel) *NodeModelRepositoryMock {
-	result := &NodeModelRepositoryMock{Nodes: make(map[string]NodeModel)}
+	result := &NodeModelRepositoryMock{Nodes: make(map[id.Type]NodeModel)}
 	result.On("NodeModelForId", mock.Anything).Return()
 	return result
 }
 
-func (m *NodeModelRepositoryMock) NodeModelForId(id string) NodeModel {
+func (m *NodeModelRepositoryMock) NodeModelForId(id id.Type) NodeModel {
 	m.Called(id)
 	return m.Nodes[id]
 }

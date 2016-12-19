@@ -16,8 +16,10 @@
 
 package data
 
+import "github.com/straightway/straightway/general/id"
+
 type Query struct {
-	Id       string
+	Id       id.Type
 	TimeFrom int64
 	TimeTo   int64
 }

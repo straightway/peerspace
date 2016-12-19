@@ -16,7 +16,9 @@
 
 package data
 
+import "github.com/straightway/straightway/general/id"
+
 type Key struct {
-	Id        string
+	Id        id.Type
 	TimeStamp int64
 }

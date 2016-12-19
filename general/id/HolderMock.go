@@ -22,12 +22,12 @@ type HolderMock struct {
 	mocked.Base
 }
 
-func NewHolderMock(id string) *HolderMock {
+func NewHolderMock(id Type) *HolderMock {
 	result := &HolderMock{}
 	result.On("Id").Return(id)
 	return result
 }
 
-func (m *HolderMock) Id() string {
-	return m.Called().Get(0).(string)
+func (m *HolderMock) Id() Type {
+	return m.Called().Get(0).(Type)
 }

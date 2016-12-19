@@ -18,19 +18,20 @@ package env
 
 import (
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simc/ui"
 )
 
 type NodeModel struct {
-	id             string
+	id             id.Type
 	nodeModels     ui.NodeModelRepository
 	connectionInfo peer.ConnectionInfoProvider
 	x, y           float64
 }
 
 func NewNodeModel(
-	id string,
+	id id.Type,
 	nodeModels ui.NodeModelRepository,
 	connectionInfo peer.ConnectionInfoProvider) *NodeModel {
 
@@ -46,7 +47,7 @@ func (this *NodeModel) Equal(other general.Equaler) bool {
 	return isOtherNodeModel && otherNodeModel.Id() == this.id
 }
 
-func (this *NodeModel) Id() string {
+func (this *NodeModel) Id() id.Type {
 	return this.id
 }
 

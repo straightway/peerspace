@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/straightway/straightway/app"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/straightway/straightway/app"
+	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/peer"
 )
 
 type ConnectionStrategy_TestBase struct {
@@ -65,7 +67,7 @@ var nextPeerId = 0
 
 func (suite *ConnectionStrategy_TestBase) createPeerConnector() *peer.ConnectorMock {
 	result := peer.NewConnectorMock()
-	result.Identifier = fmt.Sprintf("%v", nextPeerId)
+	result.Identifier = id.FromString(fmt.Sprintf("%v", nextPeerId))
 	suite.allConnectors = append(suite.allConnectors, result)
 	nextPeerId++
 	return result

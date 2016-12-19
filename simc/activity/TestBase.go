@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/sim/measure"
 	"github.com/straightway/straightway/sim/randvar"
@@ -43,7 +44,7 @@ type TestBase struct {
 func (suite *TestBase) SetupTest() {
 	log.SetOutput(ioutil.Discard)
 	suite.scheduler = simc.NewEventScheduler()
-	suite.node = peer.NewNodeMock("1")
+	suite.node = peer.NewNodeMock(id.FromString("1"))
 	suite.user = &simc.User{
 		SchedulerInstance:            suite.scheduler,
 		NodeInstance:                 suite.node,

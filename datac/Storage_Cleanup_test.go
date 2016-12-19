@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/times"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -122,7 +123,7 @@ var nextChunkId = 0
 
 func createTestChunkOfSize(size int) *data.Chunk {
 	nextChunkId++
-	id := fmt.Sprintf("%v", nextChunkId)
+	id := id.FromString(fmt.Sprintf("%v", nextChunkId))
 	return &data.Chunk{Key: data.Key{Id: id}, Data: make([]byte, size, size)}
 }
 

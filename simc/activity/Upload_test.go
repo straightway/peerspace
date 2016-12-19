@@ -21,15 +21,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/sim"
 	"github.com/straightway/straightway/sim/randvar"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/test"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
 type Upload_Test struct {
@@ -165,7 +167,7 @@ func (suite *Upload_Test) Test_ScheduleUntil_CreatesUntimedUniqueKeysForPushedCh
 	suite.node.OnNew("Push", mock.Anything, suite.user).Run(func(args mock.Arguments) {
 		chunk := args[0].(*data.Chunk)
 		suite.Assert().Equal(int64(0), chunk.Key.TimeStamp)
-		if lastKey.Id != "" {
+		if lastKey.Id != id.Empty() {
 			suite.Assert().NotEqual(lastKey, chunk.Key)
 		}
 

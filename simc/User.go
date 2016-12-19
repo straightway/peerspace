@@ -58,8 +58,8 @@ func (this queryRecord) Equal(other general.Equaler) bool {
 	return other.(queryRecord).query == this.query
 }
 
-func (this *User) Id() string {
-	return "UserOf_" + this.NodeInstance.Id()
+func (this *User) Id() id.Type {
+	return id.FromString("U_" + this.NodeInstance.Id().String())
 }
 
 func (this *User) Equal(other general.Equaler) bool {

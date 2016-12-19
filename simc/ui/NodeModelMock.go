@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/straightway/straightway/general"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/mocked"
 )
 
@@ -31,7 +32,7 @@ type NodeModelMock struct {
 	x, y        float64
 }
 
-func NewNodeModelMock(id string, x, y float64) *NodeModelMock {
+func NewNodeModelMock(id id.Type, x, y float64) *NodeModelMock {
 	result := &NodeModelMock{x: x, y: y}
 	result.On("Position").Return()
 	result.On("SetPosition", mock.Anything, mock.Anything).Return()
@@ -41,8 +42,8 @@ func NewNodeModelMock(id string, x, y float64) *NodeModelMock {
 	return result
 }
 
-func (m *NodeModelMock) Id() string {
-	return m.Called().Get(0).(string)
+func (m *NodeModelMock) Id() id.Type {
+	return m.Called().Get(0).(id.Type)
 }
 
 func (m *NodeModelMock) Equal(other general.Equaler) bool {

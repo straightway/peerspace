@@ -14,13 +14,39 @@
    limitations under the License.
 ****************************************************************************/
 
-package ui
+package id
 
-import "github.com/straightway/straightway/general/id"
+import "fmt"
 
-type NodeModel interface {
-	Id() id.Type
-	Position() (x, y float64)
-	SetPosition(x, y float64)
-	Connections() []NodeModel
+const (
+	Size = 16
+)
+
+type Type [Size]byte
+
+func Empty() Type {
+	return Type{}
+}
+
+func (this Type) String() string {
+	result := ""
+	for _, char := range this {
+		if char == 0 {
+			break
+		}
+
+		result += string(char)
+	}
+
+	return result
+}
+
+func FromString(s string) Type {
+	if Size < len(s) {
+		panic(fmt.Sprintf("Cannot convert '%v' to id.Type because it is too long", s))
+	}
+
+	result := Type{}
+	copy(result[:], []byte(s))
+	return result
 }

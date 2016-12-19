@@ -20,10 +20,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general/id"
+	"github.com/straightway/straightway/peer"
 )
 
 // Test suite
@@ -194,7 +196,7 @@ func (suite *Node_Query_Test) advanceTimeByQueryTimeoutFactor(query data.Query, 
 }
 
 func (suite *Node_Query_Test) clearTimedOutQueries() {
-	suite.Push(&data.Chunk{Key: data.Key{Id: "Other Key"}})
+	suite.Push(&data.Chunk{Key: data.Key{Id: id.FromString("Other Key")}})
 }
 
 func (suite *Node_Query_Test) assertQueryResult(chunks ...*data.Chunk) {

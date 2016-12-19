@@ -124,7 +124,7 @@ func (suite *NetworkPeerConnector_Test) Test_Push_SenderIsNotReWrapped() {
 }
 
 func (suite *NetworkPeerConnector_Test) Test_Push_SenderNotWrappedIfNotAPeerConnector() {
-	origin := id.NewHolderMock("123")
+	origin := id.NewHolderMock(id.FromString("123"))
 	suite.sut.Push(&data.UntimedChunk, origin)
 	suite.scheduler.Run()
 	suite.wrapped.AssertCalledOnce(suite.T(), "Push", &data.UntimedChunk, origin)
@@ -163,7 +163,7 @@ func (suite *NetworkPeerConnector_Test) Test_Query_ReceiverIsNotReWrapped() {
 }
 
 func (suite *NetworkPeerConnector_Test) Test_Query_ReceiverNotWrappedIfNotAPeerConnector() {
-	receiver := peer.NewPusherWithIdMock("123")
+	receiver := peer.NewPusherWithIdMock(id.FromString("123"))
 	query := data.Query{Id: data.QueryId}
 	suite.sut.Query(query, receiver)
 	suite.scheduler.Run()

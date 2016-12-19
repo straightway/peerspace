@@ -19,9 +19,11 @@ package env
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/simc/ui"
-	"github.com/stretchr/testify/suite"
 )
 
 type NodeModelTest struct {
@@ -34,11 +36,14 @@ type NodeModelTest struct {
 type peerConnectionType int
 
 const (
-	defaultNodeModelId = "defaultNodeModelId"
-	otherNodeModelId   = "otherNodeModelId"
-	unconnected        = peerConnectionType(iota)
+	unconnected = peerConnectionType(iota)
 	connecting
 	connected
+)
+
+var (
+	defaultNodeModelId = id.FromString("defaultModelId")
+	otherNodeModelId   = id.FromString("otherModelId")
 )
 
 func TestModeModel(t *testing.T) {
@@ -119,7 +124,7 @@ func (suite *NodeModelTest) Test_Connections_YieldsConnectingAndConnectedNodesFr
 
 // Private
 
-func (suite *NodeModelTest) createSut(id string) *NodeModel {
+func (suite *NodeModelTest) createSut(id id.Type) *NodeModel {
 	return NewNodeModel(id, suite.nodeModels, suite.connectionInfoProvider)
 }
 

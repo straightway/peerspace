@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/straightway/straightway/data"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/general/times"
 	"github.com/straightway/straightway/peer"
 	"github.com/stretchr/testify/suite"
@@ -28,14 +29,17 @@ import (
 
 const (
 	currentTime     = int64(2000000000)
-	peerId          = "12345"
 	peerHash        = uint64(0x1)
-	peerIdNegated   = "-12345"
 	peerHashNegated = ^uint64(0x1)
-	keyId           = "67890"
 	keyHash         = uint64(0x2)
-	key2Id          = "78901"
 	key2Hash        = uint64(0x3)
+)
+
+var (
+	peerId        = id.FromString("12345")
+	peerIdNegated = id.FromString("-12345")
+	keyId         = id.FromString("67890")
+	key2Id        = id.FromString("78901")
 )
 
 var recentKey = data.Key{Id: keyId, TimeStamp: currentTime}
@@ -59,13 +63,13 @@ func (suite *PeerDistanceRelated_Test) SetupTest() {
 	suite.peer.Identifier = peerId
 
 	suite.hasher = newHash64Mock()
-	suite.hasher.SetupHashSum([]byte(peerId), peerHash)
-	suite.hasher.SetupHashSum([]byte(peerIdNegated), peerHashNegated)
-	suite.hasher.SetupHashSum([]byte(keyId), keyHash)
-	suite.hasher.SetupHashSum([]byte(key2Id), key2Hash)
+	suite.hasher.SetupHashSum(peerId[:], peerHash)
+	suite.hasher.SetupHashSum(peerIdNegated[:], peerHashNegated)
+	suite.hasher.SetupHashSum(keyId[:], keyHash)
+	suite.hasher.SetupHashSum(key2Id[:], key2Hash)
 	for i := byte(1); i < 16; i++ {
-		suite.hasher.SetupHashSum(append([]byte(keyId), i), keyHash+uint64(i)*0x10)
-		suite.hasher.SetupHashSum(append([]byte(key2Id), i), key2Hash+uint64(i)*0x10)
+		suite.hasher.SetupHashSum(append(keyId[:], i), keyHash+uint64(i)*0x10)
+		suite.hasher.SetupHashSum(append(key2Id[:], i), key2Hash+uint64(i)*0x10)
 	}
 
 	suite.timer = &times.ProviderMock{CurrentTime: time.Unix(currentTime, 0).In(time.UTC)}

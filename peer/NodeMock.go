@@ -30,7 +30,7 @@ type NodeMock struct {
 	isStarted bool
 }
 
-func NewNodeMock(id string) *NodeMock {
+func NewNodeMock(id id.Type) *NodeMock {
 	result := &NodeMock{}
 	result.On("Id").Return(id)
 	result.On("Equal", result).Return(true)
@@ -47,8 +47,9 @@ func NewNodeMock(id string) *NodeMock {
 	return result
 }
 
-func (m *NodeMock) Id() string {
-	return m.Called().Get(0).(string)
+func (m *NodeMock) Id() id.Type {
+	result := m.Called().Get(0).(id.Type)
+	return result
 }
 
 func (m *NodeMock) Equal(other general.Equaler) bool {

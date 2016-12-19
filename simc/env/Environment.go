@@ -26,6 +26,7 @@ import (
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/datac"
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/peerc"
 	"github.com/straightway/straightway/sim"
@@ -44,7 +45,7 @@ const (
 type Environment struct {
 	scheduler            sim.EventScheduler
 	users                []*simc.User
-	uiNodeForId          map[string]ui.NodeModel
+	uiNodeForId          map[id.Type]ui.NodeModel
 	uiNodes              []ui.NodeModel
 	nextNodeId           uint
 	randSource           rand.Source
@@ -63,9 +64,9 @@ func New(
 		randSource:           rand.NewSource(12345),
 		queryDurationMeasure: &measure.Discrete{},
 		querySuccessMeasure:  &measure.Discrete{},
-		uiNodeForId:          make(map[string]ui.NodeModel)}
+		uiNodeForId:          make(map[id.Type]ui.NodeModel)}
 	peerDistanceRelated := &strategy.PeerDistanceRelated{
-		LocalPeerId: "",
+		LocalPeerId: id.Empty(),
 		Timer:       scheduler,
 		Hasher:      crc64.New(crc64.MakeTable(crc64.ECMA))}
 	_, rawStorage := result.createDataStorage(peerDistanceRelated)
@@ -102,7 +103,7 @@ func (this *Environment) Nodes() []ui.NodeModel {
 	return this.uiNodes
 }
 
-func (this *Environment) NodeModelForId(id string) ui.NodeModel {
+func (this *Environment) NodeModelForId(id id.Type) ui.NodeModel {
 	result := this.uiNodeForId[id]
 	if result == nil {
 		panic(fmt.Sprintf("Cannot get node model for %v", id))
@@ -120,7 +121,7 @@ func (this *Environment) addNewUser() *simc.User {
 
 func (this *Environment) createSeedNode() {
 	this.nextNodeId++
-	nodeId := fmt.Sprintf("%v", this.nextNodeId)
+	nodeId := id.FromString(fmt.Sprintf("%v", this.nextNodeId))
 	configuration := app.DefaultConfiguration()
 	peerDistanceRelated := &strategy.PeerDistanceRelated{
 		LocalPeerId: nodeId,
@@ -165,7 +166,7 @@ func (this *Environment) createUser() *simc.User {
 
 func (this *Environment) createNode() (*peerc.Node, *app.Configuration, *simc.RawStorage) {
 	this.nextNodeId++
-	nodeId := fmt.Sprintf("%v", this.nextNodeId)
+	nodeId := id.FromString(fmt.Sprintf("%v", this.nextNodeId))
 	configuration := app.DefaultConfiguration()
 	peerDistanceRelated := &strategy.PeerDistanceRelated{
 		LocalPeerId: nodeId,
@@ -202,9 +203,7 @@ func (this *Environment) createStateStorage(rawStorage data.RawStorage) peer.Sta
 func (this *Environment) createDataStorage(
 	priorityGenerator data.PriorityGenerator) (dataStorage data.Storage, rawStorage *simc.RawStorage) {
 
-	rawStorage = &simc.RawStorage{
-		FreeStorageValue: 2 * gb,
-		Timer:            this.scheduler}
+	rawStorage = simc.NewRawStorage(2*gb, this.scheduler)
 	dataStorage = &datac.Storage{
 		PriorityGenerator: priorityGenerator,
 		RawStorage:        rawStorage}

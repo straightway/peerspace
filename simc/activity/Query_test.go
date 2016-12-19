@@ -25,6 +25,7 @@ import (
 
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/duration"
+	"github.com/straightway/straightway/general/id"
 	"github.com/straightway/straightway/sim/randvar"
 )
 
@@ -61,7 +62,7 @@ func (suite *Query_Test) Test_ScheduleUntil_SchedulesNoQueryActionIfNoAttractivQ
 }
 
 func (suite *Query_Test) Test_ScheduleUntil_QueriesAttractiveData() {
-	query := data.Query{Id: "1234", TimeFrom: 10, TimeTo: 20}
+	query := data.Query{Id: id.FromString("1234"), TimeFrom: 10, TimeTo: 20}
 	suite.user.AttractTo(query)
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	suite.node.AssertNotCalled(suite.T(), "Query", mock.Anything, mock.Anything)
@@ -70,7 +71,7 @@ func (suite *Query_Test) Test_ScheduleUntil_QueriesAttractiveData() {
 }
 
 func (suite *Query_Test) Test_ScheduleUntil_QueriesAttractiveDataComingAfterSchedule() {
-	query := data.Query{Id: "1234", TimeFrom: 10, TimeTo: 20}
+	query := data.Query{Id: id.FromString("1234"), TimeFrom: 10, TimeTo: 20}
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	suite.user.AttractTo(query)
 	suite.scheduler.Run()
@@ -78,7 +79,7 @@ func (suite *Query_Test) Test_ScheduleUntil_QueriesAttractiveDataComingAfterSche
 }
 
 func (suite *Query_Test) Test_ScheduleUntil_QueriesAtSpecifiedTime() {
-	query := data.Query{Id: "1234", TimeFrom: 10, TimeTo: 20}
+	query := data.Query{Id: id.FromString("1234"), TimeFrom: 10, TimeTo: 20}
 	suite.user.AttractTo(query)
 	suite.sut.ScheduleUntil(suite.offlineTime)
 	expectedQueryTime := suite.scheduler.Time().Add(suite.queryPauseDuration)
@@ -91,7 +92,7 @@ func (suite *Query_Test) Test_ScheduleUntil_QueriesAtSpecifiedTime() {
 }
 
 func (suite *Query_Test) Test_ScheduleUntil_QueriesUntilOffline() {
-	query := data.Query{Id: "1234", TimeFrom: 10, TimeTo: 20}
+	query := data.Query{Id: id.FromString("1234"), TimeFrom: 10, TimeTo: 20}
 	for i := 0; i < 5; i++ {
 		suite.user.AttractTo(query)
 	}

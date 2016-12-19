@@ -57,7 +57,7 @@ func (this *NetworkModelAreaHandler) drawNode(
 	node.SetPosition(x, y)
 
 	dp.Context.Save()
-	dp.Context.Text(x, y, ui.NewTextLayout(node.Id(), ui.LoadClosestFont(&ui.FontDescriptor{Family: "sans", Size: 8.0}), 10.0))
+	dp.Context.Text(x, y, ui.NewTextLayout(node.Id().String(), ui.LoadClosestFont(&ui.FontDescriptor{Family: "sans", Size: 8.0}), 10.0))
 	p := ui.NewPath(ui.Winding)
 	p.NewFigureWithArc(x, y, this.NodeSize, 0.0, 2.0*math.Pi, false)
 	p.End()

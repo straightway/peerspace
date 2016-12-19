@@ -131,13 +131,13 @@ func (suite *BasicHandler_test) Test_HandleLog_LogsMultipleFieldsSorted() {
 		log.InfoLevel,
 		basicTimeStamp,
 		"MSG",
-		log.Fields{"Field2": "Value2", "Field1": "Value1"})
+		log.Fields{"Field2": "Value2", "Field3": "Value3", "Field1": "Value1"})
 	suite.assertLogOutput(
 		logLine{
 			"I",
 			&basicTimeStamp,
 			"MSG",
-			" [Field1: Value1; Field2: Value2]"})
+			" [Field1: Value1; Field2: Value2; Field3: Value3]"})
 }
 
 func (suite *BasicHandler_test) Test_HandleLog_DoesNothingIfLoggingIsDisabled() {

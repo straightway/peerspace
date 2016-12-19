@@ -182,12 +182,15 @@ func (this *NetworkPeerConnector) scheduleFor(
 	logInfo ...interface{}) {
 
 	originPeer, isPeer := this.tryWrap(origin).(*NetworkPeerConnector)
-	detail := log.Fields{
-		"EntryType":   "NodeAction",
-		"Function":    function(action),
-		"Origin":      origin.Id(),
-		"Destination": this.Id(),
-		"Parameter":   slice.ToString(logInfo, ",")}
+	var detail log.Fields
+	if slog.IsEnabled() {
+		detail = log.Fields{
+			"EntryType":   "NodeAction",
+			"Function":    function(action),
+			"Origin":      origin.Id(),
+			"Destination": this.Id(),
+			"Parameter":   slice.ToString(logInfo, ",")}
+	}
 
 	if isPeer {
 		originPeer.schedule(duration, action, detail)

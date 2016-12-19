@@ -22,7 +22,6 @@ import (
 	"github.com/straightway/straightway/app"
 	"github.com/straightway/straightway/data"
 	"github.com/straightway/straightway/general/id"
-	"github.com/straightway/straightway/general/slice"
 	"github.com/straightway/straightway/peer"
 )
 
@@ -49,19 +48,21 @@ func (this *Data) IsChunkAccepted(data *data.Chunk, origin id.Holder) bool {
 }
 
 func (this *Data) ForwardTargetsFor(key data.Key, origin id.Holder) []peer.Pusher {
-	nearestPeers := slice.RemoveItemsIf(
-		this.connectdPeersSortedByDistance(key),
-		func(item interface{}) bool {
-			peer := item.(id.Holder)
-			return peer.Id() == origin.Id()
-		}).([]peer.Connector)
-
+	sortedPeers := this.connectdPeersSortedByDistance(key)
 	numItems := int(this.Configuration.ForwardNodes)
-	if len(nearestPeers) <= numItems {
-		numItems = len(nearestPeers)
+	result := make([]peer.Pusher, 0, numItems)
+	for i, peer := range sortedPeers {
+		if numItems <= i {
+			break
+		}
+		if peer.Id() == origin.Id() {
+			continue
+		}
+
+		result = append(result, peer)
 	}
 
-	return slice.Cast(nearestPeers, []peer.Pusher{}).([]peer.Pusher)[:numItems]
+	return result
 }
 
 // Private

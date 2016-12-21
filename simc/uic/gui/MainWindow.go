@@ -27,6 +27,7 @@ import (
 	"github.com/straightway/straightway/general/gui"
 	"github.com/straightway/straightway/general/times"
 	simlog "github.com/straightway/straightway/simc/log"
+	"github.com/straightway/straightway/simc/measure"
 	"github.com/straightway/straightway/simc/profiler"
 	sui "github.com/straightway/straightway/simc/ui"
 )
@@ -118,6 +119,10 @@ func (this *MainWindow) onLoggingToggled(checkbox *ui.Checkbox) {
 	}
 }
 
+func (this *MainWindow) onSamplingToggled(checkbox *ui.Checkbox) {
+	measure.SetGatedSamplingEnabled(checkbox.Checked())
+}
+
 func (this *MainWindow) onProfilingToggled(checkbox *ui.Checkbox) {
 	if checkbox.Checked() {
 		profiler.Start()
@@ -156,11 +161,19 @@ func (this *MainWindow) init() {
 
 	logCheckbox := ui.NewCheckbox("Log")
 	logCheckbox.OnToggled(this.onLoggingToggled)
+	this.onLoggingToggled(logCheckbox)
 	commandBar.Append(logCheckbox, false)
 
 	profileCheckbox := ui.NewCheckbox("Profile")
 	profileCheckbox.OnToggled(this.onProfilingToggled)
+	this.onProfilingToggled(profileCheckbox)
 	commandBar.Append(profileCheckbox, false)
+
+	sampleCheckbox := ui.NewCheckbox("Sample")
+	sampleCheckbox.SetChecked(true)
+	sampleCheckbox.OnToggled(this.onSamplingToggled)
+	this.onSamplingToggled(sampleCheckbox)
+	commandBar.Append(sampleCheckbox, false)
 
 	stretcher := ui.NewVerticalBox()
 	commandBar.Append(stretcher, true)

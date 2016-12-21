@@ -30,9 +30,10 @@ import (
 	"github.com/straightway/straightway/peer"
 	"github.com/straightway/straightway/peerc"
 	"github.com/straightway/straightway/sim"
+	"github.com/straightway/straightway/sim/measure"
 	"github.com/straightway/straightway/simc"
 	"github.com/straightway/straightway/simc/activity"
-	"github.com/straightway/straightway/simc/measure"
+	measurec "github.com/straightway/straightway/simc/measure"
 	"github.com/straightway/straightway/simc/randvar"
 	"github.com/straightway/straightway/simc/ui"
 	"github.com/straightway/straightway/strategy"
@@ -50,8 +51,8 @@ type Environment struct {
 	nextNodeId           uint
 	randSource           rand.Source
 	initialUser          *simc.User
-	queryDurationMeasure *measure.Discrete
-	querySuccessMeasure  *measure.Discrete
+	queryDurationMeasure measure.SampleCollector
+	querySuccessMeasure  measure.SampleCollector
 	networkProperties    *simc.NetworkProperties
 }
 
@@ -62,8 +63,8 @@ func New(
 	result := &Environment{
 		scheduler:            scheduler,
 		randSource:           rand.NewSource(12345),
-		queryDurationMeasure: &measure.Discrete{},
-		querySuccessMeasure:  &measure.Discrete{},
+		queryDurationMeasure: &measurec.GloballyGated{&measurec.Discrete{}},
+		querySuccessMeasure:  &measurec.GloballyGated{&measurec.Discrete{}},
 		uiNodeForId:          make(map[id.Type]ui.NodeModel)}
 	peerDistanceRelated := &strategy.PeerDistanceRelated{
 		LocalPeerId: id.Empty(),
@@ -83,12 +84,12 @@ func New(
 	return result
 }
 
-func (this *Environment) QueryDurationMeasure() *measure.Discrete {
-	return this.queryDurationMeasure
+func (this *Environment) QueryDurationMeasure() fmt.Stringer {
+	return this.queryDurationMeasure.(fmt.Stringer)
 }
 
-func (this *Environment) QuerySuccessMeasure() *measure.Discrete {
-	return this.querySuccessMeasure
+func (this *Environment) QuerySuccessMeasure() fmt.Stringer {
+	return this.querySuccessMeasure.(fmt.Stringer)
 }
 
 func (this *Environment) Audience() []sim.DataConsumer {

@@ -36,25 +36,25 @@ func TestConnectionStrategy_PeersToConnect(t *testing.T) {
 
 // Tests
 
-func (suite *ConnectionStrategy_PeersToConnect_Test) TestEmptyInputEmptyOutput() {
+func (suite *ConnectionStrategy_PeersToConnect_Test) Test_EmptyInput_EmptyOutput() {
 	result := suite.sut.PeersToConnect(nil)
 	suite.Assert().Empty(result)
 }
 
-func (suite *ConnectionStrategy_PeersToConnect_Test) TestSkipAlreadyConnectedPeers() {
+func (suite *ConnectionStrategy_PeersToConnect_Test) Test_SkipAlreadyConnectedPeers() {
 	suite.addConnectedPeer()
 	result := suite.sut.PeersToConnect(suite.connectionInfoProvider.AllConnectedPeers)
 	suite.Assert().Empty(result)
 }
 
-func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectAllIfNotExceedingMaximum() {
+func (suite *ConnectionStrategy_PeersToConnect_Test) Test_ConnectAll_IfNotExceedingMaximum() {
 	suite.configuration.MaxConnections = 3
 	suite.createConnectors(suite.configuration.MaxConnections)
 	result := suite.sut.PeersToConnect(suite.allConnectors)
 	suite.Assert().Equal(suite.allConnectors[0:3], result)
 }
 
-func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectToMaxNumberIfNotYetConnected() {
+func (suite *ConnectionStrategy_PeersToConnect_Test) Test_ConnectToMaxNumber_IfNotYetConnected() {
 	suite.configuration.MaxConnections = 3
 	suite.createConnectors(suite.configuration.MaxConnections + 1)
 
@@ -66,8 +66,8 @@ func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectToMaxNumberIfNot
 
 	suite.Assert().Equal(slice.SetUnion(result).([]peer.Connector), result)
 }
-
-func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectionsAreRandomized() {
+/*
+func (suite *ConnectionStrategy_PeersToConnect_Test) Test_ConnectionsAreRandomized() {
 	suite.configuration.MaxConnections = 3
 	suite.createConnectors(suite.configuration.MaxConnections + 10)
 
@@ -75,4 +75,18 @@ func (suite *ConnectionStrategy_PeersToConnect_Test) TestConnectionsAreRandomize
 	result2 := suite.sut.PeersToConnect(suite.allConnectors)
 	suite.Assert().Equal(len(result1), len(result2))
 	suite.Assert().NotEqual(result1, result2)
+}*/
+
+func (suite *ConnectionStrategy_PeersToConnect_Test) Test_ClosestPeersAreConnected() {
+	suite.configuration.MaxConnections = 3
+	suite.createConnectors(suite.configuration.MaxConnections + 10)
+	distanceCaluclator := NewPeerDistanceCalculatorMock()
+	distanceCaluclator.ExpectedCalls = nil
+	for index, peer := range suite.allConnectors {
+		distanceCaluclator.On("Distance", suite.sut, peer.Id()).Return(uint64(100-index))
+	}
+
+	suite.sut.PeerDistanceCalculator = distanceCaluclator
+	result := suite.sut.PeersToConnect(suite.allConnectors)
+	suite.Assert().Equal(suite.allConnectors[10:12], result)
 }

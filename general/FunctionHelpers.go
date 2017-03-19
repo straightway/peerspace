@@ -14,15 +14,16 @@
    limitations under the License.
 ****************************************************************************/
 
-package strategy
+package general
 
 import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general/id"
+	"reflect"
+	"runtime"
+	"strings"
 )
 
-// Calculate distances between an ID holder and a data key or a query.
-type PeerDistanceCalculator interface {
-	Distance(id.Holder, data.Key) uint64
-	Distances(id.Holder, data.Query) []uint64
+func GetFunctionName(action func()) string {
+	fullName := runtime.FuncForPC(reflect.ValueOf(action).Pointer()).Name()
+	nameComponents := strings.Split(fullName, ".")
+	return nameComponents[1]
 }

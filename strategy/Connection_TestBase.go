@@ -41,7 +41,8 @@ func (suite *ConnectionStrategy_TestBase) SetupTest() {
 	suite.sut = &Connection{
 		ConnectionInfoProvider: suite.connectionInfoProvider,
 		Configuration:          suite.configuration,
-		RandSource:             rand.NewSource(12345)}
+		RandSource:             rand.NewSource(12345),
+		PeerDistanceCalculator: NewPeerDistanceCalculatorMock()}
 }
 
 func (suite *ConnectionStrategy_TestBase) TearDownTest() {

@@ -17,9 +17,6 @@
 package simc
 
 import (
-	"reflect"
-	"runtime"
-	"strings"
 	"time"
 
 	"github.com/apex/log"
@@ -91,10 +88,9 @@ func (this *NetworkPeerConnector) Latency() time.Duration {
 }
 
 func (this *NetworkPeerConnector) Push(data *data.Chunk, origin id.Holder) {
-	sendDuration := this.sendDurationForSize(this.properties.SizeOfer.SizeOf(data))
 	this.scheduleFor(
 		origin,
-		sendDuration,
+		this.properties.SizeOfer.SizeOf(data),
 		func() {
 			this.wrapped.Push(data, this.tryWrap(origin).(id.Holder))
 		},
@@ -104,7 +100,7 @@ func (this *NetworkPeerConnector) Push(data *data.Chunk, origin id.Holder) {
 func (this *NetworkPeerConnector) Query(query data.Query, receiver peer.PusherWithId) {
 	this.scheduleFor(
 		receiver,
-		this.properties.Latency,
+		0,
 		func() {
 			this.wrapped.Query(query, this.tryWrap(receiver).(peer.PusherWithId))
 		},
@@ -114,7 +110,7 @@ func (this *NetworkPeerConnector) Query(query data.Query, receiver peer.PusherWi
 func (this *NetworkPeerConnector) RequestConnectionWith(otherPeer peer.Connector) {
 	this.scheduleFor(
 		otherPeer,
-		this.properties.Latency,
+		0,
 		func() {
 			this.wrapped.RequestConnectionWith(this.tryWrap(otherPeer).(*NetworkPeerConnector))
 		})
@@ -123,7 +119,7 @@ func (this *NetworkPeerConnector) RequestConnectionWith(otherPeer peer.Connector
 func (this *NetworkPeerConnector) CloseConnectionWith(otherPeer peer.Connector) {
 	this.scheduleFor(
 		otherPeer,
-		this.properties.Latency,
+		0,
 		func() {
 			this.wrapped.CloseConnectionWith(this.tryWrap(otherPeer).(*NetworkPeerConnector))
 		})
@@ -132,7 +128,7 @@ func (this *NetworkPeerConnector) CloseConnectionWith(otherPeer peer.Connector) 
 func (this *NetworkPeerConnector) RequestPeers(receiver peer.Connector) {
 	this.scheduleFor(
 		receiver,
-		this.properties.Latency,
+		0,
 		func() {
 			this.wrapped.RequestPeers(this.tryWrap(receiver).(*NetworkPeerConnector))
 		})
@@ -146,10 +142,9 @@ func (this *NetworkPeerConnector) AnnouncePeersFrom(from peer.Connector, peers [
 		wrappedPeers[i] = this.tryWrap(p).(*NetworkPeerConnector)
 	}
 
-	sendDuration := this.sendDurationForSize(peerSizes)
 	this.scheduleFor(
 		from,
-		sendDuration,
+		peerSizes,
 		func() {
 			this.wrapped.AnnouncePeersFrom(this.tryWrap(from).(peer.Connector), wrappedPeers)
 		},
@@ -177,16 +172,17 @@ func (this *NetworkPeerConnector) sendDurationForSize(size uint64) time.Duration
 
 func (this *NetworkPeerConnector) scheduleFor(
 	origin id.Holder,
-	duration time.Duration,
+	dataBytes uint64,
 	action func(),
 	logInfo ...interface{}) {
 
+	duration := this.sendDurationForSize(dataBytes)
 	originPeer, isPeer := this.tryWrap(origin).(*NetworkPeerConnector)
 	var detail log.Fields
 	if slog.IsEnabled() {
 		detail = log.Fields{
 			"EntryType":   "NodeAction",
-			"Function":    function(action),
+			"Function":    general.GetFunctionName(action),
 			"Origin":      origin.Id(),
 			"Destination": this.Id(),
 			"Parameter":   slice.ToString(logInfo, ",")}
@@ -264,10 +260,4 @@ func copyPlainLogFields(src log.Fields) log.Fields {
 		result[key] = value
 	}
 	return result
-}
-
-func function(action func()) string {
-	fullName := runtime.FuncForPC(reflect.ValueOf(action).Pointer()).Name()
-	nameComponents := strings.Split(fullName, ".")
-	return nameComponents[len(nameComponents)-2]
 }

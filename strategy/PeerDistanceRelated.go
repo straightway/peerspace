@@ -32,6 +32,8 @@ type PeerDistanceRelated struct {
 	LocalPeerId id.Type
 }
 
+var _ PeerDistanceCalculator = (*PeerDistanceRelated)(nil)
+
 var expirationTimespans = []int{3650, 365, 30, 7, 1}
 
 func (this *PeerDistanceRelated) Distance(peer id.Holder, key data.Key) uint64 {

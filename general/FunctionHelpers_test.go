@@ -14,15 +14,21 @@
    limitations under the License.
 ****************************************************************************/
 
-package strategy
+package general
 
 import (
-	"github.com/straightway/straightway/data"
-	"github.com/straightway/straightway/general/id"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// Calculate distances between an ID holder and a data key or a query.
-type PeerDistanceCalculator interface {
-	Distance(id.Holder, data.Key) uint64
-	Distances(id.Holder, data.Query) []uint64
+type testType struct{}
+
+func (this *testType) TestMethod() {}
+
+func testFunction() {}
+
+func TestGetFunctionName(t *testing.T) {
+	tt := &testType{}
+	assert.Equal(t, "testFunction", GetFunctionName(func() { tt.TestMethod() }))
 }

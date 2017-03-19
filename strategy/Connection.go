@@ -26,10 +26,30 @@ import (
 	"github.com/straightway/straightway/peer"
 )
 
+// The default connections strategy.
 type Connection struct {
 	Configuration          *app.Configuration
 	ConnectionInfoProvider peer.ConnectionInfoProvider
 	RandSource             rand.Source
+	PeerDistanceCalculator PeerDistanceCalculator
+}
+
+var _ peer.ConnectionStrategy = (*Connection)(nil)
+
+type peersSortedByDistance struct {
+	peers []peer.Connector
+	local peer.Connector
+	peerDistanceCalculator PeerDistanceCalculator
+}
+
+func (this peersSortedByDistance) Len() int { return len(this.peers) }
+func (this peersSortedByDistance) Swap(i, j int) int { this.peers[i], this.peers[j] = this.peers[j], this.peers[i] }
+func (this peersSortedByDistance) Less(i, j int) bool {
+	a := this.peers[i]
+	distanceToA := this.peerDistanceCalculator.Distance(this.local, a.Id())
+	b := this.peers[j]
+	distanceToB := this.peerDistanceCalculator.Distance(this.local, b.Id())
+	return distanceToA < distanceToB
 }
 
 func (this *Connection) PeersToConnect(allPeers []peer.Connector) []peer.Connector {

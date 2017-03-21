@@ -21,5 +21,6 @@
     </orderEntry>
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="testing" scope="TEST" />
+    <orderEntry type="module" module-name="general" />
   </component>
 </module>

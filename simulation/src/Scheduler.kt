@@ -15,6 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.simulation
 
+import straightway.general.TimeProvider
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -23,9 +24,9 @@ data class Event(val time: LocalDateTime, val action: Scheduler.() -> Unit)
 /**
  * Schedules events for simulated time points and executes them.
  */
-class Scheduler {
+class Scheduler : TimeProvider {
 
-    var currentTime: LocalDateTime = LocalDateTime.of(0, 1, 1, 0, 0)
+    override var currentTime: LocalDateTime = LocalDateTime.of(0, 1, 1, 0, 0)
         get
         private set
 

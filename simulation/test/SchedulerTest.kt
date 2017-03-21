@@ -16,12 +16,14 @@
 package straightway.simulation
 
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.fail
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+
+import straightway.general.TimeProvider
 import straightway.testing.CallCounter
 import straightway.testing.CallSequence
+
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -108,6 +110,11 @@ internal class SchedulerTest {
         }
         sut.run()
         callSequence.assertCompleted()
+    }
+
+    @Test
+    fun test_scheduler_isTimeProvider() {
+        assertTrue(sut is TimeProvider)
     }
 
     private var sut: Scheduler

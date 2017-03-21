@@ -21,9 +21,10 @@ import java.time.LocalDateTime
 data class Event(val time: LocalDateTime, val action: Scheduler.() -> Unit)
 
 /**
- * Schedules events for simulated time points and executes them,
+ * Schedules events for simulated time points and executes them.
  */
 class Scheduler {
+
     var currentTime: LocalDateTime = LocalDateTime.of(0, 1, 1, 0, 0)
         get
         private set
@@ -52,5 +53,7 @@ class Scheduler {
         }
     }
 
+    //<editor-fold desc="Private data">
     private val _eventQueue: MutableList<Event> = mutableListOf()
+    //</editor-fold>
 }

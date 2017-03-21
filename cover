@@ -1,0 +1,15 @@
+#!/usr/bin/bash
+CURR_PATH=$PWD
+cd $GOPATH/src
+cd $CURR_PATH
+COVERFILE=`mktemp`
+TESTDIRS=`find . -type f -iname "*_test.go" -printf "%h\n" | sort -u`
+for TESTDIR in $TESTDIRS
+do
+	echo $TESTDIR
+	cd $TESTDIR
+	go test -coverprofile $COVERFILE -coverpkg . 2>&1 > /dev/null
+	go tool cover -func=$COVERFILE | grep -v "^total:" | grep -v "Mock.go" | grep -vE "/Test[a-zA-Z0-9_]*\.go" | grep -vE "100.0%$"
+	rm $COVERFILE
+	cd $CURR_PATH
+done

@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+go test `find . -type f -iname "*_test.go" -printf "%h\n" | sort -u`

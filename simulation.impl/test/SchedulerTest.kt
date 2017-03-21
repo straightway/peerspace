@@ -15,7 +15,6 @@
  */
 package straightway.simulation.impl
 
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,20 +23,16 @@ import straightway.simulation.SimulationController
 import straightway.simulation.SimulationScheduler
 import straightway.testing.CallCounter
 import straightway.testing.CallSequence
+import straightway.testing.TestBase
 import java.time.Duration
 import java.time.LocalDateTime
 
-internal class SchedulerTest {
+internal class SchedulerTest : TestBase<Scheduler>() {
 
     //<editor-fold desc="Setup/tear down">
     @BeforeEach
     fun setUp() {
         sut = Scheduler()
-    }
-
-    @AfterEach
-    fun tearDown() {
-        nullableSut = null
     }
     //</editor-fold>
 
@@ -129,16 +124,6 @@ internal class SchedulerTest {
     fun class_isSimulationScheduler() {
         assertTrue(sut is SimulationScheduler)
     }
-
-    //<editor-fold desc="Private">
-    private var sut: Scheduler
-        get() = nullableSut!!
-        set(value) {
-            nullableSut = value
-        }
-
-    private var nullableSut: Scheduler? = null
-    //</editor-fold>
 }
 
 //<editor-fold desc="Private">

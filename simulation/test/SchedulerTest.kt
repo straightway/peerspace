@@ -118,5 +118,8 @@ internal class SchedulerTest {
 }
 
 private val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
+
 private val defaultEventDuration = Duration.ofMinutes(1)
+
+@Suppress("unused")
 private fun Scheduler.doNotCall() = fail("must not be called")

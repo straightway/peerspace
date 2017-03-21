@@ -29,7 +29,7 @@ class CallSequence(vararg val expectedActionOrder: Int) {
     override fun toString(): String = "CallSequence(" + expectedActionOrder.joinToString(", ") + ")"
 
     init {
-        val maxAction = expectedActionOrder.max() ?: 0;
+        val maxAction = expectedActionOrder.max() ?: 0
         actions = Array<() -> Unit>(maxAction + 1) {
             {
                 assertEquals(expectedActionOrder[_nextExpectedCallIndex], it)

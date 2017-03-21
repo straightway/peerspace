@@ -23,5 +23,5 @@ class CallCounter {
         get
         private set
 
-    val action : () -> Unit  = { ++calls }
+    val action: () -> Unit = { ++calls }
 }

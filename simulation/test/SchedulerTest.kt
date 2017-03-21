@@ -112,8 +112,10 @@ internal class SchedulerTest {
 
     private var sut: Scheduler
         get() = nullableSut!!
-        set(value) { nullableSut = value }
-    
+        set(value) {
+            nullableSut = value
+        }
+
     private var nullableSut: Scheduler? = null
 }
 

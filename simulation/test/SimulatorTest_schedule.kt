@@ -40,7 +40,7 @@ internal class SimulatorTest_schedule : SimulatorTest() {
     }
 
     @Test
-    fun addsSpecifiedAction() {
+    fun addsEventWithSpecifiedAction() {
         val callCounter = CallCounter()
         sut.schedule(defaultEventDuration) { callCounter.action() }
         sut.eventQueue.first().action()
@@ -48,7 +48,7 @@ internal class SimulatorTest_schedule : SimulatorTest() {
     }
 
     @Test
-    fun whileExecutinEvent() {
+    fun allowsSchedulingNewEventWhileExecutingAction() {
         val callSequence = CallSequence(0, 1)
         sut.schedule(defaultEventDuration) {
             callSequence.actions[0]()

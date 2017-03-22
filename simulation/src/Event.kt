@@ -15,8 +15,6 @@ limitations under the License.
  ****************************************************************************/
 package straightway.simulation
 
-import java.time.Duration
+import java.time.LocalDateTime
 
-interface SimulationScheduler {
-    fun schedule(duration: Duration, action: () -> Unit)
-}
+data class Event(val time: LocalDateTime, val action: () -> Unit)

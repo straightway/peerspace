@@ -13,15 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.simulation.impl
+package straightway.simulation
 
 import straightway.general.TimeProvider
-import straightway.simulation.SimulationController
-import straightway.simulation.SimulationScheduler
 import java.time.Duration
 import java.time.LocalDateTime
-
-data class Event(val time: LocalDateTime, val action: Scheduler.() -> Unit)
 
 /**
  * Schedules events for simulated time points and executes them.
@@ -34,7 +30,7 @@ class Scheduler : TimeProvider, SimulationController, SimulationScheduler {
 
     val eventQueue: List<Event> get() = _eventQueue
 
-    override fun schedule(duration: Duration, action: SimulationScheduler.() -> Unit) {
+    override fun schedule(duration: Duration, action: () -> Unit) {
         val newEvent = Event(currentTime.plus(duration), action)
         for (i in _eventQueue.indices) {
             if (newEvent.time < _eventQueue[i].time) {

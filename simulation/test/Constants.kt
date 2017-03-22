@@ -16,7 +16,8 @@ limitations under the License.
 package straightway.simulation
 
 import java.time.Duration
+import java.time.LocalDateTime
 
-interface SimulationScheduler {
-    fun schedule(duration: Duration, action: () -> Unit)
-}
+internal val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
+
+internal val defaultEventDuration = Duration.ofMinutes(1)

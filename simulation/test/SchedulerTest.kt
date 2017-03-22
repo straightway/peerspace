@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package straightway.simulation.impl
+package straightway.simulation
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import straightway.general.TimeProvider
-import straightway.simulation.SimulationController
-import straightway.simulation.SimulationScheduler
 import straightway.testing.CallCounter
 import straightway.testing.CallSequence
 import straightway.testing.TestBase
 import java.time.Duration
-import java.time.LocalDateTime
 
 internal class SchedulerTest : TestBase<Scheduler>() {
 
@@ -40,17 +37,17 @@ internal class SchedulerTest : TestBase<Scheduler>() {
     fun currentTime_isInitiallyZero() = assertEquals(initialTime, sut.currentTime)
 
     @Test
-    fun schedule_doesNotCallActionImmediately() = sut.schedule(defaultEventDuration) { doNotCall() }
+    fun schedule_doesNotCallActionImmediately() = sut.schedule(defaultEventDuration, Companion::doNotCall)
 
     @Test
     fun schedule_addsEventToEventQueue() {
-        sut.schedule(defaultEventDuration) { doNotCall() }
+        sut.schedule(defaultEventDuration, Companion::doNotCall)
         assertEquals(1, sut.eventQueue.size)
     }
 
     @Test
     fun schedule_schedulesEventAtProperTime() {
-        sut.schedule(defaultEventDuration) { doNotCall() }
+        sut.schedule(defaultEventDuration, Companion::doNotCall)
         val targetTime = sut.currentTime.plus(defaultEventDuration)
         assertEquals(targetTime, sut.eventQueue.first().time)
     }
@@ -59,8 +56,7 @@ internal class SchedulerTest : TestBase<Scheduler>() {
     fun schedule_addsSpecifiedAction() {
         val callCounter = CallCounter()
         sut.schedule(defaultEventDuration) { callCounter.action() }
-        val action = sut.eventQueue.first().action
-        sut.action()
+        sut.eventQueue.first().action()
         assertEquals(1, callCounter.calls)
     }
 
@@ -69,7 +65,7 @@ internal class SchedulerTest : TestBase<Scheduler>() {
         val callSequence = CallSequence(0, 1)
         sut.schedule(defaultEventDuration) {
             callSequence.actions[0]()
-            schedule(defaultEventDuration) { callSequence.actions[1]() }
+            sut.schedule(defaultEventDuration) { callSequence.actions[1]() }
         }
         sut.run()
         callSequence.assertCompleted()
@@ -124,13 +120,10 @@ internal class SchedulerTest : TestBase<Scheduler>() {
     fun class_isSimulationScheduler() {
         assertTrue(sut is SimulationScheduler)
     }
+
+    //<editor-fold desc="Private">
+    private companion object {
+        fun doNotCall() = fail("must not be called")
+    }
+    //</editor-fold>
 }
-
-//<editor-fold desc="Private">
-private val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
-
-private val defaultEventDuration = Duration.ofMinutes(1)
-
-@Suppress("unused")
-private fun SimulationScheduler.doNotCall() = fail("must not be called")
-//</editor-fold>

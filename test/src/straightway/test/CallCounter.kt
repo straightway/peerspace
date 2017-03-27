@@ -13,25 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.simulation
+package straightway.test
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
+/**
+ * Provides an action who's calls are counted.
+ */
+class CallCounter {
+    var calls: Int = 0
+        get
+        private set
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        Assertions.assertTrue(sut is TimeProvider)
-    }
-
-    @Test
-    fun isSimulationController() {
-        Assertions.assertTrue(sut is SimulationController)
-    }
-
-    @Test
-    fun isSimulationScheduler() {
-        Assertions.assertTrue(sut is SimulationScheduler)
-    }
+    val action: () -> Unit = { ++calls }
 }

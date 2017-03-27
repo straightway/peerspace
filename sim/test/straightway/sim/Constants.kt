@@ -13,15 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.testing
+package straightway.sim
 
-/**
- * Provides an action who's calls are counted.
- */
-class CallCounter {
-    var calls: Int = 0
-        get
-        private set
+import java.time.Duration
+import java.time.LocalDateTime
 
-    val action: () -> Unit = { ++calls }
-}
+internal val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
+
+internal val defaultEventDuration = Duration.ofMinutes(1)

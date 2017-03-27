@@ -13,29 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.testing
+package straightway.sim
 
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import straightway.general.TimeProvider
+import straightway.simulation.SimulationController
+import straightway.simulation.SimulationScheduler
 
-/**
- * Base class for unit tests testing obects of type T.
- */
-open class TestBase<T> {
-
-    //<editor-fold desc="Setup/tear down">
-    @AfterEach
-    fun tearDown() {
-        nullableSut = null
+internal class SimulatorTest_interfaces : SimulatorTest() {
+    @Test
+    fun isTimeProvider() {
+        Assertions.assertTrue(sut is TimeProvider)
     }
-    //</editor-fold>
 
-    protected var sut: T
-        get() = nullableSut!!
-        set(value) {
-            nullableSut = value
-        }
+    @Test
+    fun isSimulationController() {
+        Assertions.assertTrue(sut is SimulationController)
+    }
 
-    //<editor-fold desc="Private">
-    private var nullableSut: T? = null
-    //</editor-fold>
+    @Test
+    fun isSimulationScheduler() {
+        Assertions.assertTrue(sut is SimulationScheduler)
+    }
 }

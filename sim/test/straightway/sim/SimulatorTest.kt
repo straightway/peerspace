@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package straightway.simulation
+package straightway.sim
 
 import org.junit.jupiter.api.BeforeEach
-import straightway.testing.TestBase
+import straightway.simulation.Simulator
+import straightway.test.TestBase
 
 internal abstract class SimulatorTest : TestBase<Simulator>() {
     @BeforeEach fun setUp() {

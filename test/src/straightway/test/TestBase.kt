@@ -13,12 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.simulation
+package straightway.test
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.AfterEach
 
-internal class SimulatorTest_currentTime : SimulatorTest() {
-    @Test
-    fun isInitiallyZero() = Assertions.assertEquals(initialTime, sut.currentTime)
+/**
+ * Base class for unit tests test obects of type T.
+ */
+open class TestBase<T> {
+
+    //<editor-fold desc="Setup/tear down">
+    @AfterEach
+    fun tearDown() {
+        nullableSut = null
+    }
+    //</editor-fold>
+
+    protected var sut: T
+        get() = nullableSut!!
+        set(value) {
+            nullableSut = value
+        }
+
+    //<editor-fold desc="Private">
+    private var nullableSut: T? = null
+    //</editor-fold>
 }

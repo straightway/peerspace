@@ -13,13 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.simulation
+package straightway.sim
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import straightway.testing.CallCounter
-import straightway.testing.CallSequence
+import straightway.test.CallCounter
+import straightway.test.CallSequence
 
 internal class SimulatorTest_schedule : SimulatorTest() {
 

@@ -13,25 +13,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
+class FlowTest_expectIsEqualTo {
+
     @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
+    fun isEqualTo_passes() {
+        assertDoesNotThrow { expect(1 _is equal to 1) }
     }
 
     @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
+    fun isNotEqualTo_passes() =
+            assertDoesNotThrow { expect(1 _is !equal to 2) }
 
     @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
-    }
+    fun isEqualTo_fails() =
+        assertFails { expect(1 _is equal to 2) }
+
+    @Test
+    fun isNotEqualTo_fails() =
+            assertFails { expect(1 _is !equal to 1) }
 }

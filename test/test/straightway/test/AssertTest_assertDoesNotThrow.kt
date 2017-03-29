@@ -13,25 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
+class AssertTest_assertDoesNotThrow {
 
     @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
+    fun passes_ifNoExceptionIsThrown() =
+        assertDoesNotThrow {}
 
     @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
-    }
+    fun fails_ifExceptionIsThrown() =
+        assertFails { assertDoesNotThrow { throw Exception() } }
 }

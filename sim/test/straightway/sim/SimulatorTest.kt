@@ -16,10 +16,10 @@
 package straightway.sim
 
 import org.junit.jupiter.api.BeforeEach
-import straightway.simulation.Simulator
 import straightway.test.TestBase
 
-internal abstract class SimulatorTest : TestBase<Simulator>() {
+internal abstract class SimulatorTest : TestBase<Simulator>()
+{
     @BeforeEach fun setUp() {
         sut = Simulator()
     }

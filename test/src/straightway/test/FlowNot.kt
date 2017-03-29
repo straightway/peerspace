@@ -13,25 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
+operator fun <TSelector> Relation<TSelector>.not() = Negated(this)
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
+class Negated<TSelector>(negated: Relation<TSelector>)
+    : Relation<TSelector>({ Not(negated.createConditionFor(it)) })
 
-    @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
-
-    @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
+class Not<TSelector>(private val negated: Condition<TSelector>) : Condition<TSelector> {
+    override val result
+        get() =  !negated.result
+    override fun withExpectation(value: Any) : Not<TSelector> {
+        negated.withExpectation(value)
+        return this
     }
 }

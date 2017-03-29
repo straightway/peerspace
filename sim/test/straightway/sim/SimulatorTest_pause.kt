@@ -15,23 +15,12 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
+internal class SimulatorTest_pause : SimulatorTest() {
     @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
-
-    @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
-
-    @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
+    fun pause_withoutEvent_hasNoEffect()
+    {
+        (sut as Controller).pause()
     }
 }

@@ -13,25 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
+import straightway.general.Panic
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
+class AssertTest_assertPanics_withExpectedState {
 
     @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
+    fun passes_ifPanicOccurs_withCorrectState() =
+        assertDoesNotThrow { assertPanics(expectedState) { throw Panic(expectedState) } }
 
     @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
+    fun fails_ifNoPanicOccurs() =
+        assertFails { assertPanics(expectedState) {} }
+
+    @Test
+    fun fails_ifPanicOccurs_withIncorrectState() =
+        assertFails { assertPanics(expectedState) { throw Panic(unexpectedState) } }
+
+    private companion object {
+        val expectedState = Any()
+        val unexpectedState = Any()
     }
 }

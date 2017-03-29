@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.simulation
+package straightway.sim
 
 import straightway.general.TimeProvider
 import java.time.Duration
@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 /**
  * Run an event driven simulation by excuting actions at given simulated time points.
  */
-class Simulator : TimeProvider, SimulationController, SimulationScheduler {
+class Simulator : TimeProvider, Controller, Scheduler {
 
     override var currentTime: LocalDateTime = LocalDateTime.of(0, 1, 1, 0, 0)
         get
@@ -51,6 +51,8 @@ class Simulator : TimeProvider, SimulationController, SimulationScheduler {
             nextAxtion()
         }
     }
+
+    override fun pause() {}
 
     //<editor-fold desc="Private data">
     private val _eventQueue: MutableList<Event> = mutableListOf()

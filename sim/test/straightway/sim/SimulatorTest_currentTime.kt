@@ -15,10 +15,10 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim
 
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class SimulatorTest_currentTime : SimulatorTest() {
     @Test
-    fun isInitiallyZero() = Assertions.assertEquals(initialTime, sut.currentTime)
+    fun isInitiallyZero() = assertEquals(initialTime, sut.currentTime)
 }

@@ -13,25 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
+object same : Relation<_as>({ SameAs(it) })
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
-
-    @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
-
-    @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
+class SameAs(val testedValue: Any) : Condition<_as> {
+    private var expectedValue: Any? = null
+    override val result
+        get() =  testedValue === expectedValue
+    override fun withExpectation(value: Any) : SameAs {
+        expectedValue = value
+        return this
     }
 }

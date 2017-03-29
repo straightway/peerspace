@@ -13,25 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
+import org.opentest4j.AssertionFailedError
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
+class AssertTest_assertFails_withExpectedMessage {
 
     @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
+    fun passes_ifActionFailsWithCorrectMessage() =
+        assertDoesNotThrow { assertFails("Expected message") { Assertions.fail("Expected message") } }
 
     @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
-    }
+    fun fails_withExpectedMessage_ifActionDoesNotFail() =
+        assertThrows<AssertionFailedError> {
+            assertFails("Expected message") {}
+        }
+
+    @Test
+    fun fails_ifActionFailsWithWrongMessage() =
+        assertThrows<AssertionFailedError> {
+            assertFails("Expected message") { Assertions.fail("Wrong message") }
+        }
 }

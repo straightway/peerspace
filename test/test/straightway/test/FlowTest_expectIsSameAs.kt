@@ -13,25 +13,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.test
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
-    @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
-    }
+class FlowTest_expectIsSameAs {
 
     @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
-    }
+    fun isSameAs_passes() =
+        assertDoesNotThrow { expect(a _is same _as a) }
 
     @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
+    fun isNotSameAs_passes() =
+        assertDoesNotThrow { expect(a _is !same _as b) }
+
+    @Test
+    fun isSameAs_fails() =
+        assertFails { expect(a _is same _as b) }
+
+    @Test
+    fun isNotSameAs_fails() =
+        assertFails { expect(a _is !same _as a) }
+
+    private data class EqualButNotSame(val value: Int)
+    private companion object {
+        val a = EqualButNotSame(1)
+        val b = EqualButNotSame(1)
     }
 }

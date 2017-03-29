@@ -13,25 +13,38 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.general
 
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
-import straightway.general.TimeProvider
 
-internal class SimulatorTest_interfaces : SimulatorTest() {
+internal class PanicTest {
+
     @Test
-    fun isTimeProvider() {
-        assertTrue(sut is TimeProvider)
+    fun toString_containsState()
+    {
+        val sut = Panic(123);
+        assertEquals("Panic: 123", sut.toString())
     }
 
     @Test
-    fun isSimulationController() {
-        assertTrue(sut is Controller)
+    fun isThrowable()
+    {
+        try {
+            throw Panic("Aaaargh!")
+        }
+        catch (panic: Panic)
+        {
+            assertEquals("Panic: Aaaargh!", panic.toString())
+        }
     }
 
     @Test
-    fun isSimulationScheduler() {
-        assertTrue(sut is Scheduler)
+    fun state_isAccessible()
+    {
+        val state = Any()
+        val sut = Panic(state)
+        assertSame(state, sut.state)
     }
 }

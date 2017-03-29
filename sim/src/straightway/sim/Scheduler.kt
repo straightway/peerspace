@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.simulation
+package straightway.sim
 
 import java.time.Duration
 
-interface SimulationScheduler {
+interface Scheduler {
     fun schedule(duration: Duration, action: () -> Unit)
 }

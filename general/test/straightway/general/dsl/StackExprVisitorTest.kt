@@ -13,12 +13,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.general.dsl
 
-/**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
- */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class StackExprVisitorTest {
+
+    @Test
+    fun initiallyEmpty() {
+        val sut = StackExprVisitor()
+        assertEquals(0, sut.stack.size)
+    }
+
+    @Test
+    fun visitedExpression_pushedToStack() {
+        val sut = StackExprVisitor()
+        val visitedExpressions = listOf(Value(83), FunExpr<Int>("op") {-it })
+        for (e in visitedExpressions) sut.visit(e)
+        assertEquals(visitedExpressions, sut.stack)
+    }
 }

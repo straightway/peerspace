@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.opentest4j.AssertionFailedError
 import straightway.general.Panic
+import java.io.PrintWriter
+import java.io.StringWriter
 
 fun assertPanics(action: () -> Unit) { assertThrows<Panic>(action) }
 
@@ -51,4 +53,9 @@ fun assertFails(expectedMessage: String, action: () -> Unit) =
 
 fun assertDoesNotThrow(action: () -> Unit) =
     try { action() }
-    catch (e: Throwable) { fail("Action $action threw unexpected exception $e") }
+    catch (e: Throwable) {
+        val s = StringWriter()
+        val w = PrintWriter(s)
+        e.printStackTrace(w)
+        fail("Action $action threw unexpected exception $e\n${s.buffer.toString()}")
+    }

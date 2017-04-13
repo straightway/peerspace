@@ -13,12 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.general.dsl
 
 /**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
+ * Expressions implementing this interface can be combined using the minus
+ * operator.
  */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
-}
+interface CombinableExpr : Expr
+
+operator fun <TState> CombinableExpr.minus(combinedWith: StateExpr<TState>)
+    = BoundExpr(this, combinedWith).inState<TState>()
+
+operator fun CombinableExpr.minus(combinedWith: Expr)
+    = BoundExpr(this, combinedWith)

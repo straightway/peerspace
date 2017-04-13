@@ -13,12 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.test.flow
+
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
+import org.opentest4j.AssertionFailedError
+import straightway.general.dsl.Expr
 
 /**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
+ * Expect the given condition to be true.
  */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
-}
+fun expect(condition: Expr) =
+    try {
+        assertTrue(condition() as Boolean) { ExpressionVisualizer(condition).string }
+    } catch (e: AssertionFailedError) {
+        throw e
+    } catch (e: AssertionError) {
+        fail("${ExpressionVisualizer(condition).string} (${e.message})")
+    } catch (e: Throwable) {
+        fail("${ExpressionVisualizer(condition).string}: $e")
+    }

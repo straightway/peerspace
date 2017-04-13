@@ -13,16 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.test
+package straightway.test.flow
 
-object same : Relation<_as>({ SameAs(it) })
+import org.junit.jupiter.api.Test
+import straightway.general.dsl.minus
+import straightway.test.assertDoesNotThrow
+import straightway.test.assertFails
 
-class SameAs(val testedValue: Any) : Condition<_as> {
-    private var expectedValue: Any? = null
-    override val result
-        get() =  testedValue === expectedValue
-    override fun withExpectation(value: Any) : SameAs {
-        expectedValue = value
-        return this
-    }
+class RelationTest_isEqualTo {
+
+    @Test fun passes() = assertDoesNotThrow { expect(1 _is equal to 1) }
+    @Test fun fails() = assertFails { expect(1 _is equal to 2) }
+    @Test fun negation_passes() = assertDoesNotThrow { expect(1 _is not-equal to 2) }
 }

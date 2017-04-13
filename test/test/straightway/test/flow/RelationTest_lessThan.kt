@@ -13,12 +13,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.test.flow
 
-/**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
- */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
+import org.junit.jupiter.api.Test
+import straightway.general.dsl.minus
+import straightway.test.assertDoesNotThrow
+import straightway.test.assertFails
+
+class RelationTest_lessThan {
+
+    @Test fun succeeds_int()
+        = assertDoesNotThrow { expect(1 _is less than 2) }
+
+    @Test fun fails()
+        = assertFails { expect(1 _is less than 1) }
+
+    @Test fun negated_succeeds()
+        = assertDoesNotThrow { expect(1 _is not-less than 1) }
+
+    @Test fun negated_fails()
+        = assertFails { expect(1 _is not-less than 2) }
 }

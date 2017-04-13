@@ -13,12 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.general.dsl
 
-/**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
- */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+class CombinableExprTest {
+
+    @Test fun combinedExpressionKeepsState() {
+        var result = testExpr-testExpr.inState<Int>()
+        assertTrue(result is StateExpr<Int>)
+    }
+
+    @Test fun combineStatelessExpressions() {
+        var result = testExpr-testExpr
+        assertEquals(1, result(1))
+    }
+
+    private object testExpr : CombinableExpr, Expr by FunExpr("neg", untyped<Int, Int> { -it })
 }

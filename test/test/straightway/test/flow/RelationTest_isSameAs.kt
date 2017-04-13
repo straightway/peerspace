@@ -13,12 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.test.flow
 
-/**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
- */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
+import org.junit.jupiter.api.Test
+import straightway.general.dsl.minus
+import straightway.test.assertDoesNotThrow
+import straightway.test.assertFails
+
+class RelationTest_isSameAs {
+
+    @Test fun passes() = assertDoesNotThrow { expect(a _is same _as a) }
+    @Test fun negation_passes() = assertDoesNotThrow { expect(a _is not-same _as b) }
+    @Test fun isSameAs_fails() = assertFails { expect(a _is same _as b) }
+    @Test fun isNotSameAs_fails() = assertFails { expect(a _is not-same _as a) }
+
+    private data class EqualButNotSame(val value: Int)
+    private companion object {
+        val a = EqualButNotSame(1)
+        val b = EqualButNotSame(1)
+    }
 }

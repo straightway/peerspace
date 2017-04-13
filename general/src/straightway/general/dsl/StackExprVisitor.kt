@@ -13,18 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.test
+package straightway.general.dsl
 
-operator fun <TSelector> Relation<TSelector>.not() = Negated(this)
+/**
+ * Visit an expression and push all found items to list.
+ */
+class StackExprVisitor {
+    val stack: List<Expr> get() = _stack
+    fun visit(e: Expr) { _stack.add(e) }
 
-class Negated<TSelector>(negated: Relation<TSelector>)
-    : Relation<TSelector>({ Not(negated.createConditionFor(it)) })
-
-class Not<TSelector>(private val negated: Condition<TSelector>) : Condition<TSelector> {
-    override val result
-        get() =  !negated.result
-    override fun withExpectation(value: Any) : Not<TSelector> {
-        negated.withExpectation(value)
-        return this
-    }
+    private val _stack = mutableListOf<Expr>()
 }

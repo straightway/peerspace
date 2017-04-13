@@ -13,12 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.general.dsl
 
 /**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
+ * A terminal value expression.
  */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
+open class Value(private val value: Any) : Expr {
+    override val arity = 0
+    override fun invoke(vararg params: Any): Any {
+        assert(params.isEmpty())
+        { "Value cannot take parameters on invocation, got: ${params.joinToString()}"}
+        return value
+    }
+    override fun toString() = value.toString()
 }

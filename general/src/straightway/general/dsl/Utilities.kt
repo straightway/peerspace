@@ -13,12 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.general.dsl
 
-/**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
- */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
-}
+fun <TArg, TResult> untyped(typed: (TArg) -> TResult): (Any) -> Any
+    = { typed(it as TArg) as Any }
+
+fun <T> untypedOp(typed: (T) -> T): (Any) -> Any
+    = { typed(it as T) as Any }
+
+fun <TArg1, TArg2, TResult> untyped(typed: (TArg1, TArg2) -> TResult): (Any, Any) -> Any
+    = { a, b -> typed(a as TArg1, b as TArg2) as Any }
+
+fun <T> untypedOp(typed: (T, T) -> T): (Any, Any) -> Any
+    = { a, b -> typed(a as T, b as T) as Any }

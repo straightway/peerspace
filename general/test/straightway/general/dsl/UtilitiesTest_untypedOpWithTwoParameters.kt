@@ -13,12 +13,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.general.dsl
 
-/**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
- */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
+
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+class UtilitiesTest_untypedOpWithTwoParameters {
+
+    @Test
+    fun returnsLambdaWithAnyParametersAndReturnType() {
+        val result = untypedOp<Int>({ i: Int, d: Int -> i * d})
+        Assertions.assertTrue(result is (Any, Any) -> Any)
+    }
+
+    @Test
+    fun returnedLambdaExecutesTypedParameterLambda() {
+        val input1: Any = 3
+        val input2: Any = 5
+        val result = untypedOp<Int>({ a, b -> a - b })
+        val output = result(input1, input2)
+        Assertions.assertEquals(-2, output)
+    }
 }

@@ -13,26 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.test
+package straightway.test.flow
 
-import org.junit.jupiter.api.Test
+import straightway.general.dsl.*
+import kotlin.reflect.KClass
 
-class FlowTest_expectIsEqualTo {
+/**
+ * An expression which tests the effect of a given lambda object.
+ */
+interface Effect : Expr
 
-    @Test
-    fun isEqualTo_passes() {
-        assertDoesNotThrow { expect(1 _is equal to 1) }
-    }
+object _throw : StateExpr<Effect>, FunExpr("thrown by", untyped {
+    exception: KClass<*>, action: () -> Unit ->
+    try { action(); false } catch(e: Throwable) { exception.isInstance(e) } })
 
-    @Test
-    fun isNotEqualTo_passes() =
-            assertDoesNotThrow { expect(1 _is !equal to 2) }
+val exception = Throwable::class
 
-    @Test
-    fun isEqualTo_fails() =
-        assertFails { expect(1 _is equal to 2) }
+operator fun StateExpr<Effect>.minus(type: KClass<*>) = BoundExpr(this, Value(type)).inState<Effect>()
 
-    @Test
-    fun isNotEqualTo_fails() =
-            assertFails { expect(1 _is !equal to 1) }
-}
+infix fun <T: Effect> (() -> Unit).does(op: StateExpr<T>) = BoundExpr(op, Value(this)).inState<T>()
+

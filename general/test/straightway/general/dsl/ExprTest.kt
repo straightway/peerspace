@@ -13,28 +13,28 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.test
+package straightway.general.dsl
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
-interface BaseCondition {
-    val result: Boolean
+class ExprTest {
+
+    private class TestExpr(override val arity: Int) : Expr {
+        override fun invoke(vararg params: Any): Any {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+    }
+
+    @Test fun accept_defaultImplementation_visitsExpression() {
+        val sut = TestExpr(0)
+        var calls = 0
+        sut.accept {
+            assertTrue(it === sut)
+            calls++
+        }
+
+        assertEquals(1, calls, "Unexpected number of calls")
+    }
 }
-
-interface Condition<TSelector> : BaseCondition {
-    fun withExpectation(value: Any) : Condition<TSelector>
-}
-
-open class Relation<TSelector>(private val conditionFactory: (Any) -> Condition<TSelector>) {
-    fun createConditionFor(testedValue: Any): Condition<TSelector> = conditionFactory(testedValue)
-}
-
-fun expect(condition: BaseCondition) = assertTrue(condition.result)
-
-infix fun <TSelector> Any._is(r: Relation<TSelector>) = r.createConditionFor(this)
-
-object to
-infix fun Condition<to>.to(value: Any) = this.withExpectation(value)
-
-object _as
-infix fun Condition<_as>._as(value: Any) = this.withExpectation(value)

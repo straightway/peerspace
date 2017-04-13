@@ -13,16 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.test
+package straightway.general.dsl
 
-object equal : Relation<to>({ EqualTo(it) })
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
-class EqualTo(val testedValue: Any) : Condition<to> {
-    private var expectedValue: Any? = null
-    override val result
-        get() =  testedValue == expectedValue
-    override fun withExpectation(value: Any) : EqualTo {
-        expectedValue = value
-        return this
+class UtilitiesTest_untypedWithSingleParameter {
+
+    @Test fun returnsLambdaWithAnyParametersAndReturnType() {
+        val result = untyped({ i: Int -> i * 3})
+        assertTrue(result is (Any) -> Any)
+    }
+
+    @Test fun returnedLambdaExecutesTypedParameterLambda() {
+        val input: Any = 3
+        val result = untyped({ i: Int -> i * 3})
+        val output = result(input)
+        assertEquals(9, output)
     }
 }

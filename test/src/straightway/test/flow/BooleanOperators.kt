@@ -13,12 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.test.flow
+
+import straightway.general.dsl.CombinableExpr
+import straightway.general.dsl.FunExpr
+import straightway.general.dsl.untyped
 
 /**
- * Generic exception meaning that continuing the program execution does not make
- * sense any more.
+ * Operator which logically negates its argument.
  */
-class Panic(val state: Any) : RuntimeException() {
-    override fun toString() = "Panic: $state"
-}
+object not : CombinableExpr, FunExpr("not", untyped<Boolean, Boolean> { !it })
+

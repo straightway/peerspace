@@ -56,6 +56,11 @@ class ExpressionVisualizerTest {
         val testedExpr = func(3, "top")-func(2, "sub1")-"arg1"-func(1, "op1")-func(1, "op2")-"arg2"-"arg3"-func(2, "sub2")-"arg4"-"arg5"
         expect(ExpressionVisualizer(testedExpr).string _is equal to "top(arg1 sub1 op1-op2(arg2), arg3, arg4 sub2 arg5)")
     }
+
+    @Test fun missingArgumentsAreFilled() {
+        val testedExpr = func(2)-"arg1"
+        expect(ExpressionVisualizer(testedExpr).string _is equal to "arg1 func2 ?")
+    }
 }
 
 private operator fun Expr.minus(e: Expr) = BoundExpr(this, e)

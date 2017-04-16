@@ -21,15 +21,13 @@ import org.junit.jupiter.api.Test
 
 internal class PanicTest {
 
-    @Test
-    fun toString_containsState()
+    @Test fun toString_containsState()
     {
         val sut = Panic(123);
         assertEquals("Panic: 123", sut.toString())
     }
 
-    @Test
-    fun isThrowable()
+    @Test fun isThrowable()
     {
         try {
             throw Panic("Aaaargh!")
@@ -40,8 +38,7 @@ internal class PanicTest {
         }
     }
 
-    @Test
-    fun state_isAccessible()
+    @Test fun state_isAccessible()
     {
         val state = Any()
         val sut = Panic(state)

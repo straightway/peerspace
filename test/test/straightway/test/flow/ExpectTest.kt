@@ -40,6 +40,6 @@ class ExpectTest {
         assertFails("1 not-equal 1") { expect(1 _is not-equal to 1) }
 
     @Test fun failure_notFullyBoundExpression_withMeaningfulExplanation() =
-        assertFails("1 greater _ (Invalid number of parameters. Expected: 2, got: 1)",
+        assertFails("1 greater ? (Invalid number of parameters. Expected: 2, got: 1)",
         { expect(1 _is greater)})
 }

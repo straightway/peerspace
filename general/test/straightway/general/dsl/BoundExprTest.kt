@@ -91,6 +91,7 @@ class BoundExprTest {
         sut.accept { visitor.visit(it) }
         assertEquals(listOf(exprArity1, bound), visitor.stack)
     }
+
     @Test fun accept_visitsBoundExpressionDepthFirst() {
         val sub1 = FunExpr<Int, Int>("Sub1") { a, _ -> a }
         val sub1sub1 = Value("Sub1Sub1")

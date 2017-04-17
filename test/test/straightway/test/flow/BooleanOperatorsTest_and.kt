@@ -22,21 +22,21 @@ import straightway.general.dsl.Value
 class BooleanOperatorsTest_and {
 
     @Test fun isTrueIfBothArgumentsAreTrue() =
-        expect((Value(true) and Value(true))() _is equal to true)
+            expect((Value(true) and Value(true))() _is _true)
 
     @Test fun isFalseIfFirstArgumentIsFalse() =
-        expect((Value(false) and Value(true))() _is equal to false)
+            expect((Value(false) and Value(true))() _is _false)
 
     @Test fun isFalseIfSecondArgumentIsFalse() =
-        expect((Value(true) and Value(false))() _is equal to false)
+            expect((Value(true) and Value(false))() _is _false)
 
     @Test fun isFalseIfBothArgumentsAreFalse() =
-        expect((Value(false) and Value(false))() _is equal to false)
+            expect((Value(false) and Value(false))() _is _false)
 
     @Test fun passesArgumentsToBothSubExpressions() {
         val left = FunExpr("left") { a -> expect(a _is equal to 83); true }
         val right = FunExpr("right") { a -> expect(a _is equal to 83); true }
-        expect((left and right)(83) _is equal to true)
+        expect((left and right)(83) _is _true)
     }
 
     @Test fun toString_yieldsProperString() =

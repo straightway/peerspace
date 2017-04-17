@@ -25,6 +25,7 @@ interface Relation : Expr
 interface WithTo : Relation
 interface WithAs : Relation
 interface WithThan : Relation
+interface DirectBoolean : Relation
 
 object equal
     : Relation, StateExpr<WithTo>, FunExpr("equal", { a, b -> a == b })
@@ -34,6 +35,12 @@ object greater
     : Relation, StateExpr<WithThan>, FunExpr("greater", { a, b -> 0 < a.untypedCompareTo(b) })
 object less
     : Relation, StateExpr<WithThan>, FunExpr("greater", { a, b -> a.untypedCompareTo(b) < 0 })
+
+object _true
+    : Relation, StateExpr<DirectBoolean>, FunExpr("true", { a -> a as Boolean })
+
+object _false
+    : Relation, StateExpr<DirectBoolean>, FunExpr("false", { a -> !(a as Boolean) })
 
 infix fun <T: Relation> Any._is(op: StateExpr<T>) = BoundExpr(op, Value(this)).inState<T>()
 infix fun <T: Comparable<T>, TRel: Relation> T._is(op: StateExpr<TRel>) = BoundExpr(op, Value(this)).inState<TRel>()

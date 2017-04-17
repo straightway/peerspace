@@ -15,23 +15,15 @@ limitations under the License.
  ****************************************************************************/
 package straightway.test.flow
 
-import straightway.general.dsl.*
+import org.junit.jupiter.api.Test
+import straightway.test.assertDoesNotThrow
+import straightway.test.assertFails
 
-/**
- * Operator which logically negates its argument.
- */
-object not : CombinableExpr, FunExpr("not", untyped<Boolean, Boolean> { !it })
+class RelationTest_false {
 
-/**
- * Operator which distributes its arguments to the left and right expressions and yields
- * the logical conjunction of their boolean results.
- */
-infix fun Expr.and(other: Expr): Expr =
-    DistributedExpr("and", this, other) { left(*it) as Boolean && right(*it) as Boolean }
+    @Test fun succeeds() =
+            assertDoesNotThrow { expect(false _is _false) }
 
-/**
- * Operator which distributes its arguments to the left and right expressions and yields
- * the logical disjunction of their boolean results.
- */
-infix fun Expr.or(other: Expr): Expr =
-    DistributedExpr("or", this, other) { left(*it) as Boolean || right(*it) as Boolean }
+    @Test fun fails() =
+            assertFails { expect(true _is _false) }
+}

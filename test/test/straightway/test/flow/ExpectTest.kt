@@ -27,21 +27,21 @@ class ExpectTest {
         assertFails { expect(Value(false)) }
 
     @Test fun nonBooleanExpression_isFailure() =
-        assertFails("1: java.lang.ClassCastException: java.lang.Integer cannot be cast to java.lang.Boolean")
+            assertFails("Expectation <1> failed (java.lang.ClassCastException: java.lang.Integer cannot be cast to java.lang.Boolean)")
         { expect(Value(1)) }
 
     @Test fun booleanExpression_true_isSuccess() =
         assertDoesNotThrow{ expect(Value(true)) }
 
     @Test fun failure_singleDyadicOp_withMeaningfulExplanation() =
-        assertFails("1 greater 2", { expect(1 _is greater than 2)})
+            assertFails("Expectation <1 greater 2> failed", { expect(1 _is greater than 2) })
 
     @Test fun failure_monadicWithDyadicOp_withMeaningfulExplanation() =
-        assertFails("1 not-equal 1") { expect(1 _is not-equal to 1) }
+            assertFails("Expectation <1 not-equal 1> failed") { expect(1 _is not - equal to 1) }
 
     @Test fun failure_notFullyBoundExpression_withMeaningfulExplanation() =
-        assertFails("1 greater ? (Invalid number of parameters. Expected: 2, got: 1)",
-        { expect(1 _is greater)})
+            assertFails("Expectation <1 greater ?> failed (Invalid number of parameters. Expected: 2, got: 1)")
+            { expect(1 _is greater) }
 
     @Test fun success_directlyUsingBoolean() =
             assertDoesNotThrow { expect(true) }

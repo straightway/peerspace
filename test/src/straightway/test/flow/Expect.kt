@@ -25,13 +25,15 @@ import straightway.general.dsl.Expr
  */
 fun expect(condition: Expr) =
     try {
-        assertTrue(condition() as Boolean) { ExpressionVisualizer(condition).string }
+        assertTrue(condition() as Boolean) {
+            "Expectation <${ExpressionVisualizer(condition).string}> failed"
+        }
     } catch (e: AssertionFailedError) {
         throw e
     } catch (e: AssertionError) {
-        fail("${ExpressionVisualizer(condition).string} (${e.message})")
+        fail("Expectation <${ExpressionVisualizer(condition).string}> failed (${e.message})")
     } catch (e: Throwable) {
-        fail("${ExpressionVisualizer(condition).string}: $e")
+        fail("Expectation <${ExpressionVisualizer(condition).string}> failed ($e)")
     }
 
 /**

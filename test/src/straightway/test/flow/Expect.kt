@@ -33,3 +33,15 @@ fun expect(condition: Expr) =
     } catch (e: Throwable) {
         fail("${ExpressionVisualizer(condition).string}: $e")
     }
+
+/**
+ * Expect the given condition to be true.
+ */
+fun expect(condition: Boolean) =
+        assertTrue(condition)
+
+/**
+ * Expect the given condition to be true.
+ */
+fun expect(condition: Boolean, lazyExplanation: () -> String) =
+        assertTrue(condition, lazyExplanation)

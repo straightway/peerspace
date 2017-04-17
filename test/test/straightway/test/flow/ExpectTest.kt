@@ -42,4 +42,16 @@ class ExpectTest {
     @Test fun failure_notFullyBoundExpression_withMeaningfulExplanation() =
         assertFails("1 greater ? (Invalid number of parameters. Expected: 2, got: 1)",
         { expect(1 _is greater)})
+
+    @Test fun success_directlyUsingBoolean() =
+            assertDoesNotThrow { expect(true) }
+
+    @Test fun failure_directlyUsingBoolean() =
+            assertFails { expect(false) }
+
+    @Test fun success_directlyUsingBoolean_withExplanation() =
+            assertDoesNotThrow { expect(true) { "Explanation" } }
+
+    @Test fun failure_directlyUsingBoolean_withExplanation() =
+            assertFails("Explanation") { expect(false) { "Explanation" } }
 }

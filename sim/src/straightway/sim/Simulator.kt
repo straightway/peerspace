@@ -32,29 +32,40 @@ class Simulator : TimeProvider, Controller, Scheduler {
 
     override fun schedule(duration: Duration, action: () -> Unit) {
         val newEvent = Event(currentTime.plus(duration), action)
-        for (i in _eventQueue.indices) {
-            if (newEvent.time < _eventQueue[i].time) {
-                _eventQueue.add(i, newEvent)
-                return
-            }
-        }
-
-        _eventQueue.add(newEvent)
+        val insertPos = findInsertPosFor(newEvent)
+        _eventQueue.add(insertPos, newEvent)
     }
 
     override fun run() {
-        while (!_eventQueue.isEmpty()) {
-            val nextEvent = _eventQueue.first()
-            _eventQueue.removeAt(0)
-            currentTime = nextEvent.time
-            val nextAxtion = nextEvent.action
-            nextAxtion()
+        isRunning = true
+        while (isRunning && _eventQueue.any()) {
+            val nextEvent = popNextEvent()
+            execute(nextEvent)
         }
     }
 
-    override fun pause() {}
+    override fun pause() {
+        isRunning = false
+    }
 
-    //<editor-fold desc="Private data">
+    //<editor-fold desc="Private">
+
+    private fun findInsertPosFor(newEvent: Event): Int =
+            _eventQueue.indexOfFirst { newEvent.time < it.time }
+                    .let { if (it < 0) _eventQueue.size else it }
+
+    private fun popNextEvent(): Event {
+        val nextEvent = _eventQueue.first()
+        _eventQueue.removeAt(0)
+        return nextEvent
+    }
+
+    private fun execute(event: Event) {
+        currentTime = event.time
+        event.action()
+    }
+
     private val _eventQueue: MutableList<Event> = mutableListOf()
+    private var isRunning = false
     //</editor-fold>
 }

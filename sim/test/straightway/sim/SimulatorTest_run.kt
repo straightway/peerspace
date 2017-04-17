@@ -23,31 +23,27 @@ import java.time.Duration
 
 internal class SimulatorTest_run : SimulatorTest() {
 
-    @Test
-    fun executesEvent() {
+    @Test fun executesEvent() {
         val callCounter = CallCounter()
         sut.schedule(defaultEventDuration) { callCounter.action() }
         sut.run()
         Assertions.assertEquals(1, callCounter.calls)
     }
 
-    @Test
-    fun executesEventAtProperTime() {
+    @Test fun executesEventAtProperTime() {
         sut.schedule(defaultEventDuration) {
             Assertions.assertEquals(initialTime.plus(defaultEventDuration), sut.currentTime)
         }
         sut.run()
     }
 
-    @Test
-    fun consumesEvent() {
+    @Test fun consumesEvent() {
         sut.schedule(defaultEventDuration) {}
         sut.run()
         Assertions.assertEquals(0, sut.eventQueue.size)
     }
 
-    @Test
-    fun executesAllEvents() {
+    @Test fun executesAllEvents() {
         val callSequence = CallSequence(0, 2, 1)
         for (i in 0..2) {
             val execTime = Duration.ofMinutes(callSequence.expectedActionOrder[i].toLong())

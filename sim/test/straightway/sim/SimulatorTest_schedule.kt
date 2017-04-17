@@ -23,32 +23,28 @@ import straightway.test.CallSequence
 
 internal class SimulatorTest_schedule : SimulatorTest() {
 
-    @Test
-    fun doesNotCallActionImmediately() = sut.schedule(defaultEventDuration, Companion::doNotCall)
+    @Test fun doesNotCallActionImmediately() =
+            sut.schedule(defaultEventDuration, Companion::doNotCall)
 
-    @Test
-    fun addsEventToEventQueue() {
+    @Test fun addsEventToEventQueue() {
         sut.schedule(defaultEventDuration, Companion::doNotCall)
         assertEquals(1, sut.eventQueue.size)
     }
 
-    @Test
-    fun schedulesEventAtProperTime() {
+    @Test fun schedulesEventAtProperTime() {
         sut.schedule(defaultEventDuration, Companion::doNotCall)
         val targetTime = sut.currentTime.plus(defaultEventDuration)
         assertEquals(targetTime, sut.eventQueue.first().time)
     }
 
-    @Test
-    fun addsEventWithSpecifiedAction() {
+    @Test fun addsEventWithSpecifiedAction() {
         val callCounter = CallCounter()
         sut.schedule(defaultEventDuration) { callCounter.action() }
         sut.eventQueue.first().action()
         assertEquals(1, callCounter.calls)
     }
 
-    @Test
-    fun allowsSchedulingNewEventWhileExecutingAction() {
+    @Test fun allowsSchedulingNewEventWhileExecutingAction() {
         val callSequence = CallSequence(0, 1)
         sut.schedule(defaultEventDuration) {
             callSequence.actions[0]()

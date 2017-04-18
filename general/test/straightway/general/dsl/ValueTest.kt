@@ -20,33 +20,48 @@ import org.junit.jupiter.api.Test
 
 class ValueTest {
 
-    @Test
-    fun invocation_returnsValue() {
+    @Test fun invocation_returnsValue() {
         val sut = Value(testValue)
         assertSame(testValue, sut())
     }
 
-    @Test
-    fun invocation_withParametersThrows() {
+    @Test fun invocation_withParametersThrows() {
         val sut = Value(testValue)
         assertThrows<AssertionError>(AssertionError::class.java) { sut(1) }
     }
 
-    @Test
-    fun toString_returnsWrappedValueStringRepresentation()
+    @Test fun toString_returnsWrappedValueStringRepresentation()
     {
         val sut = Value(83)
         assertEquals("83", sut.toString())
     }
 
-    @Test
-    fun hasArity0() {
+    @Test fun toString_returnsArrayElements() {
+        val sut = Value(arrayOf(1, 2, 3))
+        assertEquals("[1, 2, 3]", sut.toString())
+    }
+
+    @Test fun toString_returnsPlainString() {
+        val sut = Value("123")
+        assertEquals("123", sut.toString())
+    }
+
+    @Test fun toString_returnsSequenceElements() {
+        val sut = Value("123".asSequence())
+        assertEquals("[1, 2, 3]", sut.toString())
+    }
+
+    @Test fun toString_returnsCharSequenceElements() {
+        val sut = Value(sequenceOf('1', '2', '3'))
+        assertEquals("[1, 2, 3]", sut.toString())
+    }
+
+    @Test fun hasArity0() {
         val sut = Value(83)
         assertEquals(0, sut.arity)
     }
 
-    @Test
-    fun isDirectlyVisited() {
+    @Test fun isDirectlyVisited() {
         val sut = Value(83)
         val visitor = StackExprVisitor()
         sut.accept { visitor.visit(it) }

@@ -20,10 +20,18 @@ package straightway.general.dsl
  */
 open class Value(private val value: Any) : Expr {
     override val arity = 0
+
     override fun invoke(vararg params: Any): Any {
         assert(params.isEmpty())
         { "Value cannot take parameters on invocation, got: ${params.joinToString()}"}
         return value
     }
-    override fun toString() = value.toString()
+
+    override fun toString() = when (value) {
+        is Array<*> -> value.asList().toString()
+        is String -> value
+        //is CharSequence -> value.toList().toString()
+        is Sequence<*> -> value.toList().toString()
+        else -> value.toString()
+    }
 }

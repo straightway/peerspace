@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
       <module fileurl="file://$PROJECT_DIR$/general/general.iml" filepath="$PROJECT_DIR$/general/general.iml" />
+      <module fileurl="file://$PROJECT_DIR$/integrationtest/integrationtest.iml" filepath="$PROJECT_DIR$/integrationtest/integrationtest.iml" />
       <module fileurl="file://$PROJECT_DIR$/sim/sim.iml" filepath="$PROJECT_DIR$/sim/sim.iml" />
-      <module fileurl="file://$PROJECT_DIR$/simulation.impl/simulation.impl.iml" filepath="$PROJECT_DIR$/simulation.impl/simulation.impl.iml" />
       <module fileurl="file://$PROJECT_DIR$/straightway.iml" filepath="$PROJECT_DIR$/straightway.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
     </modules>

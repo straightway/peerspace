@@ -23,38 +23,44 @@ import straightway.test.assertFails
 class RelationTest_empty {
 
     @Test fun succeeds_onEmptyCollection() =
-            assertDoesNotThrow { expect(listOf<Int>() _is empty) }
+        assertDoesNotThrow { expect(listOf<Int>() _is empty) }
 
     @Test fun fails_onNonEmptyCollection() =
-            assertFails { expect(listOf(1) _is empty) }
+        assertFails("Expectation <empty([1])> failed") { expect(listOf(1) _is empty) }
 
     @Test fun negationSucceeds_onNonEmptyCollection() =
-            assertDoesNotThrow { expect(listOf(1) _is not-empty) }
+        assertDoesNotThrow { expect(listOf(1) _is not-empty) }
 
     @Test fun negationFails_onEmptyCollection() =
-        assertFails { expect(listOf<Int>() _is not-empty) }
+        assertFails("Expectation <not-empty([])> failed") { expect(listOf<Int>() _is not-empty) }
 
     @Test fun succeeds_onEmptyArray() =
         assertDoesNotThrow { expect(arrayOf<Int>() _is empty) }
 
     @Test fun fails_onNonEmptyArray() =
-        assertFails { expect(arrayOf(1) _is empty) }
+        assertFails("Expectation <empty([1])> failed") { expect(arrayOf(1) _is empty) }
 
     @Test fun negationSucceeds_onNonEmptyArray() =
         assertDoesNotThrow { expect(arrayOf(1) _is not-empty) }
 
     @Test fun negationFails_onEmptyArray() =
-        assertFails { expect(arrayOf<Int>() _is not-empty) }
+        assertFails("Expectation <not-empty([])> failed") { expect(arrayOf<Int>() _is not-empty) }
 
     @Test fun succeeds_onEmptyString() =
         assertDoesNotThrow { expect("" _is empty) }
 
     @Test fun fails_onNonEmptyString() =
-        assertFails { expect("Hello" _is empty) }
+        assertFails("Expectation <empty(Hello)> failed") { expect("Hello" _is empty) }
 
     @Test fun negationSucceeds_onNonEmptyString() =
         assertDoesNotThrow { expect("Hello" _is not-empty) }
 
     @Test fun negationFails_onEmptyString() =
-        assertFails { expect("" _is not-empty) }
+        assertFails("Expectation <not-empty()> failed") { expect("" _is not-empty) }
+
+    @Test fun fails_forNonCollections() =
+        assertFails { expect(2 _is empty) }
+
+    @Test fun negationFails_forNonCollections() =
+        assertFails { expect(2 _is not-empty) }
 }

@@ -61,9 +61,11 @@ class ExpressionVisualizerTest {
         val testedExpr = func(2)-"arg1"
         expect(ExpressionVisualizer(testedExpr).string _is equal to "arg1 func2 ?")
     }
-}
 
-private operator fun Expr.minus(e: Expr) = BoundExpr(this, e)
-private operator fun Expr.minus(v: Any) = BoundExpr(this, Value(v))
-private fun func(arity: Int) = func(arity, "func$arity")
-private fun func(arity: Int, name: String) = FunExpr(arity, name, { _ -> "result of $name" })
+    private companion object {
+        operator fun Expr.minus(e: Expr) = BoundExpr(this, e)
+        operator fun Expr.minus(v: Any) = BoundExpr(this, Value(v))
+        fun func(arity: Int) = func(arity, "func$arity")
+        fun func(arity: Int, name: String) = FunExpr(arity, name, { _ -> "result of $name" })
+    }
+}

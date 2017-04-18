@@ -15,11 +15,18 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim
 
-/**
- * Start, stop, pause, resume and reset a simulation run.
- */
-interface Controller {
-    fun run()
-    fun pause()
-    fun reset()
+import org.junit.jupiter.api.Test
+import straightway.test.flow._is
+import straightway.test.flow.empty
+import straightway.test.flow.expect
+
+internal class SimulatorTest_reset : SimulatorTest() {
+
+    @Test fun withoutEvent_hasNoEffect() = (sut as Controller).reset()
+
+    @Test fun clearEventQueue() {
+        sut.schedule(defaultEventDuration) {}
+        sut.reset()
+        expect(sut.eventQueue _is empty)
+    }
 }

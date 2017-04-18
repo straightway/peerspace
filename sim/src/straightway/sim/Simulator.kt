@@ -48,11 +48,14 @@ class Simulator : TimeProvider, Controller, Scheduler {
         isRunning = false
     }
 
+    override fun reset() =
+        _eventQueue.clear()
+
     //<editor-fold desc="Private">
 
     private fun findInsertPosFor(newEvent: Event): Int =
-            _eventQueue.indexOfFirst { newEvent.time < it.time }
-                    .let { if (it < 0) _eventQueue.size else it }
+        _eventQueue.indexOfFirst { newEvent.time < it.time }
+                .let { if (it < 0) _eventQueue.size else it }
 
     private fun popNextEvent(): Event {
         val nextEvent = _eventQueue.first()
@@ -67,5 +70,6 @@ class Simulator : TimeProvider, Controller, Scheduler {
 
     private val _eventQueue: MutableList<Event> = mutableListOf()
     private var isRunning = false
+
     //</editor-fold>
 }

@@ -29,7 +29,7 @@ internal class SimulatorTest_pause : SimulatorTest() {
         sut.schedule(Duration.ofMinutes(1)) { sut.pause() }
         sut.schedule(Duration.ofMinutes(2)) { fail("This event must not be called") }
         expect({ sut.run() } does not - _throw - exception)
-        expect(sut.eventQueue.size _is equal to 1)
+        expect(sut.eventQueue has size of 1)
     }
 
     @Test fun callingRunAfterPause_resumesSimulation() {

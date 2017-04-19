@@ -7,7 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/integrationtest/integrationtest.iml" filepath="$PROJECT_DIR$/integrationtest/integrationtest.iml" />
       <module fileurl="file://$PROJECT_DIR$/sim/sim.iml" filepath="$PROJECT_DIR$/sim/sim.iml" />
       <module fileurl="file://$PROJECT_DIR$/straightway.iml" filepath="$PROJECT_DIR$/straightway.iml" />
-      <module fileurl="file://$PROJECT_DIR$/testing/test.iml" filepath="$PROJECT_DIR$/testing/test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/testing/testing.iml" filepath="$PROJECT_DIR$/testing/testing.iml" />
     </modules>
   </component>
 </project>

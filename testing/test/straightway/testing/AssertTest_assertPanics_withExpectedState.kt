@@ -13,20 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.testing
 
 import org.junit.jupiter.api.Test
-import straightway.testing.flow._is
-import straightway.testing.flow.empty
-import straightway.testing.flow.expect
+import straightway.general.Panic
 
-internal class SimulatorTest_reset : SimulatorTest() {
+class AssertTest_assertPanics_withExpectedState {
 
-    @Test fun withoutEvent_hasNoEffect() = (sut as Controller).reset()
+    @Test
+    fun passes_ifPanicOccurs_withCorrectState() =
+        assertDoesNotThrow { assertPanics(expectedState) { throw Panic(expectedState) } }
 
-    @Test fun clearEventQueue() {
-        sut.schedule(defaultEventDuration) {}
-        sut.reset()
-        expect(sut.eventQueue _is empty)
+    @Test
+    fun fails_ifNoPanicOccurs() =
+        assertFails { assertPanics(expectedState) {} }
+
+    @Test
+    fun fails_ifPanicOccurs_withIncorrectState() =
+        assertFails { assertPanics(expectedState) { throw Panic(unexpectedState) } }
+
+    private companion object {
+        val expectedState = Any()
+        val unexpectedState = Any()
     }
 }

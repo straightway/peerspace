@@ -17,8 +17,8 @@ package straightway.sim
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import straightway.test.CallCounter
-import straightway.test.CallSequence
+import straightway.testing.CallCounter
+import straightway.testing.CallSequence
 import java.time.Duration
 
 internal class SimulatorTest_run : SimulatorTest() {

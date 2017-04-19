@@ -13,33 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.integrationtest
+package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import straightway.Identifyable
-import straightway.data.Chunk
-import straightway.data.Key
 import straightway.general.dsl.minus
-import straightway.network.PushTarget
-import straightway.testing.flow.*
+import straightway.testing.assertDoesNotThrow
+import straightway.testing.assertFails
 
-class NetworkClientTest {
+class RelationTest_isSameAs {
 
-    @Test fun id() {
-        val sut = NetworkClient("client") as Identifyable
-        expect(sut.id _is equal to "client")
-    }
+    @Test fun passes() = assertDoesNotThrow { expect(a _is same _as a) }
+    @Test fun negation_passes() = assertDoesNotThrow { expect(a _is not-same _as b) }
+    @Test fun isSameAs_fails() = assertFails { expect(a _is same _as b) }
+    @Test fun isNotSameAs_fails() = assertFails { expect(a _is not-same _as a) }
 
-    @Test fun push_isAccepted() {
-        val sut = NetworkClient("client") as PushTarget
-
-        val peer = mock(Identifyable::class.java)
-        `when`(peer.id).thenReturn("node")
-
-        val data = Chunk(Key("0815"), arrayOf(1, 2, 3))
-
-        expect({ sut.push(data, peer) } does not-_throw-exception)
+    private data class EqualButNotSame(val value: Int)
+    private companion object {
+        val a = EqualButNotSame(1)
+        val b = EqualButNotSame(1)
     }
 }

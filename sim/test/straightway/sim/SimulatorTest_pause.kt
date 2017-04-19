@@ -18,7 +18,7 @@ package straightway.sim
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import straightway.general.dsl.minus
-import straightway.test.flow.*
+import straightway.testing.flow.*
 import java.time.Duration
 
 internal class SimulatorTest_pause : SimulatorTest() {

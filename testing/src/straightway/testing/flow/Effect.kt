@@ -13,20 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.testing.flow
 
-import org.junit.jupiter.api.Test
-import straightway.testing.flow._is
-import straightway.testing.flow.empty
-import straightway.testing.flow.expect
+import straightway.general.dsl.*
+import kotlin.reflect.KClass
 
-internal class SimulatorTest_reset : SimulatorTest() {
+/**
+ * An expression which tests the effect of a given lambda object.
+ */
+interface Effect : Expr
 
-    @Test fun withoutEvent_hasNoEffect() = (sut as Controller).reset()
+object _throw : StateExpr<Effect>, FunExpr("thrown by", untyped {
+    exception: KClass<*>, action: () -> Unit ->
+    try { action(); false } catch(e: Throwable) { exception.isInstance(e) } })
 
-    @Test fun clearEventQueue() {
-        sut.schedule(defaultEventDuration) {}
-        sut.reset()
-        expect(sut.eventQueue _is empty)
-    }
-}
+val exception = Throwable::class
+
+operator fun StateExpr<Effect>.minus(type: KClass<*>) = BoundExpr(this, Value(type)).inState<Effect>()
+
+infix fun <T: Effect> (() -> Unit).does(op: StateExpr<T>) = BoundExpr(op, Value(this)).inState<T>()
+

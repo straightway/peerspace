@@ -18,8 +18,8 @@ package straightway.sim
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import straightway.test.CallCounter
-import straightway.test.CallSequence
+import straightway.testing.CallCounter
+import straightway.testing.CallSequence
 
 internal class SimulatorTest_schedule : SimulatorTest() {
 

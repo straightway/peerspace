@@ -13,33 +13,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.integrationtest
+package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import straightway.Identifyable
-import straightway.data.Chunk
-import straightway.data.Key
 import straightway.general.dsl.minus
-import straightway.network.PushTarget
-import straightway.testing.flow.*
+import straightway.testing.assertDoesNotThrow
+import straightway.testing.assertFails
 
-class NetworkClientTest {
+class RelationTest_greaterThan {
 
-    @Test fun id() {
-        val sut = NetworkClient("client") as Identifyable
-        expect(sut.id _is equal to "client")
-    }
+    @Test fun succeeds_int()
+        = assertDoesNotThrow { expect(2 _is greater than 1) }
 
-    @Test fun push_isAccepted() {
-        val sut = NetworkClient("client") as PushTarget
+    @Test fun succeeds_mixed()
+        = assertDoesNotThrow { expect(otherComparable _is greater than 1) }
 
-        val peer = mock(Identifyable::class.java)
-        `when`(peer.id).thenReturn("node")
+    @Test fun fails()
+        = assertFails { expect(1 _is greater than 1) }
 
-        val data = Chunk(Key("0815"), arrayOf(1, 2, 3))
+    @Test fun negated_succeeds()
+        = assertDoesNotThrow { expect(1 _is not-greater than 1) }
 
-        expect({ sut.push(data, peer) } does not-_throw-exception)
+    @Test fun negated_fails()
+        = assertFails { expect(2 _is not-greater than 1) }
+
+    private object otherComparable : Comparable<Int> {
+        override fun compareTo(other: Int) = other
     }
 }

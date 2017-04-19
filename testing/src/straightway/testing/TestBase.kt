@@ -13,20 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.testing
 
-import org.junit.jupiter.api.Test
-import straightway.testing.flow._is
-import straightway.testing.flow.empty
-import straightway.testing.flow.expect
+import org.junit.jupiter.api.AfterEach
 
-internal class SimulatorTest_reset : SimulatorTest() {
+/**
+ * Base class for unit tests test obects of type T.
+ */
+open class TestBase<T> {
 
-    @Test fun withoutEvent_hasNoEffect() = (sut as Controller).reset()
-
-    @Test fun clearEventQueue() {
-        sut.schedule(defaultEventDuration) {}
-        sut.reset()
-        expect(sut.eventQueue _is empty)
+    //<editor-fold desc="Setup/tear down">
+    @AfterEach
+    fun tearDown() {
+        nullableSut = null
     }
+    //</editor-fold>
+
+    protected var sut: T
+        get() = nullableSut!!
+        set(value) {
+            nullableSut = value
+        }
+
+    //<editor-fold desc="Private">
+    private var nullableSut: T? = null
+    //</editor-fold>
 }

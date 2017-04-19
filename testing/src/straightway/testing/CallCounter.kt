@@ -13,20 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.testing
 
-import org.junit.jupiter.api.Test
-import straightway.testing.flow._is
-import straightway.testing.flow.empty
-import straightway.testing.flow.expect
+/**
+ * Provides an action who's calls are counted.
+ */
+class CallCounter {
+    var calls: Int = 0
+        get
+        private set
 
-internal class SimulatorTest_reset : SimulatorTest() {
-
-    @Test fun withoutEvent_hasNoEffect() = (sut as Controller).reset()
-
-    @Test fun clearEventQueue() {
-        sut.schedule(defaultEventDuration) {}
-        sut.reset()
-        expect(sut.eventQueue _is empty)
-    }
+    val action: () -> Unit = { ++calls }
 }

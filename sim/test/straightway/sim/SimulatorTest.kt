@@ -16,7 +16,7 @@
 package straightway.sim
 
 import org.junit.jupiter.api.BeforeEach
-import straightway.test.TestBase
+import straightway.testing.TestBase
 
 internal abstract class SimulatorTest : TestBase<Simulator>()
 {

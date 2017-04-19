@@ -13,20 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
-import straightway.testing.flow._is
-import straightway.testing.flow.empty
-import straightway.testing.flow.expect
+import straightway.testing.assertDoesNotThrow
+import straightway.testing.assertFails
 
-internal class SimulatorTest_reset : SimulatorTest() {
+class RelationTest_true {
 
-    @Test fun withoutEvent_hasNoEffect() = (sut as Controller).reset()
+    @Test fun succeeds() =
+            assertDoesNotThrow { expect(true _is _true) }
 
-    @Test fun clearEventQueue() {
-        sut.schedule(defaultEventDuration) {}
-        sut.reset()
-        expect(sut.eventQueue _is empty)
-    }
+    @Test fun fails() =
+            assertFails { expect(false _is _true) }
 }

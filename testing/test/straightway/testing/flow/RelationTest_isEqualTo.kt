@@ -13,33 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.integrationtest
+package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import straightway.Identifyable
-import straightway.data.Chunk
-import straightway.data.Key
 import straightway.general.dsl.minus
-import straightway.network.PushTarget
-import straightway.testing.flow.*
+import straightway.testing.assertDoesNotThrow
+import straightway.testing.assertFails
 
-class NetworkClientTest {
+class RelationTest_isEqualTo {
 
-    @Test fun id() {
-        val sut = NetworkClient("client") as Identifyable
-        expect(sut.id _is equal to "client")
-    }
-
-    @Test fun push_isAccepted() {
-        val sut = NetworkClient("client") as PushTarget
-
-        val peer = mock(Identifyable::class.java)
-        `when`(peer.id).thenReturn("node")
-
-        val data = Chunk(Key("0815"), arrayOf(1, 2, 3))
-
-        expect({ sut.push(data, peer) } does not-_throw-exception)
-    }
+    @Test fun passes() = assertDoesNotThrow { expect(1 _is equal to 1) }
+    @Test fun fails() = assertFails { expect(1 _is equal to 2) }
+    @Test fun negation_passes() = assertDoesNotThrow { expect(1 _is not-equal to 2) }
 }

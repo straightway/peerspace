@@ -10,7 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="general" />
-    <orderEntry type="module" module-name="test" />
-    <orderEntry type="library" name="JUnit5" level="application" />
+    <orderEntry type="library" scope="TEST" name="JUnit5" level="application" />
+    <orderEntry type="module" module-name="testing" scope="TEST" />
   </component>
 </module>

@@ -13,11 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.sim.core
 
-import java.time.Duration
-import java.time.LocalDateTime
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import straightway.general.TimeProvider
+import straightway.sim.Controller
+import straightway.sim.Scheduler
 
-internal val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
-
-internal val defaultEventDuration = Duration.ofMinutes(1)
+internal class SimulatorTest_interfaces : SimulatorTest() {
+    @Test fun isTimeProvider() = assertTrue(sut is TimeProvider)
+    @Test fun isSimulationController() = assertTrue(sut is Controller)
+    @Test fun isSimulationScheduler() = assertTrue(sut is Scheduler)
+}

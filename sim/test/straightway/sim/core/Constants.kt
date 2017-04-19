@@ -13,11 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim
+package straightway.sim.core
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import java.time.Duration
+import java.time.LocalDateTime
 
-internal class SimulatorTest_currentTime : SimulatorTest() {
-    @Test fun isInitiallyZero() = assertEquals(initialTime, sut.currentTime)
-}
+internal val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
+
+internal val defaultEventDuration = Duration.ofMinutes(1)

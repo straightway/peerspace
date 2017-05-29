@@ -13,17 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general.dsl
+@file:Suppress("UNCHECKED_CAST")
 
-/**
- * An expression associated with a type used as a state. The type itself is not
- * instantiated, it is used to be able to control binding of functions at compile t.
- */
-@Suppress("unused")
-interface StateExpr<TState> : Expr
+package straightway.general.units
 
-fun <T> Expr.inState() : StateExpr<T> = StateExprImpl<T>(this)
-
-private class StateExprImpl<TState>(private val wrapped: Expr) : StateExpr<TState>, Expr by wrapped {
-    override fun toString() = wrapped.toString()
+interface RescalableQuantity : Quantity {
+    fun withScale(scale: UnitScale): RescalableQuantity
 }
+
+fun <Q: RescalableQuantity> Q.timesScaleOf(other: Quantity) =
+    this.withScale(scale * other.scale * other.siScaleCorrection.reciproke) as Q
+
+fun <Q: RescalableQuantity> Q.divScaleOf(other: Quantity) =
+    this.withScale(scale * other.siScaleCorrection * other.scale.reciproke) as Q

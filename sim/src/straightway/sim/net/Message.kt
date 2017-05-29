@@ -13,17 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general.dsl
+package straightway.sim.net
 
-/**
- * An expression associated with a type used as a state. The type itself is not
- * instantiated, it is used to be able to control binding of functions at compile t.
- */
-@Suppress("unused")
-interface StateExpr<TState> : Expr
-
-fun <T> Expr.inState() : StateExpr<T> = StateExprImpl<T>(this)
-
-private class StateExprImpl<TState>(private val wrapped: Expr) : StateExpr<TState>, Expr by wrapped {
-    override fun toString() = wrapped.toString()
-}
+data class Message(val content: Any, val bytes: Long)

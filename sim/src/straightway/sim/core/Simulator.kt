@@ -23,7 +23,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 /**
- * Run an event driven simulation by excuting actions at given simulated time points.
+ * Run an event driven simulation by excuting actions at given simulated t points.
  */
 class Simulator : TimeProvider, Controller, Scheduler {
 

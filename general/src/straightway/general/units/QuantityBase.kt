@@ -13,17 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general.dsl
+package straightway.general.units
 
-/**
- * An expression associated with a type used as a state. The type itself is not
- * instantiated, it is used to be able to control binding of functions at compile t.
- */
-@Suppress("unused")
-interface StateExpr<TState> : Expr
-
-fun <T> Expr.inState() : StateExpr<T> = StateExprImpl<T>(this)
-
-private class StateExprImpl<TState>(private val wrapped: Expr) : StateExpr<TState>, Expr by wrapped {
-    override fun toString() = wrapped.toString()
+abstract class QuantityBase(
+    private val shortIdBase: String,
+    final override val scale: UnitScale,
+    private val scaler: (UnitScale) -> QuantityBase)
+    : RescalableQuantity
+{
+    final override val shortId by lazy { "$siScaleCorrection$shortIdBase" }
+    override fun withScale(scale: UnitScale) = scaler(scale)
+    override fun toString() = "$scale$shortIdBase"
+    override fun equals(other: Any?) =
+        other != null &&
+        this::class == other::class &&
+        other is QuantityBase &&
+        shortId == other.shortId &&
+        scale == other.scale
+    override fun hashCode() = shortId.hashCode() xor scale.hashCode()
 }

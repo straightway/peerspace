@@ -16,7 +16,7 @@ limitations under the License.
 package straightway.general.dsl
 
 /**
- * A terminal value expression.
+ * A terminal scaledValue expression.
  */
 open class Value(private val value: Any) : Expr {
     override val arity = 0
@@ -30,7 +30,7 @@ open class Value(private val value: Any) : Expr {
     override fun toString() = when (value) {
         is Array<*> -> value.asList().toString()
         is String -> value
-        //is CharSequence -> value.toList().toString()
+        //is CharSequence -> scaledValue.toList().toString()
         is Sequence<*> -> value.toList().toString()
         else -> value.toString()
     }

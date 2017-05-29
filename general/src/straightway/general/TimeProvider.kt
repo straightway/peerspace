@@ -18,8 +18,8 @@ package straightway.general
 import java.time.LocalDateTime
 
 /**
- * Provide the current time. Can be used to abstract the time to be able to
- * simulate and unit-test time-dependent algorithms.
+ * Provide the current t. Can be used to abstract the t to be able to
+ * simulate and unit-test t-dependent algorithms.
  */
 interface TimeProvider {
     val currentTime: LocalDateTime

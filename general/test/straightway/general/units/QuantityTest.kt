@@ -13,17 +13,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general.dsl
+package straightway.general.units
 
-/**
- * An expression associated with a type used as a state. The type itself is not
- * instantiated, it is used to be able to control binding of functions at compile t.
- */
-@Suppress("unused")
-interface StateExpr<TState> : Expr
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
-fun <T> Expr.inState() : StateExpr<T> = StateExprImpl<T>(this)
+class QuantityTest {
 
-private class StateExprImpl<TState>(private val wrapped: Expr) : StateExpr<TState>, Expr by wrapped {
-    override fun toString() = wrapped.toString()
+    @Test fun siScale_withoutSiScaleCorrection_unscaled() =
+        assertEquals(uni, candela.siScale)
+
+    @Test fun siScale_withoutSiScaleCorrection_scaled() =
+        assertEquals(kilo, kilo(candela).siScale)
+
+    @Test fun siScale_withSiScaleCorrection_unscaled() =
+        assertEquals(milli, gramm.siScale)
+
+    @Test fun siScale_withSiScaleCorrection_scaledToSiScaleCorrection() =
+        assertEquals(uni, kilo(gramm).siScale)
+
+    @Test fun siScale_withSiScaleCorrection_upscaled() =
+        assertEquals(kilo, mega(gramm).siScale)
 }

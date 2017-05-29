@@ -24,7 +24,7 @@ open class TestBase<T> {
 
     //<editor-fold desc="Setup/tear down">
     @AfterEach
-    fun tearDown() {
+    open fun tearDown() {
         nullableSut = null
     }
     //</editor-fold>

@@ -9,7 +9,7 @@ data class UnitScale(val prefix: String, val magnitude: Number) {
     val reciproke by lazy { createScaleFor(1.0 / magnitude) }
 
     @Suppress("UNCHECKED_CAST")
-    operator fun <T: RescalableQuantity> invoke(unit: T) = unit.withScale(this) as T
+    operator fun <T: Quantity> invoke(unit: T) = unit.withScale(this) as T
 
     override fun toString() = prefix
 

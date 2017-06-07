@@ -1,3 +1,3 @@
 package straightway.general.units
 
-//typealias Speed = Quotient<Length, Time>
+typealias Speed = Product<Length, Reciproke<Time>>

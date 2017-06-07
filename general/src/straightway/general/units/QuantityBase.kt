@@ -19,9 +19,9 @@ abstract class QuantityBase(
     private val shortIdBase: String,
     final override val scale: UnitScale,
     private val scaler: (UnitScale) -> QuantityBase)
-    : RescalableQuantity
+    : Quantity
 {
-    final override val shortId by lazy { "$siScaleCorrection$shortIdBase" }
+    override val shortId by lazy { "$siScaleCorrection$shortIdBase" }
     override fun withScale(scale: UnitScale) = scaler(scale)
     override fun toString() = "$scale$shortIdBase"
     override fun equals(other: Any?) =

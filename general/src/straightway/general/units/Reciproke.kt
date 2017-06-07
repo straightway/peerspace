@@ -1,15 +1,13 @@
 package straightway.general.units
 
-import straightway.general.numbers.div
-
-data class Reciproke<TBaseQuantity: Quantity, out TWrapped: BaseQuantityProduct<TBaseQuantity>>(
-    val wrapped: TWrapped) : QuantityExpr<TBaseQuantity>
+data class Reciproke<TBaseQuantity: Quantity>(
+    val wrapped: TBaseQuantity, override val scale: UnitScale) : Quantity
 {
-    override val scale = UnitScale(1.0 / wrapped.scale.magnitude)
-    override val exponent by lazy { -wrapped.exponent }
+    constructor(wrapped: TBaseQuantity) : this(wrapped, wrapped.siScale.reciproke)
     override val shortId get() = "1/${wrapped.shortId}"
     override fun toString() = "1/$wrapped"
+    override fun withScale(scale: UnitScale) = Reciproke(wrapped, scale)
 }
 
-fun <TBaseQuantity: Quantity, TWrapped: Factor<TBaseQuantity, TRest>, TRest: QuantityExpr<TBaseQuantity>>
-    reciproke(wrapped: TWrapped) = Reciproke(wrapped)
+fun <TBaseQuantity: Quantity> reciproke(wrapped: TBaseQuantity) =
+    Reciproke(wrapped)

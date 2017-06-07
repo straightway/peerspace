@@ -29,6 +29,7 @@ class StandardQuantityTest {
             testComparison()
             testToString_scaled()
             testToString_unscaled()
+            testTimesOne()
         }
     }
 
@@ -44,13 +45,18 @@ class StandardQuantityTest {
     private fun testToString_scaled() = assertEquals("1 m${sut.shortId}", 1[milli(sut.quantity)].toString())
     { "${sut.quantity::class}.toString" }
 
-    private data class TestedQuantity(val quantity: RescalableQuantity, val shortId: String)
+    private fun testTimesOne() = assertEquals(sut.quantity.timesScaleOf(kilo(one)), sut.quantity * kilo(one))
+    { "${sut.quantity::class}.times(one)" }
+
+    private data class TestedQuantity(val quantity: Quantity, val shortId: String)
     private var sut = TestedQuantity(one, "initial")
     private val testedQuantities = arrayOf(
-        TestedQuantity(one, ""),
+        TestedQuantity(one, "1"),
         TestedQuantity(mol, "mol"),
         TestedQuantity(ampere, "A"),
         TestedQuantity(meter, "m"),
         TestedQuantity(candela, "cd"),
-        TestedQuantity(kelvin, "K"))
+        TestedQuantity(gramm, "g"),
+        TestedQuantity(kelvin, "K"),
+        TestedQuantity(second, "s"))
 }

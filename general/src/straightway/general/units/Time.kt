@@ -5,7 +5,7 @@ import straightway.general.numbers.times
 data class Time internal constructor(
     override val shortId: String,
     override val scale: UnitScale,
-    private val baseMagnitude: Number) : RescalableQuantity
+    private val baseMagnitude: Number) : Quantity
 {
     internal constructor(shortId: String, numberOfSeconds: Number) :
         this(shortId, UnitScale("", numberOfSeconds), numberOfSeconds)

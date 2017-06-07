@@ -19,36 +19,37 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class ReciprokeTest {
-    @Test fun Reciproke_hasNegatedExponent() =
-        assertEquals(-2, Reciproke(square(meter)).exponent)
     @Test fun Reciproke_shortId() =
         assertEquals("1/m²", Reciproke(square(meter)).shortId)
     @Test fun Reciproke_shortId_containsNoScale() =
         assertEquals("1/m²", Reciproke(square(kilo(meter))).shortId)
     @Test fun Reciproke_toString() =
-        assertEquals("1/(km)²", Reciproke(square(kilo(meter))).toString())
+        assertEquals("1/km²", Reciproke(square(kilo(meter))).toString())
     @Test fun Reciproke_hasReciprokeScale() =
-        assertEquals(milli, Reciproke(linear(kilo(meter))).scale)
+        assertEquals(milli, Reciproke(kilo(meter)).scale)
     @Test fun Reciproke_square_hasReciprokeScale() =
         assertEquals(micro, Reciproke(square(kilo(meter))).scale)
     @Test fun Reciproke_respectsCorrectedSiScale() =
-        assertEquals(uni, Reciproke(linear(kilo(gramm))).scale)
+        assertEquals(uni, Reciproke(kilo(gramm)).scale)
 
     @Test fun Reciproke_equals_true() =
-        assertTrue(Reciproke(linear(meter)).equals(Reciproke(linear(meter))))
+        assertTrue(Reciproke(meter).equals(Reciproke(meter)))
     @Test fun Reciproke_equals_null_false() =
-        assertFalse(Reciproke(linear(meter)).equals(null))
+        assertFalse(Reciproke(meter).equals(null))
     @Test fun Reciproke_equals_differentTypes_false() =
-        assertFalse(Reciproke(linear(meter)).equals("Hello"))
+        assertFalse(Reciproke(meter).equals("Hello"))
     @Test fun Reciproke_equals_differentBaseQuantity_false() =
-        assertFalse(Reciproke(linear(meter)).equals(Reciproke(linear(kelvin))))
+        assertFalse(Reciproke(meter).equals(Reciproke(kelvin)))
     @Test fun Reciproke_equals_sameBaseQuantity_differentScale_false() =
-        assertFalse(Reciproke(linear(meter)).equals(Reciproke(linear(kilo(meter)))))
+        assertFalse(Reciproke(meter).equals(Reciproke(kilo(meter))))
     @Test fun Reciproke_equals_sameBaseQuantity_differentExponent_false() =
-        assertFalse(Reciproke(linear(meter)).equals(Reciproke(square(meter))))
+        assertFalse(Reciproke(meter).equals(Reciproke(square(meter))))
 
     @Test fun scale() =
-        assertEquals(milli, reciproke(linear(kilo(meter))).scale)
+        assertEquals(milli, reciproke(kilo(meter)).scale)
     @Test fun scale_withCorrectedSiScale() =
-        assertEquals(uni, reciproke(linear(kilo(gramm))).scale)
+        assertEquals(uni, reciproke(kilo(gramm)).scale)
+
+    @Test fun rescale() =
+        assertEquals(kilo, kilo(reciproke(mega(meter))).scale)
 }

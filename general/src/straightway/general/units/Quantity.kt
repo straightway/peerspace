@@ -4,6 +4,7 @@ interface Quantity {
     val shortId: String
     val scale: UnitScale
     val siScaleCorrection: UnitScale get() = uni
+    val valueShift: Number get() = 0
     fun withScale(scale: UnitScale): Quantity
 }
 

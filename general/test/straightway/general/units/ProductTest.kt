@@ -66,6 +66,18 @@ class ProductTest {
             Product(kelvin, Product(mol, Product(kelvin,
                 Product(Reciproke(meter), Product(Reciproke(meter), Reciproke(second)))))).shortId)
 
+    @Test fun withShortId_changesShortId() =
+        assertEquals("X", (meter / second).withShortId("X").shortId)
+
+    @Test fun withShortId_changesStringRepresentation() =
+        assertEquals("X", (meter / second).withShortId("X").toString())
+
+    @Test fun withShortId_keepsScale() =
+        assertEquals(deca, (kilo(meter) / hecto(second)).withShortId("X").scale)
+
+    @Test fun withShortId_respectsScaleCorrection() =
+        assertEquals(uni, (kilo(gramm) / second).withShortId("X").scale)
+
     @Test fun scale_uni_whenBothSubexpressionsHave_ScaleUni() =
         assertEquals(uni, Product(second, meter).scale)
     @Test fun scale_isLeftScale_whenRightIsUni() =
@@ -98,55 +110,40 @@ class ProductTest {
 
     @Test fun square_hasSquaredShortId() =
         assertEquals("m²", square(meter).shortId)
-
     @Test fun square_hasSquaredShortId_withScale() =
         assertEquals("m²", square(kilo(meter)).shortId)
-
     @Test fun Mass_square_hasSquaredShortId_withScale() =
         assertEquals("kg²", square(kilo(gramm)).shortId)
-
     @Test fun square_hasSquaredScale() =
         assertEquals(mega, square(kilo(meter)).scale)
-
     @Test fun square_respectsCorrectedSiScale() =
         assertEquals(uni, square(kilo(gramm)).scale)
-
     @Test fun square_toString() =
         assertEquals("m²", square(meter).toString())
-
     @Test fun Mass_square_toString() =
         assertEquals("kg²", square(kilo(gramm)).toString())
-
     @Test fun square_toString_withScale() =
         assertEquals("km²", square(kilo(meter)).toString())
 
     @Test fun cubic_hasCubicShortId() =
         assertEquals("m³", cubic(meter).shortId)
-
     @Test fun cubic_hasSquaredScale() =
         assertEquals(giga, cubic(kilo(meter)).scale)
-
     @Test fun cubic_respectsCorrectedSiScale() =
         assertEquals(uni, cubic(kilo(gramm)).scale)
-
     @Test fun cubic_toString() =
         assertEquals("m³", cubic(meter).toString())
-
     @Test fun cubic_toString_withScale() =
         assertEquals("km³", cubic(kilo(meter)).toString())
 
     @Test fun pow4_hasShortIdToThePowerOf4() =
         assertEquals("m^4", Product(meter, cubic(meter)).shortId)
-
     @Test fun pow4_hasSquaredScale() =
         assertEquals(tera, Product(kilo(meter), cubic(kilo(meter))).scale)
-
     @Test fun pow4_respectsCorrectedSiScale() =
         assertEquals(uni, Product(kilo(gramm), cubic(kilo(gramm))).scale)
-
     @Test fun pow4_toString() =
         assertEquals("m^4", Product(meter, cubic(meter)).toString())
-
     @Test fun pow4_toString_withScale() =
         assertEquals("km^4", Product(kilo(meter), cubic(kilo(meter))).toString())
 }

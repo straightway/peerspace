@@ -16,23 +16,27 @@ limitations under the License.
 package straightway.general.units
 
 import straightway.general.numbers.compareTo
-import straightway.general.numbers.div
+import straightway.general.numbers.minus
+import straightway.general.numbers.plus
 import straightway.general.numbers.times
 
 data class UnitValue<TValue: Number, TQuantity: Quantity>(
     val value: TValue,
     val unit: TQuantity) : Comparable<UnitValue<TValue, TQuantity>>
 {
-    val scaledValue by lazy { value * unit.scale.magnitude / unit.siScaleCorrection.magnitude }
+    val baseValue by lazy { value * unit.siScale.magnitude + unit.valueShift }
+
+    operator fun get(newUnit: TQuantity) =
+        UnitValue((baseValue - newUnit.valueShift) * newUnit.siScale.reciproke.magnitude, newUnit)
 
     override fun toString() =
         "$value $unit".trimEnd()
     override fun equals(other: Any?) =
         other is UnitValue<*, *> &&
-        other.unit::class == unit::class &&
-        other.scaledValue == scaledValue
+            other.unit.shortId == unit.shortId &&
+            other.baseValue == baseValue
     override fun compareTo(other: UnitValue<TValue, TQuantity>) =
-        scaledValue.compareTo(other.scaledValue)
+        baseValue.compareTo(other.baseValue)
 }
 
 operator fun <TNum: Number, TQuantity: Quantity> TNum.get(unit: TQuantity) =

@@ -1,5 +1,18 @@
 package straightway.general.units
 
-class Temperature internal constructor(scale: UnitScale): QuantityBase("K", scale, { Temperature(it) })
+data class Temperature
+internal constructor(
+    private val symbol: String,
+    override val scale: UnitScale,
+    private val factor: Number,
+    override val valueShift: Number)
+    : Quantity {
+    override val shortId = "K"
+    override val siScaleCorrection by lazy { UnitScale(factor).reciproke }
+    override fun withScale(scale: UnitScale): Quantity = Temperature(symbol, scale, factor, valueShift)
+    override fun toString() = "$scale$symbol"
+}
 
-val kelvin = Temperature(uni)
+val kelvin = Temperature("K", uni, 1, 0)
+val celsius = Temperature("°C", uni, 1, 273.15)
+val fahrenheit = Temperature("°F", uni, 5.0 / 9.0, 459.67 * 5.0 / 9.0)

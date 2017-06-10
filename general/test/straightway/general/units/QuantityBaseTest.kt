@@ -18,7 +18,7 @@ package straightway.general.units
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class UnitBaseClassTest {
+class QuantityBaseTest {
     @Test fun shortId() = assertEquals("TU", testUnit.shortId)
     @Test fun toStringResult() = assertEquals("TU", testUnit.toString())
 

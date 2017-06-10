@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 
 class MassTest {
 
-    @Test fun kiloGramm_isBaseUnit() = assertEquals(1.0, 1.0[kilo(gramm)].scaledValue)
-    @Test fun gramm() = assertEquals(1e-3, 1.0[gramm].scaledValue)
+    @Test fun kiloGramm_isBaseUnit() = assertEquals(1.0, 1.0[kilo(gramm)].baseValue)
+    @Test fun gramm() = assertEquals(1e-3, 1.0[gramm].baseValue)
     @Test fun shortd() = assertEquals("kg", gramm.shortId)
 }

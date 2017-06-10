@@ -20,15 +20,21 @@ data class Product<QLeft: Quantity, QRight: Quantity>
         internal val left: QLeft,
         internal val right: QRight,
         override val scale: UnitScale,
-        private val isAutoScale: Boolean)
+        private val isAutoScale: Boolean,
+        private val explicitShortId: String? = null)
     : Quantity
 {
     constructor(left: QLeft, right: QRight)
         : this(left, right, left.siScale * right.siScale, isAutoScale = true)
-    override val shortId: String by lazy {
-        (listOf(shortIdFactors.numerators) + shortIdFactors.denominators).joinToString("/")
-    }
-    override fun withScale(scale: UnitScale) = Product(left, right, scale, isAutoScale = false)
+
+    override val shortId: String get() =
+    explicitShortId ?: (listOf(shortIdFactors.numerators) + shortIdFactors.denominators).joinToString("/")
+
+    override fun withScale(scale: UnitScale) =
+        Product(left, right, scale, isAutoScale = false)
+
+    fun withShortId(newShortId: String) =
+        Product(left, right, scale, isAutoScale = false, explicitShortId = newShortId)
 
     override fun toString() = when {
         isAutoScale && hasUniformRepresentation

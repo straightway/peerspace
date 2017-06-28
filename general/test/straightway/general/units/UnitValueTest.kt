@@ -34,12 +34,14 @@ class UnitValueTest {
     @Test fun toString_unscaled() = assertEquals("2 TU", 2[testUnit].toString())
     @Test fun toString_scaled() = assertEquals("2 kTU", 2[kilo(testUnit)].toString())
 
-    @Test fun equals_sameQuantity_sameScale() = assertTrue(2[testUnit].equals(2[testUnit]))
-    @Test fun equals_sameQuantity_differentScale() = assertTrue(2000[testUnit].equals(2[kilo(testUnit)]))
-    @Test fun equals_sameQuantity_differentUnit() = assertFalse(2[testUnit].equals(2[otherTestUnit]))
+    @Test fun equals_sameQuantity_sameScale() = assertTrue(2[testUnit] == 2[testUnit])
+    @Test fun equals_sameQuantity_differentScale() = assertTrue(2000[testUnit] == 2[kilo(testUnit)])
+    @Test fun equals_sameQuantity_differentUnit() = assertFalse(2[testUnit] == 2[otherTestUnit])
+    @Suppress("ReplaceCallWithComparison")
     @Test fun equals_differentTypes() = assertFalse(2000[testUnit].equals("Hallo"))
-    @Test fun equals_differentProducts() = assertFalse(2000[meter * second].equals(2000[mol * ampere]))
-    @Test fun equals_shiftedUnit() = assertTrue(0[TestQuantity(uni, 1)].equals(1[TestQuantity(uni, 0)]))
+
+    @Test fun equals_differentProducts() = assertFalse(2000[meter * second] == 2000[mol * ampere])
+    @Test fun equals_shiftedUnit() = assertTrue(0[TestQuantity(uni, 1)] == 1[TestQuantity(uni, 0)])
 
     @Test fun compare_sameScale_true() = assertTrue(1[testUnit] < 2[testUnit])
     @Test fun compare_sameScale_false() = assertFalse(2[testUnit] < 1[testUnit])
@@ -47,7 +49,7 @@ class UnitValueTest {
 
     @Test fun siCorrectedUnit_value() = assertEquals(2, 2[siCorrectedTestUnit].value)
     @Test fun siCorrectedUnit_scaledValue() = assertEquals(2.0, 2.0[siCorrectedTestUnit].baseValue)
-    @Test fun siCorrectedUnit_baseValue() = assertEquals(2e3, 2.0[uni(siCorrectedTestUnit)].baseValue)
+    @Test fun siCorrectedUnit_baseValue() = assertEquals(2e3, 2.0[siCorrectedTestUnit withScale uni].baseValue)
 
     @Test fun convert_sameUnit() =
         assertEquals(1, 1[testUnit][testUnit].value)
@@ -65,7 +67,7 @@ class UnitValueTest {
         assertEquals(1, 1[siCorrectedTestUnit][siCorrectedTestUnit].value)
 
     @Test fun convert_scaleCorrected_sourceScaled() =
-        assertEquals(1_000.0, 1[kilo(siCorrectedTestUnit)][uni(siCorrectedTestUnit)].value)
+        assertEquals(1_000, 1[kilo(siCorrectedTestUnit)][uni(siCorrectedTestUnit)].value)
 
     @Test fun convert_scaleCorrected_targetScaled() =
         assertEquals(1_000, 1[uni(siCorrectedTestUnit)][milli(siCorrectedTestUnit)].value)
@@ -122,7 +124,10 @@ class UnitValueTest {
 
     //region Private
 
+    @Suppress("UNUSED_PARAMETER")
     private fun foo(v: UnitValue<Number, TestQuantity>) {}
+
+    @Suppress("UNUSED_PARAMETER")
     private fun bar(v: UnitValue<Number, Product<Length, Reciproke<Time>>>) {}
 
     private open class TestQuantity(scale: UnitScale, override val valueShift: Number)

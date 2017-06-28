@@ -15,12 +15,11 @@ limitations under the License.
  ****************************************************************************/
 package straightway.general.units
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+class AmountOfData constructor(
+    symbol: String,
+    scale: UnitScale,
+    baseMagnitude: Number)
+    : QuantityBase("bit", symbol, scale, baseMagnitude, { AmountOfData(symbol, it, baseMagnitude) })
 
-class QuantityBaseTest {
-    @Test fun toStringResult() = assertEquals("TU", testUnit.toString())
-
-    private class TestQuantity(scale: UnitScale) : QuantityBase("TU", scale, { TestQuantity(it) })
-    private val testUnit = TestQuantity(uni)
-}
+val bit = AmountOfData("bit", uni, 1)
+val byte = AmountOfData("byte", uni, 8)

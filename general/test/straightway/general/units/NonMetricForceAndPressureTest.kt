@@ -17,21 +17,15 @@ package straightway.general.units
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import straightway.general.numbers.times
 
-class UnitScaleTest {
-    @Test fun reciproke_timesOriginal_isUni() =
-        assertEquals(1.0, kilo.magnitude * kilo.reciproke.magnitude)
-    @Test fun construction_withNonPredefinedMagnitude_autoCreatesPrefix() =
-        assertEquals("[10000]", UnitScale(10000).prefix)
-    @Test fun construction_withPredefinedMagnitude_autoUsesPredefinedPrefix() =
-        assertEquals("k", UnitScale(1000).prefix)
-    @Test fun construction_withPredefinedMagnitudeDouble_autoUsesPredefinedPrefix() =
-        assertEquals("k", UnitScale(1000.0).prefix)
+class NonMetricForceAndPressureTest {
 
-    @Test fun scalingAUnit() =
-        assertEquals(kilo, kilo(meter).scale)
+    @Test fun compare_poundForce_to_newton() =
+        assertEquals(4.4482216152605[newton], 1[poundForce])
 
-    @Test fun scalingAUnit_twice() =
-        assertEquals(mega, kilo(kilo(one)).scale)
+    @Test fun compare_psi_to_pascal() =
+        assertEquals(6894.757293168362[pascal].baseValue, 1.0[psi].baseValue)
+
+    @Test fun compare_bar_pascal() =
+        assertEquals(1000[hecto(pascal)], 1[bar])
 }

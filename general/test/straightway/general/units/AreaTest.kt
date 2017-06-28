@@ -17,21 +17,17 @@ package straightway.general.units
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import straightway.general.numbers.times
 
-class UnitScaleTest {
-    @Test fun reciproke_timesOriginal_isUni() =
-        assertEquals(1.0, kilo.magnitude * kilo.reciproke.magnitude)
-    @Test fun construction_withNonPredefinedMagnitude_autoCreatesPrefix() =
-        assertEquals("[10000]", UnitScale(10000).prefix)
-    @Test fun construction_withPredefinedMagnitude_autoUsesPredefinedPrefix() =
-        assertEquals("k", UnitScale(1000).prefix)
-    @Test fun construction_withPredefinedMagnitudeDouble_autoUsesPredefinedPrefix() =
-        assertEquals("k", UnitScale(1000.0).prefix)
+class AreaTest {
+    @Test fun are_id() = assertEquals(square(meter).id, are.id)
+    @Test fun are_toString() = assertEquals("a", are.toString())
+    @Test fun are_scaling() = assertEquals(1000[are], 1[kilo(are)])
+    @Test fun conversion_are_to_squareMeter() = assertEquals(100, 1[are][square(meter)].value)
+    @Test fun conversion_squareMeter_to_are() = assertEquals(1, 100[square(meter)][are].value)
 
-    @Test fun scalingAUnit() =
-        assertEquals(kilo, kilo(meter).scale)
-
-    @Test fun scalingAUnit_twice() =
-        assertEquals(mega, kilo(kilo(one)).scale)
+    @Test fun hectare_id() = assertEquals(square(meter).id, hectare.id)
+    @Test fun hectare_toString() = assertEquals("ha", hectare.toString())
+    @Test fun hectare_scaling() = assertEquals(1000[hectare], 1[kilo(hectare)])
+    @Test fun conversion_hectare_to_squareMeter() = assertEquals(10000, 1[hectare][square(meter)].value)
+    @Test fun conversion_squareMeter_to_hectare() = assertEquals(1, 10000[square(meter)][hectare].value)
 }

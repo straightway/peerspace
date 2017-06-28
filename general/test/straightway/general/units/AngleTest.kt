@@ -15,12 +15,17 @@ limitations under the License.
  ****************************************************************************/
 package straightway.general.units
 
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class QuantityBaseTest {
-    @Test fun toStringResult() = assertEquals("TU", testUnit.toString())
+class AngleTest {
+    @Test fun radian_id() = Assertions.assertEquals(one.id, (radian).id)
+    @Test fun radian_toString() = Assertions.assertEquals("rad", ((radian).toString()))
+    @Test fun radian_scaling() = Assertions.assertEquals(1000[radian], 1[kilo(radian)])
 
-    private class TestQuantity(scale: UnitScale) : QuantityBase("TU", scale, { TestQuantity(it) })
-    private val testUnit = TestQuantity(uni)
+    @Test fun degree_id() = Assertions.assertEquals(one.id, (degree).id)
+    @Test fun degree_toString() = Assertions.assertEquals("°", ((degree).toString()))
+    @Test fun degree_scaling() = Assertions.assertEquals(1000[degree], 1[kilo(degree)])
+    @Test fun conversion_degree_rad() = Assertions.assertEquals(Math.PI, 180[degree][radian].value)
+    @Test fun conversion_rad_degree() = Assertions.assertEquals(180.0, Math.PI[radian][degree].value)
 }

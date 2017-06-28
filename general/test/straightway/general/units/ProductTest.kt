@@ -15,15 +15,17 @@ limitations under the License.
  ****************************************************************************/
 package straightway.general.units
 
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import straightway.general.Panic
+import straightway.general.numbers.times
 
 class ProductTest {
 
     @Test fun toString_containsBothSubExpressions() =
         assertEquals("m*s", Product(second, meter).toString())
     @Test fun toString_showsRescaledScale() =
-        assertEquals("k(m*s)", kilo(Product(milli(second), milli(meter))).toString())
+        assertEquals("m(m*s)", kilo(Product(milli(second), milli(meter))).toString())
     @Test fun toString_unscaled_showsLeftScale() =
         assertEquals("m*ms", Product(milli(second), meter).toString())
     @Test fun toString_unscaled_showsRightScale() =
@@ -34,49 +36,72 @@ class ProductTest {
         assertEquals("1/km*ms", Product(Reciproke(kilo(meter)), Reciproke(milli(second))).toString())
     @Test fun toString_withComplexNumeratorAndDenominator() =
         assertEquals(
-            "Mmol*kK²/m²*ms",
+            "Mmol*kK²/ms*m²",
             Product(kilo(kelvin), Product(mega(mol), Product(kilo(kelvin),
                 Product(Reciproke(meter), Product(Reciproke(meter), Reciproke(milli(second))))))).toString())
 
-    @Test fun shortId_containsBothSubExpressions() =
-        assertEquals("m*s", Product(second, meter).shortId)
-    @Test fun shortId_containsNoScale() =
-        assertEquals("m*s", Product(kilo(second), kilo(meter)).shortId)
-    @Test fun shortId_considersCorrectedSiScale() =
-        assertEquals("kg*m", Product(kilo(gramm), kilo(meter)).shortId)
-    @Test fun shortId_ofSquare_differentScale_sameUnit() =
-        assertEquals("m²", Product(mega(meter), milli(meter)).shortId)
-    @Test fun shortId_ofSquare_usesSquareCharacter() =
-        assertEquals("m²", Product(meter, meter).shortId)
-    @Test fun shortId_ofScaleCorrectedSquare_usesSquareCharacter() =
-        assertEquals("kg²", Product(gramm, gramm).shortId)
-    @Test fun shortId_ofCubic_usesCubicCharacter() =
-        assertEquals("m³", Product(meter, Product(meter, meter)).shortId)
-    @Test fun shortId_ofPow4_usesCaret() =
-        assertEquals("m^4", Product(meter, Product(meter, Product(meter, meter))).shortId)
-    @Test fun shortId_ofSquare_usesSquareCharacter_withinOtherProduct_left() =
-        assertEquals("m²*s", Product(meter, Product(meter, second)).shortId)
-    @Test fun shortId_ofSquare_usesSquareCharacter_withinOtherProduct_right() =
-        assertEquals("m*s²", Product(Product(meter, second), second).shortId)
-    @Test fun shortId_separatesReciprokeFactors() =
-        assertEquals("1/m*s", Product(Reciproke(meter), Reciproke(second)).shortId)
-    @Test fun shortId_withComplexNumeratorAndDenominator() =
-        assertEquals(
-            "K²*mol/m²*s",
-            Product(kelvin, Product(mol, Product(kelvin,
-                Product(Reciproke(meter), Product(Reciproke(meter), Reciproke(second)))))).shortId)
+    @Test fun id_dependsOnBothComponents() =
+        assertNotEquals((second * meter).id, (mol * meter).id)
 
-    @Test fun withShortId_changesShortId() =
-        assertEquals("X", (meter / second).withShortId("X").shortId)
+    @Test fun id_dependsOnBothComponents_complexType() =
+        assertNotEquals((square(meter) * square(mol) / (meter * second)).id, (square(mol) * meter * second / cubic(second)).id)
 
-    @Test fun withShortId_changesStringRepresentation() =
-        assertEquals("X", (meter / second).withShortId("X").toString())
+    @Test fun id_isIndependentOfOrderOfFactors() =
+        assertEquals((second * meter).id, (meter * second).id)
 
-    @Test fun withShortId_keepsScale() =
-        assertEquals(deca, (kilo(meter) / hecto(second)).withShortId("X").scale)
+    @Test fun id_isCancelled_resultOne() =
+        assertEquals(one.id, Product(second, Reciproke(second)).id)
 
-    @Test fun withShortId_respectsScaleCorrection() =
-        assertEquals(uni, (kilo(gramm) / second).withShortId("X").scale)
+    @Test fun id_isCancelled_higherFactor() =
+        assertEquals(second.id, Product(square(second), Reciproke(second)).id)
+
+    @Test fun id_isCancelled_higherFactor_reciproke() =
+        assertEquals(Reciproke(second).id, Product(second, Reciproke(square(second))).id)
+
+    @Test fun id_isCancelled_reciproke_reciproke() =
+        assertEquals(cubic(second).id, Product(second, Reciproke(Reciproke(square(second)))).id)
+
+    @Test fun withSymbol_keepsShortId() =
+        assertEquals((meter * second).id, (meter * second).withSymbol("X").id)
+
+    @Test fun withSymbol_changesStringRepresentation() =
+        assertEquals("X", (meter * second).withSymbol("X").toString())
+
+    @Test fun scaled_withSymbol_changesStringRepresentation() =
+        assertEquals("mX", milli((meter * second).withSymbol("X")).toString())
+
+    @Test fun withSymbol_scaledFactors_keepsSiScale() =
+        assertEquals(deca, (kilo(meter) * centi(second)).withSymbol("X").siScale)
+
+    @Test fun withSymbol_scaledFacors_hasScaleUni() =
+        assertEquals(uni, (kilo(meter) * hecto(second)).withSymbol("X").scale)
+
+    @Test fun withSymbol_respectsScaleCorrection() =
+        assertEquals(milli, (gramm * second).withSymbol("X").siScale)
+
+    @Test fun withSymbol_ofScaledUni_rescaled() =
+        assertEquals("kX", kilo((kilo(meter) * second).withSymbol("X")).toString())
+
+    @Test fun equals_sameFactors_sameOrder() =
+        assertEquals(meter * second, meter * second)
+
+    @Test fun equals_sameFactors_differentOrder() =
+        assertEquals(meter * second, second * meter)
+
+    @Test fun equals_differentFactors() =
+        assertNotEquals(meter * second, mol * meter)
+
+    @Test fun equals_sameFactors_differentScale() =
+        assertNotEquals(meter * second, meter * milli(second))
+
+    @Test fun equals_sameFactors_scaleOnDifferentFactor() =
+        assertEquals(meter * milli(second), milli(meter) * second)
+
+    @Test fun equals_sameFactors_globalScaleAndFactor1Scale() =
+        assertEquals(milli(meter * second), milli(meter) * second)
+
+    @Test fun equals_sameFactors_globalScaleAndFactor2Scale() =
+        assertEquals(milli(meter * second), meter * milli(second))
 
     @Test fun scale_uni_whenBothSubexpressionsHave_ScaleUni() =
         assertEquals(uni, Product(second, meter).scale)
@@ -94,7 +119,34 @@ class ProductTest {
         assertEquals(mega, Product(mega(second), kilo(gramm)).scale)
 
     @Test fun isScalable() =
-        assertEquals(kilo, kilo(Product(mega(meter), second)).scale)
+        assertEquals(giga, kilo(Product(mega(meter), second)).scale)
+
+    @Test fun baseMagnitude_ofLeft() =
+        assertEquals(inch.baseMagnitude, Product(inch, second).baseMagnitude)
+
+    @Test fun baseMagnitude_ofRight() =
+        assertEquals(inch.baseMagnitude, Product(second, inch).baseMagnitude)
+
+    @Test fun baseMagnitude_ofBoth() =
+        assertEquals(inch.baseMagnitude * minute.baseMagnitude, Product(minute, inch).baseMagnitude)
+
+    @Test fun normalizeToTypeOf_sameType() =
+        assertEquals(joule.left.left, (joule normalizedToTypeOf joule).left.left)
+
+    @Test fun normalizeToTypeOf_otherExpression_sameType() =
+        assertEquals(joule.left.left, (newton * meter normalizedToTypeOf joule).left.left)
+
+    @Test fun normalizeToTypeOf_otherType_throws() =
+        assertThrows(Panic::class.java) { meter * second normalizedToTypeOf joule }
+
+    @Test fun normalizeToTypeOf_keepsSymbol() =
+        assertEquals("J", (joule normalizedToTypeOf newton * meter).toString())
+
+    @Test fun normalizeToTypeOf_keepsScale() =
+        assertEquals(kilo, (kilo(joule) normalizedToTypeOf newton * meter).scale)
+
+    @Test fun normalizeToTypeOf_keepsBaseMagnitude() =
+        assertEquals(inch.baseMagnitude, (inch * second normalizedToTypeOf second * meter).baseMagnitude)
 
     @Test fun times_createsProduct() =
         assertEquals(Product(meter, second), meter * second)
@@ -106,14 +158,13 @@ class ProductTest {
         assertEquals(meter, meter * one)
 
     @Test fun div_createsProductWithReciproke() =
-        assertEquals(Product(meter, reciproke(second)), meter / second)
+        assertEquals(Product(meter, Reciproke(second)), meter / second)
 
-    @Test fun square_hasSquaredShortId() =
-        assertEquals("m²", square(meter).shortId)
+    @Test fun div_one_createsProductWithReciproke() =
+        assertEquals(second / meter, one / (meter / second))
+
     @Test fun square_hasSquaredShortId_withScale() =
-        assertEquals("m²", square(kilo(meter)).shortId)
-    @Test fun Mass_square_hasSquaredShortId_withScale() =
-        assertEquals("kg²", square(kilo(gramm)).shortId)
+        assertEquals(square(meter).id, square(kilo(meter)).id)
     @Test fun square_hasSquaredScale() =
         assertEquals(mega, square(kilo(meter)).scale)
     @Test fun square_respectsCorrectedSiScale() =
@@ -125,8 +176,6 @@ class ProductTest {
     @Test fun square_toString_withScale() =
         assertEquals("km²", square(kilo(meter)).toString())
 
-    @Test fun cubic_hasCubicShortId() =
-        assertEquals("m³", cubic(meter).shortId)
     @Test fun cubic_hasSquaredScale() =
         assertEquals(giga, cubic(kilo(meter)).scale)
     @Test fun cubic_respectsCorrectedSiScale() =
@@ -136,8 +185,6 @@ class ProductTest {
     @Test fun cubic_toString_withScale() =
         assertEquals("km³", cubic(kilo(meter)).toString())
 
-    @Test fun pow4_hasShortIdToThePowerOf4() =
-        assertEquals("m^4", Product(meter, cubic(meter)).shortId)
     @Test fun pow4_hasSquaredScale() =
         assertEquals(tera, Product(kilo(meter), cubic(kilo(meter))).scale)
     @Test fun pow4_respectsCorrectedSiScale() =

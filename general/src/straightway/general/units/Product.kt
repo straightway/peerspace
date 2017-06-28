@@ -15,44 +15,75 @@ limitations under the License.
  ****************************************************************************/
 package straightway.general.units
 
-data class Product<QLeft: Quantity, QRight: Quantity>
+import straightway.general.Panic
+import straightway.general.numbers.times
+import java.lang.Integer.max
+
+class Product<QLeft : Quantity, QRight : Quantity>
     private constructor(
         internal val left: QLeft,
         internal val right: QRight,
         override val scale: UnitScale,
         private val isAutoScale: Boolean,
-        private val explicitShortId: String? = null)
+        override val baseMagnitude: Number,
+        private val explicitSymbol: String? = null,
+        override val siScaleCorrection: UnitScale = uni)
     : Quantity
 {
     constructor(left: QLeft, right: QRight)
-        : this(left, right, left.siScale * right.siScale, isAutoScale = true)
+        : this(left, right, left.siScale * right.siScale, true, left.baseMagnitude * right.baseMagnitude)
 
-    override val shortId: String get() =
-    explicitShortId ?: (listOf(shortIdFactors.numerators) + shortIdFactors.denominators).joinToString("/")
+    override val id: QuantityId get() =
+    (listOf(idFactors.numerators(one.id)) + idFactors.denominators).joinToString("/")
 
-    override fun withScale(scale: UnitScale) =
-        Product(left, right, scale, isAutoScale = false)
+    override infix fun withScale(scale: UnitScale) =
+        Product(left, right, scale, false, baseMagnitude, explicitSymbol)
 
-    fun withShortId(newShortId: String) =
-        Product(left, right, scale, isAutoScale = false, explicitShortId = newShortId)
+    infix fun withSymbol(newSymbol: String) =
+        Product(left, right, uni, false, baseMagnitude, newSymbol, siScale.reciproke)
+
+    infix fun withBaseMagnitude(baseMagnitude: Number): Product<QLeft, QRight> =
+        Product(left, right, scale, isAutoScale, baseMagnitude, explicitSymbol)
+
+    @Suppress("UNCHECKED_CAST")
+    infix fun <Q : Product<*, *>> normalizedToTypeOf(target: Q): Q = when {
+        id != target.id -> throw Panic("Unit $this cannot be normalized as $target")
+        explicitSymbol != null -> target withSymbol explicitSymbol
+        else -> target
+    }.withScale(scale).withBaseMagnitude(baseMagnitude) as Q
+
+    override fun equals(other: Any?) =
+        other is Product<*, *> &&
+            id == other.id &&
+            scale == other.scale
+
+    override fun hashCode() =
+        left.hashCode() xor
+            right.hashCode() xor
+            scale.hashCode() xor
+            baseMagnitude.hashCode() xor
+            (explicitSymbol?.hashCode() ?: 0)
 
     override fun toString() = when {
         isAutoScale && hasUniformRepresentation
-            -> (listOf(toStringFactors.numerators) + toStringFactors.denominators).joinToString("/")
-        scale == uni -> shortId
-        else -> "$scale($shortId)"
+        -> (listOf(toStringFactors.numerators("1")) + toStringFactors.denominators).joinToString("/")
+        scale == uni -> explicitSymbol ?: toStringBase
+        else -> if (explicitSymbol == null) "$scale($toStringBase)" else "$scale$explicitSymbol"
     }
 
     //region private
 
-    private val shortIdFactors by lazy { getFactorRepresentation { shortId } }
+    private val idFactors by lazy { getFactorRepresentation { id } }
     private val toStringFactors by lazy { getFactorRepresentation { toString() } }
-    private val hasUniformRepresentation by lazy { toStringFactors.size == shortIdFactors.size }
+    private val toStringBaseFactors by lazy { getFactorRepresentation { withScale(uni * UnitScale(baseMagnitude)).toString() } }
+    private val toStringBase: String get() = (listOf(toStringBaseFactors.numerators("1")) + toStringBaseFactors.denominators).joinToString("/")
+    private val hasUniformRepresentation by lazy { toStringFactors.size == idFactors.size }
     private fun getFactorRepresentation(getter: Quantity.() -> String): List<String> {
-        return shortIdsOfFactors(getter)
-            .sorted()
+        return sortedFactors(getter)
             .groupBy { it }
-            .map { it.key pow it.value.size }
+            .cancelled()
+            .map { it.key pow it.value }
+            .sorted()
     }
 
     //endregion
@@ -62,7 +93,15 @@ operator fun <QLeft: Quantity, QRight: Quantity> QLeft.times(right: QRight) =
     Product(this, right)
 
 operator fun <QLeft: Quantity, QRight: Quantity> QLeft.div(right: QRight) =
-    Product(this, reciproke(right))
+    Product(this, Reciproke(right))
+
+typealias Square<T> = Product<T, T>
+fun <T : Quantity> square(q: T) = Square(q, q)
+
+typealias Cubic<T> = Product<T, Square<T>>
+fun <T : Quantity> cubic(q: T) = Cubic(q, square(q))
+
+//region Private
 
 private infix fun String.pow(exponent: Int) =
     when (exponent) {
@@ -72,18 +111,36 @@ private infix fun String.pow(exponent: Int) =
         else -> "$this^$exponent"
     }
 
-private val List<String>.numerators get() =
-    this.filter { !it.startsWith("1/") }.combineWithDefault("1")
+private fun List<String>.numerators(default: String) =
+    this.filter { !it.id }.combineWithDefault(default)
 
 private val List<String>.denominators: List<String> get() {
-    val result = this.filter { it.startsWith("1/") }.map { it.substring(2) }
+    val result = this.filter { it.id }.map { it.substring(2) }
     return if (result.isEmpty()) listOf<String>() else listOf(result.joinToString("*"))
 }
 
 private fun List<String>.combineWithDefault(default: String) =
     if (this.isEmpty()) default else this.joinToString("*")
 
-private fun Quantity.shortIdsOfFactors(getter: Quantity.() -> String): List<String> = when (this) {
-    is Product<*, *> -> left.shortIdsOfFactors(getter) + right.shortIdsOfFactors(getter)
+private fun Quantity.sortedFactors(getter: Quantity.() -> String): List<String> = when (this) {
+    is Product<*, *> -> left.sortedFactors(getter) + right.sortedFactors(getter)
+    is Reciproke<*> -> this.wrapped.sortedFactors(getter).map { it.reciproke }
     else -> kotlin.collections.listOf(getter())
 }
+
+private fun Map<String, List<String>>.cancelled() =
+    map(this::cancelFactor).filter(::hasNotNullExponent).toMap()
+
+private fun Map<String, List<String>>.cancelFactor(entry: Map.Entry<String, List<String>>) =
+    Pair(entry.key, max(0, entry.exponent - entry.reciprokeExponent(this)))
+
+private fun hasNotNullExponent(entry: Pair<String, Int>) = entry.second != 0
+private fun Map.Entry<String, List<String>>.reciprokeExponent(factors: Map<String, List<String>>) =
+    factors[reciproke]?.size ?: 0
+
+private val Map.Entry<String, List<String>>.exponent get() = value.size
+private val Map.Entry<String, List<String>>.reciproke get() = key.reciproke
+private val String.reciproke get() = if (this.id) substring(2) else "1/${this}"
+private val String.id get() = startsWith("1/")
+
+//endregion

@@ -16,22 +16,13 @@ limitations under the License.
 package straightway.general.units
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import straightway.general.numbers.times
 
-class UnitScaleTest {
-    @Test fun reciproke_timesOriginal_isUni() =
-        assertEquals(1.0, kilo.magnitude * kilo.reciproke.magnitude)
-    @Test fun construction_withNonPredefinedMagnitude_autoCreatesPrefix() =
-        assertEquals("[10000]", UnitScale(10000).prefix)
-    @Test fun construction_withPredefinedMagnitude_autoUsesPredefinedPrefix() =
-        assertEquals("k", UnitScale(1000).prefix)
-    @Test fun construction_withPredefinedMagnitudeDouble_autoUsesPredefinedPrefix() =
-        assertEquals("k", UnitScale(1000.0).prefix)
-
-    @Test fun scalingAUnit() =
-        assertEquals(kilo, kilo(meter).scale)
-
-    @Test fun scalingAUnit_twice() =
-        assertEquals(mega, kilo(kilo(one)).scale)
+class BandwidthTest {
+    @Test fun kbps_toString() = assertEquals("kbyte/s", ((kilo(byte) / second).toString()))
+    @Test fun kbps_scaling() = assertEquals(1000[kilo(byte) / second], 1[mega(byte) / second])
+    @Test fun conversion_kbps_to_kbyteps() = assertEquals(8.0, 1[kilo(byte) / second][kilo(bit) / second].value)
+    @Test fun conversion_kbyteps_to_kbps() = assertEquals(1.0, 8[kilo(bit) / second][kilo(byte) / second].value)
+    @Test fun preDefinedQuantity() = assertTrue(kilo(byte) / second is Bandwidth)
 }

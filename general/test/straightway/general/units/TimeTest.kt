@@ -45,11 +45,10 @@ class TimeTest {
     @Test fun toString_year() = assertEquals("1 a", 1[year].toString())
     @Test fun toString_scaled() = assertEquals("1 kwk", 1[kilo(week)].toString())
 
-    @Test fun shortId_second() = assertEquals("s", second.shortId)
-    @Test fun shortId_minute() = assertEquals("s", minute.shortId)
-    @Test fun shortId_hour() = assertEquals("s", hour.shortId)
-    @Test fun shortId_day() = assertEquals("s", day.shortId)
-    @Test fun shortId_week() = assertEquals("s", week.shortId)
-    @Test fun shortId_year() = assertEquals("s", year.shortId)
-    @Test fun shortId_scaled() = assertEquals("s", kilo(week).shortId)
+    @Test fun id_minute() = assertEquals(second.id, minute.id)
+    @Test fun id_hour() = assertEquals(second.id, hour.id)
+    @Test fun id_day() = assertEquals(second.id, day.id)
+    @Test fun id_week() = assertEquals(second.id, week.id)
+    @Test fun id_year() = assertEquals(second.id, year.id)
+    @Test fun id_scaled() = assertEquals(second.id, kilo(week).id)
 }

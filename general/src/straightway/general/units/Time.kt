@@ -2,21 +2,15 @@ package straightway.general.units
 
 import straightway.general.numbers.times
 
-data class Time internal constructor(
-    private val symbol: String,
-    override val scale: UnitScale,
-    private val baseMagnitude: Number) : Quantity
+class Time constructor(
+    symbol: String,
+    scale: UnitScale,
+    baseMagnitude: Number)
+    : QuantityBase("s", symbol, scale, baseMagnitude, { Time(symbol, it, baseMagnitude) })
 {
-    internal constructor(symbol: String, numberOfSeconds: Number) :
-        this(symbol, UnitScale("", numberOfSeconds), numberOfSeconds)
+    constructor(symbol: String, numberOfSeconds: Number) : this(symbol, uni, numberOfSeconds)
 
-    override val shortId = "s"
-    val numberOfSeconds = scale.magnitude
-
-    override fun withScale(scale: UnitScale) =
-        Time(symbol, UnitScale(scale.prefix, scale.magnitude * baseMagnitude), baseMagnitude)
-
-    override fun toString() = "$scale$symbol"
+    val numberOfSeconds get() = scale.magnitude * baseMagnitude
 }
 
 val second = Time("s", 1)

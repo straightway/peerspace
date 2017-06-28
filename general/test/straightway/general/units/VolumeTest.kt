@@ -15,12 +15,16 @@ limitations under the License.
  ****************************************************************************/
 package straightway.general.units
 
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class QuantityBaseTest {
-    @Test fun toStringResult() = assertEquals("TU", testUnit.toString())
+class VolumeTest {
+    @Test fun litre_id() = Assertions.assertEquals(cubic(meter).id, liter.id)
+    @Test fun litre_toString() = Assertions.assertEquals("l", liter.toString())
+    @Test fun litre_scaling() = Assertions.assertEquals(1000[liter], 1[kilo(liter)])
+    @Test fun conversion_litre_to_cubicMeter()
+        = Assertions.assertEquals(1.0, 1000[liter][cubic(meter)].value.toDouble(), 1e-6)
 
-    private class TestQuantity(scale: UnitScale) : QuantityBase("TU", scale, { TestQuantity(it) })
-    private val testUnit = TestQuantity(uni)
+    @Test fun conversion_cubicMeter_to_litre()
+        = Assertions.assertEquals(1000.0, 1[cubic(meter)][liter].value.toDouble(), 1e-6)
 }

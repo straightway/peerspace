@@ -16,19 +16,25 @@ limitations under the License.
 package straightway.general.units
 
 abstract class QuantityBase(
-    private val shortIdBase: String,
+    private val idBase: String,
+    private val symbol: String,
     final override val scale: UnitScale,
+    override val baseMagnitude: Number,
     private val scaler: (UnitScale) -> QuantityBase)
     : Quantity
 {
-    override val shortId by lazy { "$siScaleCorrection$shortIdBase" }
+    constructor(idBase: String, scale: UnitScale, scaler: (UnitScale) -> QuantityBase)
+        : this(idBase, idBase, scale, 1, scaler)
+
+    override val id: QuantityId by lazy { "${this::class.hashCode()}" }
     override fun withScale(scale: UnitScale) = scaler(scale)
-    override fun toString() = "$scale$shortIdBase"
+    override fun toString() = "$scale$symbol"
     override fun equals(other: Any?) =
         other != null &&
         this::class == other::class &&
         other is QuantityBase &&
-        shortId == other.shortId &&
+            id == other.id &&
         scale == other.scale
-    override fun hashCode() = shortId.hashCode() xor scale.hashCode()
+
+    override fun hashCode() = id.hashCode() xor scale.hashCode()
 }

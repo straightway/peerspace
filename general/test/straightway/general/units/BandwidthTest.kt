@@ -24,5 +24,6 @@ class BandwidthTest {
     @Test fun kbps_scaling() = assertEquals(1000[kilo(byte) / second], 1[mega(byte) / second])
     @Test fun conversion_kbps_to_kbyteps() = assertEquals(8.0, 1[kilo(byte) / second][kilo(bit) / second].value)
     @Test fun conversion_kbyteps_to_kbps() = assertEquals(1.0, 8[kilo(bit) / second][kilo(byte) / second].value)
+    @Suppress("USELESS_IS_CHECK")
     @Test fun preDefinedQuantity() = assertTrue(kilo(byte) / second is Bandwidth)
 }

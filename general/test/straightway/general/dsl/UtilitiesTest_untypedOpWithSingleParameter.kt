@@ -23,11 +23,12 @@ class UtilitiesTest_untypedOpWithSingleParameter {
 
     @Test fun returnsLambdaWithAnyParametersAndReturnType() {
         val result = untypedOp<Int> { a -> a * 3}
+        @Suppress("USELESS_IS_CHECK")
         Assertions.assertTrue(result is (Any) -> Any)
     }
 
     @Test fun callsPassedLambda() {
-        var calls = 0;
+        var calls = 0
         val result = untypedOp<Int> { a -> calls++; -a }
         assertEquals(0, calls)
         val callResult = result(5)

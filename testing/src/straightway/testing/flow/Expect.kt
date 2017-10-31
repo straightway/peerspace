@@ -31,9 +31,9 @@ fun expect(condition: Expr) =
     } catch (e: AssertionFailedError) {
         throw e
     } catch (e: AssertionError) {
-        fail("Expectation <${ExpressionVisualizer(condition).string}> failed (${e.message})")
+        fail<Any>("Expectation <${ExpressionVisualizer(condition).string}> failed (${e.message})")
     } catch (e: Throwable) {
-        fail("Expectation <${ExpressionVisualizer(condition).string}> failed ($e)")
+        fail<Any>("Expectation <${ExpressionVisualizer(condition).string}> failed ($e)")
     }
 
 /**

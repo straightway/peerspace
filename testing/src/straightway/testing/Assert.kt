@@ -27,7 +27,7 @@ fun assertPanics(action: () -> Unit) { assertThrows<Panic>(action) }
 fun assertPanics(expectedState: Any, action: () -> Unit) =
     try {
         action()
-        fail("Action $action did not cause panic")
+        fail<Any>("Action $action did not cause panic")
     }
     catch (panic: Panic) { assertEquals(expectedState, panic.state) }
 
@@ -38,7 +38,7 @@ inline fun <reified TException : Throwable> assertThrows(noinline action: () -> 
 inline fun <reified TException : Throwable> assertThrows(expectedMessage: String, noinline action: () -> Unit) =
     try {
         action()
-        fail("Action $action did not throw an exception")
+        fail<Any>("Action $action did not throw an exception")
     }
     catch (e: Throwable) {
         assertTrue(e is TException, "Action $action threw unexpected exception $e")
@@ -57,5 +57,5 @@ fun assertDoesNotThrow(action: () -> Unit) =
         val s = StringWriter()
         val w = PrintWriter(s)
         e.printStackTrace(w)
-        fail("Action $action threw unexpected exception $e\n${s.buffer.toString()}")
+        fail<Any>("Action $action threw unexpected exception $e\n${s.buffer.toString()}")
     }

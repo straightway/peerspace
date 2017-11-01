@@ -25,7 +25,7 @@ data class UnitScale(val prefix: String, val magnitude: Number) {
         }
 
         internal fun createScaleFor(magnitude: Number): UnitScale =
-            fixedScaleFor(magnitude) ?: UnitScale.predefine("[$magnitude]", magnitude)
+            fixedScaleFor(magnitude) ?: predefine("[$magnitude]", magnitude)
 
         internal fun fixedScaleFor(magnitude: Number): UnitScale? =
             magnitudeToScale[key(magnitude)]

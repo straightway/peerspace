@@ -14,7 +14,8 @@ private constructor(
     constructor(wrapped: TBaseQuantity)
         : this(wrapped, wrapped.siScale.reciproke, explicitSymbol = null, isAutoScaled = true)
 
-    override val id: QuantityId get() =
+    override val id: QuantityId
+        get() =
     "${one.id}/${wrapped.id}"
     override val baseMagnitude: Number get() =
     1.0 / (wrapped.baseMagnitude * if (explicitSymbol == null) 1 else wrapped.siScale.magnitude)

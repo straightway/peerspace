@@ -33,7 +33,8 @@ class Product<QLeft : Quantity, QRight : Quantity>
     constructor(left: QLeft, right: QRight)
         : this(left, right, left.siScale * right.siScale, true, left.baseMagnitude * right.baseMagnitude)
 
-    override val id: QuantityId get() =
+    override val id: QuantityId
+        get() =
     (listOf(idFactors.numerators(one.id)) + idFactors.denominators).joinToString("/")
 
     override infix fun withScale(scale: UnitScale) =

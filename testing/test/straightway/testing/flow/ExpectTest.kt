@@ -16,8 +16,8 @@ limitations under the License.
 package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
-import straightway.general.dsl.Value
-import straightway.general.dsl.minus
+import straightway.dsl.Value
+import straightway.dsl.minus
 import straightway.testing.assertDoesNotThrow
 import straightway.testing.assertFails
 

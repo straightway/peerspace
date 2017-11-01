@@ -15,10 +15,10 @@ limitations under the License.
  ****************************************************************************/
 package straightway.testing.flow
 
-import straightway.general.dsl.BoundExpr
-import straightway.general.dsl.Expr
-import straightway.general.dsl.StackExprVisitor
-import straightway.general.dsl.Value
+import straightway.dsl.BoundExpr
+import straightway.dsl.Expr
+import straightway.dsl.StackExprVisitor
+import straightway.dsl.Value
 
 /**
  * Create a user-friendly string representation of the given expression.

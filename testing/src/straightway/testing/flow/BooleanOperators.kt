@@ -15,7 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.testing.flow
 
-import straightway.general.dsl.*
+import straightway.dsl.*
 
 /**
  * Operator which logically negates its argument.

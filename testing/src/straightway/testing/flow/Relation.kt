@@ -16,7 +16,7 @@ limitations under the License.
 package straightway.testing.flow
 
 import org.opentest4j.AssertionFailedError
-import straightway.general.dsl.*
+import straightway.dsl.*
 
 /**
  * An expression which represents a relation between two object.

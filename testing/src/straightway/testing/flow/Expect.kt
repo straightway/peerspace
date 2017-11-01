@@ -18,7 +18,7 @@ package straightway.testing.flow
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.opentest4j.AssertionFailedError
-import straightway.general.dsl.Expr
+import straightway.dsl.Expr
 
 /**
  * Expect the given condition to be true.

@@ -16,8 +16,8 @@ limitations under the License.
 package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
+import straightway.dsl.minus
 import straightway.general.Panic
-import straightway.general.dsl.minus
 import straightway.testing.assertDoesNotThrow
 import straightway.testing.assertFails
 
@@ -45,4 +45,6 @@ class EffectTest_throw {
 }
 
 private fun throwNothing() {}
-private fun panic(): Unit = throw Panic("panic!")
+private fun panic() {
+    throw Panic("panic!")
+}

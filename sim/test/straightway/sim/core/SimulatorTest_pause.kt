@@ -17,7 +17,7 @@ package straightway.sim.core
 
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import straightway.general.dsl.minus
+import straightway.dsl.minus
 import straightway.sim.Controller
 import straightway.testing.flow.*
 import java.time.Duration

@@ -21,7 +21,7 @@ import org.mockito.Mockito.mock
 import straightway.Identifyable
 import straightway.data.Chunk
 import straightway.data.Key
-import straightway.general.dsl.minus
+import straightway.dsl.minus
 import straightway.network.PushTarget
 import straightway.testing.flow.*
 

@@ -16,10 +16,10 @@ limitations under the License.
 package straightway.testing.flow
 
 import org.junit.jupiter.api.Test
-import straightway.general.dsl.BoundExpr
-import straightway.general.dsl.Expr
-import straightway.general.dsl.FunExpr
-import straightway.general.dsl.Value
+import straightway.dsl.BoundExpr
+import straightway.dsl.Expr
+import straightway.dsl.FunExpr
+import straightway.dsl.Value
 
 class ExpressionVisualizerTest {
     @Test fun value_visualizedDirectly() {

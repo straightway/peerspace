@@ -23,10 +23,10 @@ import straightway.general.Panic
  * equal to the arity of the sub expression.
  */
 class DistributedExpr(
-        private val name: String,
-        val left: Expr,
-        val right: Expr,
-        private val functor: DistributedExpr.(Array<out Any>) -> Any) : Expr
+    private val name: String,
+    val left: Expr,
+    val right: Expr,
+    private val functor: DistributedExpr.(Array<out Any>) -> Any) : Expr
 {
     override val arity: Int get() = left.arity
     override fun invoke(vararg params: Any): Any = functor(params)

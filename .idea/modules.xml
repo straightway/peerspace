@@ -3,13 +3,14 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dsl/dsl.iml" filepath="$PROJECT_DIR$/dsl/dsl.iml" />
       <module fileurl="file://$PROJECT_DIR$/general/general.iml" filepath="$PROJECT_DIR$/general/general.iml" />
       <module fileurl="file://$PROJECT_DIR$/integrationtest/integrationtest.iml" filepath="$PROJECT_DIR$/integrationtest/integrationtest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/numbers/numbers.iml" filepath="$PROJECT_DIR$/numbers/numbers.iml" />
       <module fileurl="file://$PROJECT_DIR$/sim/sim.iml" filepath="$PROJECT_DIR$/sim/sim.iml" />
       <module fileurl="file://$PROJECT_DIR$/straightway.iml" filepath="$PROJECT_DIR$/straightway.iml" />
       <module fileurl="file://$PROJECT_DIR$/testing/testing.iml" filepath="$PROJECT_DIR$/testing/testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/units/units.iml" filepath="$PROJECT_DIR$/units/units.iml" />
-      <module fileurl="file://$PROJECT_DIR$/dsl/dsl.iml" filepath="$PROJECT_DIR$/dsl/dsl.iml" />
     </modules>
   </component>
 </project>

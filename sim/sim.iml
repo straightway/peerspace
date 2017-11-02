@@ -13,5 +13,6 @@
     <orderEntry type="library" scope="TEST" name="JUnit5" level="application" />
     <orderEntry type="module" module-name="testing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="application" />
+    <orderEntry type="module" module-name="dsl" />
   </component>
 </module>

@@ -74,10 +74,10 @@ data class NumberInfo(
                 max = Int.MAX_VALUE,
                 unify = { toInt() },
                 round = { this },
-                plus = op<Int>{ this.toLong() + it.toLong() },
-                minus = op<Int>{ this.toLong() - it.toLong() },
-                times = op<Int>{ this.toLong() * it.toLong() },
-                div = op<Int>{ this.toLong() / it.toLong() },
+                plus = op<Int> { this.toLong() + it.toLong() },
+                minus = op<Int> { this.toLong() - it.toLong() },
+                times = op<Int> { this.toLong() * it.toLong() },
+                div = op<Int> { this.toLong() / it.toLong() },
                 rem = op<Int>(Int::rem),
                 compare = { (this as Int).compareTo(it as Int) })),
             Pair(Long::class, NumberInfo(
@@ -134,7 +134,8 @@ data class NumberInfo(
                         this.divide(it)
                     } catch (_: ArithmeticException) {
                         this.divide(it, Math.max(32, Math.max(scale(), it.scale())), RoundingMode.HALF_UP)
-                    }},
+                    }
+                },
                 rem = op<BigDecimal> { this.remainder(it) },
                 compare = { (this as BigDecimal).compareTo(it as BigDecimal) })))
     }

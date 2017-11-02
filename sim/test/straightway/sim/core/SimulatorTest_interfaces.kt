@@ -21,6 +21,7 @@ import straightway.general.TimeProvider
 import straightway.sim.Controller
 import straightway.sim.Scheduler
 
+@Suppress("USELESS_IS_CHECK")
 internal class SimulatorTest_interfaces : SimulatorTest() {
     @Test fun isTimeProvider() = assertTrue(sut is TimeProvider)
     @Test fun isSimulationController() = assertTrue(sut is Controller)

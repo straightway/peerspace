@@ -39,8 +39,9 @@ fun expect(condition: Expr) =
 /**
  * Expect the given condition to be true.
  */
-fun expect(condition: Boolean) =
-        assertTrue(condition)
+fun expect(condition: Boolean) {
+    assertTrue(condition)
+}
 
 /**
  * Expect the given condition to be true.

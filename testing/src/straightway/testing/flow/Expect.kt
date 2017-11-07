@@ -21,9 +21,9 @@ import org.opentest4j.AssertionFailedError
 import straightway.dsl.Expr
 
 /**
- * Expect the given condition to be true.
+ * Expect the condition evaluated by the given expression to be true.
  */
-fun expect(condition: Expr) =
+fun expect(condition: Expr) {
     try {
         assertTrue(condition() as Boolean) {
             "Expectation <${ExpressionVisualizer(condition).string}> failed"
@@ -31,20 +31,19 @@ fun expect(condition: Expr) =
     } catch (e: AssertionFailedError) {
         throw e
     } catch (e: AssertionError) {
-        fail<Any>("Expectation <${ExpressionVisualizer(condition).string}> failed (${e.message})")
+        fail<Unit>("Expectation <${ExpressionVisualizer(condition).string}> failed (${e.message})")
     } catch (e: Throwable) {
-        fail<Any>("Expectation <${ExpressionVisualizer(condition).string}> failed ($e)")
+        fail<Unit>("Expectation <${ExpressionVisualizer(condition).string}> failed ($e)")
     }
-
-/**
- * Expect the given condition to be true.
- */
-fun expect(condition: Boolean) {
-    assertTrue(condition)
 }
 
 /**
  * Expect the given condition to be true.
  */
+fun expect(condition: Boolean) = assertTrue(condition)
+
+/**
+ * Expect the given condition to be true.
+ */
 fun expect(condition: Boolean, lazyExplanation: () -> String) =
-        assertTrue(condition, lazyExplanation)
+    assertTrue(condition, lazyExplanation)

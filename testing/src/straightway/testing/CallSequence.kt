@@ -18,7 +18,7 @@ package straightway.testing
 import org.junit.jupiter.api.Assertions.assertEquals
 
 /**
- * Provides a series of actions which are expected to be called in the given order
+ * Provides a series of actions which are expected _to be called in the given order
  * when assertCompleted is called.
  */
 class CallSequence(vararg val expectedActionOrder: Int) {

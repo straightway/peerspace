@@ -17,6 +17,12 @@ package straightway.units
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import straightway.testing.flow._is
+import straightway.testing.flow._to
+import straightway.testing.flow.equal
+import straightway.testing.flow.expect
+import java.time.Duration
+import java.time.LocalDateTime
 
 class TimeTest {
     @Test fun second_toMinute() = assertEquals(60[second], 1[minute])
@@ -51,4 +57,38 @@ class TimeTest {
     @Test fun id_week() = assertEquals(second.id, week.id)
     @Test fun id_year() = assertEquals(second.id, year.id)
     @Test fun id_scaled() = assertEquals(second.id, kilo(week).id)
+
+    @Test
+    fun add_toLocalDateTime() = expect(
+        LocalDateTime.of(0, 1, 1, 0, 0) + 1[minute] _is equal _to LocalDateTime.of(0, 1, 1, 0, 1))
+
+    @Test
+    fun add_toLocalDateTime_chained() = expect(
+        LocalDateTime.of(0, 1, 1, 0, 0) + 1[minute] + 1[minute] _is equal _to LocalDateTime.of(0, 1, 1, 0, 2))
+
+    @Test
+    fun sub_fromLocalDateTime() = expect(
+        LocalDateTime.of(0, 1, 1, 0, 1) - 1[minute] _is equal _to LocalDateTime.of(0, 1, 1, 0, 0))
+
+    @Test
+    fun toDuration_int_seconds() =
+        expect(1[second].toDuration() _is equal _to Duration.ofSeconds(1))
+
+    @Test
+    fun toDuration_int_nanoSeconds() =
+        expect(1[nano(second)].toDuration() _is equal _to Duration.ofNanos(1))
+
+    @Test
+    fun toDuration_int_irrgeularUnitScale() =
+        expect(1[UnitScale(1e-7)(second)].toDuration() _is equal _to Duration.ofNanos(100))
+
+    @Test
+    fun toDuration_float() =
+        expect(1.000000001[second].toDuration() _is equal _to Duration.ofSeconds(1, 1))
+
+    @Test
+    fun toDuration_long_bigDays() {
+        val maxDays = 999999999L * 365L + 999999999L / 4L - 20547L * 365L + 20L
+        expect(maxDays[day].toDuration() _is equal _to Duration.ofDays(maxDays))
+    }
 }

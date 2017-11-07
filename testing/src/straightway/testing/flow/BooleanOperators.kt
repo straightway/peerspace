@@ -23,14 +23,14 @@ import straightway.dsl.*
 object not : CombinableExpr, FunExpr("not", untyped<Boolean, Boolean> { !it })
 
 /**
- * Operator which distributes its arguments to the left and right expressions and yields
+ * Operator which distributes its arguments _to the left and right expressions and yields
  * the logical conjunction of their boolean results.
  */
 infix fun Expr.and(other: Expr): Expr =
     DistributedExpr("and", this, other) { left(*it) as Boolean && right(*it) as Boolean }
 
 /**
- * Operator which distributes its arguments to the left and right expressions and yields
+ * Operator which distributes its arguments _to the left and right expressions and yields
  * the logical disjunction of their boolean results.
  */
 infix fun Expr.or(other: Expr): Expr =

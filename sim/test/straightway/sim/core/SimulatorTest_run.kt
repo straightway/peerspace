@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import straightway.testing.CallCounter
 import straightway.testing.CallSequence
-import java.time.Duration
+import straightway.units.get
+import straightway.units.minute
+import straightway.units.plus
 
 internal class SimulatorTest_run : SimulatorTest() {
 
@@ -32,7 +34,7 @@ internal class SimulatorTest_run : SimulatorTest() {
 
     @Test fun executesEventAtProperTime() {
         sut.schedule(defaultEventDuration) {
-            Assertions.assertEquals(initialTime.plus(defaultEventDuration), sut.currentTime)
+            Assertions.assertEquals(initialTime + defaultEventDuration, sut.currentTime)
         }
         sut.run()
     }
@@ -46,7 +48,7 @@ internal class SimulatorTest_run : SimulatorTest() {
     @Test fun executesAllEvents() {
         val callSequence = CallSequence(0, 2, 1)
         for (i in 0..2) {
-            val execTime = Duration.ofMinutes(callSequence.expectedActionOrder[i].toLong())
+            val execTime = callSequence.expectedActionOrder[i][minute]
             val action = callSequence.actions[i]
             sut.schedule(execTime) { action() }
         }

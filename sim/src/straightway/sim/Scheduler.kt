@@ -15,8 +15,9 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim
 
-import java.time.Duration
+import straightway.units.Time
+import straightway.units.UnitValue
 
 interface Scheduler {
-    fun schedule(duration: Duration, action: () -> Unit)
+    fun schedule(duration: UnitValue<*, Time>, action: () -> Unit)
 }

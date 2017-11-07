@@ -24,10 +24,10 @@ import java.io.StringWriter
 
 fun assertPanics(action: () -> Unit) { assertThrows<Panic>(action) }
 
-fun assertPanics(expectedState: Any, action: () -> Unit) =
+fun assertPanics(expectedState: Any, action: () -> Unit): Unit =
     try {
         action()
-        fail<Any>("Action $action did not cause panic")
+        fail<Unit>("Action $action did not cause panic")
     }
     catch (panic: Panic) { assertEquals(expectedState, panic.state) }
 
@@ -35,27 +35,27 @@ inline fun <reified TException : Throwable> assertThrows(noinline action: () -> 
     Assertions.assertThrows<TException>(TException::class.java, action)
 }
 
-inline fun <reified TException : Throwable> assertThrows(expectedMessage: String, noinline action: () -> Unit) =
+inline fun <reified TException : Throwable> assertThrows(expectedMessage: String, noinline action: () -> Unit): Unit =
     try {
         action()
-        fail<Any>("Action $action did not throw an exception")
+        fail<Unit>("Action $action did not throw an exception")
     }
     catch (e: Throwable) {
         assertTrue(e is TException, "Action $action threw unexpected exception $e")
         assertEquals(expectedMessage, e.message)
     }
 
-fun assertFails(action: () -> Unit) =
+fun assertFails(action: () -> Unit): Unit =
     assertThrows<AssertionFailedError>(action)
 
-fun assertFails(expectedMessage: String, action: () -> Unit) =
+fun assertFails(expectedMessage: String, action: () -> Unit): Unit =
     assertThrows<AssertionFailedError>(expectedMessage, action)
 
-fun assertDoesNotThrow(action: () -> Unit) =
+fun assertDoesNotThrow(action: () -> Unit): Unit =
     try { action() }
     catch (e: Throwable) {
         val s = StringWriter()
         val w = PrintWriter(s)
         e.printStackTrace(w)
-        fail<Any>("Action $action threw unexpected exception $e\n${s.buffer.toString()}")
+        fail<Unit>("Action $action threw unexpected exception $e\n${s.buffer.toString()}")
     }

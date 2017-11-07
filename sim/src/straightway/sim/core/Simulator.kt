@@ -19,11 +19,13 @@ import straightway.general.TimeProvider
 import straightway.sim.Controller
 import straightway.sim.Event
 import straightway.sim.Scheduler
-import java.time.Duration
+import straightway.units.Time
+import straightway.units.UnitValue
+import straightway.units.plus
 import java.time.LocalDateTime
 
 /**
- * Run an event driven simulation by excuting actions at given simulated t points.
+ * Run an event driven simulation by executing actions at given simulated time points.
  */
 class Simulator : TimeProvider, Controller, Scheduler {
 
@@ -33,8 +35,8 @@ class Simulator : TimeProvider, Controller, Scheduler {
 
     val eventQueue: List<Event> get() = _eventQueue
 
-    override fun schedule(duration: Duration, action: () -> Unit) {
-        val newEvent = Event(currentTime.plus(duration), action)
+    override fun schedule(duration: UnitValue<*, Time>, action: () -> Unit) {
+        val newEvent = Event(currentTime + duration, action)
         val insertPos = findInsertPosFor(newEvent)
         _eventQueue.add(insertPos, newEvent)
     }

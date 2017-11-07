@@ -15,14 +15,16 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.sim.Scheduler
-import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.general.TimeProvider
+import java.time.format.DateTimeFormatter
 
-class Network(private val simScheduler: Scheduler, val latency: UnitNumber<Time>) {
+class TimeLog(val timeProvider: TimeProvider) : LogList {
+    val entries = mutableListOf<String>()
+    override fun add(logEntry: String) {
+        entries.add("${timeProvider.currentTime.format(dateFormat)}: ${logEntry}")
+    }
 
-    fun send(sender: Client, receiver: Client, message: Message) {
-        val transmissionTime = sender.uploadChannel.transmit(message, receiver.downloadChannel, latency)
-        simScheduler.schedule(transmissionTime) { receiver.receive(sender, message) }
+    private companion object {
+        val dateFormat = DateTimeFormatter.ofPattern("HH:mm:ss")
     }
 }

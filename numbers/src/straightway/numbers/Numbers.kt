@@ -15,8 +15,9 @@ limitations under the License.
  ****************************************************************************/
 package straightway.numbers
 
-operator fun Number.unaryPlus() = this
-operator fun Number.unaryMinus() = 0 - this
+operator fun <T : Number> T.unaryPlus() = this
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Number> T.unaryMinus() = (0 - this) as T
 operator fun Number.plus(other: Number) : Number = unify(this, other).apply { plus }
 operator fun Number.minus(other: Number) : Number = unify(this, other).apply { minus }
 operator fun Number.times(other: Number) : Number = unify(this, other).apply { times }
@@ -25,12 +26,6 @@ operator fun Number.rem(other: Number) : Number = unify(this, other).apply { rem
 operator fun Number.compareTo(other: Number) : Int = unify(this, other).apply { compare }
 
 fun round(num: Number) : Number = num.(NumberInfo[num].round)()
-
-@Suppress("UNCHECKED_CAST")
-fun <T> Any.sameTypeAs(value: T) = when (value) {
-    is Number -> (this as Number).(NumberInfo[value].unify)()
-    else -> this
-} as T
 
 fun unify(a: Number, b: Number) : Pair<Number, Number> {
     val aInfo = NumberInfo[a]

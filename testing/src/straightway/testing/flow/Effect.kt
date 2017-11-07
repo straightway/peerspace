@@ -31,5 +31,5 @@ val exception = Throwable::class
 
 operator fun StateExpr<Effect>.minus(type: KClass<*>) = BoundExpr(this, Value(type)).inState<Effect>()
 
-infix fun <T: Effect> (() -> Unit).does(op: StateExpr<T>) = BoundExpr(op, Value(this)).inState<T>()
+infix fun <T : Effect> (() -> Any).does(op: StateExpr<T>) = BoundExpr(op, Value(this)).inState<T>()
 

@@ -19,10 +19,49 @@ import org.junit.jupiter.api.Test
 import straightway.dsl.minus
 import straightway.testing.assertDoesNotThrow
 import straightway.testing.assertFails
+import java.time.Duration
+import java.time.LocalDateTime
 
 class RelationTest_isEqualTo {
 
-    @Test fun passes() = assertDoesNotThrow { expect(1 _is equal to 1) }
-    @Test fun fails() = assertFails { expect(1 _is equal to 2) }
-    @Test fun negation_passes() = assertDoesNotThrow { expect(1 _is not-equal to 2) }
+    @Test
+    fun passes() = assertDoesNotThrow { expect(1 _is equal _to 1) }
+
+    @Test
+    fun fails() = assertFails { expect(1 _is equal _to 2) }
+
+    @Test
+    fun negation_passes() = assertDoesNotThrow { expect(1 _is not - equal _to 2) }
+
+    @Test
+    fun number_range_smallerFirst_passes() = assertDoesNotThrow { expect(0.9 _is equalWithin(0.2) _to 1.0) }
+
+    @Test
+    fun number_range_biggerFirst_passes() = assertDoesNotThrow { expect(1.1 _is equalWithin(0.2) _to 1.0) }
+
+    @Test
+    fun number_range_fails() = assertFails { expect(1.3 _is equalWithin(0.2) _to 1.0) }
+
+    @Test
+    fun number_range_negation_passes() = assertDoesNotThrow { expect(1.3 _is not - equalWithin(0.2) _to 1.0) }
+
+    @Test
+    fun duration_range_smallerFirst_passes() = assertDoesNotThrow {
+        expect(LocalDateTime.of(0, 1, 1, 0, 0, 0) _is equalWithin(Duration.ofDays(2)) _to LocalDateTime.of(0, 1, 2, 0, 0, 0))
+    }
+
+    @Test
+    fun duration_range_biggerFirst_passes() = assertDoesNotThrow {
+        expect(LocalDateTime.of(0, 1, 2, 0, 0, 0) _is equalWithin(Duration.ofDays(2)) _to LocalDateTime.of(0, 1, 1, 0, 0, 0))
+    }
+
+    @Test
+    fun duration_range_fails() = assertFails {
+        expect(LocalDateTime.of(0, 1, 1, 0, 0, 0) _is equalWithin(Duration.ofDays(2)) _to LocalDateTime.of(0, 1, 3, 0, 0, 0))
+    }
+
+    @Test
+    fun duration_range_negation_passes() = assertDoesNotThrow {
+        expect(LocalDateTime.of(0, 1, 1, 0, 0, 0) _is not - equalWithin(Duration.ofDays(2)) _to LocalDateTime.of(0, 1, 3, 0, 0, 0))
+    }
 }

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import straightway.testing.CallCounter
 import straightway.testing.CallSequence
+import straightway.units.plus
 
 internal class SimulatorTest_schedule : SimulatorTest() {
 
@@ -33,7 +34,7 @@ internal class SimulatorTest_schedule : SimulatorTest() {
 
     @Test fun schedulesEventAtProperTime() {
         sut.schedule(defaultEventDuration, Companion::doNotCall)
-        val targetTime = sut.currentTime.plus(defaultEventDuration)
+        val targetTime = sut.currentTime + defaultEventDuration
         assertEquals(targetTime, sut.eventQueue.first().time)
     }
 

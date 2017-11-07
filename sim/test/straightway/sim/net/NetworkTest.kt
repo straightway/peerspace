@@ -15,110 +15,56 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import straightway.sim.core.Simulator
 import straightway.testing.TestBase
-import java.time.Duration
-import java.time.LocalDateTime
+import straightway.testing.flow._is
+import straightway.testing.flow._to
+import straightway.testing.flow.equal
+import straightway.testing.flow.expect
+import straightway.units.byte
+import straightway.units.get
+import straightway.units.minute
+import straightway.units.second
 import java.util.*
 
 class NetworkTest : TestBase<NetworkTest.Environment>() {
 
-    class Environment {
+    inner class Environment {
         val simulator = Simulator()
-        val network = Network(simulator)
+        val log = TimeLog(simulator)
+        val network = Network(simulator, latency = 2[second])
+        var sender = ClientMock("sender", log)
+        var receiver = ClientMock("receiver", log)
+        var message = createMessage()
     }
 
     @BeforeEach fun setup() {
         sut = Environment()
     }
 
-    @Test fun send_schedulesEventForReceiver() {
-        val sender = createSender(100)
-        val receiver = createReceiver(100)
-        val message = createMessage(100)
-        sut.network.send(sender, receiver, message)
-        sut.simulator.run()
-        verify(receiver, times(1)).receive(sender, message)
-    }
-
-    @Test fun send_singleConnection_usesSenderUploadBandwidthIfLower() {
-        val sender = createSender(200)
-        val receiver = createReceiver(300)
-        sut.network.send(sender, receiver, createMessage(100))
-        verify(sut.simulator, times(1)).schedule(eq(Duration.ofMillis(500)), any())
-    }
-
-    @Test fun send_singleConnection_usesReceiverDownloadBandwidthIfLower() {
-        val sender = createSender(300)
-        val receiver = createReceiver(200)
-        sut.network.send(sender, receiver, createMessage(100))
-        verify(sut.simulator, times(1)).schedule(eq(Duration.ofMillis(500)), any())
-    }
-
-    @Test fun send_twoConnections_splitBandwithBetweenBoth() {
-        val sender = createSender(300)
-        val receiver = createReceiver(200)
-
-        sut.network.send(sender, receiver, createMessage(100))
-        sut.network.send(sender, receiver, createMessage(100))
-
-        verify(sut.simulator, times(1)).schedule(eq(Duration.ofMillis(500)), any())
-        verify(sut.simulator, times(2)).schedule(eq(Duration.ofMillis(1000)), any())
-    }
-
-    @Test fun send_twoConnections_receiveEventForFirstSchedulingIsCancelled() {
-        val sender = createSender(300)
-        val receiver = createReceiver(200)
-        val messages = listOf(createMessage(100), createMessage(200))
-
-        sut.network.send(sender, receiver, messages[0])
-        sut.network.send(sender, receiver, messages[1])
-        argumentCaptor<() -> Unit>().apply {
-            verify(sut.simulator, times(3)).schedule(any(), capture())
-            allValues.forEach { it() }
-            verify(receiver, times(1)).receive(any(), eq(messages[0]))
-            verify(receiver, times(1)).receive(any(), eq(messages[1]))
+    @Test
+    fun send_triggersTransmissionOnChannels() {
+        sut.run {
+            network.send(sender, receiver, message)
+            expect(log.entries _is equal _to listOf("00:00:00: Transmit ${message} from sender_upload to receiver_download"))
         }
     }
 
-    /*@Test fun send_twoConnections_messageOfDifferentSizeArriveAtDifferentTimes() {
-        val sender = createSender(300)
-        val receiver = createReceiver(200)
-
-        sut.network.send(sender, receiver, createMessage(100))
-        sut.network.send(sender, receiver, createMessage(200))
-        verify(sut.simulator, times(1)).schedule(eq(Duration.ofMillis(500)), any())
-        verify(sut.simulator, times(1)).schedule(eq(Duration.ofMillis(1000)), any())
-        verify(sut.simulator, times(1)).schedule(eq(Duration.ofMillis(1500)), any())
-    }*/
-
-    private data class ReceiveProtocolEntry(val time: LocalDateTime, val sender: Client, val message: Message)
-    private inner class ClientMockWithReceiveProtocol(
-        private val _uploadBytesPerSecond: Long?,
-        private val _downloadBytesPerSecond: Long?) : Client {
-
-        override val uploadBytesPerSecond get() = _uploadBytesPerSecond!!
-        override val downloadBytesPerSecond get() = _downloadBytesPerSecond!!
-        val receiveProtocol: List<ReceiveProtocolEntry> get() = _receiveProtocol
-
-        override fun receive(sender: Client, message: Message) {
-            _receiveProtocol += ReceiveProtocolEntry(sut.simulator.currentTime, sender, message)
+    @Test
+    fun send_schedulesReceiveCall() {
+        sut.run {
+            sender.uploadChannel.receiveTime = 3[minute]
+            network.send(sender, receiver, message)
+            log.entries.clear()
+            simulator.run()
+            expect(log.entries _is equal _to listOf("00:03:02: Receive ${message} from sender to receiver"))
         }
-
-        val _receiveProtocol = mutableListOf<ReceiveProtocolEntry>()
     }
-
-    private fun createSender(uploadBytesPerSecond: Long) =
-        ClientMockWithReceiveProtocol(uploadBytesPerSecond, null)
-
-    private fun createReceiver(downloadBytesPerSecond: Long) =
-        ClientMockWithReceiveProtocol(null, downloadBytesPerSecond)
 
     private companion object {
-        fun createMessage(sizeBytes: Long) =
-            Message("Message(size=$sizeBytes Bytes, ID=${UUID.randomUUID()}", sizeBytes)
+        fun createMessage() =
+            Message("Message(ID=${UUID.randomUUID()}", 100[byte])
     }
 }

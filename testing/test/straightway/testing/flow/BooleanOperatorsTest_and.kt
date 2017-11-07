@@ -34,11 +34,11 @@ class BooleanOperatorsTest_and {
             expect((Value(false) and Value(false))() _is _false)
 
     @Test fun passesArgumentsToBothSubExpressions() {
-        val left = FunExpr("left") { a -> expect(a _is equal to 83); true }
-        val right = FunExpr("right") { a -> expect(a _is equal to 83); true }
+        val left = FunExpr("left") { a -> expect(a _is equal _to 83); true }
+        val right = FunExpr("right") { a -> expect(a _is equal _to 83); true }
         expect((left and right)(83) _is _true)
     }
 
     @Test fun toString_yieldsProperString() =
-        expect((Value(true) and Value(false)).toString() _is equal to "true and false")
+        expect((Value(true) and Value(false)).toString() _is equal _to "true and false")
 }

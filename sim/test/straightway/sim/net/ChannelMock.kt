@@ -15,14 +15,16 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.sim.Scheduler
-import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.*
 
-class Network(private val simScheduler: Scheduler, val latency: UnitNumber<Time>) {
+class ChannelMock(val id: String, val log: LogList) : Channel {
 
-    fun send(sender: Client, receiver: Client, message: Message) {
-        val transmissionTime = sender.uploadChannel.transmit(message, receiver.downloadChannel, latency)
-        simScheduler.schedule(transmissionTime) { receiver.receive(sender, message) }
+    var receiveTime = 0[second]
+
+    override fun transmit(message: Message, receiver: Channel, latency: UnitNumber<Time>): UnitNumber<Time> {
+        log.add("Transmit ${message} from ${this} to ${receiver}")
+        return receiveTime + latency
     }
+
+    override fun toString() = id
 }

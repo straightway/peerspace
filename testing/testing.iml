@@ -13,5 +13,6 @@
     <orderEntry type="library" name="JUnit5" level="application" />
     <orderEntry type="module" module-name="general" />
     <orderEntry type="module" module-name="dsl" />
+    <orderEntry type="module" module-name="numbers" />
   </component>
 </module>

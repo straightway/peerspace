@@ -22,23 +22,23 @@ import straightway.dsl.Value
 class BooleanOperatorsTest_or {
 
     @Test fun isTrueIfBothArgumentsAreTrue() =
-            expect((Value(true) or Value(true))() _is equal to true)
+        expect((Value(true) or Value(true))() _is equal _to true)
 
     @Test fun isTrueIfOnlyFirstArgumentIsFalse() =
-            expect((Value(false) or Value(true))() _is equal to true)
+        expect((Value(false) or Value(true))() _is equal _to true)
 
     @Test fun isTrueIfOnlySecondArgumentIsFalse() =
-            expect((Value(true) or Value(false))() _is equal to true)
+        expect((Value(true) or Value(false))() _is equal _to true)
 
     @Test fun isFalseIfBothArgumentsAreFalse() =
-            expect((Value(false) or Value(false))() _is equal to false)
+        expect((Value(false) or Value(false))() _is equal _to false)
 
     @Test fun passesArgumentsToBothSubExpressions() {
-        val left = FunExpr("left") { a -> expect(a _is equal to 83); true }
-        val right = FunExpr("right") { a -> expect(a _is equal to 83); true }
-        expect((left or right)(83) _is equal to true)
+        val left = FunExpr("left") { a -> expect(a _is equal _to 83); true }
+        val right = FunExpr("right") { a -> expect(a _is equal _to 83); true }
+        expect((left or right)(83) _is equal _to true)
     }
 
     @Test fun toString_yieldsProperString() =
-        expect((Value(true) or Value(false)).toString() _is equal to "true or false")
+        expect((Value(true) or Value(false)).toString() _is equal _to "true or false")
 }

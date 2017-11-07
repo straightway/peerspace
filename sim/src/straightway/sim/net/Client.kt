@@ -16,7 +16,7 @@ limitations under the License.
 package straightway.sim.net
 
 interface Client {
-    val uploadBytesPerSecond: Long
-    val downloadBytesPerSecond: Long
+    val uploadChannel: Channel
+    val downloadChannel: Channel
     fun receive(sender: Client, message: Message)
 }

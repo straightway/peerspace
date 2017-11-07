@@ -15,29 +15,79 @@ limitations under the License.
  ****************************************************************************/
 package straightway.units
 
+import straightway.general.Panic
 import straightway.numbers.*
+
+typealias UnitNumber<TQuantity> = UnitValue<*, TQuantity>
 
 data class UnitValue<TValue: Number, TQuantity: Quantity>(
     val value: TValue,
-    val unit: TQuantity) : Comparable<UnitValue<TValue, TQuantity>>
+    val unit: TQuantity) : Comparable<UnitValue<*, TQuantity>>
 {
     val baseValue get() = value * unit.siScale.magnitude * unit.baseMagnitude + unit.valueShift
 
     operator fun get(newUnit: TQuantity) =
         UnitValue((baseValue - newUnit.valueShift) * newUnit.siScale.reciproke.magnitude / newUnit.baseMagnitude, newUnit)
 
+    operator fun unaryMinus() = UnitValue<TValue, TQuantity>(-value, unit)
+    operator fun unaryPlus() = this
+
     override fun toString() =
         "$value $unit".trimEnd()
     override fun equals(other: Any?) =
         other is UnitValue<*, *> &&
             other.unit.id == unit.id &&
-            other.baseValue == baseValue
+            other.baseValue.compareTo(baseValue) == 0
 
     override fun hashCode() =
         value.hashCode() xor unit.hashCode()
-    override fun compareTo(other: UnitValue<TValue, TQuantity>) =
+
+    override fun compareTo(other: UnitValue<*, TQuantity>) =
         baseValue.compareTo(other.baseValue)
 }
 
 operator fun <TNum: Number, TQuantity: Quantity> TNum.get(unit: TQuantity) =
     UnitValue(this, unit)
+
+operator fun <TQuantity1 : Quantity, TQuantity2 : Quantity>
+    UnitNumber<TQuantity1>.get(unit: TQuantity2) =
+    if (this.unit.id != unit.id) throw Panic("Incompatible units: ${unit} for ${this} ")
+    else (baseValue - unit.valueShift)[unit.withScale(unit.siScaleCorrection)][unit] as UnitNumber<TQuantity2>
+
+operator fun <TNum1 : Number, TNum2 : Number, TQuantity : Quantity>
+    UnitValue<TNum1, TQuantity>.plus(other: UnitValue<TNum2, TQuantity>) =
+    (baseValue + other.baseValue)[other.unit.withScale(uni)] as UnitValue<Number, TQuantity>
+
+operator fun <TNum1 : Number, TNum2 : Number, TQuantity : Quantity>
+    UnitValue<TNum1, TQuantity>.minus(other: UnitValue<TNum2, TQuantity>) =
+    (baseValue - other.baseValue)[other.unit.withScale(uni)] as UnitValue<Number, TQuantity>
+
+operator fun <TNum1 : Number, TNum2 : Number, TQuantity1 : Quantity, TQuantity2 : Quantity>
+    UnitValue<TNum1, TQuantity1>.times(other: UnitValue<TNum2, TQuantity2>) =
+    (baseValue * other.baseValue)[unit.withScale(uni) * other.unit.withScale(uni)]
+
+operator fun <TNum : Number, TQuantity : Quantity>
+    TNum.times(other: UnitValue<TNum, TQuantity>) =
+    UnitValue<TNum, TQuantity>((this * other.value) as TNum, other.unit)
+
+operator fun <TNum : Number, TQuantity : Quantity>
+    UnitValue<TNum, TQuantity>.times(other: TNum) = other * this
+
+operator fun <TNum1 : Number, TNum2 : Number, TQuantity1 : Quantity, TQuantity2 : Quantity>
+    UnitValue<TNum1, TQuantity1>.div(other: UnitValue<TNum2, TQuantity2>) =
+    (baseValue / other.baseValue)[unit.withScale(uni) / other.unit.withScale(uni)]
+
+operator fun <TNum : Number, TQuantity : Quantity>
+    TNum.div(other: UnitValue<TNum, TQuantity>) =
+    UnitValue<TNum, Reciproke<TQuantity>>((this / other.value) as TNum, Reciproke(other.unit))
+
+operator fun <TNum : Number, TQuantity : Quantity>
+    UnitValue<TNum, TQuantity>.div(other: TNum) =
+    UnitValue<TNum, TQuantity>((value / other) as TNum, unit)
+
+fun <TQuantity : Quantity> min(vararg items: UnitNumber<TQuantity>) = items.min()!!
+
+fun <TQuantity : Quantity> max(vararg items: UnitNumber<TQuantity>) = items.max()!!
+
+fun <TNum : Number, TQuantity : Quantity> abs(value: UnitValue<TNum, TQuantity>) =
+    if (value.value < 0) -value else value

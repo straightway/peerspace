@@ -29,7 +29,7 @@ class NetworkClientTest {
 
     @Test fun id() {
         val sut = NetworkClient("client") as Identifyable
-        expect(sut.id _is equal to "client")
+        expect(sut.id _is equal _to "client")
     }
 
     @Test fun push_isAccepted() {

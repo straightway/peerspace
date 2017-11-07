@@ -37,7 +37,7 @@ class ExpectTest {
             assertFails("Expectation <1 greater 2> failed", { expect(1 _is greater than 2) })
 
     @Test fun failure_monadicWithDyadicOp_withMeaningfulExplanation() =
-            assertFails("Expectation <1 not-equal 1> failed") { expect(1 _is not - equal to 1) }
+        assertFails("Expectation <1 not-equal 1> failed") { expect(1 _is not - equal _to 1) }
 
     @Test fun failure_notFullyBoundExpression_withMeaningfulExplanation() =
             assertFails("Expectation <1 greater ?> failed (Invalid number of parameters. Expected: 2, got: 1)")

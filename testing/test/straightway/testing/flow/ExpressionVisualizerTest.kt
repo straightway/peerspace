@@ -24,42 +24,42 @@ import straightway.dsl.Value
 class ExpressionVisualizerTest {
     @Test fun value_visualizedDirectly() {
         val testedExpr = Value("Hello")
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "Hello")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "Hello")
     }
 
     @Test fun monadicOp_visualizedFunctionCallStyle() {
         val testedExpr = func(1)-"arg"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "func1(arg)")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "func1(arg)")
     }
 
     @Test fun dyadicOp_visualizedOperatorStyle() {
         val testedExpr = func(2)-"arg1"-"arg2"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "arg1 func2 arg2")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "arg1 func2 arg2")
     }
 
     @Test fun arity3Op_visualizedFunctionCallStyle() {
         val testedExpr = func(3)-"arg1"-"arg2"-"arg3"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "func3(arg1, arg2, arg3)")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "func3(arg1, arg2, arg3)")
     }
 
     @Test fun combinedMonadicDyadicOp() {
         val testedExpr = func(1)-func(2)-"arg1"-"arg2"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "arg1 func1-func2 arg2")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "arg1 func1-func2 arg2")
     }
 
     @Test fun combinedDyadicMonadicOp() {
         val testedExpr = func(2)-func(1)-"arg1"-"arg2"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "func1(arg1) func2 arg2")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "func1(arg1) func2 arg2")
     }
 
     @Test fun deeplyNested() {
         val testedExpr = func(3, "top")-func(2, "sub1")-"arg1"-func(1, "op1")-func(1, "op2")-"arg2"-"arg3"-func(2, "sub2")-"arg4"-"arg5"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "top(arg1 sub1 op1-op2(arg2), arg3, arg4 sub2 arg5)")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "top(arg1 sub1 op1-op2(arg2), arg3, arg4 sub2 arg5)")
     }
 
     @Test fun missingArgumentsAreFilled() {
         val testedExpr = func(2)-"arg1"
-        expect(ExpressionVisualizer(testedExpr).string _is equal to "arg1 func2 ?")
+        expect(ExpressionVisualizer(testedExpr).string _is equal _to "arg1 func2 ?")
     }
 
     private companion object {

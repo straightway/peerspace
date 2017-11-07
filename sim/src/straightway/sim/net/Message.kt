@@ -15,4 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-data class Message(val content: Any, val bytes: Long)
+import straightway.units.AmountOfData
+import straightway.units.UnitValue
+
+data class Message(val content: Any, val size: UnitValue<Int, AmountOfData>)

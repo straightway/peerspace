@@ -17,6 +17,10 @@ package straightway.testing.flow
 
 import org.opentest4j.AssertionFailedError
 import straightway.dsl.*
+import straightway.numbers.compareTo
+import straightway.numbers.minus
+import java.time.Duration
+import java.time.LocalDateTime
 
 /**
  * An expression which represents a relation between two object.
@@ -31,14 +35,23 @@ interface WithOf : Relation
 interface WithHasAndOf : WithHas, WithOf
 interface Unary : Relation
 
-object equal
-    : Relation, StateExpr<WithTo>, FunExpr("equal", { a, b -> a == b })
+class Equal(predicate: (Any, Any) -> Boolean)
+    : Relation, StateExpr<WithTo>, FunExpr("equal", predicate)
+
+val equal = Equal({ a, b -> a == b })
+fun equalWithin(range: Any) = Equal({ a, b ->
+    if (a is Number && b is Number && range is Number)
+        (if (a < b) b - a else a - b) < range
+    else if (a is LocalDateTime && b is LocalDateTime && range is Duration)
+        (if (a < b) Duration.between(a, b) else Duration.between(b, a)) < range
+    else a == b
+})
 object same
     : Relation, StateExpr<WithAs>, FunExpr("same", { a, b -> a === b })
 object greater
     : Relation, StateExpr<WithThan>, FunExpr("greater", { a, b -> 0 < a.untypedCompareTo(b) })
 object less
-    : Relation, StateExpr<WithThan>, FunExpr("greater", { a, b -> a.untypedCompareTo(b) < 0 })
+    : Relation, StateExpr<WithThan>, FunExpr("less", { a, b -> a.untypedCompareTo(b) < 0 })
 object size
     : Relation, StateExpr<WithHasAndOf>, FunExpr("size", untyped { a: Any, s: Int ->
         (a as Iterable<*>).count() == s })
@@ -56,7 +69,7 @@ infix fun <T: Iterable<*>, TRel: WithHas> T.has(op: StateExpr<TRel>) = BoundExpr
 infix fun <TRel: WithHas> Array<*>.has(op: StateExpr<TRel>) = this.asList() has op
 infix fun <TRel: WithHas> CharSequence.has(op: StateExpr<TRel>) = this.toList() has op
 
-infix fun StateExpr<WithTo>.to(other: Any) = BoundExpr(this, Value(other))
+infix fun StateExpr<WithTo>._to(other: Any) = BoundExpr(this, Value(other))
 infix fun StateExpr<WithAs>._as(other: Any) = BoundExpr(this, Value(other))
 infix fun StateExpr<WithThan>.than(other: Any) = BoundExpr(this, Value(other))
 infix fun <T: WithOf> StateExpr<T>.of(other: Any) = BoundExpr(this, Value(other))
@@ -69,5 +82,5 @@ private fun Any.asIterable() =
         is Iterable<*> -> this
         is Array<*> -> this.asList()
         is CharSequence -> this.toList()
-        else -> throw AssertionFailedError("Cannot convert $this to iterable")
+        else -> throw AssertionFailedError("Cannot convert $this _to iterable")
     }

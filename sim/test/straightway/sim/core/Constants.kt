@@ -15,9 +15,9 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.core
 
-import java.time.Duration
+import straightway.units.get
+import straightway.units.minute
 import java.time.LocalDateTime
 
 internal val initialTime = LocalDateTime.of(0, 1, 1, 0, 0)
-
-internal val defaultEventDuration = Duration.ofMinutes(1)
+internal val defaultEventDuration = 1[minute]

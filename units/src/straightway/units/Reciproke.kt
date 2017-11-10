@@ -1,8 +1,13 @@
 package straightway.units
 
-import straightway.numbers.div
-import straightway.numbers.times
+import straightway.numbers.*
 
+/**
+ * The reciproke of a given quantity.
+ * Please notice that due to language restrictions, the reciproke of the reciproke,
+ * which should end up in the identical unit, is not identical with this type.
+ * However, equivalent quantities are guaranteed to have the same id.
+ */
 class Reciproke<TBaseQuantity : Quantity>
 private constructor(
     val wrapped: TBaseQuantity,
@@ -16,9 +21,9 @@ private constructor(
 
     override val id: QuantityId
         get() =
-    "${one.id}/${wrapped.id}"
+            "${one.id}/${wrapped.id}"
     override val baseMagnitude: Number get() =
-    1.0 / (wrapped.baseMagnitude * if (explicitSymbol == null) 1 else wrapped.siScale.magnitude)
+        1.0 / (wrapped.baseMagnitude * if (explicitSymbol == null) 1 else wrapped.siScale.magnitude)
 
     override fun toString() =
         if (explicitSymbol == null)

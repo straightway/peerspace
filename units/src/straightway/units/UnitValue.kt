@@ -20,8 +20,16 @@ package straightway.units
 import straightway.general.*
 import straightway.numbers.*
 
+/**
+ * Convenience type for unit values with Number.
+ */
 typealias UnitNumber<TQuantity> = UnitValue<*, TQuantity>
 
+/**
+ * Combine a numerical value with a unit.
+ * Basic artihmetic is available for unit values, either with other unit values
+ * or with scalars.
+ */
 data class UnitValue<TValue: Number, TQuantity: Quantity>(
     val value: TValue,
     val unit: TQuantity) : Comparable<UnitValue<*, TQuantity>>
@@ -36,6 +44,7 @@ data class UnitValue<TValue: Number, TQuantity: Quantity>(
 
     override fun toString() =
         "$value $unit".trimEnd()
+
     override fun equals(other: Any?) =
         other is UnitValue<*, *> &&
             other.unit.id == unit.id &&
@@ -48,9 +57,17 @@ data class UnitValue<TValue: Number, TQuantity: Quantity>(
         baseValue.compareTo(other.baseValue)
 }
 
+/**
+ * Create a UnitValue by combining a number with a given unit in square brackets.
+ */
 operator fun <TNum: Number, TQuantity: Quantity> TNum.get(unit: TQuantity) =
     UnitValue(this, unit)
 
+/**
+ * Convert the given unit value to a value with another compatibe unit.
+ * This can be useful to assign a simplified unit when using arithmetic operators
+ * with unit values.
+ */
 operator fun <TQuantity1 : Quantity, TQuantity2 : Quantity>
     UnitNumber<TQuantity1>.get(unit: TQuantity2) =
     if (this.unit.id != unit.id) throw Panic("Incompatible units: ${unit} for ${this} ")

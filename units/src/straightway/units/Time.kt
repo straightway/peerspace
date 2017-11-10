@@ -1,7 +1,6 @@
 package straightway.units
 
-import straightway.numbers.minus
-import straightway.numbers.times
+import straightway.numbers.*
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -9,7 +8,7 @@ class Time constructor(
     symbol: String,
     scale: UnitScale,
     baseMagnitude: Number)
-    : QuantityBase("s", symbol, scale, baseMagnitude, { Time(symbol, it, baseMagnitude) })
+    : QuantityBase(symbol, scale, baseMagnitude, { Time(symbol, it, baseMagnitude) })
 {
     constructor(symbol: String, numberOfSeconds: Number) : this(symbol, uni, numberOfSeconds)
     val numberOfSeconds get() = scale.magnitude * baseMagnitude

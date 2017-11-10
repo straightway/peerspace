@@ -1,11 +1,15 @@
 package straightway.units
 
-import straightway.numbers.div
-import straightway.numbers.times
+import straightway.numbers.*
 
+/**
+ * The scale for a unit.
+ * A scale can be applied to a unit using the invokation operator (round braces).
+ */
 data class UnitScale(val prefix: String, val magnitude: Number) {
     private constructor(original: UnitScale) : this(original.prefix, original.magnitude)
     constructor(magnitude: Number) : this(createScaleFor(magnitude))
+
     val reciproke by lazy { createScaleFor(1.0 / magnitude) }
 
     @Suppress("UNCHECKED_CAST")
@@ -36,7 +40,7 @@ data class UnitScale(val prefix: String, val magnitude: Number) {
         private fun key(magnitude: Number) = magnitude.toString().let {
             if (it.contains('.')) it.trimEnd(' ', '0').trimEnd('.') else it
         }
-        
+
         init {
             magnitudeToScale = mapOf<String, UnitScale>(
                 UnitScale("a", 1e-18).keyValuePair,

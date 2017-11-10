@@ -15,19 +15,24 @@ limitations under the License.
  ****************************************************************************/
 package straightway.units
 
-import straightway.general.Panic
-import straightway.numbers.times
+import straightway.general.*
+import straightway.numbers.*
 import java.lang.Integer.max
 
+/**
+ * The product of two quantities.
+ * Pleas notice that due to limitations of the language, this product is not
+ * commutative. However, equivalent quantities are guaranteed to have the same id.
+ */
 class Product<QLeft : Quantity, QRight : Quantity>
-    private constructor(
-        internal val left: QLeft,
-        internal val right: QRight,
-        override val scale: UnitScale,
-        private val isAutoScale: Boolean,
-        override val baseMagnitude: Number,
-        private val explicitSymbol: String? = null,
-        override val siScaleCorrection: UnitScale = uni)
+private constructor(
+    internal val left: QLeft,
+    internal val right: QRight,
+    override val scale: UnitScale,
+    private val isAutoScale: Boolean,
+    override val baseMagnitude: Number,
+    private val explicitSymbol: String? = null,
+    override val siScaleCorrection: UnitScale = uni)
     : Quantity
 {
     constructor(left: QLeft, right: QRight)
@@ -35,7 +40,7 @@ class Product<QLeft : Quantity, QRight : Quantity>
 
     override val id: QuantityId
         get() =
-    (listOf(idFactors.numerators(one.id)) + idFactors.denominators).joinToString("/")
+            (listOf(idFactors.numerators(one.id)) + idFactors.denominators).joinToString("/")
 
     override infix fun withScale(scale: UnitScale) =
         Product(left, right, scale, false, baseMagnitude, explicitSymbol)

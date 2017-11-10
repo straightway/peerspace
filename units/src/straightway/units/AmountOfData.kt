@@ -19,7 +19,7 @@ class AmountOfData constructor(
     symbol: String,
     scale: UnitScale,
     baseMagnitude: Number)
-    : QuantityBase("bit", symbol, scale, baseMagnitude, { AmountOfData(symbol, it, baseMagnitude) })
+    : QuantityBase(symbol, scale, baseMagnitude, { AmountOfData(symbol, it, baseMagnitude) })
 
 val bit = AmountOfData("bit", uni, 1)
 val byte = AmountOfData("byte", uni, 8)

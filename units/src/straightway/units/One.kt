@@ -1,5 +1,8 @@
 package straightway.units
 
+/**
+ * The scalar quantity.
+ */
 class One internal constructor(scale: UnitScale)
     : QuantityBase("1", scale, { One(it) })
 {

@@ -1,9 +1,9 @@
 package straightway.units
 
-import straightway.numbers.times
+import straightway.numbers.*
 
 class Length constructor(symbol: String, scale: UnitScale, baseMagnitude: Number)
-    : QuantityBase("m", symbol, scale, baseMagnitude, { Length(symbol, it, baseMagnitude) })
+    : QuantityBase(symbol, scale, baseMagnitude, { Length(symbol, it, baseMagnitude) })
 
 val meter = Length("m", uni, 1)
 val inch = Length("\"", uni, 0.0254)

@@ -13,9 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
+@file:Suppress("UNCHECKED_CAST")
+
 package straightway.units
 
-import straightway.general.Panic
+import straightway.general.*
 import straightway.numbers.*
 
 typealias UnitNumber<TQuantity> = UnitValue<*, TQuantity>

@@ -18,44 +18,50 @@ package straightway.testing
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.opentest4j.AssertionFailedError
-import straightway.general.Panic
+import straightway.general.*
 import java.io.PrintWriter
 import java.io.StringWriter
 
 fun assertPanics(action: () -> Unit) { assertThrows<Panic>(action) }
 
-fun assertPanics(expectedState: Any, action: () -> Unit): Unit =
+fun assertPanics(expectedState: Any, action: () -> Unit) {
     try {
         action()
         fail<Unit>("Action $action did not cause panic")
+    } catch (panic: Panic) {
+        assertEquals(expectedState, panic.state)
     }
-    catch (panic: Panic) { assertEquals(expectedState, panic.state) }
+}
 
 inline fun <reified TException : Throwable> assertThrows(noinline action: () -> Unit) {
     Assertions.assertThrows<TException>(TException::class.java, action)
 }
 
-inline fun <reified TException : Throwable> assertThrows(expectedMessage: String, noinline action: () -> Unit): Unit =
+inline fun <reified TException : Throwable> assertThrows(expectedMessage: String, noinline action: () -> Unit) {
     try {
         action()
         fail<Unit>("Action $action did not throw an exception")
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
         assertTrue(e is TException, "Action $action threw unexpected exception $e")
         assertEquals(expectedMessage, e.message)
     }
+}
 
-fun assertFails(action: () -> Unit): Unit =
+fun assertFails(action: () -> Unit) {
     assertThrows<AssertionFailedError>(action)
+}
 
-fun assertFails(expectedMessage: String, action: () -> Unit): Unit =
+fun assertFails(expectedMessage: String, action: () -> Unit) {
     assertThrows<AssertionFailedError>(expectedMessage, action)
+}
 
-fun assertDoesNotThrow(action: () -> Unit): Unit =
-    try { action() }
-    catch (e: Throwable) {
+fun assertDoesNotThrow(action: () -> Unit) {
+    try {
+        action()
+    } catch (e: Throwable) {
         val s = StringWriter()
         val w = PrintWriter(s)
         e.printStackTrace(w)
         fail<Unit>("Action $action threw unexpected exception $e\n${s.buffer.toString()}")
     }
+}

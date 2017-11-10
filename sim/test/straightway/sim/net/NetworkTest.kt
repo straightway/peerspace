@@ -17,16 +17,10 @@ package straightway.sim.net
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.sim.core.Simulator
-import straightway.testing.TestBase
-import straightway.testing.flow._is
-import straightway.testing.flow._to
-import straightway.testing.flow.equal
-import straightway.testing.flow.expect
-import straightway.units.byte
-import straightway.units.get
-import straightway.units.minute
-import straightway.units.second
+import straightway.sim.core.*
+import straightway.testing.*
+import straightway.testing.flow.*
+import straightway.units.*
 import java.util.*
 
 class NetworkTest : TestBase<NetworkTest.Environment>() {
@@ -48,7 +42,7 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
     fun send_triggersTransmissionOnChannels() {
         sut.run {
             network.send(sender, receiver, message)
-            expect(log.entries _is equal _to listOf("00:00:00: Transmit ${message} from sender_upload to receiver_download"))
+            expect(log.entries _is equal _to listOf("00:00:00: Transmit $message from sender_upload to receiver_download"))
         }
     }
 
@@ -59,7 +53,7 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
             network.send(sender, receiver, message)
             log.entries.clear()
             simulator.run()
-            expect(log.entries _is equal _to listOf("00:03:02: Receive ${message} from sender to receiver"))
+            expect(log.entries _is equal _to listOf("00:03:02: Receive $message from sender to receiver"))
         }
     }
 

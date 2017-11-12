@@ -21,7 +21,6 @@ import straightway.sim.core.*
 import straightway.testing.*
 import straightway.testing.flow.*
 import straightway.units.*
-import java.util.*
 
 class NetworkTest : TestBase<NetworkTest.Environment>() {
 
@@ -42,7 +41,9 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
     fun send_triggersTransmissionOnChannels() {
         sut.run {
             network.send(sender, receiver, message)
-            expect(log.entries _is equal _to listOf("00:00:00: Transmit $message from sender_upload to receiver_download"))
+            expect(log.entries _is equal _to listOf(
+                "00:00:00: sender_upload: Transmit $message from sender_upload to receiver_download",
+                "00:00:00: receiver_download: Transmit $message from sender_upload to receiver_download"))
         }
     }
 
@@ -55,10 +56,5 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
             simulator.run()
             expect(log.entries _is equal _to listOf("00:03:02: Receive $message from sender to receiver"))
         }
-    }
-
-    private companion object {
-        fun createMessage() =
-            Message("Message(ID=${UUID.randomUUID()}", 100[byte])
     }
 }

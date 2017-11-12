@@ -15,13 +15,8 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.sim.*
 import straightway.units.*
+import java.util.*
 
-class Network(private val simScheduler: Scheduler, val latency: UnitNumber<Time>) {
-
-    fun send(sender: Client, receiver: Client, message: Message) {
-        val transmissionTime = transmit(message from sender.uploadChannel to receiver.downloadChannel withLatency latency)
-        simScheduler.schedule(transmissionTime) { receiver.receive(sender, message) }
-    }
-}
+fun createMessage(size: UnitValue<Int, AmountOfData> = 100[byte]) =
+    Message("Message(ID=${UUID.randomUUID()}", size)

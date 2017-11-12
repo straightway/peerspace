@@ -15,9 +15,30 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.*
 
 interface Channel {
-    fun transmit(message: Message, receiver: Channel, latency: UnitNumber<Time>): UnitNumber<Time>
+    fun execute(request: TransmitRequest): UnitNumber<Time>
 }
+
+class TransmitRequest(val message: Message, val sender: Channel) {
+    val receiver: Channel get() = _receiver!!
+    infix fun to(receiver: Channel): TransmitRequest {
+        this._receiver = receiver
+        return this
+    }
+
+    val latency: UnitNumber<Time> get() = _latency
+    infix fun withLatency(latency: UnitNumber<Time>): TransmitRequest {
+        this._latency = latency
+        return this
+    }
+
+    fun execute() = max(sender.execute(this), receiver.execute(this))
+
+    private var _receiver: Channel? = null
+    private var _latency: UnitNumber<Time> = 0[second]
+}
+
+infix fun Message.from(sender: Channel) = TransmitRequest(this, sender)
+fun transmit(request: TransmitRequest) = request.execute()

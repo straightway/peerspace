@@ -21,9 +21,9 @@ class ChannelMock(val id: String, val log: LogList) : Channel {
 
     var receiveTime = 0[second]
 
-    override fun transmit(message: Message, receiver: Channel, latency: UnitNumber<Time>): UnitNumber<Time> {
-        log.add("Transmit ${message} from ${this} to ${receiver}")
-        return receiveTime + latency
+    override fun execute(request: TransmitRequest): UnitNumber<Time> {
+        log.add("$this: Transmit ${request.message} from ${request.sender} to ${request.receiver}")
+        return receiveTime + request.latency
     }
 
     override fun toString() = id

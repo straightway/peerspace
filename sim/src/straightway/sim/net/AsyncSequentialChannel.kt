@@ -15,13 +15,12 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.sim.*
 import straightway.units.*
 
-class Network(private val simScheduler: Scheduler, val latency: UnitNumber<Time>) {
-
-    fun send(sender: Client, receiver: Client, message: Message) {
-        val transmissionTime = transmit(message from sender.uploadChannel to receiver.downloadChannel withLatency latency)
-        simScheduler.schedule(transmissionTime) { receiver.receive(sender, message) }
+class AsyncSequentialChannel(val bandwidth: UnitValue<Int, Bandwidth>) : Channel {
+    var nextTransmissionTime: UnitValue<Number, Time> = 0[second]
+    override fun execute(request: TransmitRequest): UnitNumber<Time> {
+        nextTransmissionTime += (request.message.size / bandwidth)[second]
+        return nextTransmissionTime
     }
 }

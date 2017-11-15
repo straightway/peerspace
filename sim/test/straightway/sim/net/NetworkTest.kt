@@ -21,13 +21,14 @@ import straightway.sim.core.*
 import straightway.testing.*
 import straightway.testing.flow.*
 import straightway.units.*
+import java.time.LocalDateTime
 
 class NetworkTest : TestBase<NetworkTest.Environment>() {
 
     inner class Environment {
         val simulator = Simulator()
         val log = TimeLog(simulator)
-        val network = Network(simulator, latency = 2[second])
+        val network = Network(simulator, simulator, latency = 2[second])
         var sender = ClientMock("sender", log)
         var receiver = ClientMock("receiver", log)
         var message = createMessage()
@@ -50,7 +51,7 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
     @Test
     fun send_schedulesReceiveCall() {
         sut.run {
-            sender.uploadChannel.receiveTime = 3[minute]
+            sender.uploadChannel.receiveTime = LocalDateTime.of(0, 1, 1, 0, 3)
             network.send(sender, receiver, message)
             log.entries.clear()
             simulator.run()

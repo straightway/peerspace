@@ -32,3 +32,8 @@ operator fun <T : Number> LocalDateTime.plus(amount: UnitValue<T, Time>) =
 
 operator fun <T : Number> LocalDateTime.minus(amount: UnitValue<T, Time>) =
     this - amount.toDuration()
+
+operator fun LocalDateTime.minus(other: LocalDateTime): UnitNumber<Time> =
+    Duration.between(other, this).toTime()
+
+fun Duration.toTime() = this.nano[nano(second)] + this.seconds[second]

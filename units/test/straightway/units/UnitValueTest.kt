@@ -17,7 +17,7 @@ package straightway.units
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import straightway.general.Panic
+import straightway.general.*
 import straightway.testing.flow.*
 
 class UnitValueTest {
@@ -139,6 +139,12 @@ class UnitValueTest {
 
     @Test
     fun convert_comatibleUnit_shifted_unit() = expect(1[(kelvin * second) / second][celsius].unit _is equal _to celsius)
+
+    @Test
+    fun convert_comatibleUnit_withFactor_value() = expect(1[(pound * second) / second][kilo(gramm)].value _is equal _to 0.45359237)
+
+    @Test
+    fun convert_comatibleUnit_withFactor_unit() = expect(1[(pound * second) / second][kilo(gramm)].unit _is equal _to kilo(gramm))
 
     @Test
     fun convert_incomatibleUnit() = expect({ 1[(meter * second) / second][mol] } does _throw - Panic::class)

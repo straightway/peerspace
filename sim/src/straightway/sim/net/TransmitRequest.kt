@@ -15,11 +15,17 @@ class TransmitRequest(val message: Message, val sender: Channel) {
         return this
     }
 
-    fun execute() = max(sender.execute(this), receiver.execute(this))
-
     private var _receiver: Channel? = null
     private var _latency: UnitNumber<Time> = 0[second]
 }
 
 infix fun Message.from(sender: Channel) = TransmitRequest(this, sender)
-fun transmit(request: TransmitRequest) = request.execute()
+fun transmit(request: TransmitRequest) = request.run {
+    val sendOffer = sender.requestTransmission(request)
+    val receiveOffer = receiver.requestTransmission(request)
+    val slowerOffer = if (sendOffer.finishTime < receiveOffer.finishTime) receiveOffer else sendOffer
+    sender.accept(slowerOffer)
+
+    receiver.accept(slowerOffer)
+    slowerOffer.finishTime
+}

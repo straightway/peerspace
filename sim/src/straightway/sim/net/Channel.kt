@@ -15,8 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.units.*
-
 interface Channel {
-    fun execute(request: TransmitRequest): UnitNumber<Time>
+    fun requestTransmission(request: TransmitRequest): TransmitOffer
+    fun accept(offer: TransmitOffer)
 }

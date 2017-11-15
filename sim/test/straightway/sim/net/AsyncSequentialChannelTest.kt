@@ -16,74 +16,74 @@ limitations under the License.
 package straightway.sim.net
 
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.dsl.*
 import straightway.sim.core.*
 import straightway.testing.*
 import straightway.testing.flow.*
 import straightway.units.*
+import java.time.LocalDateTime
 
 class AsyncSequentialChannelTest : TestBase<AsyncSequentialChannelTest.Environment>() {
-    class Environment(val bandwidths: List<UnitValue<Int, Bandwidth>>) {
-        constructor(vararg bandwidth: UnitValue<Int, Bandwidth>) : this(bandwidth.toList())
+    class Environment {
+        fun channel(bandwidth: UnitValue<Int, Bandwidth>) =
+            channels.getOrPut(bandwidth) { AsyncSequentialChannel(bandwidth) }
 
-        val channels: List<AsyncSequentialChannel> by lazy { bandwidths.map { AsyncSequentialChannel(it) } }
-        val message = createMessage(100[bit])
+        private val channels = mutableMapOf<UnitValue<Int, Bandwidth>, Channel>()
     }
 
     @BeforeEach
     fun setup() {
-        sut = Environment(10[bit / second], 100[bit / second], 1000[bit / second])
+        sut = Environment()
     }
 
     @Test
-    fun receiverIsNoAsyncSequentialChannel_doesNotThrow() {
-        sut.run {
-            val otherChannel = ChannelMock("other", TimeLog(Simulator()))
-            expect({ transmit(message from channels[0] to otherChannel withLatency 0[second]) } does not - _throw - exception)
-        }
+    fun receiverIsNoAsyncSequentialChannel_doesNotThrow() = sut.run {
+        val otherChannel = ChannelMock("other", TimeLog(Simulator()))
+        expect({ transmit(createMessage(100[bit]) from channel(10[bit / second]) to otherChannel) } does not - _throw - exception)
     }
 
     @Test
-    fun senderIsNoAsyncSequentialChannel_doesNotThrow() {
-        sut.run {
-            val otherChannel = ChannelMock("other", TimeLog(Simulator()))
-            expect({ transmit(message from otherChannel to channels[0] withLatency 0[second]) } does not - _throw - exception)
-        }
+    fun senderIsNoAsyncSequentialChannel_doesNotThrow() = sut.run {
+        val otherChannel = ChannelMock("other", TimeLog(Simulator()))
+        expect({ transmit(createMessage(100[bit]) from otherChannel to channel(10[bit / second])) } does not - _throw - exception)
     }
 
     @Test
-    fun lowerBandwidthDeterminesTransmissionTime() {
-        sut.run {
-            val time = transmit(message from channels[0] to channels[1] withLatency 0[second])
-            expect(time _is equal _to 10[second])
-        }
+    fun lowerBandwidthDeterminesTransmissionTime() = sut.run {
+        val time = transmit(createMessage(100[bit]) from channel(10[bit / second]) to channel(100[bit / second]))
+        expect((time - ZERO_TIME) _is equal _to 10[second])
     }
 
     @Test
-    fun secondTransmissionGoesOnTop_sameChannels_sameDirection() {
-        sut.run {
-            transmit(message from channels[0] to channels[1] withLatency 0[second])
-            val time = transmit(message.from(channels[0]).to(channels[1]).withLatency(0[second]))
-            expect(time _is equal _to 20[second])
-        }
+    fun secondTransmissionGoesOnTop_sameChannels_sameDirection() = sut.run {
+        transmit(createMessage(100[bit]) from channel(10[bit / second]) to channel(100[bit / second]))
+        val time = transmit(createMessage(100[bit]) from channel(10[bit / second]) to channel(100[bit / second]))
+        expect((time - ZERO_TIME) _is equal _to 20[second])
     }
 
     @Test
-    fun secondTransmissionGoesOnTop_sameChannels_oppositeDirection() {
-        sut.run {
-            transmit(message from channels[1] to channels[0] withLatency 0[second])
-            val time = transmit(message from channels[0] to channels[1] withLatency 0[second])
-            expect(time _is equal _to 20[second])
-        }
+    fun secondTransmissionGoesOnTop_sameChannels_oppositeDirection() = sut.run {
+        transmit(createMessage(100[bit]) from channel(10[bit / second]) to channel(100[bit / second]))
+        val time = transmit(createMessage(100[bit]) from channel(100[bit / second]) to channel(10[bit / second]))
+        expect((time - ZERO_TIME) _is equal _to 20[second])
     }
 
     @Test
-    fun fasterChannelIsFreeEarlier() {
-        sut.run {
-            transmit(message from channels[0] to channels[1] withLatency 0[second])
-            val time = transmit(message from channels[2] to channels[1] withLatency 0[second])
-            expect(time _is equal _to 2[second])
-        }
+    fun secondTransmissionComesFirst_ifGapIsLargeEnough() = sut.run {
+        transmit(createMessage(100[bit]) from channel(10[bit / second]) to channel(100[bit / second]))
+        val time = transmit(createMessage(100[bit]) from channel(100[bit / second]) to channel(1000[bit / second]))
+        expect((time - ZERO_TIME) _is equal _to 1[second])
+    }
+
+    @Disabled
+    @Test
+    fun secondTransmissionOverlapsFirstStransmission() = sut.run {
+
+    }
+
+    private companion object {
+        val ZERO_TIME = LocalDateTime.of(0, 1, 1, 0, 0)
     }
 }

@@ -15,13 +15,17 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
+import straightway.general.*
 import straightway.sim.*
 import straightway.units.*
 
-class Network(private val simScheduler: Scheduler, val latency: UnitNumber<Time>) {
+class Network(
+    private val simScheduler: Scheduler,
+    val timeProvider: TimeProvider,
+    val latency: UnitNumber<Time>) {
 
     fun send(sender: Client, receiver: Client, message: Message) {
         val transmissionTime = transmit(message from sender.uploadChannel to receiver.downloadChannel withLatency latency)
-        simScheduler.schedule(transmissionTime) { receiver.receive(sender, message) }
+        simScheduler.schedule(transmissionTime - timeProvider.currentTime) { receiver.receive(sender, message) }
     }
 }

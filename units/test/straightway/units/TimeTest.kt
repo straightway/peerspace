@@ -17,10 +17,7 @@ package straightway.units
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import straightway.testing.flow._is
-import straightway.testing.flow._to
-import straightway.testing.flow.equal
-import straightway.testing.flow.expect
+import straightway.testing.flow.*
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -90,5 +87,27 @@ class TimeTest {
     fun toDuration_long_bigDays() {
         val maxDays = 999999999L * 365L + 999999999L / 4L - 20547L * 365L + 20L
         expect(maxDays[day].toDuration() _is equal _to Duration.ofDays(maxDays))
+    }
+
+    @Test
+    fun fromDuration_seconds() {
+        val duration = Duration.ofMinutes(1)
+        val time = duration.toTime()
+        expect(time _is equal _to 1[minute])
+    }
+
+    @Test
+    fun fromDuration_nanos() {
+        val duration = Duration.ofNanos(10)
+        val time = duration.toTime()
+        expect(time _is equal _to 10[nano(second)])
+    }
+
+    @Test
+    fun minus_LocalDateTime() {
+        val time1 = LocalDateTime.of(0, 1, 1, 0, 0)
+        val time2 = LocalDateTime.of(0, 1, 1, 0, 1)
+        val difference = time2 - time1
+        expect(difference _is equal _to 1[minute])
     }
 }

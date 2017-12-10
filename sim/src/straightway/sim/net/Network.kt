@@ -25,7 +25,7 @@ class Network(
     val latency: UnitNumber<Time>) {
 
     fun send(sender: Client, receiver: Client, message: Message) {
-        val transmissionTime = transmit(message from sender.uploadChannel to receiver.downloadChannel withLatency latency)
+        val transmissionTime = transmit(message from sender.uploadChannel to receiver.downloadChannel)
         simScheduler.schedule(transmissionTime - timeProvider.currentTime) { receiver.receive(sender, message) }
     }
 }

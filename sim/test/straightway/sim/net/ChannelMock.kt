@@ -15,12 +15,11 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.units.*
 import java.time.LocalDateTime
 
 class ChannelMock(val id: String, val log: LogList) : Channel {
     override fun requestTransmission(request: TransmitRequest): TransmitOffer {
-        return TransmitOffer(this, receiveTime + request.latency, request)
+        return TransmitOffer(this, receiveTime, request)
     }
 
     override fun accept(offer: TransmitOffer) {

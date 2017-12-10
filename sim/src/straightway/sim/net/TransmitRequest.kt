@@ -24,8 +24,9 @@ fun transmit(request: TransmitRequest) = request.run {
     val sendOffer = sender.requestTransmission(request)
     val receiveOffer = receiver.requestTransmission(request)
     val slowerOffer = if (sendOffer.finishTime < receiveOffer.finishTime) receiveOffer else sendOffer
-    sender.accept(slowerOffer)
 
+    sender.accept(slowerOffer)
     receiver.accept(slowerOffer)
+
     slowerOffer.finishTime
 }

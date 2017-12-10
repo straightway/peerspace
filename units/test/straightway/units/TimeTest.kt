@@ -110,4 +110,12 @@ class TimeTest {
         val difference = time2 - time1
         expect(difference _is equal _to 1[minute])
     }
+
+    @Test
+    fun absolute() =
+        expect(1[minute].absolute _is equal _to LocalDateTime.of(0, 1, 1, 0, 1))
+
+    @Test
+    fun unitValue() =
+        expect(LocalDateTime.of(0, 1, 1, 0, 1).unitValue _is equal _to 1[minute])
 }

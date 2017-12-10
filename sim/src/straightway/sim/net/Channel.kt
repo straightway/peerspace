@@ -15,6 +15,9 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
+/**
+ * Transmit a message to another channel.
+ */
 interface Channel {
     fun requestTransmission(request: TransmitRequest): TransmitOffer
     fun accept(offer: TransmitOffer)

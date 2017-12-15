@@ -15,36 +15,51 @@ limitations under the License.
  ****************************************************************************/
 package straightway.integrationtest
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.*
 import straightway.data.*
 import straightway.infrastructure.*
+import straightway.net.*
 import straightway.testing.*
 import straightway.testing.flow.*
 
-class NetworkClientTest : TestBase<NetworkClient>() {
+class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
+
+    class Environment {
+
+        val network = NetworkImpl()
+        var peerMockFactory = { id: Id ->
+            mock<Peer> { on { id } doReturn id }
+        }
+
+        init {
+            Infrastructure.instance = Infrastructure {
+                peerFactory = mock<PeerFactory> {
+                    on { create(any()) } doAnswer { peerMockFactory(it.arguments[0] as Id) }
+                }
+            }
+        }
+    }
 
     @BeforeEach
     fun setup() {
-        sut = NetworkClient("peer")
+        sut = Environment()
     }
 
     @Test
-    fun id() =
-        expect(sut.id _is equal _to "peer")
-
-    @Test
-    fun receiveData_isRegistered() {
-        val peer = mock<Identifyable> {
-            on { id } doReturn "peer"
+    fun peer_callsPeerFactory() = sut.run {
+        var newPeer: Peer? = null
+        peerMockFactory = { newId: Id ->
+            expect(newPeer _is _null)
+            newPeer = mock<Peer> { on { id } doReturn newId }
+            newPeer!!
         }
-        val data = Chunk(Key("0815"), arrayOf(1, 2, 3))
-
-        push(data) from peer to sut
-
-        expect(sut.receivedData _is equal _to listOf(PushRequest(data, peer)))
+        val receiverFromNetwork = network.peer("receiver")
+        expect(receiverFromNetwork.id _is equal _to "receiver")
+        expect(receiverFromNetwork _is same _as newPeer!!)
     }
 }

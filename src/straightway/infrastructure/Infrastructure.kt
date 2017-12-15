@@ -13,18 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.integrationtest
+package straightway.infrastructure
 
-import straightway.*
-import straightway.data.*
-import straightway.infrastructure.*
+class Infrastructure(initializer: Infrastructure.() -> Unit) {
+    lateinit var network: Network
+    lateinit var peerFactory: PeerFactory
+    lateinit var chunkSizeGetter: ChunkSizeGetter
 
-class NetworkClient(override val id: Id) : Identifyable, PushTarget {
-
-    override fun receiveData(request: PushRequest) {
-        _receivedData += request
+    companion object {
+        lateinit var instance: Infrastructure
     }
 
-    val receivedData: List<PushRequest> get() = _receivedData
-    private val _receivedData = mutableListOf<PushRequest>()
+    init {
+        this.initializer()
+    }
 }

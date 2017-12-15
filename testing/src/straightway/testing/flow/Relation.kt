@@ -17,8 +17,7 @@ package straightway.testing.flow
 
 import org.opentest4j.AssertionFailedError
 import straightway.dsl.*
-import straightway.numbers.compareTo
-import straightway.numbers.minus
+import straightway.numbers.*
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -63,8 +62,21 @@ object _false
 object empty
     : Relation, StateExpr<Unary>, FunExpr("empty", { a: Any -> !a.asIterable().any() })
 
+object _null
+object _notNull
+
+@Suppress("UNUSED_PARAMETER", "unused")
+operator fun not.minus(arg: _null) = _notNull
+
 infix fun <T: Relation> Any._is(op: StateExpr<T>) = BoundExpr(op, Value(this)).inState<T>()
 infix fun <T: Comparable<T>, TRel: Relation> T._is(op: StateExpr<TRel>) = BoundExpr(op, Value(this)).inState<TRel>()
+
+@Suppress("UNUSED_PARAMETER")
+infix fun Any?._is(arg: _null) = (this === null) _is _true
+
+@Suppress("UNUSED_PARAMETER")
+infix fun Any?._is(arg: _notNull) = (this === null) _is _false
+
 infix fun <T: Iterable<*>, TRel: WithHas> T.has(op: StateExpr<TRel>) = BoundExpr(op, Value(this)).inState<TRel>()
 infix fun <TRel: WithHas> Array<*>.has(op: StateExpr<TRel>) = this.asList() has op
 infix fun <TRel: WithHas> CharSequence.has(op: StateExpr<TRel>) = this.toList() has op

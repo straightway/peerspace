@@ -13,18 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.integrationtest
+package straightway.infrastructure
 
-import straightway.*
-import straightway.data.*
-import straightway.infrastructure.*
+/**
+ * A target for pushing data.
+ */
+interface PushTarget {
 
-class NetworkClient(override val id: Id) : Identifyable, PushTarget {
-
-    override fun receiveData(request: PushRequest) {
-        _receivedData += request
-    }
-
-    val receivedData: List<PushRequest> get() = _receivedData
-    private val _receivedData = mutableListOf<PushRequest>()
+    /**
+     * Receive a chunk of data from the given origin.
+     */
+    fun receiveData(request: PushRequest)
 }
+
+infix fun PushRequest.to(target: PushTarget) = target.receiveData(this)

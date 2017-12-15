@@ -13,18 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.integrationtest
+package straightway.net
 
-import straightway.*
-import straightway.data.*
-import straightway.infrastructure.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import straightway.testing.*
+import straightway.testing.flow.*
 
-class NetworkClient(override val id: Id) : Identifyable, PushTarget {
+class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
 
-    override fun receiveData(request: PushRequest) {
-        _receivedData += request
+    @BeforeEach
+    fun setup() {
+        sut = PeerFactoryImpl()
     }
 
-    val receivedData: List<PushRequest> get() = _receivedData
-    private val _receivedData = mutableListOf<PushRequest>()
+    @Test
+    fun createsPeerInstances() {
+        val result = sut.create("id")
+        expect(result::class _is same _as PeerImpl::class)
+    }
+
+    @Test
+    fun createdPeerHasProperId() {
+        val result = sut.create("id")
+        expect(result.id _is equal _to "id")
+    }
 }

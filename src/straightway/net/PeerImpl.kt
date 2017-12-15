@@ -13,8 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.data
+package straightway.net
 
-interface ChunkSizeGetter {
-    fun getSizeOf(chunk: Chunk) : Long
+import straightway.data.*
+import straightway.infrastructure.*
+
+class PeerImpl(override val id: Id) : Peer {
+
+    override fun receiveData(request: PushRequest) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }

@@ -13,11 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.network
+package straightway.infrastructure
 
-import straightway.Identifyable
-import straightway.data.Chunk
+import straightway.*
+import straightway.data.*
 
-interface PushTarget {
-    fun push(data: Chunk, origin: Identifyable)
+data class PushRequest(val data: Chunk, val origin: Identifyable)
+
+fun push(data: Chunk) = PartialPushRequest(data)
+
+data class PartialPushRequest(val data: Chunk) {
+    infix fun from(origin: Identifyable) = PushRequest(data, origin)
 }
+

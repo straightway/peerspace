@@ -13,7 +13,6 @@
     <orderEntry type="module" module-name="general" />
     <orderEntry type="module" module-name="dsl" />
     <orderEntry type="module" module-name="sim" />
-    <orderEntry type="module" module-name="core" />
     <orderEntry type="module" module-name="straightway" />
     <orderEntry type="library" name="mockito" level="application" />
     <orderEntry type="module" module-name="testing" />

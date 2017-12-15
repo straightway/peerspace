@@ -21,6 +21,7 @@ import straightway.net.*
 class Infrastructure(initializer: Infrastructure.() -> Unit) {
     lateinit var network: Network
     lateinit var peerFactory: PeerFactory
+    lateinit var channelFactory: ChannelFactory
     lateinit var chunkSizeGetter: ChunkSizeGetter
 
     companion object {

@@ -29,8 +29,8 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
         val simulator = Simulator()
         val log = TimeLog(simulator)
         val network = Network(simulator, simulator, latency = 2[second])
-        var sender = ClientMock("sender", log)
-        var receiver = ClientMock("receiver", log)
+        var sender = NodeMock("sender", log)
+        var receiver = NodeMock("receiver", log)
         var message = createMessage()
     }
 
@@ -50,7 +50,7 @@ class NetworkTest : TestBase<NetworkTest.Environment>() {
     @Test
     fun send_schedulesReceiveCall() =
         sut.run {
-            sender.uploadChannel.receiveTime = LocalDateTime.of(0, 1, 1, 0, 3)
+            sender.uploadStream.receiveTime = LocalDateTime.of(0, 1, 1, 0, 3)
             network.send(sender, receiver, message)
             log.entries.clear()
             simulator.run()

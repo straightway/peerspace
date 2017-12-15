@@ -1,12 +1,13 @@
 package straightway.units
 
 import straightway.numbers.*
+import java.io.Serializable
 
 /**
  * The scale for a unit.
  * A scale can be applied to a unit using the invokation operator (round braces).
  */
-data class UnitScale(val prefix: String, val magnitude: Number) {
+data class UnitScale(val prefix: String, val magnitude: Number) : Serializable {
     private constructor(original: UnitScale) : this(original.prefix, original.magnitude)
     constructor(magnitude: Number) : this(createScaleFor(magnitude))
 

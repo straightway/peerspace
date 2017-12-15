@@ -1,12 +1,14 @@
 package straightway.units
 
+import java.io.Serializable
+
 typealias QuantityId = String
 
 /**
  * A quantity which can be attached to a number, forming a unit value. Instances
  * of quantities are units.
  */
-interface Quantity {
+interface Quantity : Serializable {
     /**
      * The identifier of the quantity. All "compatible" quantities have the same id.
      */

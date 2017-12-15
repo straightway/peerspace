@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim.net
+package straightway.net
 
-interface Client {
-    val uploadChannel: Channel
-    val downloadChannel: Channel
-    fun receive(sender: Client, message: Message)
+import straightway.data.*
+
+interface ChannelFactory {
+    fun create(id: Id): Channel
 }

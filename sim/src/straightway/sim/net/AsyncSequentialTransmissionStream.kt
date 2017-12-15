@@ -20,12 +20,12 @@ import straightway.units.*
 import java.time.LocalDateTime
 
 /**
- * Channel transmitting a message to a receiver channel. When the request is accepted,
+ * TransmissionStream transmitting a message to a receiver channel. When the request is accepted,
  * its receive date is determined by the slowest of both channels. It never changes.
  */
-class AsyncSequentialChannel(
+class AsyncSequentialTransmissionStream(
     private val bandwidth: UnitValue<Int, Bandwidth>,
-    private val timeProvider: TimeProvider) : Channel {
+    private val timeProvider: TimeProvider) : TransmissionStream {
 
     data class TransmissionRecord(val startTime: LocalDateTime, val duration: UnitNumber<Time>) {
         val endTime: LocalDateTime by lazy { startTime + duration }
@@ -69,7 +69,7 @@ class AsyncSequentialChannel(
     private fun TransmitRequest.createOffer(): TransmitOffer {
         val newSchedule = scheduledTransmissionsWithNewRequest
         return TransmitOffer(
-            issuer = this@AsyncSequentialChannel,
+            issuer = this@AsyncSequentialTransmissionStream,
             finishTime = newSchedule.first().endTime,
             request = this,
             memento = newSchedule)
@@ -119,7 +119,7 @@ class AsyncSequentialChannel(
     @Suppress("UNCHECKED_CAST")
     private val TransmitOffer.transmissions
         get() = memento as List<TransmissionRecord>
-    private val TransmitOffer.isMyOwn get() = issuer === this@AsyncSequentialChannel
+    private val TransmitOffer.isMyOwn get() = issuer === this@AsyncSequentialTransmissionStream
 
     private fun List<TransmissionRecord>.splitAt(time: LocalDateTime): Pair<List<TransmissionRecord>, List<TransmissionRecord>> =
         when {

@@ -31,7 +31,7 @@ class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
     @Test
     fun createsPeerInstances() {
         val result = sut.create("id")
-        expect(result::class _is same _as PeerImpl::class)
+        expect(result::class _is same _as PeerNetworkStub::class)
     }
 
     @Test

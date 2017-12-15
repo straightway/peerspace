@@ -15,10 +15,12 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-/**
- * Transmit a message to another channel.
- */
-interface Channel {
-    fun requestTransmission(request: TransmitRequest): TransmitOffer
-    fun accept(offer: TransmitOffer)
+class NodeMock(val id: String, val log: LogList) : Node {
+    override val uploadStream = TransmissionStreamMock(id + "_upload", log)
+    override val downloadStream = TransmissionStreamMock(id + "_download", log)
+    override fun receive(sender: Node, message: Message) {
+        log.add("Receive ${message} from ${sender} to ${this}")
+    }
+
+    override fun toString() = id
 }

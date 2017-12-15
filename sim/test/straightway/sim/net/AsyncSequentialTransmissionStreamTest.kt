@@ -27,19 +27,19 @@ import straightway.testing.flow.*
 import straightway.units.*
 import java.time.LocalDateTime
 
-class AsyncSequentialChannelTest : TestBase<AsyncSequentialChannelTest.Environment>() {
+class AsyncSequentialTransmissionStreamTest : TestBase<AsyncSequentialTransmissionStreamTest.Environment>() {
 
     class Environment {
 
         fun channel(bandwidth: UnitValue<Int, Bandwidth>) =
-            channels.getOrPut(bandwidth) { AsyncSequentialChannel(bandwidth, timeProvider) }
+            channels.getOrPut(bandwidth) { AsyncSequentialTransmissionStream(bandwidth, timeProvider) }
 
         var currentTime: LocalDateTime = LocalDateTime.of(0, 1, 1, 0, 0)
 
         private val timeProvider = mock<TimeProvider> {
             on { currentTime } doAnswer { currentTime }
         }
-        private val channels = mutableMapOf<UnitValue<Int, Bandwidth>, AsyncSequentialChannel>()
+        private val channels = mutableMapOf<UnitValue<Int, Bandwidth>, AsyncSequentialTransmissionStream>()
     }
 
     @BeforeEach
@@ -49,13 +49,13 @@ class AsyncSequentialChannelTest : TestBase<AsyncSequentialChannelTest.Environme
 
     @Test
     fun receiverIsNoAsyncSequentialChannel_doesNotThrow() = sut.run {
-        val otherChannel = ChannelMock("other", TimeLog(Simulator()))
+        val otherChannel = TransmissionStreamMock("other", TimeLog(Simulator()))
         expect({ transmit(message(100[bit]) from channel(10[bit / second]) to otherChannel) } does not - _throw - exception)
     }
 
     @Test
     fun senderIsNoAsyncSequentialChannel_doesNotThrow() = sut.run {
-        val otherChannel = ChannelMock("other", TimeLog(Simulator()))
+        val otherChannel = TransmissionStreamMock("other", TimeLog(Simulator()))
         expect({ transmit(message(100[bit]) from otherChannel to channel(10[bit / second])) } does not - _throw - exception)
     }
 
@@ -196,7 +196,7 @@ class AsyncSequentialChannelTest : TestBase<AsyncSequentialChannelTest.Environme
     }
 
     private fun transmissionBlock(startTime: UnitNumber<Time>, duration: UnitNumber<Time>) =
-        AsyncSequentialChannel.TransmissionRecord(LocalDateTime.of(0, 1, 1, 0, 0) + startTime, duration)
+        AsyncSequentialTransmissionStream.TransmissionRecord(LocalDateTime.of(0, 1, 1, 0, 0) + startTime, duration)
 
     private companion object {
         fun message(size: UnitValue<Int, AmountOfData> = 100[byte]) = createMessage(size)

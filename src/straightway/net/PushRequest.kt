@@ -16,12 +16,13 @@ limitations under the License.
 package straightway.net
 
 import straightway.data.*
+import java.io.Serializable
 
-data class PushRequest(val data: Chunk, val origin: Identifyable)
+data class PushRequest(val data: Chunk, val origin: Id) : Serializable
 
 fun push(data: Chunk) = PartialPushRequest(data)
 
 data class PartialPushRequest(val data: Chunk) {
-    infix fun from(origin: Identifyable) = PushRequest(data, origin)
+    infix fun from(origin: Identifyable) = PushRequest(data, origin.id)
 }
 

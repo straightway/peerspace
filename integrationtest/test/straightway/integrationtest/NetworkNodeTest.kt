@@ -24,7 +24,7 @@ import straightway.net.*
 import straightway.testing.*
 import straightway.testing.flow.*
 
-class NetworkClientTest : TestBase<NetworkClient>() {
+class NetworkNodeTest : TestBase<NetworkClient>() {
 
     @BeforeEach
     fun setup() {
@@ -44,6 +44,6 @@ class NetworkClientTest : TestBase<NetworkClient>() {
 
         push(data) from peer to sut
 
-        expect(sut.receivedData _is equal _to listOf(PushRequest(data, peer)))
+        expect(sut.receivedData _is equal _to listOf(PushRequest(data, peer.id)))
     }
 }

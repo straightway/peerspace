@@ -19,5 +19,5 @@ import straightway.data.*
 import straightway.net.*
 
 class PeerFactoryImpl : PeerFactory {
-    override fun create(id: Id) = PeerImpl(id)
+    override fun create(id: Id) = PeerNetworkStub(id)
 }

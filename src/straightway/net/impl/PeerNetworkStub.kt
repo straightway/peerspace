@@ -13,14 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.sim.net
+package straightway.net.impl
 
-class ClientMock(val id: String, val log: LogList) : Client {
-    override val uploadChannel: ChannelMock = ChannelMock(id + "_upload", log)
-    override val downloadChannel: ChannelMock = ChannelMock(id + "_download", log)
-    override fun receive(sender: Client, message: Message) {
-        log.add("Receive ${message} from ${sender} to ${this}")
+import straightway.*
+import straightway.data.*
+import straightway.net.*
+
+/**
+ * Implementation of a network stub for a peer.
+ *
+ * This network stub cares for transitting data to the physical
+ * network node the peer runs on.
+ */
+class PeerNetworkStub(override val id: Id) : Peer {
+
+    override fun receiveData(request: PushRequest) {
+        val channel = Infrastructure.instance.channelFactory.create(id)
+        channel.transmit(request)
     }
-
-    override fun toString() = id
 }

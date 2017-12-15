@@ -15,6 +15,8 @@ limitations under the License.
  ****************************************************************************/
 package straightway.data
 
-data class Key(val id: Id, val timestamp: Long) {
+import java.io.Serializable
+
+data class Key(val id: Id, val timestamp: Long) : Serializable {
     constructor(id: Id) : this(id, 0)
 }

@@ -19,6 +19,7 @@ package straightway.units
 
 import straightway.general.*
 import straightway.numbers.*
+import java.io.Serializable
 
 /**
  * Convenience type for unit values with Number.
@@ -32,7 +33,7 @@ typealias UnitNumber<TQuantity> = UnitValue<*, TQuantity>
  */
 data class UnitValue<TValue: Number, TQuantity: Quantity>(
     val value: TValue,
-    val unit: TQuantity) : Comparable<UnitValue<*, TQuantity>>
+    val unit: TQuantity) : Comparable<UnitValue<*, TQuantity>>, Serializable
 {
     val baseValue get() = value * unit.siScale.magnitude * unit.baseMagnitude + unit.valueShift
 

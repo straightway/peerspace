@@ -13,8 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.data
+package straightway.sim.net
 
-import java.io.Serializable
+import java.time.LocalDateTime
 
-data class Chunk(val key: Key, val data: Array<Byte>) : Serializable
+class TransmissionStreamMock(val id: String, val log: LogList) : TransmissionStream {
+    override fun requestTransmission(request: TransmitRequest): TransmitOffer {
+        return TransmitOffer(this, receiveTime, request)
+    }
+
+    override fun accept(offer: TransmitOffer) {
+        log.add("$this: Transmit ${offer.request.message} from ${offer.request.sender} to ${offer.request.receiver}")
+    }
+
+    var receiveTime = LocalDateTime.of(0, 1, 1, 0, 0)
+
+    override fun toString() = id
+}

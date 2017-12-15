@@ -13,8 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.data
+package straightway.sim.net
 
-import java.io.Serializable
-
-data class Chunk(val key: Key, val data: Array<Byte>) : Serializable
+interface Node {
+    val uploadStream: TransmissionStream
+    val downloadStream: TransmissionStream
+    fun receive(sender: Node, message: Message)
+}

@@ -15,9 +15,8 @@ limitations under the License.
  ****************************************************************************/
 package straightway.integrationtest
 
-import straightway.*
 import straightway.data.*
-import straightway.infrastructure.*
+import straightway.net.*
 
 class NetworkClient(override val id: Id) : Identifyable, PushTarget {
 

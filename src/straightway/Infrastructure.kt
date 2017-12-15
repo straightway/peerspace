@@ -13,16 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.infrastructure
+package straightway
 
-import straightway.*
 import straightway.data.*
+import straightway.net.*
 
-data class PushRequest(val data: Chunk, val origin: Identifyable)
+class Infrastructure(initializer: Infrastructure.() -> Unit) {
+    lateinit var network: Network
+    lateinit var peerFactory: PeerFactory
+    lateinit var chunkSizeGetter: ChunkSizeGetter
 
-fun push(data: Chunk) = PartialPushRequest(data)
+    companion object {
+        lateinit var instance: Infrastructure
+    }
 
-data class PartialPushRequest(val data: Chunk) {
-    infix fun from(origin: Identifyable) = PushRequest(data, origin)
+    init {
+        this.initializer()
+    }
 }
-

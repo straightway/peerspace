@@ -13,11 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.net
+package straightway.data
 
-import straightway.data.*
-import straightway.infrastructure.*
-
-class NetworkImpl : Network {
-    override fun peer(id: Id) = Infrastructure.instance.peerFactory.create(id)
+interface ChunkSizeGetter {
+    fun getSizeOf(chunk: Chunk) : Long
 }

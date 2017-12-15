@@ -16,11 +16,7 @@ limitations under the License.
 package straightway.net
 
 import straightway.data.*
-import straightway.infrastructure.*
 
-class PeerImpl(override val id: Id) : Peer {
-
-    override fun receiveData(request: PushRequest) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+interface PeerFactory {
+    fun create(id: Id): Peer
 }

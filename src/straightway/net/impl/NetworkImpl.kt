@@ -13,17 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.infrastructure
+package straightway.net.impl
 
-/**
- * A target for pushing data.
- */
-interface PushTarget {
+import straightway.*
+import straightway.data.*
+import straightway.net.*
 
-    /**
-     * Receive a chunk of data from the given origin.
-     */
-    fun receiveData(request: PushRequest)
+class NetworkImpl : Network {
+    override fun peer(id: Id) = Infrastructure.instance.peerFactory.create(id)
 }
-
-infix fun PushRequest.to(target: PushTarget) = target.receiveData(this)

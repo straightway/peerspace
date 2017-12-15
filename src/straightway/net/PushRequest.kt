@@ -16,8 +16,12 @@ limitations under the License.
 package straightway.net
 
 import straightway.data.*
-import straightway.infrastructure.*
 
-class PeerFactoryImpl : PeerFactory {
-    override fun create(id: Id) = PeerImpl(id)
+data class PushRequest(val data: Chunk, val origin: Identifyable)
+
+fun push(data: Chunk) = PartialPushRequest(data)
+
+data class PartialPushRequest(val data: Chunk) {
+    infix fun from(origin: Identifyable) = PushRequest(data, origin)
 }
+

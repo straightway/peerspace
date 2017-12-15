@@ -21,9 +21,10 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import straightway.*
 import straightway.data.*
-import straightway.infrastructure.*
 import straightway.net.*
+import straightway.net.impl.*
 import straightway.testing.*
 import straightway.testing.flow.*
 

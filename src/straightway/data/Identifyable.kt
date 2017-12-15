@@ -13,18 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.infrastructure
+package straightway.data
 
-class Infrastructure(initializer: Infrastructure.() -> Unit) {
-    lateinit var network: Network
-    lateinit var peerFactory: PeerFactory
-    lateinit var chunkSizeGetter: ChunkSizeGetter
-
-    companion object {
-        lateinit var instance: Infrastructure
-    }
-
-    init {
-        this.initializer()
-    }
+interface Identifyable {
+    val id: Id
 }

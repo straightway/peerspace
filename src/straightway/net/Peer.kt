@@ -13,10 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.infrastructure
+package straightway.net
 
 import straightway.data.*
 
-interface ChunkSizeGetter {
-    fun getSizeOf(chunk: Chunk) : Long
-}
+interface Peer : Identifyable, PushTarget

@@ -17,6 +17,7 @@ package straightway.net
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import straightway.net.impl.*
 import straightway.testing.*
 import straightway.testing.flow.*
 

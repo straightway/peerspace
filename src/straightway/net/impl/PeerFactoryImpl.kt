@@ -13,8 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.infrastructure
+package straightway.net.impl
 
-import straightway.*
+import straightway.data.*
+import straightway.net.*
 
-interface Peer : Identifyable, PushTarget
+class PeerFactoryImpl : PeerFactory {
+    override fun create(id: Id) = PeerImpl(id)
+}

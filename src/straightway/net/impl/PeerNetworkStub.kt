@@ -27,8 +27,8 @@ import straightway.net.*
  */
 class PeerNetworkStub(override val id: Id) : Peer {
 
-    override fun receiveData(request: PushRequest) {
+    override fun push(data: Chunk) {
         val channel = Infrastructure.instance.channelFactory.create(id)
-        channel.transmit(request)
+        channel.transmit(data)
     }
 }

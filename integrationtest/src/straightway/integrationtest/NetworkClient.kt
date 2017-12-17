@@ -20,10 +20,10 @@ import straightway.net.*
 
 class NetworkClient(override val id: Id) : Identifyable, PushTarget {
 
-    override fun receiveData(request: PushRequest) {
-        _receivedData += request
+    override fun push(data: Chunk) {
+        _receivedData += data
     }
 
-    val receivedData: List<PushRequest> get() = _receivedData
-    private val _receivedData = mutableListOf<PushRequest>()
+    val receivedData: List<Chunk> get() = _receivedData
+    private val _receivedData = mutableListOf<Chunk>()
 }

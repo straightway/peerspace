@@ -43,7 +43,6 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
             on { transmit(any()) } doAnswer { transmittedData.add(it.arguments[0]); null }
         }
         val data = Chunk(Key("Key"), arrayOf(1, 2, 3))
-        val request = PushRequest(data, "originId")
 
         init {
             Infrastructure.instance = Infrastructure {
@@ -63,14 +62,14 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
     }
 
     @Test
-    fun receiveData_createsChannel() = sut.run {
-        sut.receiveData(request)
+    fun push_createsChannel() = sut.run {
+        sut.push(data)
         expect(channelMockFactoryInvocations _is equal _to 1)
     }
 
     @Test
-    fun receiveData_transmitsRequestOnChannel() = sut.run {
-        sut.receiveData(request)
-        expect(transmittedData _is equal _to listOf(request))
+    fun push_transmitsRequestOnChannel() = sut.run {
+        sut.push(data)
+        expect(transmittedData _is equal _to listOf(data))
     }
 }

@@ -15,6 +15,8 @@ limitations under the License.
  ****************************************************************************/
 package straightway.net
 
+import straightway.data.*
+
 /**
  * A target for pushing data.
  */
@@ -23,7 +25,5 @@ interface PushTarget {
     /**
      * Receive a chunk of data from the given origin.
      */
-    fun receiveData(request: PushRequest)
+    fun push(data: Chunk)
 }
-
-infix fun PushRequest.to(target: PushTarget) = target.receiveData(this)

@@ -17,4 +17,4 @@ package straightway.data
 
 import java.io.Serializable
 
-data class Chunk(val key: Key, val data: Array<Byte>) : Serializable
+data class Chunk(val key: Key, val data: Serializable) : Serializable

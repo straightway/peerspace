@@ -15,12 +15,9 @@ limitations under the License.
  ****************************************************************************/
 package straightway.integrationtest
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import straightway.data.*
-import straightway.net.*
 import straightway.testing.*
 import straightway.testing.flow.*
 
@@ -32,18 +29,12 @@ class NetworkNodeTest : TestBase<NetworkClient>() {
     }
 
     @Test
-    fun id() =
-        expect(sut.id _is equal _to "peer")
+    fun id() = expect(sut.id _is equal _to "peer")
 
     @Test
     fun receiveData_isRegistered() {
-        val peer = mock<Identifyable> {
-            on { id } doReturn "peer"
-        }
         val data = Chunk(Key("0815"), arrayOf(1, 2, 3))
-
-        push(data) from peer to sut
-
-        expect(sut.receivedData _is equal _to listOf(PushRequest(data, peer.id)))
+        sut.push(data)
+        expect(sut.receivedData _is equal _to listOf(data))
     }
 }

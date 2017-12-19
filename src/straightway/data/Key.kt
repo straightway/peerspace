@@ -17,4 +17,6 @@ package straightway.data
 
 import java.io.Serializable
 
-data class Key(val id: Id) : Serializable
+data class Key(val id: Id, val timestamp: Long) : Serializable {
+    constructor(id: Id) : this(id, 0)
+}

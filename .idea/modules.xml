@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/dsl/dsl.iml" filepath="$PROJECT_DIR$/dsl/dsl.iml" />
       <module fileurl="file://$PROJECT_DIR$/general/general.iml" filepath="$PROJECT_DIR$/general/general.iml" />
       <module fileurl="file://$PROJECT_DIR$/integrationtest/integrationtest.iml" filepath="$PROJECT_DIR$/integrationtest/integrationtest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/networksimulator/networksimulator.iml" filepath="$PROJECT_DIR$/networksimulator/networksimulator.iml" />
       <module fileurl="file://$PROJECT_DIR$/numbers/numbers.iml" filepath="$PROJECT_DIR$/numbers/numbers.iml" />
       <module fileurl="file://$PROJECT_DIR$/sim/sim.iml" filepath="$PROJECT_DIR$/sim/sim.iml" />
       <module fileurl="file://$PROJECT_DIR$/straightway.iml" filepath="$PROJECT_DIR$/straightway.iml" />

@@ -18,12 +18,12 @@ package straightway.sim.net
 interface Node {
     val uploadStream: TransmissionStream
     val downloadStream: TransmissionStream
-    fun receive(sender: Node, message: Message)
+    fun notifyReceive(sender: Node, message: Message)
 }
 
 class PartialTransmission(val receiver: Node) {
     infix fun from(sender: Node) {
-        receiver.receive(sender, message)
+        receiver.notifyReceive(sender, message)
     }
 
     infix fun received(message: Message): PartialTransmission {

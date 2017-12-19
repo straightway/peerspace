@@ -13,22 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.net.impl
 
-import straightway.*
 import straightway.data.*
 import straightway.net.*
+import java.io.Serializable
 
-/**
- * Implementation of a network stub for a peer.
- *
- * This network stub cares for transmitting data to the physical
- * network node the peer runs on.
- */
-class PeerNetworkStub(override val id: Id) : Peer {
-
-    override fun push(data: Chunk) {
-        val channel = Infrastructure.instance.channelFactory.create(id)
-        channel.transmit(data)
+class SimChannel(val id: Id) : Channel {
+    override fun transmit(data: Serializable) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
 }

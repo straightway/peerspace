@@ -18,7 +18,7 @@ package straightway.sim.net
 class NodeMock(val id: String, val log: LogList) : Node {
     override val uploadStream = TransmissionStreamMock(id + "_upload", log)
     override val downloadStream = TransmissionStreamMock(id + "_download", log)
-    override fun receive(sender: Node, message: Message) {
+    override fun notifyReceive(sender: Node, message: Message) {
         log.add("Receive ${message} from ${sender} to ${this}")
     }
 

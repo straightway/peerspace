@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 
 /**
  * TransmissionStream transmitting a message to a receiver channel. When the request is accepted,
- * its receive date is determined by the slowest of both channels. It never changes.
+ * its notifyReceive date is determined by the slowest of both channels. It never changes.
  */
 class AsyncSequentialTransmissionStream(
     private val bandwidth: UnitValue<Int, Bandwidth>,

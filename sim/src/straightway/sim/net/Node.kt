@@ -20,3 +20,17 @@ interface Node {
     val downloadStream: TransmissionStream
     fun receive(sender: Node, message: Message)
 }
+
+class PartialTransmission(val receiver: Node) {
+    infix fun from(sender: Node) {
+        receiver.receive(sender, message)
+    }
+
+    infix fun received(message: Message): PartialTransmission {
+        this.message = message; return this
+    }
+
+    private lateinit var message: Message
+}
+
+fun notify(receiver: Node) = PartialTransmission(receiver)

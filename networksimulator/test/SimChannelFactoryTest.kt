@@ -1,8 +1,3 @@
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import straightway.testing.*
-import straightway.testing.flow.*
-
 /****************************************************************************
 Copyright 2016 github.com/straightway
 
@@ -18,6 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import straightway.testing.TestBase
+import straightway.testing.flow.*
 
 class SimChannelFactoryTest : TestBase<SimChannelFactory>() {
 
@@ -34,7 +33,14 @@ class SimChannelFactoryTest : TestBase<SimChannelFactory>() {
 
     @Test
     fun createdInstanceHasPassedId() {
-        val result = sut.create("id") as SimChannel
+        val result = sut.create("id")
         expect(result.id _is equal _to "id")
+    }
+
+    @Test
+    fun creatingTheSameChannelTwiceYieldsSameInstance() {
+        val result1 = sut.create("id")
+        val result2 = sut.create("id")
+        expect(result1 _is same _as result2)
     }
 }

@@ -1,8 +1,3 @@
-import straightway.Infrastructure
-import straightway.net.impl.NetworkImpl
-import straightway.net.impl.PeerFactoryImpl
-import straightway.sim.core.Simulator
-
 /****************************************************************************
 Copyright 2016 github.com/straightway
 
@@ -19,15 +14,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
 
-fun main(args: Array<String>) {
-    println("Starting simulation")
-
-    val scheduler = Simulator()
-    Infrastructure.instance = Infrastructure {
-        network = NetworkImpl()
-        peerFactory = PeerFactoryImpl()
-        channelFactory = SimChannelFactory()
-    }
-
-    println("Simulation finished")
-}
+class SimChannelTest

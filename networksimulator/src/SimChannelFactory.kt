@@ -1,6 +1,3 @@
-import straightway.data.*
-import straightway.net.*
-
 /****************************************************************************
 Copyright 2016 github.com/straightway
 
@@ -17,8 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
 
+import straightway.data.Id
+import straightway.net.ChannelFactory
+
 class SimChannelFactory : ChannelFactory {
-    override fun create(id: Id): Channel {
-        return SimChannel(id)
-    }
+    override fun create(id: Id) = createdInstances.computeIfAbsent(id) { SimChannel(id) }
+
+    private val createdInstances = mutableMapOf<Id, SimChannel>()
 }

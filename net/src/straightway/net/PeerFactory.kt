@@ -13,11 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.net.impl
+package straightway.net
 
-import straightway.data.*
-import straightway.net.*
+import straightway.data.Id
 
-class PeerFactoryImpl : PeerFactory {
-    override fun create(id: Id) = PeerNetworkStub(id)
+interface PeerFactory {
+    fun create(id: Id): Peer
 }

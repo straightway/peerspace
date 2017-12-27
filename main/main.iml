@@ -3,20 +3,18 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="module" module-name="general" scope="TEST" />
+    <orderEntry type="module" module-name="testing" scope="TEST" />
+    <orderEntry type="module" module-name="dsl" scope="TEST" />
     <orderEntry type="library" name="JUnit5" level="application" />
-    <orderEntry type="module" module-name="general" />
-    <orderEntry type="module" module-name="dsl" />
-    <orderEntry type="module" module-name="sim" />
     <orderEntry type="library" name="mockito" level="application" />
-    <orderEntry type="module" module-name="testing" />
     <orderEntry type="module" module-name="data" />
-    <orderEntry type="module" module-name="main" />
     <orderEntry type="module" module-name="net" />
   </component>
 </module>

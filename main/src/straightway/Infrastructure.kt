@@ -13,30 +13,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.net
+package straightway
 
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import straightway.net.impl.*
-import straightway.testing.*
-import straightway.testing.flow.*
+import straightway.data.ChunkSizeGetter
+import straightway.net.ChannelFactory
+import straightway.net.Network
+import straightway.net.PeerFactory
 
-class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
+class Infrastructure(initializer: Infrastructure.() -> Unit) {
+    lateinit var network: Network
+    lateinit var peerFactory: PeerFactory
+    lateinit var channelFactory: ChannelFactory
+    lateinit var chunkSizeGetter: ChunkSizeGetter
 
-    @BeforeEach
-    fun setup() {
-        sut = PeerFactoryImpl()
+    companion object {
+        lateinit var instance: Infrastructure
     }
 
-    @Test
-    fun createsPeerInstances() {
-        val result = sut.create("id")
-        expect(result::class _is same _as PeerNetworkStub::class)
-    }
-
-    @Test
-    fun createdPeerHasProperId() {
-        val result = sut.create("id")
-        expect(result.id _is equal _to "id")
+    init {
+        this.initializer()
     }
 }

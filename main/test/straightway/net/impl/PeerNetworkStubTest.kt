@@ -20,11 +20,16 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.*
-import straightway.data.*
-import straightway.net.*
-import straightway.testing.*
-import straightway.testing.flow.*
+import straightway.Infrastructure
+import straightway.data.Chunk
+import straightway.data.Key
+import straightway.net.Channel
+import straightway.net.ChannelFactory
+import straightway.testing.TestBase
+import straightway.testing.flow._is
+import straightway.testing.flow._to
+import straightway.testing.flow.equal
+import straightway.testing.flow.expect
 
 class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
 

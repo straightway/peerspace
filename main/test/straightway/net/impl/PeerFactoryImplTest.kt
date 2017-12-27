@@ -13,22 +13,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.net.impl
+package straightway.net
 
-import straightway.*
-import straightway.data.*
-import straightway.net.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import straightway.net.impl.PeerFactoryImpl
+import straightway.net.impl.PeerNetworkStub
+import straightway.testing.TestBase
+import straightway.testing.flow.*
 
-/**
- * Implementation of a network stub for a peer.
- *
- * This network stub cares for transmitting data to the physical
- * network node the peer runs on.
- */
-class PeerNetworkStub(override val id: Id) : Peer {
+class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
 
-    override fun push(data: Chunk) {
-        val channel = Infrastructure.instance.channelFactory.create(id)
-        channel.transmit(data)
+    @BeforeEach
+    fun setup() {
+        sut = PeerFactoryImpl()
+    }
+
+    @Test
+    fun createsPeerInstances() {
+        val result = sut.create("id")
+        expect(result::class _is same _as PeerNetworkStub::class)
+    }
+
+    @Test
+    fun createdPeerHasProperId() {
+        val result = sut.create("id")
+        expect(result.id _is equal _to "id")
     }
 }

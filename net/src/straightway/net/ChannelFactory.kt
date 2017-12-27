@@ -15,8 +15,8 @@ limitations under the License.
  ****************************************************************************/
 package straightway.net
 
-import straightway.data.*
+import straightway.data.Id
 
-interface PeerFactory {
-    fun create(id: Id): Peer
+interface ChannelFactory {
+    fun create(id: Id): Channel
 }

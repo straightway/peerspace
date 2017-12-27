@@ -15,8 +15,6 @@ limitations under the License.
  ****************************************************************************/
 package straightway.net
 
-import straightway.data.*
+import straightway.data.Identifyable
 
-interface ChannelFactory {
-    fun create(id: Id): Channel
-}
+interface Peer : Identifyable, PushTarget

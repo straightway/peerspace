@@ -15,7 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.net
 
-import straightway.data.*
+import straightway.data.Chunk
 
 /**
  * A target for pushing data.

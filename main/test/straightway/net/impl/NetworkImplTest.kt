@@ -21,11 +21,12 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.*
-import straightway.data.*
-import straightway.net.*
-import straightway.net.impl.*
-import straightway.testing.*
+import straightway.Infrastructure
+import straightway.data.Id
+import straightway.net.Peer
+import straightway.net.PeerFactory
+import straightway.net.impl.NetworkImpl
+import straightway.testing.TestBase
 import straightway.testing.flow.*
 
 class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {

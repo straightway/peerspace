@@ -15,8 +15,10 @@
     <orderEntry type="module" module-name="general" />
     <orderEntry type="module" module-name="numbers" />
     <orderEntry type="module" module-name="sim" />
-    <orderEntry type="module" module-name="straightway" />
     <orderEntry type="module" module-name="testing" scope="TEST" />
     <orderEntry type="module" module-name="units" />
+    <orderEntry type="module" module-name="main" />
+    <orderEntry type="module" module-name="data" />
+    <orderEntry type="module" module-name="net" />
   </component>
 </module>

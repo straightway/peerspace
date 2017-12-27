@@ -15,9 +15,9 @@ limitations under the License.
  ****************************************************************************/
 package straightway.net.impl
 
-import straightway.*
-import straightway.data.*
-import straightway.net.*
+import straightway.Infrastructure
+import straightway.data.Id
+import straightway.net.Network
 
 class NetworkImpl : Network {
     override fun peer(id: Id) = Infrastructure.instance.peerFactory.create(id)

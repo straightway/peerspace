@@ -15,7 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.net
 
-import straightway.data.*
+import straightway.data.Id
 
 interface Network {
     fun peer(id: Id): Peer

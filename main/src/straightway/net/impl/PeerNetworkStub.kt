@@ -13,22 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway
+package straightway.net.impl
 
-import straightway.data.*
-import straightway.net.*
+import straightway.Infrastructure
+import straightway.data.Chunk
+import straightway.data.Id
+import straightway.net.Peer
 
-class Infrastructure(initializer: Infrastructure.() -> Unit) {
-    lateinit var network: Network
-    lateinit var peerFactory: PeerFactory
-    lateinit var channelFactory: ChannelFactory
-    lateinit var chunkSizeGetter: ChunkSizeGetter
+/**
+ * Implementation of a network stub for a peer.
+ *
+ * This network stub cares for transmitting data to the physical
+ * network node the peer runs on.
+ */
+class PeerNetworkStub(override val id: Id) : Peer {
 
-    companion object {
-        lateinit var instance: Infrastructure
-    }
-
-    init {
-        this.initializer()
+    override fun push(data: Chunk) {
+        val channel = Infrastructure.instance.channelFactory.create(id)
+        channel.transmit(data)
     }
 }

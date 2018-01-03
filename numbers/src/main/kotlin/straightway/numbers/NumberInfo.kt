@@ -1,6 +1,6 @@
 package straightway.numbers
 
-import straightway.general.Panic
+import straightway.error.Panic
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode

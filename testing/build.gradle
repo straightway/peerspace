@@ -23,7 +23,7 @@ dependencies {
     compile "org.junit.jupiter:junit-jupiter-api:5.0.0-M4"
     compile project(":dsl")
     compile project(":numbers")
-    compile project(":general")
+    compile project(":error")
 }
 
 compileKotlin {

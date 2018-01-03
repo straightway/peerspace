@@ -15,7 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.dsl
 
-import straightway.general.Panic
+import straightway.error.Panic
 
 /**
  * An expression which calls a functor and is able to access two sub expressions of

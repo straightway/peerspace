@@ -6,8 +6,10 @@
       <module name="data_test" target="1.8" />
       <module name="dsl_main" target="1.8" />
       <module name="dsl_test" target="1.8" />
-      <module name="general_main" target="1.8" />
-      <module name="general_test" target="1.8" />
+      <module name="error_main" target="1.8" />
+      <module name="error_test" target="1.8" />
+      <module name="error_main" target="1.8" />
+      <module name="error_test" target="1.8" />
       <module name="integrationtest_main" target="1.8" />
       <module name="integrationtest_test" target="1.8" />
       <module name="main_main" target="1.8" />

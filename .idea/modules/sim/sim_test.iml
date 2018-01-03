@@ -39,7 +39,7 @@
     <orderEntry type="module" module-name="testing_main" />
     <orderEntry type="module" module-name="dsl_main" />
     <orderEntry type="module" module-name="numbers_main" />
-    <orderEntry type="module" module-name="general_main" />
+    <orderEntry type="module" module-name="error_main" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.10" level="project" />
     <orderEntry type="library" name="Gradle: com.nhaarman:mockito-kotlin:1.5.0" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.10" level="project" />

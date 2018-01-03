@@ -8,9 +8,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dsl.iml" filepath="$PROJECT_DIR$/.idea/modules/dsl.iml" group="dsl" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dsl/dsl_main.iml" filepath="$PROJECT_DIR$/.idea/modules/dsl/dsl_main.iml" group="dsl" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dsl/dsl_test.iml" filepath="$PROJECT_DIR$/.idea/modules/dsl/dsl_test.iml" group="dsl" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/general.iml" filepath="$PROJECT_DIR$/.idea/modules/general.iml" group="general" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/general/general_main.iml" filepath="$PROJECT_DIR$/.idea/modules/general/general_main.iml" group="general" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/general/general_test.iml" filepath="$PROJECT_DIR$/.idea/modules/general/general_test.iml" group="general" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/error.iml" filepath="$PROJECT_DIR$/.idea/modules/error.iml" group="error" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/error/error_main.iml" filepath="$PROJECT_DIR$/.idea/modules/error/error_main.iml" group="error" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/error/error_test.iml" filepath="$PROJECT_DIR$/.idea/modules/error/error_test.iml" group="error" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/integrationtest.iml" filepath="$PROJECT_DIR$/.idea/modules/integrationtest.iml" group="integrationtest" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_main.iml" filepath="$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_main.iml" group="integrationtest" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_test.iml" filepath="$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_test.iml" group="integrationtest" />

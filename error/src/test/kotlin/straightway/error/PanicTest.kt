@@ -13,14 +13,35 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
-package straightway.general
+package straightway.error
 
-import java.time.LocalDateTime
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Test
 
-/**
- * Provide the current t. Can be used to abstract the t to be able to
- * simulate and unit-test t-dependent algorithms.
- */
-interface TimeProvider {
-    val currentTime: LocalDateTime
+internal class PanicTest {
+
+    @Test fun toString_containsState()
+    {
+        val sut = Panic(123)
+        assertEquals("Panic: 123", sut.toString())
+    }
+
+    @Test fun isThrowable()
+    {
+        try {
+            throw Panic("Aaaargh!")
+        }
+        catch (panic: Panic)
+        {
+            assertEquals("Panic: Aaaargh!", panic.toString())
+        }
+    }
+
+    @Test fun state_isAccessible()
+    {
+        val state = Any()
+        val sut = Panic(state)
+        assertSame(state, sut.state)
+    }
 }

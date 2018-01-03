@@ -17,7 +17,7 @@ package straightway.dsl
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import straightway.general.Panic
+import straightway.error.Panic
 
 class DistributedExprTest {
 

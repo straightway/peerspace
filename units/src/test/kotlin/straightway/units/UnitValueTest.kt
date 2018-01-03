@@ -17,7 +17,7 @@ package straightway.units
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import straightway.general.Panic
+import straightway.error.Panic
 import straightway.testing.flow.*
 
 class UnitValueTest {

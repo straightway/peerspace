@@ -17,7 +17,7 @@ limitations under the License.
 
 package straightway.units
 
-import straightway.general.Panic
+import straightway.error.Panic
 import straightway.numbers.*
 import java.io.Serializable
 

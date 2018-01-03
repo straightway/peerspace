@@ -18,7 +18,7 @@ package straightway.testing
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.opentest4j.AssertionFailedError
-import straightway.general.Panic
+import straightway.error.Panic
 import java.io.PrintWriter
 import java.io.StringWriter
 

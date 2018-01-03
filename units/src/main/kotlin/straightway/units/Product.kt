@@ -15,7 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.units
 
-import straightway.general.Panic
+import straightway.error.Panic
 import straightway.numbers.times
 import java.lang.Integer.max
 

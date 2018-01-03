@@ -1,5 +1,5 @@
 rootProject.name = 'straightway'
-include 'general'
+include 'error'
 include 'numbers'
 include 'dsl'
 include 'testing'

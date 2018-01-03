@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile project(":general")
+    compile project(":error")
     compile project(":dsl")
     compile project(":units")
     testCompile project(":testing")

@@ -16,7 +16,7 @@ limitations under the License.
 package straightway.testing
 
 import org.junit.jupiter.api.Test
-import straightway.general.Panic
+import straightway.error.Panic
 
 class AssertTest_assertPanics_withExpectedState {
 

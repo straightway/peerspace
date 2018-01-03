@@ -15,7 +15,7 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.net
 
-import straightway.general.TimeProvider
+import straightway.sim.TimeProvider
 import straightway.units.*
 import java.time.LocalDateTime
 

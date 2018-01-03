@@ -15,10 +15,10 @@ limitations under the License.
  ****************************************************************************/
 package straightway.sim.core
 
-import straightway.general.TimeProvider
 import straightway.sim.Controller
 import straightway.sim.Event
 import straightway.sim.Scheduler
+import straightway.sim.TimeProvider
 import straightway.units.Time
 import straightway.units.UnitValue
 import straightway.units.plus

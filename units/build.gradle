@@ -23,7 +23,7 @@ dependencies {
     testCompile "org.mockito:mockito-core:1.+"
     compile project(":dsl")
     compile project(":numbers")
-    compile project(":general")
+    compile project(":error")
     compile project(":testing")
 }
 

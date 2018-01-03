@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile project(":general")
+    compile project(":error")
     testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0-M4"
     testCompile "org.mockito:mockito-core:1.+"
 }

@@ -1,0 +1,13 @@
+rootProject.name = 'straightway'
+include 'general'
+include 'numbers'
+include 'dsl'
+include 'testing'
+include 'units'
+include 'data'
+include 'net'
+include 'sim'
+include 'main'
+include 'networksimulator'
+include 'integrationtest'
+

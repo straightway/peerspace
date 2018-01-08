@@ -5,12 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/data.iml" filepath="$PROJECT_DIR$/.idea/modules/data.iml" group="data" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/data/data_main.iml" filepath="$PROJECT_DIR$/.idea/modules/data/data_main.iml" group="data" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/data/data_test.iml" filepath="$PROJECT_DIR$/.idea/modules/data/data_test.iml" group="data" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dsl.iml" filepath="$PROJECT_DIR$/.idea/modules/dsl.iml" group="dsl" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dsl/dsl_main.iml" filepath="$PROJECT_DIR$/.idea/modules/dsl/dsl_main.iml" group="dsl" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dsl/dsl_test.iml" filepath="$PROJECT_DIR$/.idea/modules/dsl/dsl_test.iml" group="dsl" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/error.iml" filepath="$PROJECT_DIR$/.idea/modules/error.iml" group="error" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/error/error_main.iml" filepath="$PROJECT_DIR$/.idea/modules/error/error_main.iml" group="error" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/error/error_test.iml" filepath="$PROJECT_DIR$/.idea/modules/error/error_test.iml" group="error" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/integrationtest.iml" filepath="$PROJECT_DIR$/.idea/modules/integrationtest.iml" group="integrationtest" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_main.iml" filepath="$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_main.iml" group="integrationtest" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_test.iml" filepath="$PROJECT_DIR$/.idea/modules/integrationtest/integrationtest_test.iml" group="integrationtest" />
@@ -23,21 +17,10 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/networksimulator.iml" filepath="$PROJECT_DIR$/.idea/modules/networksimulator.iml" group="networksimulator" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/networksimulator/networksimulator_main.iml" filepath="$PROJECT_DIR$/.idea/modules/networksimulator/networksimulator_main.iml" group="networksimulator" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/networksimulator/networksimulator_test.iml" filepath="$PROJECT_DIR$/.idea/modules/networksimulator/networksimulator_test.iml" group="networksimulator" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/numbers.iml" filepath="$PROJECT_DIR$/.idea/modules/numbers.iml" group="numbers" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/numbers/numbers_main.iml" filepath="$PROJECT_DIR$/.idea/modules/numbers/numbers_main.iml" group="numbers" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/numbers/numbers_test.iml" filepath="$PROJECT_DIR$/.idea/modules/numbers/numbers_test.iml" group="numbers" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/sim.iml" filepath="$PROJECT_DIR$/.idea/modules/sim.iml" group="sim" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/sim/sim_main.iml" filepath="$PROJECT_DIR$/.idea/modules/sim/sim_main.iml" group="sim" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/sim/sim_test.iml" filepath="$PROJECT_DIR$/.idea/modules/sim/sim_test.iml" group="sim" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/sim/sim.iml" filepath="$PROJECT_DIR$/.idea/modules/sim/sim.iml" group="sim" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/straightway.iml" filepath="$PROJECT_DIR$/.idea/modules/straightway.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/straightway_main.iml" filepath="$PROJECT_DIR$/.idea/modules/straightway_main.iml" group="straightway" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/straightway_test.iml" filepath="$PROJECT_DIR$/.idea/modules/straightway_test.iml" group="straightway" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testing.iml" filepath="$PROJECT_DIR$/.idea/modules/testing.iml" group="testing" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testing/testing_main.iml" filepath="$PROJECT_DIR$/.idea/modules/testing/testing_main.iml" group="testing" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testing/testing_test.iml" filepath="$PROJECT_DIR$/.idea/modules/testing/testing_test.iml" group="testing" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/units.iml" filepath="$PROJECT_DIR$/.idea/modules/units.iml" group="units" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/units/units_main.iml" filepath="$PROJECT_DIR$/.idea/modules/units/units_main.iml" group="units" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/units/units_test.iml" filepath="$PROJECT_DIR$/.idea/modules/units/units_test.iml" group="units" />
     </modules>
   </component>
 </project>

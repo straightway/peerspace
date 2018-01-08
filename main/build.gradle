@@ -15,6 +15,7 @@ apply plugin: 'kotlin'
 
 repositories {
     mavenCentral()
+    maven { url "https://straightway.github.io/repo" }
 }
 
 dependencies {
@@ -22,7 +23,7 @@ dependencies {
     compile project(":data")
     compile project(":net")
     testCompile "com.nhaarman:mockito-kotlin:1.5.0"
-    testCompile project(":testing")
+    testCompile "straightway:testing:0.1+"
 }
 
 compileKotlin {

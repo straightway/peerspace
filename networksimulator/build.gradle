@@ -15,13 +15,14 @@ apply plugin: 'kotlin'
 
 repositories {
     mavenCentral()
+    maven { url "https://straightway.github.io/repo" }
 }
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile project(":main")
-    compile project(":sim")
-    testCompile project(":testing")
+    compile "straightway:sim:0.1+"
+    testCompile "straightway:testing:0.1+"
     testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0-M4"
 }
 

@@ -1,8 +1,3 @@
-import straightway.Infrastructure
-import straightway.net.impl.NetworkImpl
-import straightway.net.impl.PeerFactoryImpl
-import straightway.sim.core.Simulator
-
 /****************************************************************************
 Copyright 2016 github.com/straightway
 
@@ -18,6 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  ****************************************************************************/
+import straightway.Infrastructure
+import straightway.net.impl.NetworkImpl
+import straightway.net.impl.PeerFactoryImpl
+import straightway.sim.core.Simulator
 
 fun main(args: Array<String>) {
     println("Starting simulation")

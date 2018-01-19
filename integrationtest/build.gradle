@@ -22,7 +22,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.junit.jupiter:junit-jupiter-api:5.0.0-M4"
     compile "org.mockito:mockito-core:1.+"
-    compile project(":main")
+    compile project(":peerspace:main")
     testCompile "straightway:testing:0.1+"
 }
 

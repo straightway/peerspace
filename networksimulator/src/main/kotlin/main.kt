@@ -16,12 +16,13 @@ limitations under the License.
 import straightway.Infrastructure
 import straightway.net.impl.NetworkImpl
 import straightway.net.impl.PeerFactoryImpl
-import straightway.sim.core.Simulator
+
+//import straightway.sim.core.Simulator
 
 fun main(args: Array<String>) {
     println("Starting simulation")
 
-    val scheduler = Simulator()
+    //val scheduler = Simulator()
     Infrastructure.instance = Infrastructure {
         network = NetworkImpl()
         peerFactory = PeerFactoryImpl()

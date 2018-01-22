@@ -23,7 +23,7 @@ dependencies {
     compile project(":peerspace:data")
     compile project(":peerspace::net")
     testCompile "com.nhaarman:mockito-kotlin:1.5.0"
-    testCompile "straightway:testing:0.1+"
+    testCompile findProject(":testing") ?: "straightway:testing:0.1+"
 }
 
 compileKotlin {

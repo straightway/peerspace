@@ -13,10 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-include 'peerspace'
-include 'peerspace:data'
-include 'peerspace:net'
-include 'peerspace:main'
-include 'peerspace:networksimulator'
-include 'peerspace:integrationtest'
 
+package straightway.data
+
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
+
+fun <T : Serializable> T.serializeToByteArray() =
+        ByteArrayOutputStream().use {
+            ObjectOutputStream(it).use { it.writeObject(this) }
+            it.toByteArray()
+        }!!
+
+inline fun <reified T : Serializable> ByteArray.deserializeTo() =
+        ByteArrayInputStream(this).use {
+            ObjectInputStream(it).use { T::class.java.cast(it.readObject()) }
+        }!!

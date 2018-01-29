@@ -13,34 +13,30 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.net.impl
 
-import org.junit.jupiter.api.BeforeEach
+package straightway.data
+
 import org.junit.jupiter.api.Test
-import straightway.testing.TestBase
-import straightway.testing.flow.Same
-import straightway.testing.flow.as_
 import straightway.testing.flow.equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
-
-    @BeforeEach
-    fun setup() {
-        sut = PeerFactoryImpl()
-    }
+class ChunkTest {
 
     @Test
-    fun createsPeerInstances() {
-        val result = sut.create("id")
-        expect(result::class is_ Same as_ PeerNetworkStub::class)
-    }
+    fun `key is as specified in construction`() =
+            expect(Chunk(Key("1234"), "data").key is_ equal to_ Key("1234"))
 
     @Test
-    fun createdPeerHasProperId() {
-        val result = sut.create("id")
-        expect(result.id is_ equal to_ "id")
+    fun `data is as specified in construction`() =
+            expect(Chunk(Key("1234"), "data").data is_ equal to_ "data")
+
+    @Test
+    fun `Chunk is serializable`() {
+        val sut = Chunk(Key("1234"), "data")
+        val serialized = sut.serializeToByteArray()
+        val deserialized = serialized.deserializeTo<Chunk>()
+        expect(deserialized is_ equal to_ sut)
     }
 }

@@ -14,8 +14,9 @@
  *  limitations under the License.
  */
 
-if (rootProject.name != "straightway") {
-    rootProject.projectDir = new File(rootProject.projectDir.parent)
+dependencies {
+    compile project(":peerspace:data")
+    compile project(":peerspace::net")
+    testCompile mockitoKotlin()
+    testCompile straightway('testing')
 }
-
-apply from: "projectDependencies.gradle"

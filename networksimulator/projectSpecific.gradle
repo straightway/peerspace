@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-if (rootProject.name != "straightway") {
-    rootProject.projectDir = new File(rootProject.projectDir.parent)
+dependencies {
+    compile project(":peerspace:main")
+    compile straightway('sim')
+    testCompile straightway('testing')
 }
-
-apply from: "projectDependencies.gradle"

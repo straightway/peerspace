@@ -14,8 +14,10 @@
  *  limitations under the License.
  */
 
-if (rootProject.name != "straightway") {
-    rootProject.projectDir = new File(rootProject.projectDir.parent)
+dependencies {
+    compile junit5("api")
+    compile mockito()
+    compile project(":peerspace:data")
+    compile project(":peerspace:net")
+    testCompile straightway('testing')
 }
-
-apply from: "projectDependencies.gradle"

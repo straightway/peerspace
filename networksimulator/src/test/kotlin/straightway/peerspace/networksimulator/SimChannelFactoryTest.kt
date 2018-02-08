@@ -47,8 +47,6 @@ limitations under the License.
  ****************************************************************************/
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.peerspace.networksimulator.SimChannel
-import straightway.peerspace.networksimulator.SimChannelFactory
 import straightway.testing.TestBase
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_

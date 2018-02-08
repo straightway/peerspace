@@ -16,5 +16,5 @@
 package straightway.peerspace.data
 
 interface ChunkSizeGetter {
-    fun getSizeOf(chunk: Chunk) : Long
+    fun getSizeOf(chunk: Chunk): Long
 }

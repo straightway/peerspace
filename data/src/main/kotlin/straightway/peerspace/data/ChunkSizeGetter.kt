@@ -15,6 +15,11 @@
  */
 package straightway.peerspace.data
 
+/**
+ * Determines the size of a given chunk.
+ * It is useful for network simulations to have 'fake' chunk sizes for the data chunks
+ * instead of occupying memory in reality.
+ */
 interface ChunkSizeGetter {
     fun getSizeOf(chunk: Chunk): Long
 }

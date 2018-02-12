@@ -17,6 +17,9 @@ package straightway.peerspace.net
 
 import java.io.Serializable
 
+/**
+ * A channel allowing direct transmission of data between network peers.
+ */
 interface Channel {
     fun transmit(data: Serializable)
 }

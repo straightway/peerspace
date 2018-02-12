@@ -20,6 +20,9 @@ import straightway.peerspace.net.ChannelFactory
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerFactory
 
+/**
+ * Infrastructure holding general components of the peerspace application.
+ */
 class Infrastructure(initializer: Infrastructure.() -> Unit) {
     lateinit var network: Network
     lateinit var peerFactory: PeerFactory

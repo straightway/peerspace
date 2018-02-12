@@ -18,6 +18,9 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerFactory
 
+/**
+ * Productive implementation of the PeerFactory interface.
+ */
 class PeerFactoryImpl : PeerFactory {
     override fun create(id: Id) = PeerNetworkStub(id)
 }

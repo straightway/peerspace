@@ -17,4 +17,7 @@ package straightway.peerspace.data
 
 import java.io.Serializable
 
+/**
+ * A chunk of data with a key.
+ */
 data class Chunk(val key: Key, val data: Serializable) : Serializable

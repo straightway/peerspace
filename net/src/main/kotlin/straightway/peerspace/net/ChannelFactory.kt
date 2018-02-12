@@ -17,6 +17,9 @@ package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 
+/**
+ * A factory for channels.
+ */
 interface ChannelFactory {
     fun create(id: Id): Channel
 }

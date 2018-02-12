@@ -17,6 +17,9 @@ package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 
+/**
+ * A factory for network peers.
+ */
 interface PeerFactory {
     fun create(id: Id): Peer
 }

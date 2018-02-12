@@ -19,6 +19,9 @@ import straightway.peerspace.Infrastructure
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Network
 
+/**
+ * Productive implementation of the Network interface.
+ */
 class NetworkImpl : Network {
     override fun peer(id: Id) = Infrastructure.instance.peerFactory.create(id)
 }

@@ -20,6 +20,9 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
 import straightway.peerspace.net.PushTarget
 
+/**
+ * A simulated client of the peerspace network.
+ */
 class NetworkClient(override val id: Id) : Identifyable, PushTarget {
 
     override fun push(data: Chunk) {

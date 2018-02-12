@@ -15,6 +15,9 @@
  */
 package straightway.peerspace.data
 
+/**
+ * An identifyable object, i.e. one having an id.
+ */
 interface Identifyable {
     val id: Id
 }

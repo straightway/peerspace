@@ -17,6 +17,9 @@ package straightway.peerspace.data
 
 import java.io.Serializable
 
+/**
+ * A key for a network data chunk.
+ */
 data class Key(val id: Id, val timestamp: Long) : Serializable {
     constructor(id: Id) : this(id, 0)
 }

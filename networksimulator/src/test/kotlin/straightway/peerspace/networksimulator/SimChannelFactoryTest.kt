@@ -14,7 +14,9 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.networksimulator/*
+package straightway.peerspace.networksimulator
+
+/*
  * Copyright 2016 github.com/straightway
  *
  *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);

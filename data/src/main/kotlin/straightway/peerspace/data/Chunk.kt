@@ -20,4 +20,8 @@ import java.io.Serializable
 /**
  * A chunk of data with a key.
  */
-data class Chunk(val key: Key, val data: Serializable) : Serializable
+data class Chunk(val key: Key, val data: Serializable) : Serializable {
+    companion object {
+        const val serialVersionUID = 1L
+    }
+}

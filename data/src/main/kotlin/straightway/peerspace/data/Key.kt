@@ -22,4 +22,7 @@ import java.io.Serializable
  */
 data class Key(val id: Id, val timestamp: Long) : Serializable {
     constructor(id: Id) : this(id, 0)
+    companion object {
+        const val serialVersionUID = 1L
+    }
 }

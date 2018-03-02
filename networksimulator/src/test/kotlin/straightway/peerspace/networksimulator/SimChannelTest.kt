@@ -17,15 +17,13 @@ package straightway.peerspace.networksimulator
 
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Key
-import straightway.testing.flow.Throw
 import straightway.testing.flow.does
-import straightway.testing.flow.exception
 import straightway.testing.flow.expect
-import straightway.testing.flow.minus
+import straightway.testing.flow.throw_
 
 class SimChannelTest {
 
     @Test
     fun `temporarily mute coverage check for this class`() =
-            expect({ SimChannel("id").transmit(Key("1234")) } does Throw - exception)
+            expect({ SimChannel("id").transmit(Key("1234")) } does throw_<NotImplementedError>())
 }

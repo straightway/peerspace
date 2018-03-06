@@ -34,26 +34,28 @@ import straightway.testing.flow.to_
 class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
 
     class Environment {
-        var channelMockFactoryInvocations = 0
+
         private val peerId = "id"
-        val sut = PeerNetworkStub(peerId)
+
+        val transmittedData = mutableListOf<Any>()
+        val data = Chunk(Key("Key"), arrayOf(1, 2, 3))
+
+        var channelMockFactoryInvocations = 0
+
         private val channelFactoryMock = mock<ChannelFactory> {
             on { create(any()) } doAnswer {
                 ++channelMockFactoryInvocations
                 channelMock
             }
         }
-        val transmittedData = mutableListOf<Any>()
+
         private val channelMock = mock<Channel> {
             on { transmit(any()) } doAnswer { transmittedData.add(it.arguments[0]); null }
         }
-        val data = Chunk(Key("Key"), arrayOf(1, 2, 3))
 
-        init {
-            Infrastructure.instance = Infrastructure {
-                channelFactory = channelFactoryMock
-            }
-        }
+        private val infrastructure = Infrastructure { channelFactory = channelFactoryMock }
+
+        val sut = PeerNetworkStub(peerId, infrastructure)
     }
 
     @BeforeEach
@@ -62,18 +64,18 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
     }
 
     @Test
-    fun hasSpecifiedId() = sut.run {
+    fun `has specified id`() = sut.run {
         expect(sut.id is_ equal to_ "id")
     }
 
     @Test
-    fun push_createsChannel() = sut.run {
+    fun `push creates channel`() = sut.run {
         sut.push(data)
         expect(channelMockFactoryInvocations is_ equal to_ 1)
     }
 
     @Test
-    fun push_transmitsRequestOnChannel() = sut.run {
+    fun `push transmits request on channel`() = sut.run {
         sut.push(data)
         expect(transmittedData is_ equal to_ listOf(data))
     }

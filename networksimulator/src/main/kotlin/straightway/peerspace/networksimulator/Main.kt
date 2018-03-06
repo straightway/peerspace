@@ -19,16 +19,18 @@ package straightway.peerspace.networksimulator
 import straightway.peerspace.Infrastructure
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerFactoryImpl
+import straightway.sim.core.Simulator
 
 //import straightway.sim.core.Simulator
 
+@Suppress("UNUSED_VARIABLE")
 fun main(args: Array<String>) {
     println("Starting simulation")
 
-    //val scheduler = Simulator()
-    Infrastructure.instance = Infrastructure {
-        network = NetworkImpl()
-        peerFactory = PeerFactoryImpl()
+    val scheduler = Simulator()
+    val infrastructure = Infrastructure {
+        network = NetworkImpl(this)
+        peerFactory = PeerFactoryImpl(this)
         channelFactory = SimChannelFactory()
     }
 

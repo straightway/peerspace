@@ -29,10 +29,6 @@ class Infrastructure(initializer: Infrastructure.() -> Unit) {
     lateinit var channelFactory: ChannelFactory
     lateinit var chunkSizeGetter: ChunkSizeGetter
 
-    companion object {
-        lateinit var instance: Infrastructure
-    }
-
     init {
         this.initializer()
     }

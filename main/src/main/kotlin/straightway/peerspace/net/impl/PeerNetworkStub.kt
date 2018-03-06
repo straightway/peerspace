@@ -26,10 +26,13 @@ import straightway.peerspace.net.Peer
  * This network stub cares for transmitting data to the physical
  * network node the peer runs on.
  */
-class PeerNetworkStub(override val id: Id) : Peer {
+class PeerNetworkStub(
+        override val id: Id,
+        val infrastructure: Infrastructure
+) : Peer {
 
     override fun push(data: Chunk) {
-        val channel = Infrastructure.instance.channelFactory.create(id)
+        val channel = infrastructure.channelFactory.create(id)
         channel.transmit(data)
     }
 }

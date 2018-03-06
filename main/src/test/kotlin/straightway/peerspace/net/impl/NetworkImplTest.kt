@@ -37,17 +37,14 @@ class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
 
     class Environment {
 
-        val network = NetworkImpl()
+        val infrastructure = Infrastructure {
+            peerFactory = mock {
+                on { create(any()) } doAnswer { peerMockFactory(it.arguments[0] as Id) }
+            }
+        }
+        val network = NetworkImpl(infrastructure)
         var peerMockFactory = { id: Id ->
             mock<Peer> { on { id } doReturn id }
-        }
-
-        init {
-            Infrastructure.instance = Infrastructure {
-                peerFactory = mock {
-                    on { create(any()) } doAnswer { peerMockFactory(it.arguments[0] as Id) }
-                }
-            }
         }
     }
 

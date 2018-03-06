@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import straightway.peerspace.Infrastructure
 import straightway.testing.TestBase
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
@@ -29,18 +30,26 @@ class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
 
     @BeforeEach
     fun setup() {
-        sut = PeerFactoryImpl()
+        sut = PeerFactoryImpl(infrastructure)
     }
 
     @Test
-    fun createsPeerInstances() {
+    fun `creates Peer instances`() {
         val result = sut.create("id")
         expect(result::class is_ Same as_ PeerNetworkStub::class)
     }
 
     @Test
-    fun createdPeerHasProperId() {
+    fun `created Peer has proper Id`() {
         val result = sut.create("id")
         expect(result.id is_ equal to_ "id")
     }
+
+    @Test
+    fun `created Peer has proper infrastructure`() {
+        val result = sut.create("id")
+        expect(result.infrastructure is_ Same as_ infrastructure)
+    }
+
+    private val infrastructure = Infrastructure { }
 }

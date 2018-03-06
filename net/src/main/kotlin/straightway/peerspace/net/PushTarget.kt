@@ -23,7 +23,7 @@ import straightway.peerspace.data.Chunk
 interface PushTarget {
 
     /**
-     * Receive a chunk of data from the given origin.
+     * Receive a chunk of data.
      */
     fun push(data: Chunk)
 }

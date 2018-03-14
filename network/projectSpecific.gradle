@@ -13,13 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net
 
-import straightway.peerspace.data.Id
-
-/**
- * A factory for channels.
- */
-interface ChannelFactory {
-    fun create(id: Id): Channel
+dependencies {
+    compile project(":peerspace:data")
 }

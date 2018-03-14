@@ -13,7 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.net
 
-dependencies {
-    compile project(":peerspace::data")
+import straightway.peerspace.data.Id
+
+/**
+ * Generic factory class interface, producing a product by its id.
+ */
+interface Factory<out TProduct> {
+    fun create(id: Id): TProduct
 }

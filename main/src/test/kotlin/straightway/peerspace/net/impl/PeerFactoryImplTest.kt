@@ -21,7 +21,7 @@ import straightway.peerspace.Infrastructure
 import straightway.testing.TestBase
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
-import straightway.testing.flow.equal
+import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -42,7 +42,7 @@ class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
     @Test
     fun `created Peer has proper Id`() {
         val result = sut.create("id")
-        expect(result.id is_ equal to_ "id")
+        expect(result.id is_ Equal to_ "id")
     }
 
     @Test

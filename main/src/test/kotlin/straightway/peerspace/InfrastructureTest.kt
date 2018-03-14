@@ -19,9 +19,10 @@ package straightway.peerspace
 import org.junit.jupiter.api.Test
 import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.ChunkSizeGetter
-import straightway.peerspace.net.ChannelFactory
+import straightway.peerspace.net.Channel
+import straightway.peerspace.net.Factory
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerFactory
+import straightway.peerspace.net.Peer
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
 import straightway.testing.flow.expect
@@ -40,7 +41,7 @@ class InfrastructureTest {
 
     @Test
     fun `setting and getting peerFactory`() {
-        val peerFactory = mock<PeerFactory>()
+        val peerFactory = mock<Factory<Peer>>()
         val sut = Infrastructure {
             this.peerFactory = peerFactory
         }
@@ -49,7 +50,7 @@ class InfrastructureTest {
 
     @Test
     fun `setting and getting channelFactory`() {
-        val channelFactory = mock<ChannelFactory>()
+        val channelFactory = mock<Factory<Channel>>()
         val sut = Infrastructure {
             this.channelFactory = channelFactory
         }

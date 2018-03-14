@@ -18,6 +18,6 @@ dependencies {
     compile junit5("api")
     compile mockito()
     compile project(":peerspace:data")
-    compile project(":peerspace:net")
+    compile project(":peerspace:network")
     testCompile straightway('testing')
 }

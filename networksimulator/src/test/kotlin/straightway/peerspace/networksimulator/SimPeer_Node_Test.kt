@@ -13,22 +13,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.networksimulator
 
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Key
-import straightway.testing.flow.does
-import straightway.testing.flow.expect
-import straightway.testing.flow.Throw
+import straightway.sim.net.TransmissionStream
+import straightway.testing.bdd.Given
+import straightway.testing.flow.Same
+import straightway.testing.flow.as_
+import straightway.testing.flow.is_
 
-class SimChannelTest {
+class SimPeer_Node_Test {
+
+    private val test get() = Given {
+        object {
+            val upload = mock<TransmissionStream>()
+            val download = mock<TransmissionStream>()
+            val sut = SimPeer("id", upload, download, mutableMapOf())
+        }
+    }
 
     @Test
-    fun `temporarily mute coverage check for this class`() =
-            expect(
-                    { SimChannel(
-                            SimPeer("1", mock(), mock(), mutableMapOf()),
-                            SimPeer("2", mock(), mock(), mutableMapOf())).transmit(Key("1234"))
-                    } does Throw.type<NotImplementedError>())
+    fun `upload stream is as specified`() =
+            test when_ { sut.uploadStream } then { it.result is_ Same as_ upload }
+
+    @Test
+    fun `download stream is as specified`() =
+            test when_ { sut.downloadStream } then { it.result is_ Same as_ download }
 }

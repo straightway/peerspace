@@ -16,16 +16,14 @@
 
 package straightway.peerspace.networksimulator
 
-import straightway.peerspace.data.Id
 import straightway.peerspace.net.Channel
 import java.io.Serializable
 
 /**
  * A Channel implementation used for network simulation.
  */
-class SimChannel(val id: Id) : Channel {
+class SimChannel(val from: SimPeer, val to: SimPeer) : Channel {
     override fun transmit(data: Serializable) {
         TODO("not implemented")
-        //To change body of created functions use File | Settings | File Templates.
     }
 }

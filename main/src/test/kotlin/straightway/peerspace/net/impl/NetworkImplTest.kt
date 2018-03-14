@@ -28,7 +28,7 @@ import straightway.testing.TestBase
 import straightway.testing.flow.Null
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
-import straightway.testing.flow.equal
+import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -62,7 +62,7 @@ class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
             newPeer!!
         }
         val receiverFromNetwork = network.peer("receiver")
-        expect(receiverFromNetwork.id is_ equal to_ "receiver")
+        expect(receiverFromNetwork.id is_ Equal to_ "receiver")
         expect(receiverFromNetwork is_ Same as_ newPeer!!)
     }
 }

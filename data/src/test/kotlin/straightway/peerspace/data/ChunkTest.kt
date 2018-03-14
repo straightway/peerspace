@@ -17,7 +17,7 @@
 package straightway.peerspace.data
 
 import org.junit.jupiter.api.Test
-import straightway.testing.flow.equal
+import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -27,18 +27,18 @@ class ChunkTest {
 
     @Test
     fun `key is as specified in construction`() =
-            expect(Chunk(Key("1234"), "data").key is_ equal to_ Key("1234"))
+            expect(Chunk(Key("1234"), "data").key is_ Equal to_ Key("1234"))
 
     @Test
     fun `data is as specified in construction`() =
-            expect(Chunk(Key("1234"), "data").data is_ equal to_ "data")
+            expect(Chunk(Key("1234"), "data").data is_ Equal to_ "data")
 
     @Test
     fun `Chunk is serializable`() {
         val sut = Chunk(Key("1234"), "data")
         val serialized = sut.serializeToByteArray()
         val deserialized = serialized.deserializeTo<Chunk>()
-        expect(deserialized is_ equal to_ sut)
+        expect(deserialized is_ Equal to_ sut)
     }
 
     @Test

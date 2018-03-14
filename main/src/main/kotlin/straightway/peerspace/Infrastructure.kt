@@ -16,17 +16,18 @@
 package straightway.peerspace
 
 import straightway.peerspace.data.ChunkSizeGetter
-import straightway.peerspace.net.ChannelFactory
+import straightway.peerspace.net.Channel
+import straightway.peerspace.net.Factory
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerFactory
+import straightway.peerspace.net.Peer
 
 /**
  * Infrastructure holding general components of the peerspace application.
  */
 class Infrastructure(initializer: Infrastructure.() -> Unit) {
     lateinit var network: Network
-    lateinit var peerFactory: PeerFactory
-    lateinit var channelFactory: ChannelFactory
+    lateinit var peerFactory: Factory<Peer>
+    lateinit var channelFactory: Factory<Channel>
     lateinit var chunkSizeGetter: ChunkSizeGetter
 
     init {

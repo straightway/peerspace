@@ -15,7 +15,7 @@
  */
 include 'peerspace'
 include 'peerspace:data'
-include 'peerspace:net'
+include 'peerspace:network'
 include 'peerspace:main'
 include 'peerspace:networksimulator'
 include 'peerspace:integrationtest'

@@ -1,2 +1,9 @@
-# Straightway
-An anonymous peer to peer distributed storage network
+# Peerspace
+Peerspace is a peer to peer distributed network storage layer. It allows implementing collaboration apps like social networks, data sharing, elections, virtual conferences and more.
+
+All data is distributed over all peers of the network. Communication and storage is cryptographically secured.
+
+See also:
+
+* [Requirements](Peerspace Requirements.md)
+* [Ideas](Peerspace Ideas)

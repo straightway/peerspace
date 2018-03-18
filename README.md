@@ -5,5 +5,5 @@ All data is distributed over all peers of the network. Communication and storage
 
 See also:
 
-* [Requirements](Peerspace Requirements.md)
-* [Ideas](Peerspace Ideas)
+* [Requirements](documentation/PeerspaceRequirements.md)
+* [Ideas](documentation/PeerspaceIdeas.md)

@@ -13,13 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+
+package straightway.peerspace.net
+
+import straightway.peerspace.data.Chunk
+import java.io.Serializable
 
 /**
- * Determines the size of a given chunk.
- * It is useful for network simulations to have 'fake' chunk sizes for the data chunks
- * instead of occupying memory in reality.
+ * A request to push data to another peer.
  */
-interface ChunkSizeGetter {
-    fun getSizeOf(chunk: Chunk): Long
+data class PushRequest(val chunk: Chunk) : Serializable {
+    companion object {
+        const val serialVersionUID = 1L
+    }
 }

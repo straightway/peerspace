@@ -38,7 +38,7 @@ class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
     class Environment {
 
         val infrastructure = Infrastructure {
-            peerFactory = mock {
+            peerStubFactory = mock {
                 on { create(any()) } doAnswer { peerMockFactory(it.arguments[0] as Id) }
             }
         }

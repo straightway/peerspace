@@ -20,10 +20,12 @@ import straightway.peerspace.data.Id
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.impl.NetworkImpl
-import straightway.peerspace.net.impl.PeerFactoryImpl
+import straightway.peerspace.net.impl.PeerStubFactory
+import straightway.peerspace.net.impl.PeerImpl
 import straightway.sim.core.Simulator
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.units.bit
+import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
 import straightway.units.kilo
@@ -35,34 +37,30 @@ private class MainClass(numberOfPeers: Int) {
 
     val simulator = Simulator()
 
-    @Suppress("UNUSED")
-    private val simulatedNetwork = SimNetwork(
+    private val simNet = SimNetwork(
             simScheduler = simulator,
             timeProvider = simulator,
             latency = LATENCY)
 
-    private val simPeers = mutableMapOf<Id, SimPeer>()
+    private val simPeers = mutableMapOf<Id, SimNode>()
 
-    @Suppress("UNUSED")
     private val peers = mutableMapOf<Id, Peer>()
-
-    init {
-        for (i in 1..numberOfPeers)
-            createPeer("$i")
-    }
 
     private fun createPeer(id: String) {
         @Suppress("UNUSED_VARIABLE")
         val infrastructure = createPeerInfrastructure(id)
-        // Create new peer
+        peers[id] = PeerImpl(id)
     }
 
     private fun createPeerInfrastructure(peerId: String): Infrastructure {
         return Infrastructure {
             network = NetworkImpl(this)
-            peerFactory = PeerFactoryImpl(this)
-            channelFactory = SimPeer(
+            peerStubFactory = PeerStubFactory(this)
+            channelFactory = SimNode(
                     peerId,
+                    peers,
+                    simNet,
+                    { CHUNK_SIZE },
                     uploadStream = AsyncSequentialTransmissionStream(
                             UPLOAD_BANDWIDTH,
                             simulator),
@@ -73,10 +71,16 @@ private class MainClass(numberOfPeers: Int) {
         }
     }
 
+    init {
+        for (i in 1..numberOfPeers)
+            createPeer("$i")
+    }
+
     private companion object {
         val LATENCY = 50[milli(second)]
         val UPLOAD_BANDWIDTH = 500[kilo(bit) / second]
         val DOWNLOAD_BANDWIDTH = 2[mega(bit) / second]
+        val CHUNK_SIZE = 64[kilo(byte)]
     }
 }
 

@@ -26,11 +26,11 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PeerFactoryImplTest : TestBase<PeerFactoryImpl>() {
+class PeerStubFactoryTest : TestBase<PeerStubFactory>() {
 
     @BeforeEach
     fun setup() {
-        sut = PeerFactoryImpl(infrastructure)
+        sut = PeerStubFactory(infrastructure)
     }
 
     @Test

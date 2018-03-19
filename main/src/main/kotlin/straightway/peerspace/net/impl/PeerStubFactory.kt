@@ -23,6 +23,6 @@ import straightway.peerspace.net.Peer
 /**
  * Productive implementation of the PeerFactory interface.
  */
-class PeerFactoryImpl(val infrastructure: Infrastructure) : Factory<Peer> {
+class PeerStubFactory(val infrastructure: Infrastructure) : Factory<Peer> {
     override fun create(id: Id) = PeerNetworkStub(id, infrastructure)
 }

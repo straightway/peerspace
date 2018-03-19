@@ -18,6 +18,8 @@ package straightway.peerspace.networksimulator
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.Peer
+import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.References
 import straightway.testing.flow.Same
@@ -25,23 +27,36 @@ import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.has
 import straightway.testing.flow.is_
+import straightway.units.byte
+import straightway.units.get
 
-class SimPeerTest {
+class SimNodeTest {
+
     private val test get() = Given {
         object {
-            val existingInstances = mutableMapOf<Id, SimPeer>()
+            val id = "id"
+            val sender = mock<TransmissionRequestHandler>()
+            val parent = mock<Peer> {
+                on { id }.thenReturn(id)
+            }
+            val peers = mapOf(Pair(id, parent))
+            val existingInstances = mutableMapOf<Id, SimNode>()
         }
     }
 
     @Test
     fun `construction adds to existing instances`() =
-            test when_ { SimPeer("id", mock(), mock(), existingInstances) } then {
+            test when_ {
+                SimNode(id, peers, sender, { 16[byte] }, mock(), mock(), existingInstances)
+            } then {
                 expect(existingInstances.values has References(it.result))
             }
 
     @Test
     fun `construction adds to existing instances under id`() =
-            test when_ { SimPeer("id", mock(), mock(), existingInstances) } then {
+            test when_ {
+                SimNode(id, peers, sender, { 16[byte] }, mock(), mock(), existingInstances)
+            } then {
                 expect(existingInstances["id"] is_ Same as_ it.result)
             }
 }

@@ -15,5 +15,6 @@
  */
 
 dependencies {
-    compile project(":peerspace:data")
+    compile project(':peerspace:data')
+    compile straightway('testing')
 }

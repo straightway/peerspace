@@ -15,8 +15,6 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Chunk
-
 /**
  * A target for pushing data.
  */
@@ -25,5 +23,5 @@ interface PushTarget {
     /**
      * Receive a chunk of data.
      */
-    fun push(data: Chunk)
+    fun push(request: PushRequest)
 }

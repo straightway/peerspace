@@ -14,31 +14,33 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.networksimulator
+package straightway.peerspace.net
 
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
-import straightway.sim.net.TransmissionStream
+import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Key
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
+import straightway.testing.flow.expect
 import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 
-class SimPeer_Node_Test {
+class PushRequestTest {
 
     private val test get() = Given {
         object {
-            val upload = mock<TransmissionStream>()
-            val download = mock<TransmissionStream>()
-            val sut = SimPeer("id", upload, download, mutableMapOf())
+            val chunk = Chunk(Key("4711"), "Hello")
+            val sut = PushRequest(chunk)
         }
     }
 
     @Test
-    fun `upload stream is as specified`() =
-            test when_ { sut.uploadStream } then { it.result is_ Same as_ upload }
+    fun `chunk is accessible`() =
+            test when_ { sut } then { expect(it.result.chunk is_ Same as_ chunk) }
 
     @Test
-    fun `download stream is as specified`() =
-            test when_ { sut.downloadStream } then { it.result is_ Same as_ download }
+    fun `has serialVersionUID`() =
+        expect(PushRequest.serialVersionUID is_ Equal to_ 1L)
 }

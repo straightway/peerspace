@@ -25,6 +25,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
+import straightway.peerspace.net.PushRequest
 import straightway.testing.TestBase
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -70,13 +71,14 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
 
     @Test
     fun `push creates channel`() = sut.run {
-        sut.push(data)
+        sut.push(PushRequest(data))
         expect(channelMockFactoryInvocations is_ Equal to_ 1)
     }
 
     @Test
     fun `push transmits request on channel`() = sut.run {
-        sut.push(data)
-        expect(transmittedData is_ Equal to_ listOf(data))
+        val request = PushRequest(data)
+        sut.push(request)
+        expect(transmittedData is_ Equal to_ listOf(request))
     }
 }

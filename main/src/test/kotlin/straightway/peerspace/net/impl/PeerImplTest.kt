@@ -14,47 +14,51 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.networksimulator
+package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
-import straightway.peerspace.data.Id
+import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Key
+import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
-import straightway.testing.flow.Same
 import straightway.testing.flow.Throw
-import straightway.testing.flow.as_
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 
-class SimPeer_Factory_Test {
+class PeerImplTest {
 
     private val test get() = Given {
-        val createdInstances = mutableMapOf<Id, SimPeer>()
         object {
-            val to = SimPeer("newId", mock(), mock(), createdInstances)
-            val from = SimPeer("id", mock(), mock(), createdInstances)
+            val sut = PeerImpl("id")
+            val chunk = Chunk(Key("dataId"), "Hello")
         }
     }
 
     @Test
-    fun `returns new instance`() =
-            test when_ { from.create("newId") } then {
-                expect(it.result.to is_ Same as_ to)
-                expect(it.result.from is_ Same as_ from)
+    fun `PeerImpl implements Peer`() =
+            test when_ { sut as Peer } then {
+                expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
-    fun `creating the same channel twice yields individual instances`() =
-            test when_ { to.create("newId") } then {
-                expect(it.result is_ Not - Same as_ to.create("newId"))
+    fun `id passed on construction is accessible`() =
+            test when_ { sut.id } then { expect(it.result is_ Equal to_ "id") }
+
+    @Test
+    fun `push does not throw`() =
+            test when_ { sut.push(PushRequest(chunk)) } then {
+                expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
-    fun `getting a not existing channel throws an exception`() =
-            test when_ { to.create("notExistingId") } then {
-                expect({ it.result } does Throw.exception)
+    fun `pushed data is accessible`() =
+            test when_ { sut.push(PushRequest(chunk)) } then {
+                expect (sut.getData(chunk.key) is_ Equal to_ chunk.data)
             }
 }

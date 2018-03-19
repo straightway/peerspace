@@ -13,22 +13,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace
 
-import straightway.peerspace.net.Channel
-import straightway.peerspace.net.Factory
-import straightway.peerspace.net.Network
+package straightway.peerspace.net.impl
+
+import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushRequest
+import java.io.Serializable
 
 /**
- * Infrastructure holding general components of the peerspace application.
+ * Default productive implementation of a peerspace peer.
  */
-class Infrastructure(initializer: Infrastructure.() -> Unit) {
-    lateinit var network: Network
-    lateinit var peerStubFactory: Factory<Peer>
-    lateinit var channelFactory: Factory<Channel>
+class PeerImpl(override val id: Id) : Peer {
 
-    init {
-        this.initializer()
+    override fun push(request: PushRequest) {
+        storedData[request.chunk.key] = request.chunk.data
     }
+
+    fun getData(key: Key): Serializable = storedData[key]!!
+
+    private val storedData = mutableMapOf<Key, Serializable>()
 }

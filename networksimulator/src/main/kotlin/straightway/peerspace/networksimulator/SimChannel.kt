@@ -17,13 +17,24 @@
 package straightway.peerspace.networksimulator
 
 import straightway.peerspace.net.Channel
+import straightway.sim.net.Message
+import straightway.sim.net.TransmissionRequestHandler
+import straightway.sim.net.Node
+import straightway.sim.net.Transmission
+import straightway.units.AmountOfData
+import straightway.units.UnitValue
 import java.io.Serializable
 
 /**
  * A Channel implementation used for network simulation.
  */
-class SimChannel(val from: SimPeer, val to: SimPeer) : Channel {
+class SimChannel(
+        val transmissionRequestHandler: TransmissionRequestHandler,
+        val chunkSizeGetter: (Serializable) -> UnitValue<Int, AmountOfData>,
+        val from: Node,
+        val to: Node) : Channel {
     override fun transmit(data: Serializable) {
-        TODO("not implemented")
+        transmissionRequestHandler.transmit(
+                Transmission(from, to, Message(data, size = chunkSizeGetter(data))))
     }
 }

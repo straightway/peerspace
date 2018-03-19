@@ -20,8 +20,8 @@ import straightway.error.Panic
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
-import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.PushTarget
 import straightway.sim.net.Message
 import straightway.sim.net.Node
 import straightway.sim.net.TransmissionRequestHandler
@@ -35,18 +35,18 @@ import java.io.Serializable
  */
 class SimNode(
         private val id: Id,
-        private val peerInstances: Map<Id, Peer>,
+        private val pushTargets: Map<Id, PushTarget>,
         private val transmissionRequestHandler: TransmissionRequestHandler,
         private val chunkSizeGetter: (Serializable) -> UnitValue<Int, AmountOfData>,
         override val uploadStream: TransmissionStream,
         override val downloadStream: TransmissionStream,
-        private val createdInstances: MutableMap<Id, SimNode>
+        private val simNodes: MutableMap<Id, SimNode>
 ) : Factory<Channel>, Node {
 
     override fun notifyReceive(sender: Node, message: Message) {
         message.content.let {
             when (it) {
-                is PushRequest -> parent.push(it)
+                is PushRequest -> parentPushTarget.push(it)
                 else -> throw Panic("Invalid request: $it")
             }
         }
@@ -57,11 +57,11 @@ class SimNode(
                     transmissionRequestHandler,
                     chunkSizeGetter,
                     from = this,
-                    to = createdInstances[id]!!)
+                    to = simNodes[id]!!)
 
-    private val parent get() = peerInstances[id]!!
+    private val parentPushTarget get() = pushTargets[id]!!
 
     init {
-        createdInstances[id] = this
+        simNodes[id] = this
     }
 }

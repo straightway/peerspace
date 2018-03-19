@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.PushTarget
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
@@ -35,20 +35,29 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.units.byte
 import straightway.units.get
+import java.io.Serializable
 
 class SimNode_Node_Test {
+
+    private companion object {
+        const val peerId = "id"
+        const val chunkData = "Hello"
+        val chunkKey = Key("chunkId")
+        val messageSize = 50[byte]
+        val invalidRequest = object { override fun toString() = "Invalid Request" }
+        val getChunkSize = { _: Serializable -> 16[byte] }
+    }
 
     private val test get() = Given {
         object {
             val upload = mock<TransmissionStream>()
             val download = mock<TransmissionStream>()
-            val peerId = "id"
-            val peer = mock<Peer> { on { id }.thenReturn(peerId) }
-            val peers = mutableMapOf(Pair(peerId, peer))
-            val chunk = Chunk(Key("chunkId"), "Hello")
+            val target = mock<PushTarget>()
+            val peers = mutableMapOf(Pair(peerId, target))
+            val chunk = Chunk(chunkKey, chunkData)
             val request = PushRequest(chunk)
             val sut = SimNode(
-                    peerId, peers, mock(), { 16[byte] }, upload, download, mutableMapOf())
+                    peerId, peers, mock(), getChunkSize, upload, download, mutableMapOf())
         }
     }
 
@@ -63,17 +72,15 @@ class SimNode_Node_Test {
     @Test
     fun `receiving a push requests calls push on parent peer`() =
             test when_ {
-                sut.notifyReceive(
-                        mock(),
-                        Message(request, size = 50[byte]))
+                sut.notifyReceive(mock(), Message(request, messageSize))
             } then {
-                verify(peer).push(request)
+                verify(target).push(request)
             }
 
     @Test
-    fun `receiving invalid message panics`() =
+    fun `receiving message with invalid request panics`() =
             test when_ {
-                sut.notifyReceive(mock(), Message("invalid", size = 50[byte]))
+                sut.notifyReceive(mock(), Message(invalidRequest, messageSize))
             } then {
                 expect({ it.result } does Throw.type<Panic>())
             }

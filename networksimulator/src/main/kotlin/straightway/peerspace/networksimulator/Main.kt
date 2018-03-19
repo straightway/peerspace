@@ -67,7 +67,7 @@ private class MainClass(numberOfPeers: Int) {
                     downloadStream = AsyncSequentialTransmissionStream(
                             DOWNLOAD_BANDWIDTH,
                             simulator),
-                    createdInstances = simPeers)
+                    simNodes = simPeers)
         }
     }
 

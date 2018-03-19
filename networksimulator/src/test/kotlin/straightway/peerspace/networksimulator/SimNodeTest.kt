@@ -18,7 +18,7 @@ package straightway.peerspace.networksimulator
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushTarget
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.References
@@ -32,13 +32,14 @@ import straightway.units.get
 
 class SimNodeTest {
 
+    private companion object {
+        const val id = "id"
+    }
+
     private val test get() = Given {
         object {
-            val id = "id"
             val sender = mock<TransmissionRequestHandler>()
-            val parent = mock<Peer> {
-                on { id }.thenReturn(id)
-            }
+            val parent = mock<PushTarget>()
             val peers = mapOf(Pair(id, parent))
             val existingInstances = mutableMapOf<Id, SimNode>()
         }
@@ -57,6 +58,6 @@ class SimNodeTest {
             test when_ {
                 SimNode(id, peers, sender, { 16[byte] }, mock(), mock(), existingInstances)
             } then {
-                expect(existingInstances["id"] is_ Same as_ it.result)
+                expect(existingInstances[id] is_ Same as_ it.result)
             }
 }

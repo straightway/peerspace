@@ -20,7 +20,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushTarget
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Same
@@ -34,14 +34,17 @@ import straightway.units.get
 
 class SimNode_Factory_Test {
 
+    private companion object {
+        const val fromId = "fromPeer"
+        const val toId = "target"
+        const val notExistingId = "notExistingId"
+    }
+
     private val test get() = Given {
         val instances = mutableMapOf<Id, SimNode>()
         object {
-            val fromId = "fromPeer"
-            val toId = "toPeer"
-            val fromPeer = mock<Peer> { on { id }.thenReturn(fromId) }
-            val toPeer = mock<Peer> { on { id }.thenReturn(toId) }
-            val peers = mapOf(Pair(fromId, fromPeer), Pair(toId, toPeer))
+            val target = mock<PushTarget>()
+            val peers = mapOf(Pair(toId, target))
             val to = SimNode(toId, peers, mock(), { 16[byte] }, mock(), mock(), instances)
             val from = SimNode(fromId, peers, mock(), { 16[byte] }, mock(), mock(), instances)
         }
@@ -62,7 +65,7 @@ class SimNode_Factory_Test {
 
     @Test
     fun `getting a not existing channel throws an exception`() =
-            test when_ { to.create("notExistingId") } then {
+            test when_ { to.create(notExistingId) } then {
                 expect({ it.result } does Throw.exception)
             }
 }

@@ -20,7 +20,6 @@ import com.nhaarman.mockito_kotlin.argForWhich
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.net.Peer
 import straightway.sim.net.Node
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
@@ -33,8 +32,6 @@ class SimChannelTest {
     private val test get() = Given {
         object {
             var chunkSize = 16[byte]
-            val fromPeer = mock<Peer> { on { id }.thenReturn("1") }
-            val toPeer = mock<Peer> { on { id }.thenReturn("2") }
             val net = mock<TransmissionRequestHandler>()
             val fromUpload = mock<TransmissionStream>()
             val toDownload = mock<TransmissionStream>()

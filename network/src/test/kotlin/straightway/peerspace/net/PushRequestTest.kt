@@ -19,6 +19,8 @@ package straightway.peerspace.net
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
+import straightway.utils.deserializeTo
+import straightway.utils.serializeToByteArray
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Same
@@ -43,4 +45,14 @@ class PushRequestTest {
     @Test
     fun `has serialVersionUID`() =
         expect(PushRequest.serialVersionUID is_ Equal to_ 1L)
+
+    @Test
+    fun `is serializable`() =
+            test when_
+            {
+                val serialized = sut.serializeToByteArray()
+                serialized.deserializeTo<PushRequest>()
+            } then {
+                expect(it.result is_ Equal to_ sut)
+            }
 }

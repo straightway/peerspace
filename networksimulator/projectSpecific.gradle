@@ -18,7 +18,6 @@ apply plugin: 'application'
 mainClassName = 'straightway.peerspace.networksimulator.MainKt'
 
 dependencies {
-    compile project(':peerspace:main')
     compile project(':peerspace:network')
     compile straightway('sim')
     compile straightway('sim:net')

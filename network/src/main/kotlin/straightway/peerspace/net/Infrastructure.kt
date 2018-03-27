@@ -13,8 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.net
 
-dependencies {
-    testCompile straightway('utils')
-    testCompile straightway('testing')
+/**
+ * Infrastructure holding general components of the peerspace application.
+ */
+class Infrastructure(initializer: Infrastructure.() -> Unit) {
+    lateinit var network: Network
+    lateinit var peerStubFactory: Factory<Peer>
+    lateinit var channelFactory: Factory<Channel>
+
+    init {
+        this.initializer()
+    }
 }

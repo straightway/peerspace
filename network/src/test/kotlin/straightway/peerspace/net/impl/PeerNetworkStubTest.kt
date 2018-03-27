@@ -20,11 +20,11 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.peerspace.Infrastructure
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
+import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.PushRequest
 import straightway.testing.TestBase
 import straightway.testing.flow.Equal

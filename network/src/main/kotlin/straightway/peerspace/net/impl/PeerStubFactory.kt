@@ -13,8 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.net.impl
 
-dependencies {
-    testCompile straightway('utils')
-    testCompile straightway('testing')
+import straightway.peerspace.data.Id
+import straightway.peerspace.net.Factory
+import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.Peer
+
+/**
+ * Productive implementation of the PeerFactory interface.
+ */
+class PeerStubFactory(val infrastructure: Infrastructure) : Factory<Peer> {
+    override fun create(id: Id) = PeerNetworkStub(id, infrastructure)
 }

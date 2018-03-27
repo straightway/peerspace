@@ -13,24 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
-import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PushRequest
-import java.io.Serializable
+package straightway.peerspace.data
 
 /**
- * Default productive implementation of a peerspace peer.
+ * An object which can be hashed according to its ID and its
+ * timestamps.
  */
-class PeerImpl(override val id: Id) : Peer {
-
-    override fun push(request: PushRequest) {
-        storedData[request.chunk.key] = request.chunk.data
-    }
-
-    fun getData(key: Key): Serializable = storedData[key]!!
-
-    private val storedData = mutableMapOf<Key, Serializable>()
+interface KeyHashable {
+    val id: Id
+    val timestamps: ClosedRange<Long>
 }

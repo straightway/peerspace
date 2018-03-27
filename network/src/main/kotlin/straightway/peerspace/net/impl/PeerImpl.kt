@@ -13,18 +13,29 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.net.impl
 
+import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
+import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.QueryRequest
 import java.io.Serializable
 
 /**
- * A key for a network data chunk.
+ * Default productive implementation of a peerspace peer.
  */
-data class Key(override val id: Id, val timestamp: Long) : KeyHashable, Serializable {
-    override val timestamps get() = LongRange(timestamp, timestamp)
+class PeerImpl(override val id: Id) : Peer {
 
-    constructor(id: Id) : this(id, 0)
-    companion object {
-        const val serialVersionUID = 1L
+    override fun push(request: PushRequest) {
+        storedData[request.chunk.key] = request.chunk.data
     }
+
+    override fun query(request: QueryRequest) {
+        TODO("not implemented")
+    }
+
+    fun getData(key: Key): Serializable = storedData[key]!!
+
+    private val storedData = mutableMapOf<Key, Serializable>()
 }

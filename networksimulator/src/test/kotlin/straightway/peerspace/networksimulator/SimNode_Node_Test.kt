@@ -24,6 +24,9 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.untimedData
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
@@ -52,12 +55,22 @@ class SimNode_Node_Test {
         object {
             val upload = mock<TransmissionStream>()
             val download = mock<TransmissionStream>()
-            val target = mock<PushTarget>()
-            val peers = mutableMapOf(Pair(peerId, target))
+            val pushTarget = mock<PushTarget>()
+            val pushTargets = mutableMapOf(Pair(peerId, pushTarget))
             val chunk = Chunk(chunkKey, chunkData)
-            val request = PushRequest(chunk)
+            val pushRequest = PushRequest(chunk)
+            val querySource = mock<QuerySource>()
+            val querySources = mutableMapOf(Pair(peerId, querySource))
+            val queryRequest = QueryRequest("???", untimedData)
             val sut = SimNode(
-                    peerId, peers, mock(), getChunkSize, upload, download, mutableMapOf())
+                    peerId,
+                    pushTargets,
+                    querySources,
+                    mock(),
+                    getChunkSize,
+                    upload,
+                    download,
+                    mutableMapOf())
         }
     }
 
@@ -72,9 +85,17 @@ class SimNode_Node_Test {
     @Test
     fun `receiving a push requests calls push on parent peer`() =
             test when_ {
-                sut.notifyReceive(mock(), Message(request, messageSize))
+                sut.notifyReceive(mock(), Message(pushRequest, messageSize))
             } then {
-                verify(target).push(request)
+                verify(pushTarget).push(pushRequest)
+            }
+
+    @Test
+    fun `receiving a query requests calls query on parent peer`() =
+            test when_ {
+                sut.notifyReceive(mock(), Message(queryRequest, messageSize))
+            } then {
+                verify(querySource).query(queryRequest)
             }
 
     @Test

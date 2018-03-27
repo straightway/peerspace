@@ -15,14 +15,29 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.Infrastructure
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Factory
+import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.QueryRequest
 
 /**
- * Productive implementation of the PeerFactory interface.
+ * Implementation of a network stub for a peer.
+ *
+ * This network stub cares for transmitting data to the physical
+ * network node the peer runs on.
  */
-class PeerStubFactory(val infrastructure: Infrastructure) : Factory<Peer> {
-    override fun create(id: Id) = PeerNetworkStub(id, infrastructure)
+class PeerNetworkStub(
+        override val id: Id,
+        val infrastructure: Infrastructure
+) : Peer {
+
+    override fun push(request: PushRequest) {
+        val channel = infrastructure.channelFactory.create(id)
+        channel.transmit(request)
+    }
+
+    override fun query(request: QueryRequest) {
+        TODO("not implemented")
+    }
 }

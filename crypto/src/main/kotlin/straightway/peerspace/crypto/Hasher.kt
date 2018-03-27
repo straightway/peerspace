@@ -13,26 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net.impl
+package straightway.peerspace.crypto
 
-import straightway.peerspace.Infrastructure
-import straightway.peerspace.data.Id
-import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PushRequest
+import java.io.Serializable
 
 /**
- * Implementation of a network stub for a peer.
- *
- * This network stub cares for transmitting data to the physical
- * network node the peer runs on.
+ * Compute hash codes for serializable objects.
  */
-class PeerNetworkStub(
-        override val id: Id,
-        val infrastructure: Infrastructure
-) : Peer {
-
-    override fun push(request: PushRequest) {
-        val channel = infrastructure.channelFactory.create(id)
-        channel.transmit(request)
-    }
+interface Hasher {
+    fun getHash(obj: Serializable): ByteArray
 }

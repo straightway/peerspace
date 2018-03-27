@@ -15,7 +15,7 @@
  */
 package straightway.peerspace.networksimulator
 
-import straightway.peerspace.Infrastructure
+import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.data.Id
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
@@ -58,6 +58,7 @@ private class MainClass(numberOfPeers: Int) {
             peerStubFactory = PeerStubFactory(this)
             channelFactory = SimNode(
                     peerId,
+                    peers,
                     peers,
                     simNet,
                     { CHUNK_SIZE },

@@ -13,43 +13,42 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net.impl
 
-import org.junit.jupiter.api.BeforeEach
+package straightway.peerspace.net
+
 import org.junit.jupiter.api.Test
-import straightway.peerspace.Infrastructure
-import straightway.testing.TestBase
+import com.nhaarman.mockito_kotlin.mock
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
-import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
-import straightway.testing.flow.to_
 
-class PeerStubFactoryTest : TestBase<PeerStubFactory>() {
+class InfrastructureTest {
 
-    @BeforeEach
-    fun setup() {
-        sut = PeerStubFactory(infrastructure)
+    @Test
+    fun `setting and getting network`() {
+        val network = mock<Network>()
+        val sut = Infrastructure {
+            this.network = network
+        }
+        expect(sut.network is_ Same as_ network)
     }
 
     @Test
-    fun `creates Peer instances`() {
-        val result = sut.create("id")
-        expect(result::class is_ Same as_ PeerNetworkStub::class)
+    fun `setting and getting peerFactory`() {
+        val peerFactory = mock<Factory<Peer>>()
+        val sut = Infrastructure {
+            this.peerStubFactory = peerFactory
+        }
+        expect(sut.peerStubFactory is_ Same as_ peerFactory)
     }
 
     @Test
-    fun `created Peer has proper Id`() {
-        val result = sut.create("id")
-        expect(result.id is_ Equal to_ "id")
+    fun `setting and getting channelFactory`() {
+        val channelFactory = mock<Factory<Channel>>()
+        val sut = Infrastructure {
+            this.channelFactory = channelFactory
+        }
+        expect(sut.channelFactory is_ Same as_ channelFactory)
     }
-
-    @Test
-    fun `created Peer has proper infrastructure`() {
-        val result = sut.create("id")
-        expect(result.infrastructure is_ Same as_ infrastructure)
-    }
-
-    private val infrastructure = Infrastructure { }
 }

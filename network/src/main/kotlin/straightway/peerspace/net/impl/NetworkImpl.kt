@@ -13,22 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace
+package straightway.peerspace.net.impl
 
-import straightway.peerspace.net.Channel
-import straightway.peerspace.net.Factory
+import straightway.peerspace.data.Id
+import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.Peer
 
 /**
- * Infrastructure holding general components of the peerspace application.
+ * Productive implementation of the Network interface.
  */
-class Infrastructure(initializer: Infrastructure.() -> Unit) {
-    lateinit var network: Network
-    lateinit var peerStubFactory: Factory<Peer>
-    lateinit var channelFactory: Factory<Channel>
-
-    init {
-        this.initializer()
-    }
+class NetworkImpl(val infrastructure: Infrastructure) : Network {
+    override fun peer(id: Id) = infrastructure.peerStubFactory.create(id)
 }

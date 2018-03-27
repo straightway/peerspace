@@ -16,5 +16,9 @@
 
 dependencies {
     compile project(':peerspace:data')
-    compile straightway('testing')
+    compile project(':peerspace:crypto')
+    compile straightway('units')
+    compile straightway('utils')
+    testCompile straightway('testing')
+    testCompile mockitoKotlin()
 }

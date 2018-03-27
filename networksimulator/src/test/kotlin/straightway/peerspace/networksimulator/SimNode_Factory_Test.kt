@@ -20,7 +20,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.Peer
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Same
@@ -41,12 +41,14 @@ class SimNode_Factory_Test {
     }
 
     private val test get() = Given {
-        val instances = mutableMapOf<Id, SimNode>()
+        val nodes = mutableMapOf<Id, SimNode>()
         object {
-            val target = mock<PushTarget>()
-            val peers = mapOf(Pair(toId, target))
-            val to = SimNode(toId, peers, mock(), { 16[byte] }, mock(), mock(), instances)
-            val from = SimNode(fromId, peers, mock(), { 16[byte] }, mock(), mock(), instances)
+            val pushTarget = mock<Peer>()
+            val peers = mapOf(Pair(toId, pushTarget))
+            val to = SimNode(
+                    toId, peers, peers, mock(), { 16[byte] }, mock(), mock(), nodes)
+            val from = SimNode(
+                    fromId, peers, peers, mock(), { 16[byte] }, mock(), mock(), nodes)
         }
     }
 

@@ -16,19 +16,9 @@
 
 package straightway.peerspace.data
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.io.Serializable
-
-fun <T : Serializable> T.serializeToByteArray() =
-        ByteArrayOutputStream().use {
-            ObjectOutputStream(it).use { it.writeObject(this) }
-            it.toByteArray()
-        }!!
-
-inline fun <reified T : Serializable> ByteArray.deserializeTo() =
-        ByteArrayInputStream(this).use {
-            ObjectInputStream(it).use { T::class.java.cast(it.readObject()) }
-        }!!
+/**
+ * Compute hash codes for KeyHashable objects.
+ */
+interface KeyHasher {
+    fun getHashes(hashable: KeyHashable): Iterable<Long>
+}

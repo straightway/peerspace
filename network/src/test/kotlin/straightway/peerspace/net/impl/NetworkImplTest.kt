@@ -21,8 +21,8 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import straightway.peerspace.Infrastructure
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Peer
 import straightway.testing.TestBase
 import straightway.testing.flow.Null

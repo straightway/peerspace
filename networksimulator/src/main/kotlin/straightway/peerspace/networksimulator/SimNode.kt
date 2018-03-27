@@ -22,6 +22,8 @@ import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.QuerySource
 import straightway.sim.net.Message
 import straightway.sim.net.Node
 import straightway.sim.net.TransmissionRequestHandler
@@ -36,6 +38,7 @@ import java.io.Serializable
 class SimNode(
         private val id: Id,
         private val pushTargets: Map<Id, PushTarget>,
+        private val querySources: Map<Id, QuerySource>,
         private val transmissionRequestHandler: TransmissionRequestHandler,
         private val chunkSizeGetter: (Serializable) -> UnitValue<Int, AmountOfData>,
         override val uploadStream: TransmissionStream,
@@ -47,6 +50,7 @@ class SimNode(
         message.content.let {
             when (it) {
                 is PushRequest -> parentPushTarget.push(it)
+                is QueryRequest -> parentQuerySource.query(it)
                 else -> throw Panic("Invalid request: $it")
             }
         }
@@ -60,6 +64,7 @@ class SimNode(
                     to = simNodes[id]!!)
 
     private val parentPushTarget get() = pushTargets[id]!!
+    private val parentQuerySource get() = querySources[id]!!
 
     init {
         simNodes[id] = this

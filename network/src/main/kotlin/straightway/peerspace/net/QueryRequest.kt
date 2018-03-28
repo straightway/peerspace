@@ -21,29 +21,37 @@ import straightway.peerspace.data.KeyHashable
 import java.io.Serializable
 
 val untimedData = LongRange(0L, 0L)
-val mostRecentData = LongRange(-1L, -1L)
 
 /**
  * A request for querying data in the peerspace network.
  */
 @Suppress("DataClassPrivateConstructor")
 data class QueryRequest private constructor(
+        val originatorId: Id,
         override val id: Id,
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
         val onlyMostRecent: Boolean = false
 ) : KeyHashable, Serializable {
 
-    constructor(id: Id, timestamps: ClosedRange<Long>)
-            : this(id, timestamps.start, timestamps.endInclusive)
+    constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>)
+            : this(originatorId, id, timestamps.start, timestamps.endInclusive)
 
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 
     companion object {
         const val serialVersionUID = 1L
-        fun onlyMostRecent(id: Id, startTimestamp: Long = 0) =
-                QueryRequest(id, startTimestamp, Long.MAX_VALUE, onlyMostRecent = true)
+
+        @Suppress("LongParameterList")
+        fun onlyMostRecent(originatorId: Id, id: Id, startTimestamp: Long = 0) =
+                QueryRequest(
+                        originatorId,
+                        id,
+                        startTimestamp,
+                        timestampsEndInclusive = Long.MAX_VALUE,
+                        onlyMostRecent = true)
     }
 }
 
-fun QueryRequest.isMatching(key: Key) = key.timestamp in timestamps && key.id == id
+fun QueryRequest.isMatching(key: Key) =
+        key.timestamp in timestamps && key.id == id

@@ -61,7 +61,7 @@ class SimNode_Node_Test {
             val pushRequest = PushRequest(chunk)
             val querySource = mock<QuerySource>()
             val querySources = mutableMapOf(Pair(peerId, querySource))
-            val queryRequest = QueryRequest("???", untimedData)
+            val queryRequest = QueryRequest("originId", "chunkId", untimedData)
             val sut = SimNode(
                     peerId,
                     pushTargets,

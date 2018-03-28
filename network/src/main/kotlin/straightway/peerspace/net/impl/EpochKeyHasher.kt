@@ -19,7 +19,6 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
-import straightway.peerspace.net.mostRecentData
 import straightway.peerspace.net.untimedData
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
@@ -38,20 +37,17 @@ class EpochKeyHasher(
     override fun getHashes(hashable: KeyHashable) =
             when (hashable.timestamps) {
                 untimedData -> getDataHashes(hashable)
-                mostRecentData -> getMostRecentHashes(hashable)
                 else -> getEpochHashes(hashable)
             }
 
     private fun getEpochHashes(hashable: KeyHashable) =
-            getEpochs(hashable.timestamps).map {
-                foldToLong(hasher.getHash("EPOCH$it(${hashable.id})"))
-            }
-
-    private fun getMostRecentHashes(hashable: KeyHashable) =
-            listOf(foldToLong(hasher.getHash("RECENT(${hashable.id})")))
+            getEpochs(hashable.timestamps).map { getLongHash("EPOCH$it", hashable) }
 
     private fun getDataHashes(hashable: KeyHashable) =
-            listOf(foldToLong(hasher.getHash("DATA(${hashable.id})")))
+            listOf(getLongHash("DATA", hashable))
+
+    private fun getLongHash(hashType: String, hashable: KeyHashable) =
+            foldToLong(hasher.getHash("$hashType(${hashable.id})"))
 
     private fun getEpochs(timestamp: ClosedRange<Long>) =
             getRelativeRange(timestamp).let {

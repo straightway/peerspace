@@ -22,7 +22,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
-import straightway.peerspace.net.mostRecentData
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
@@ -37,6 +36,7 @@ import java.time.temporal.ChronoUnit
 class EpochKeyHasherTest {
 
     private companion object {
+        const val originatorId = "originatorId"
         const val id = "id"
         val currentTime = LocalDateTime.of(2000, 1, 2, 3, 4, 5, 123456)!!
         val currTimestamp = ChronoUnit.MILLIS.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime)
@@ -64,7 +64,7 @@ class EpochKeyHasherTest {
                 val hasher = mock<Hasher> {
                     on { getHash(any()) }.thenAnswer { hashCodes }
                 }
-                val hashable = QueryRequest(id, 83L..83L)
+                val hashable = QueryRequest(originatorId, id, 83L..83L)
                 var sut = EpochKeyHasher(hasher, timeProvider, epochs)
             }
         }
@@ -91,7 +91,7 @@ class EpochKeyHasherTest {
     @Test
     fun `the hashcode of an id with zero timestamp yields single hash code`() =
             test when_ {
-                sut.getHashes(QueryRequest(id, untimedData))
+                sut.getHashes(QueryRequest(originatorId, id, untimedData))
             } then {
                 expect(it.result is_ Equal to_ listOf(0L))
             }
@@ -99,17 +99,24 @@ class EpochKeyHasherTest {
     @Test
     fun `the hashcode of an id with zero timestamp calls hasher with DATA(id)`() =
             test when_ {
-                sut.getHashes(QueryRequest(id, untimedData))
+                sut.getHashes(QueryRequest(originatorId, id, untimedData))
             } then {
                 verify(hasher).getHash("DATA($id)")
             }
 
     @Test
-    fun `the hashcode of an id with -1 timestamp calls hasher with RECENT(id)`() =
-            test when_ {
-                sut.getHashes(QueryRequest(id, mostRecentData))
+    fun `the hash codes of a most recent query are identical to those of a timestamp query`() =
+            test while_ {
+                hashCodes = byteArrayOf(1)
+            } when_ {
+                sut.getHashes(QueryRequest.onlyMostRecent(originatorId, id))
             } then {
-                verify(hasher).getHash("RECENT($id)")
+                expect(it.result is_ Equal to_ List(epochs.size) { 1L })
+                inOrder(hasher) {
+                    epochs.indices.forEach {
+                        verify(hasher).getHash("EPOCH$it($id)")
+                    }
+                }
             }
 
     @Test
@@ -124,7 +131,7 @@ class EpochKeyHasherTest {
                 hashCodes = byteArrayOf(1)
             } when_ {
                 val timestamp = currTimestamp - 100L
-                sut.getHashes(QueryRequest(id, timestamp..timestamp))
+                sut.getHashes(QueryRequest(originatorId, id, timestamp..timestamp))
             } then {
                 expect(it.result is_ Equal to_ listOf(1L, 1L))
                 inOrder(hasher) {
@@ -140,7 +147,7 @@ class EpochKeyHasherTest {
             } when_ {
                 val epoch1 = getEpochBorders(1)
                 val epoch2 = getEpochBorders(2)
-                sut.getHashes(QueryRequest(id, epoch2.first..epoch1.endInclusive))
+                sut.getHashes(QueryRequest(originatorId, id, epoch2.first..epoch1.endInclusive))
             } then {
                 expect(it.result is_ Equal to_ listOf(1L, 1L))
                 inOrder(hasher) {
@@ -156,7 +163,7 @@ class EpochKeyHasherTest {
             } when_ {
                 val epoch1 = getEpochBorders(1)
                 val epoch3 = getEpochBorders(3)
-                sut.getHashes(QueryRequest(id, epoch3.first..epoch1.endInclusive))
+                sut.getHashes(QueryRequest(originatorId, id, epoch3.first..epoch1.endInclusive))
             } then {
                 expect(it.result is_ Equal to_ listOf(1L, 1L, 1L))
                 inOrder(hasher) {
@@ -236,7 +243,7 @@ class EpochKeyHasherTest {
     private fun testEpochTimestamp(epochStart: Long, expectedHash: String) {
         test when_ {
             val timestamp = currTimestamp - epochStart
-            sut.getHashes(QueryRequest(id, timestamp..timestamp))
+            sut.getHashes(QueryRequest(originatorId, id, timestamp..timestamp))
         } then {
             verify(hasher).getHash(expectedHash)
         }
@@ -246,6 +253,6 @@ class EpochKeyHasherTest {
             test while_ {
                 hashCodes = bytes
             } when_ {
-                sut.getHashes(QueryRequest(id, untimedData))
+                sut.getHashes(QueryRequest(originatorId, id, untimedData))
             }
 }

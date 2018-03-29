@@ -16,49 +16,30 @@
 
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
-import straightway.expr.minus
-import straightway.peerspace.data.Chunk
-import straightway.peerspace.data.Key
-import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.Infrastructure
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
-import straightway.testing.flow.Not
-import straightway.testing.flow.Throw
-import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
 class PeerImplTest {
 
+    private companion object {
+        const val id = "thePeerId"
+    }
+
     private val test get() = Given {
         object {
-            val sut = PeerImpl("id")
-            val chunk = Chunk(Key("dataId"), "Hello")
+            val sut = PeerImpl(id, mock(), Infrastructure {})
         }
     }
 
     @Test
-    fun `PeerImpl implements Peer`() =
-            test when_ { sut as Peer } then {
-                expect ({ it.result } does Not - Throw.exception)
-            }
-
-    @Test
-    fun `id passed on construction is accessible`() =
-            test when_ { sut.id } then { expect(it.result is_ Equal to_ "id") }
-
-    @Test
-    fun `push does not throw`() =
-            test when_ { sut.push(PushRequest(chunk)) } then {
-                expect ({ it.result } does Not - Throw.exception)
-            }
-
-    @Test
-    fun `pushed data is accessible`() =
-            test when_ { sut.push(PushRequest(chunk)) } then {
-                expect (sut.getData(chunk.key) is_ Equal to_ chunk.data)
+    fun `toString contains peer id`() =
+            test when_ { sut.toString() } then {
+                expect(it.result is_ Equal to_ "PeerImpl($id)")
             }
 }

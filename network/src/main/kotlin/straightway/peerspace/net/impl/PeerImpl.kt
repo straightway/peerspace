@@ -16,26 +16,31 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
+import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
-import java.io.Serializable
 
 /**
  * Default productive implementation of a peerspace peer.
  */
-class PeerImpl(override val id: Id) : Peer {
+class PeerImpl(
+        override val id: Id,
+        private val dataChunkStore: DataChunkStore,
+        private val infrastructure: Infrastructure) : Peer {
 
     override fun push(request: PushRequest) {
-        storedData[request.chunk.key] = request.chunk.data
+        dataChunkStore.store(request.chunk)
     }
 
     override fun query(request: QueryRequest) {
-        TODO("not implemented")
+        val originator by lazy { network.getPeer(request.originatorId) }
+        val queryResult = dataChunkStore.query(request)
+        queryResult.forEach { originator.push(PushRequest(it)) }
     }
 
-    fun getData(key: Key): Serializable = storedData[key]!!
+    override fun toString() = "PeerImpl($id)"
 
-    private val storedData = mutableMapOf<Key, Serializable>()
+    private val network get() = infrastructure.network
 }

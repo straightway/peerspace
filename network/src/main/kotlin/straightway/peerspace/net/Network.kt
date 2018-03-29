@@ -21,5 +21,5 @@ import straightway.peerspace.data.Id
  * A network consisting of network peers.
  */
 interface Network {
-    fun peer(id: Id): Peer
+    fun getPeer(id: Id): Peer
 }

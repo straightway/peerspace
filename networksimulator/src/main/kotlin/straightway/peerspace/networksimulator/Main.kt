@@ -22,6 +22,7 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerStubFactory
 import straightway.peerspace.net.impl.PeerImpl
+import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.sim.core.Simulator
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.units.bit
@@ -49,7 +50,7 @@ private class MainClass(numberOfPeers: Int) {
     private fun createPeer(id: String) {
         @Suppress("UNUSED_VARIABLE")
         val infrastructure = createPeerInfrastructure(id)
-        peers[id] = PeerImpl(id)
+        peers[id] = PeerImpl(id, TransientDataChunkStore(), infrastructure)
     }
 
     private fun createPeerInfrastructure(peerId: String): Infrastructure {

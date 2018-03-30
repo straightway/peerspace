@@ -44,7 +44,7 @@ Since the storage space on each peer is limited. So a peer must free some space 
 There are two ways to free space:
 
 1. Discard data
-2. Move data to another peer
+2. Move data to another peer````
 
 It is subject to a data storage strategy deciding which of both ways is applied to which chunk of data. It could consider the following criteria:
 
@@ -63,6 +63,9 @@ If a peer cannot answer a query directly, it forwards the query to one or more p
 When a peer can answer a query, it pushes the result back to the peer it received the query request from. This is also true for peers which received a query request and could not answer it immediately, but later received an answer from another peer (a _transitive answer_). Therefore, a peer must store for a certain time the information, when it received which queries from which other peer, to be able to send results from _transitive answers_ back to the originator.
 
 Querying for list results means specifying the list id and a condition for the timestamp. This may either be a range or only the most recent entry. In any case it is clear, which epoch is queried, so that the query can be forwarded accordingly by the peers. If the border of the time frame range is close to the border of an epoch, it may be necessary to check both epochs on either side of the border, because the peers may have slightly deviating system times.
+
+## Signing of Requests
+E.g. a query request must contain the id of the peer which issued the request, in order to push query requests back. To make sure malicious peers cannot issue query requests containing the id of other peers, query requests must be digitally signed by the issuer. The receiver of the request must be able to verify that signature. An easy way to achieve this is to use the public key of the signature key pair as peer id.
 
 ## Networking
 To be able to receive requests from other peers, each peer must open a network port for this purpose. But it is not desirable to be obliged to change any firewall or NAT configuration for that. So the idea is to use TOR for that purpose: Each peer starts a hidden service to be reachable for other peers. To be isolated from other applications using TOR, an own TOR instance should be launched.

@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
@@ -36,10 +37,10 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
 
     class Environment {
 
-        private val peerId = "id"
+        val peerId = Id("id")
 
         val transmittedData = mutableListOf<Any>()
-        val data = Chunk(Key("Key"), arrayOf(1, 2, 3))
+        val data = Chunk(Key(Id("Key")), arrayOf(1, 2, 3))
 
         var channelMockFactoryInvocations = 0
 
@@ -66,7 +67,7 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
 
     @Test
     fun `has specified id`() = sut.run {
-        expect(sut.id is_ Equal to_ "id")
+        expect(sut.id is_ Equal to_ peerId)
     }
 
     @Test

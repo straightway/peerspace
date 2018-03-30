@@ -15,4 +15,13 @@
  */
 package straightway.peerspace.data
 
-typealias Id = String
+import java.io.Serializable
+
+/**
+ * Identification of an object.
+ */
+data class Id(val identifier: String) : Serializable {
+    companion object {
+        const val serialVersionUID = 1L
+    }
+}

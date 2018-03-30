@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Infrastructure
@@ -38,8 +39,8 @@ import straightway.testing.flow.to_
 class `PeerImpl push Test` {
 
     private companion object {
-        const val peerId = "peerId"
-        const val chunkId = "chunkId"
+        val peerId = Id("peerId")
+        val chunkId = Id("chunkId")
         const val data = "Data"
     }
 

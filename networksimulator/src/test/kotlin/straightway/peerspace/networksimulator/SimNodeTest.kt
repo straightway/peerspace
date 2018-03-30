@@ -33,7 +33,7 @@ import straightway.units.get
 class SimNodeTest {
 
     private companion object {
-        const val id = "id"
+        val id = Id("id")
     }
 
     private val test get() = Given {

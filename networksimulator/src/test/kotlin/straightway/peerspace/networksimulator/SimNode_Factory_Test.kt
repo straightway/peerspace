@@ -35,9 +35,9 @@ import straightway.units.get
 class SimNode_Factory_Test {
 
     private companion object {
-        const val fromId = "fromPeer"
-        const val toId = "target"
-        const val notExistingId = "notExistingId"
+        val fromId = Id("fromPeer")
+        val toId = Id("target")
+        val notExistingId = Id("notExistingId")
     }
 
     private val test get() = Given {

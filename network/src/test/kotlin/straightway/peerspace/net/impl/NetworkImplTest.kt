@@ -61,8 +61,9 @@ class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
             newPeer = mock { on { id } doReturn newId }
             newPeer!!
         }
-        val receiverFromNetwork = network.getPeer("receiver")
-        expect(receiverFromNetwork.id is_ Equal to_ "receiver")
+        val receiverId = Id("receiver")
+        val receiverFromNetwork = network.getPeer(receiverId)
+        expect(receiverFromNetwork.id is_ Equal to_ receiverId)
         expect(receiverFromNetwork is_ Same as_ newPeer!!)
     }
 }

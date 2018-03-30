@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
@@ -43,9 +44,9 @@ import java.io.Serializable
 class SimNode_Node_Test {
 
     private companion object {
-        const val peerId = "id"
+        val peerId = Id("id")
         const val chunkData = "Hello"
-        val chunkKey = Key("chunkId")
+        val chunkKey = Key(Id("chunkId"))
         val messageSize = 50[byte]
         val invalidRequest = object { override fun toString() = "Invalid Request" }
         val getChunkSize = { _: Serializable -> 16[byte] }
@@ -61,7 +62,7 @@ class SimNode_Node_Test {
             val pushRequest = PushRequest(chunk)
             val querySource = mock<QuerySource>()
             val querySources = mutableMapOf(Pair(peerId, querySource))
-            val queryRequest = QueryRequest("originId", "chunkId", untimedData)
+            val queryRequest = QueryRequest(Id("originId"), Id("chunkId"), untimedData)
             val sut = SimNode(
                     peerId,
                     pushTargets,

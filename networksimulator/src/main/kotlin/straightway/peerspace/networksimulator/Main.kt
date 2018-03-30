@@ -47,13 +47,13 @@ private class MainClass(numberOfPeers: Int) {
 
     private val peers = mutableMapOf<Id, Peer>()
 
-    private fun createPeer(id: String) {
+    private fun createPeer(id: Id) {
         @Suppress("UNUSED_VARIABLE")
         val infrastructure = createPeerInfrastructure(id)
         peers[id] = PeerImpl(id, TransientDataChunkStore(), infrastructure)
     }
 
-    private fun createPeerInfrastructure(peerId: String): Infrastructure {
+    private fun createPeerInfrastructure(peerId: Id): Infrastructure {
         return Infrastructure {
             network = NetworkImpl(this)
             peerStubFactory = PeerStubFactory(this)
@@ -75,7 +75,7 @@ private class MainClass(numberOfPeers: Int) {
 
     init {
         for (i in 1..numberOfPeers)
-            createPeer("$i")
+            createPeer(Id("$i"))
     }
 
     private companion object {

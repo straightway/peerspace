@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
@@ -31,9 +32,9 @@ import straightway.testing.flow.to_
 class TransientDataChunkStoreTest {
 
     private companion object {
-        const val peerId = "peerId"
-        const val receiverId = "receiverId"
-        const val chunkId = "chunkId"
+        val peerId = Id("peerId")
+        val receiverId = Id("receiverId")
+        val chunkId = Id("chunkId")
         const val chunkData = "ChunkData"
         const val chunkTimeStamp = 83L
     }
@@ -45,7 +46,7 @@ class TransientDataChunkStoreTest {
             val timedChunk = Chunk(Key(chunkId, chunkTimeStamp), chunkData)
         }
     } while_ {
-        sut.store(Chunk(Key("otherId"), chunkData))
+        sut.store(Chunk(Key(Id("otherId")), chunkData))
     }
 
     @Test

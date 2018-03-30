@@ -22,6 +22,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
+import straightway.peerspace.data.Id
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
@@ -36,8 +37,8 @@ import java.time.temporal.ChronoUnit
 class EpochKeyHasherTest {
 
     private companion object {
-        const val originatorId = "originatorId"
-        const val id = "id"
+        val originatorId = Id("originatorId")
+        val id = Id("id")
         val currentTime = LocalDateTime.of(2000, 1, 2, 3, 4, 5, 123456)!!
         val currTimestamp = ChronoUnit.MILLIS.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime)
         val epochs = arrayOf(

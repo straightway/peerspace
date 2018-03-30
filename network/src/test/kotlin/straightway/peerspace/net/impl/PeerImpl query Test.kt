@@ -23,6 +23,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Infrastructure
@@ -36,9 +37,9 @@ import straightway.testing.bdd.Given
 class `PeerImpl query Test` {
 
     private companion object {
-        const val peerId = "peerId"
-        const val receiverId = "receiverId"
-        const val chunkId = "chunkId"
+        val peerId = Id("peerId")
+        val receiverId = Id("receiverId")
+        val chunkId = Id("chunkId")
         const val chunkData = "ChunkData"
     }
 

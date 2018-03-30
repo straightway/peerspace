@@ -18,6 +18,7 @@ package straightway.peerspace.integrationtest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.PushRequest
 import straightway.testing.TestBase
@@ -28,17 +29,20 @@ import straightway.testing.flow.to_
 
 class NetworkNodeTest : TestBase<NetworkClient>() {
 
+    private companion object {
+        val peerId = Id("peer")
+    }
     @BeforeEach
     fun setup() {
-        sut = NetworkClient("peer")
+        sut = NetworkClient(peerId)
     }
 
     @Test
-    fun id() = expect(sut.id is_ Equal to_ "peer")
+    fun id() = expect(sut.id is_ Equal to_ peerId)
 
     @Test
     fun receiveData_isRegistered() {
-        val data = Chunk(Key("0815"), arrayOf(1, 2, 3))
+        val data = Chunk(Key(Id("0815")), arrayOf(1, 2, 3))
         sut.push(PushRequest(data))
         expect(sut.receivedData is_ Equal to_ listOf(data))
     }

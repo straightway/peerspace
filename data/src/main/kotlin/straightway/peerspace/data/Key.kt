@@ -21,9 +21,11 @@ import java.io.Serializable
  * A key for a network data chunk.
  */
 data class Key(override val id: Id, val timestamp: Long) : KeyHashable, Serializable {
-    override val timestamps get() = LongRange(timestamp, timestamp)
 
     constructor(id: Id) : this(id, 0)
+
+    override val timestamps get() = LongRange(timestamp, timestamp)
+
     companion object {
         const val serialVersionUID = 1L
     }

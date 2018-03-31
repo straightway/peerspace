@@ -23,5 +23,5 @@ import straightway.peerspace.net.Network
  * Productive implementation of the Network interface.
  */
 class NetworkImpl(val infrastructure: Infrastructure) : Network {
-    override fun getPeer(id: Id) = infrastructure.peerStubFactory.create(id)
+    override fun getPushTarget(id: Id) = infrastructure.peerStubFactory.create(id)
 }

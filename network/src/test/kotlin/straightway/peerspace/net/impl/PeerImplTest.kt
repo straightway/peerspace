@@ -41,6 +41,6 @@ class PeerImplTest {
     @Test
     fun `toString contains peer id`() =
             test when_ { sut.toString() } then {
-                expect(it.result is_ Equal to_ "PeerImpl($id)")
+                expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")
             }
 }

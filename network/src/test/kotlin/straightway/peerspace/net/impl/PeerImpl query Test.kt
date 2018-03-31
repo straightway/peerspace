@@ -51,13 +51,13 @@ class `PeerImpl query Test` {
                 on { query(any()) }.thenAnswer { queryResult }
             }
             val networkMock = mock<Network> {
-                on { getPeer(any()) }.thenAnswer {
+                on { getPushTarget(any()) }.thenAnswer {
                     when (it.arguments[0]) {
                         receiverId -> receiver
                         else -> fail("Invalid method call: $it")
                     }
                 }
-                on { getPeer(receiverId) }.thenReturn(receiver)
+                on { getPushTarget(receiverId) }.thenReturn(receiver)
             }
             val infrastructure = Infrastructure {
                 network = networkMock

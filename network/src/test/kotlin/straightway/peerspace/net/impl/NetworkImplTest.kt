@@ -62,7 +62,7 @@ class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
             newPeer!!
         }
         val receiverId = Id("receiver")
-        val receiverFromNetwork = network.getPeer(receiverId)
+        val receiverFromNetwork = network.getPushTarget(receiverId)
         expect(receiverFromNetwork.id is_ Equal to_ receiverId)
         expect(receiverFromNetwork is_ Same as_ newPeer!!)
     }

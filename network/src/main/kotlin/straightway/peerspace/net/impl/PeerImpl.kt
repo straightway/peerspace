@@ -35,12 +35,12 @@ class PeerImpl(
     }
 
     override fun query(request: QueryRequest) {
-        val originator by lazy { network.getPeer(request.originatorId) }
+        val originator by lazy { network.getPushTarget(request.originatorId) }
         val queryResult = dataChunkStore.query(request)
         queryResult.forEach { originator.push(PushRequest(it)) }
     }
 
-    override fun toString() = "PeerImpl($id)"
+    override fun toString() = "PeerImpl(${id.identifier})"
 
     private val network get() = infrastructure.network
 }

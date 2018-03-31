@@ -15,8 +15,8 @@
  */
 package straightway.peerspace.networksimulator
 
-import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.impl.NetworkImpl
@@ -49,28 +49,26 @@ private class MainClass(numberOfPeers: Int) {
 
     private fun createPeer(id: Id) {
         @Suppress("UNUSED_VARIABLE")
-        val infrastructure = createPeerInfrastructure(id)
+        val infrastructure = createPeerNetwork(id)
         peers[id] = PeerImpl(id, TransientDataChunkStore(), infrastructure)
     }
 
-    private fun createPeerInfrastructure(peerId: Id): Infrastructure {
-        return Infrastructure {
-            network = NetworkImpl(this)
-            peerStubFactory = PeerStubFactory(this)
-            channelFactory = SimNode(
-                    peerId,
-                    peers,
-                    peers,
-                    simNet,
-                    { CHUNK_SIZE },
-                    uploadStream = AsyncSequentialTransmissionStream(
-                            UPLOAD_BANDWIDTH,
-                            simulator),
-                    downloadStream = AsyncSequentialTransmissionStream(
-                            DOWNLOAD_BANDWIDTH,
-                            simulator),
-                    simNodes = simPeers)
-        }
+    private fun createPeerNetwork(peerId: Id): Network {
+        val channelFactory = SimNode(
+                peerId,
+                peers,
+                peers,
+                simNet,
+                { CHUNK_SIZE },
+                uploadStream = AsyncSequentialTransmissionStream(
+                        UPLOAD_BANDWIDTH,
+                        simulator),
+                downloadStream = AsyncSequentialTransmissionStream(
+                        DOWNLOAD_BANDWIDTH,
+                        simulator),
+                simNodes = simPeers)
+        val peerStubFactory = PeerStubFactory(channelFactory)
+        return NetworkImpl(peerStubFactory, peerStubFactory)
     }
 
     init {

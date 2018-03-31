@@ -16,12 +16,18 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.Factory
 import straightway.peerspace.net.Network
+import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.QuerySource
 
 /**
  * Productive implementation of the Network interface.
  */
-class NetworkImpl(val infrastructure: Infrastructure) : Network {
-    override fun getPushTarget(id: Id) = infrastructure.peerStubFactory.create(id)
+class NetworkImpl(
+        private val pushTargetStubFactory: Factory<PushTarget>,
+        private val querySourceStubFactory: Factory<QuerySource>
+) : Network {
+    override fun getPushTarget(id: Id) = pushTargetStubFactory.create(id)
+    override fun getQuerySource(id: Id) = querySourceStubFactory.create(id)
 }

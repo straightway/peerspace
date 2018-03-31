@@ -17,7 +17,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
@@ -28,7 +28,8 @@ import straightway.peerspace.net.QueryRequest
 class PeerImpl(
         override val id: Id,
         private val dataChunkStore: DataChunkStore,
-        private val infrastructure: Infrastructure) : Peer {
+        private val network: Network
+) : Peer {
 
     override fun push(request: PushRequest) {
         dataChunkStore.store(request.chunk)
@@ -41,6 +42,4 @@ class PeerImpl(
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
-
-    private val network get() = infrastructure.network
 }

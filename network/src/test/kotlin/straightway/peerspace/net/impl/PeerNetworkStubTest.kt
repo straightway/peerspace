@@ -25,7 +25,6 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
-import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.PushRequest
 import straightway.testing.TestBase
 import straightway.testing.flow.Equal
@@ -55,9 +54,7 @@ class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
             on { transmit(any()) } doAnswer { transmittedData.add(it.arguments[0]); null }
         }
 
-        private val infrastructure = Infrastructure { channelFactory = channelFactoryMock }
-
-        val sut = PeerNetworkStub(peerId, infrastructure)
+        val sut = PeerNetworkStub(peerId, channelFactoryMock)
     }
 
     @BeforeEach

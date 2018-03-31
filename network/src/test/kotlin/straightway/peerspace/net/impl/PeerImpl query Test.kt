@@ -26,7 +26,6 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
@@ -59,10 +58,7 @@ class `PeerImpl query Test` {
                 }
                 on { getPushTarget(receiverId) }.thenReturn(receiver)
             }
-            val infrastructure = Infrastructure {
-                network = networkMock
-            }
-            val sut = PeerImpl(peerId, storage, infrastructure)
+            val sut = PeerImpl(peerId, storage, networkMock)
             val chunk = Chunk(Key(chunkId), chunkData)
             val queryRequest = QueryRequest(receiverId, chunkId, untimedData)
         }

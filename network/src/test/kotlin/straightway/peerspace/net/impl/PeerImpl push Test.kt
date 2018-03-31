@@ -24,7 +24,6 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
@@ -46,9 +45,8 @@ class `PeerImpl push Test` {
 
     private val test get() = Given {
         object {
-            val infrastructure = Infrastructure {}
             val dataStore = mock<DataChunkStore>()
-            val sut = PeerImpl(peerId, dataStore, infrastructure)
+            val sut = PeerImpl(peerId, dataStore, mock())
             val chunk = Chunk(Key(chunkId), data)
         }
     }

@@ -16,54 +16,43 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import org.junit.jupiter.api.BeforeEach
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.Peer
-import straightway.testing.TestBase
-import straightway.testing.flow.Null
-import straightway.testing.flow.Same
-import straightway.testing.flow.as_
-import straightway.testing.flow.Equal
-import straightway.testing.flow.expect
-import straightway.testing.flow.is_
-import straightway.testing.flow.to_
+import straightway.peerspace.net.Factory
+import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.QuerySource
+import straightway.testing.bdd.Given
 
-class NetworkImplTest : TestBase<NetworkImplTest.Environment>() {
+class NetworkImplTest {
 
-    class Environment {
+    private companion object {
+        val receiverId = Id("receiver")
+    }
 
-        val infrastructure = Infrastructure {
-            peerStubFactory = mock {
-                on { create(any()) } doAnswer { peerMockFactory(it.arguments[0] as Id) }
+    private val test get() =
+            Given {
+                object {
+                    val pushTargetStubFactory = mock<Factory<PushTarget>> {
+                        on { create(any()) }.thenReturn(mock())
+                    }
+                    val querySourceStubStubFactory = mock<Factory<QuerySource>> {
+                        on { create(any()) }.thenReturn(mock())
+                    }
+                    val sut = NetworkImpl(pushTargetStubFactory, querySourceStubStubFactory)
+                }
             }
-        }
-        val network = NetworkImpl(infrastructure)
-        var peerMockFactory = { id: Id ->
-            mock<Peer> { on { id } doReturn id }
-        }
-    }
-
-    @BeforeEach
-    fun setup() {
-        sut = Environment()
-    }
 
     @Test
-    fun peer_callsPeerFactory() = sut.run {
-        var newPeer: Peer? = null
-        peerMockFactory = { newId: Id ->
-            expect(newPeer is_ Null)
-            newPeer = mock { on { id } doReturn newId }
-            newPeer!!
-        }
-        val receiverId = Id("receiver")
-        val receiverFromNetwork = network.getPushTarget(receiverId)
-        expect(receiverFromNetwork.id is_ Equal to_ receiverId)
-        expect(receiverFromNetwork is_ Same as_ newPeer!!)
-    }
+    fun `getPushTarget callsPeerFactory`() =
+            test when_ { sut.getPushTarget(receiverId) } then {
+                verify(pushTargetStubFactory).create(receiverId)
+            }
+
+    @Test
+    fun `getQuerySource callsPeerFactory`() =
+            test when_ { sut.getQuerySource(receiverId) } then {
+                verify(querySourceStubStubFactory).create(receiverId)
+            }
 }

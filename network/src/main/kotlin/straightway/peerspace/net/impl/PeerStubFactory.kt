@@ -16,13 +16,13 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
-import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.Peer
 
 /**
  * Productive implementation of the PeerFactory interface.
  */
-class PeerStubFactory(val infrastructure: Infrastructure) : Factory<Peer> {
-    override fun create(id: Id) = PeerNetworkStub(id, infrastructure)
+class PeerStubFactory(private var channelFactory: Factory<Channel>) : Factory<Peer> {
+    override fun create(id: Id) = PeerNetworkStub(id, channelFactory)
 }

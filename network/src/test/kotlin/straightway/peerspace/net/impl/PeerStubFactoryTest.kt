@@ -15,11 +15,12 @@
  */
 package straightway.peerspace.net.impl
 
-import org.junit.jupiter.api.BeforeEach
+import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Infrastructure
-import straightway.testing.TestBase
+import straightway.peerspace.net.Channel
+import straightway.peerspace.net.Factory
+import straightway.testing.bdd.Given
 import straightway.testing.flow.Same
 import straightway.testing.flow.as_
 import straightway.testing.flow.Equal
@@ -27,34 +28,37 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PeerStubFactoryTest : TestBase<PeerStubFactory>() {
+class PeerStubFactoryTest {
 
     private companion object {
         val peerId = Id("id")
     }
 
-    @BeforeEach
-    fun setup() {
-        sut = PeerStubFactory(infrastructure)
+    private val test get() = Given {
+        object {
+            var channelFactory = mock<Factory<Channel>>()
+            val sut = PeerStubFactory(channelFactory)
+        }
     }
 
     @Test
-    fun `creates Peer instances`() {
-        val result = sut.create(peerId)
-        expect(result::class is_ Same as_ PeerNetworkStub::class)
+    fun `creates PeerNetworkStub instances`() = test when_ {
+        sut.create(peerId)
+    } then {
+        expect(it.result::class is_ Same as_ PeerNetworkStub::class)
     }
 
     @Test
-    fun `created Peer has proper Id`() {
-        val result = sut.create(peerId)
-        expect(result.id is_ Equal to_ peerId)
+    fun `created Peer has proper Id`() = test when_ {
+        sut.create(peerId)
+    } then {
+        expect(it.result.id is_ Equal to_ peerId)
     }
 
     @Test
-    fun `created Peer has proper infrastructure`() {
-        val result = sut.create(peerId)
-        expect(result.infrastructure is_ Same as_ infrastructure)
+    fun `uses passes channel factory`() = test when_ {
+        sut.create(peerId)
+    } then {
+        expect(it.result.channelFactory is_ Same as_ channelFactory)
     }
-
-    private val infrastructure = Infrastructure { }
 }

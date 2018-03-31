@@ -16,7 +16,8 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.Channel
+import straightway.peerspace.net.Factory
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
@@ -29,11 +30,11 @@ import straightway.peerspace.net.QueryRequest
  */
 class PeerNetworkStub(
         override val id: Id,
-        val infrastructure: Infrastructure
+        var channelFactory: Factory<Channel>
 ) : Peer {
 
     override fun push(request: PushRequest) {
-        val channel = infrastructure.channelFactory.create(id)
+        val channel = channelFactory.create(id)
         channel.transmit(request)
     }
 

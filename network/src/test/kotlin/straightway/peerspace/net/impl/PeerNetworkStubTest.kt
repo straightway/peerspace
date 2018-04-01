@@ -15,10 +15,8 @@
  */
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
-import org.junit.jupiter.api.BeforeEach
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -26,57 +24,52 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
 import straightway.peerspace.net.PushRequest
-import straightway.testing.TestBase
+import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.untimedData
+import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PeerNetworkStubTest : TestBase<PeerNetworkStubTest.Environment>() {
+class PeerNetworkStubTest {
 
-    class Environment {
-
+    private companion object {
         val peerId = Id("id")
+    }
 
-        val transmittedData = mutableListOf<Any>()
-        val data = Chunk(Key(Id("Key")), arrayOf(1, 2, 3))
-
-        var channelMockFactoryInvocations = 0
-
-        private val channelFactoryMock = mock<Factory<Channel>> {
-            on { create(any()) } doAnswer {
-                ++channelMockFactoryInvocations
-                channelMock
+    private val test get() = Given {
+        object {
+            val channel = mock<Channel>()
+            val channelFactoryMock = mock<Factory<Channel>> {
+                on { create(peerId) }.thenReturn(channel)
             }
+            val sut = PeerNetworkStub(peerId, channelFactoryMock)
+            val data = Chunk(Key(Id("Key")), arrayOf(1, 2, 3))
+            val pushRequest = PushRequest(data)
+            val queryRequest = QueryRequest(Id("originatorId"), data.key.id, untimedData)
         }
-
-        private val channelMock = mock<Channel> {
-            on { transmit(any()) } doAnswer { transmittedData.add(it.arguments[0]); null }
-        }
-
-        val sut = PeerNetworkStub(peerId, channelFactoryMock)
-    }
-
-    @BeforeEach
-    fun setup() {
-        sut = Environment()
     }
 
     @Test
-    fun `has specified id`() = sut.run {
-        expect(sut.id is_ Equal to_ peerId)
-    }
+    fun `has specified id`() =
+            test when_ { sut.id } then { expect(it.result is_ Equal to_ peerId) }
 
     @Test
-    fun `push creates channel`() = sut.run {
-        sut.push(PushRequest(data))
-        expect(channelMockFactoryInvocations is_ Equal to_ 1)
-    }
+    fun `push creates channel`() =
+            test when_ { sut.push(pushRequest) } then {
+                verify(channelFactoryMock).create(peerId)
+            }
 
     @Test
-    fun `push transmits request on channel`() = sut.run {
-        val request = PushRequest(data)
-        sut.push(request)
-        expect(transmittedData is_ Equal to_ listOf(request))
-    }
+    fun `push transmits request on channel`() =
+            test when_ { sut.push(pushRequest) } then {
+                verify(channel).transmit(pushRequest)
+            }
+
+    @Test
+    fun `query transmits request on channel`() =
+            test when_ { sut.query(queryRequest) } then {
+                verify(channel).transmit(queryRequest)
+            }
 }

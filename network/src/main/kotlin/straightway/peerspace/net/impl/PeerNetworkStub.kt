@@ -32,13 +32,7 @@ class PeerNetworkStub(
         override val id: Id,
         var channelFactory: Factory<Channel>
 ) : Peer {
-
-    override fun push(request: PushRequest) {
-        val channel = channelFactory.create(id)
-        channel.transmit(request)
-    }
-
-    override fun query(request: QueryRequest) {
-        TODO("not implemented")
-    }
+    override fun push(request: PushRequest) = channel.transmit(request)
+    override fun query(request: QueryRequest) = channel.transmit(request)
+    private val channel by lazy { channelFactory.create(id) }
 }

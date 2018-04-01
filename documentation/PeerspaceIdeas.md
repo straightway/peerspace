@@ -64,6 +64,8 @@ When a peer can answer a query, it pushes the result back to the peer it receive
 
 Querying for list results means specifying the list id and a condition for the timestamp. This may either be a range or only the most recent entry. In any case it is clear, which epoch is queried, so that the query can be forwarded accordingly by the peers. If the border of the time frame range is close to the border of an epoch, it may be necessary to check both epochs on either side of the border, because the peers may have slightly deviating system times.
 
+It might be worth thinking about signaling back when a query definitely fails (e.g. if a peer cannot satisfy a query and does not know any peer being closer). In contrast to silently failing, this would enhance the responsiveness for the network users in this case.
+
 ## Signing of Requests
 E.g. a query request must contain the id of the peer which issued the request, in order to push query requests back. To make sure malicious peers cannot issue query requests containing the id of other peers, query requests must be digitally signed by the issuer. The receiver of the request must be able to verify that signature. An easy way to achieve this is to use the public key of the signature key pair as peer id.
 

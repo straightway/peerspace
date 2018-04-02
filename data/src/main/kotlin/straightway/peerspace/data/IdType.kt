@@ -13,16 +13,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.data
 
 import java.io.Serializable
 
 /**
- * Identification of an object.
+ * Enumeration of id types.
  */
-data class Id(val type: IdType, val identifier: String) : Serializable {
+enum class IdType : Serializable {
 
-    constructor(identifier: String) : this(IdType.General, identifier)
+    /**
+     * Id for an ordinary peer or normal user generated data.
+     */
+    General,
+
+    /**
+     * Administrative id used to tune the network behavior or special peers.
+     */
+    Administrative;
 
     companion object {
         const val serialVersionUID = 1L

@@ -13,35 +13,36 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-package straightway.peerspace.data
+package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.Test
+import straightway.peerspace.data.Id
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.utils.deserializeTo
-import straightway.utils.serializeToByteArray
 
-class ContentTypeTest {
+class TransientPeerDirectoryTest {
 
     private val test get() = Given {
         object {
-            val sut = ContentType.Data
+            val sut = TransientPeerDirectory()
+            val id = Id("id")
         }
     }
 
     @Test
-    fun `is serializable`() =
-            test when_ {
-                sut.serializeToByteArray().deserializeTo<ContentType>()
-            } then {
-                expect(it.result is_ Equal to_ sut)
+    fun `initially the peer directory is empty`() =
+            test when_ { sut.allKnownPeersIds } then {
+                expect(it.result is_ Empty)
             }
 
     @Test
-    fun `has serialVersionUID`() =
-            expect(ContentType.serialVersionUID is_ Equal to_ 1L)
+    fun `adding to the empty peer directory yields a one element directory`() =
+            test when_ { sut add id } then {
+                expect(sut.allKnownPeersIds is_ Equal to_ Values(id))
+            }
 }

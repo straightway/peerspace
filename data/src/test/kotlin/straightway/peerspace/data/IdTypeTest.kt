@@ -14,32 +14,34 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.net.impl
+package straightway.peerspace.data
 
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Id
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.deserializeTo
+import straightway.utils.serializeToByteArray
 
-class PeerImplTest {
-
-    private companion object {
-        val id = Id("thePeerId")
-    }
+class IdTypeTest {
 
     private val test get() = Given {
         object {
-            val sut = PeerImpl(id, mock(), mock(), mock())
+            val sut = IdType.General
         }
     }
 
     @Test
-    fun `toString contains peer id`() =
-            test when_ { sut.toString() } then {
-                expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")
+    fun `is serializable`() =
+            test when_ {
+                sut.serializeToByteArray().deserializeTo<IdType>()
+            } then {
+                expect(it.result is_ Equal to_ sut)
             }
+
+    @Test
+    fun `has serialVersionUID`() =
+            expect(IdType.serialVersionUID is_ Equal to_ 1L)
 }

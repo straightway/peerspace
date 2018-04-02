@@ -58,7 +58,7 @@ class `PeerImpl query Test` {
                 }
                 on { getPushTarget(receiverId) }.thenReturn(receiver)
             }
-            val sut = PeerImpl(peerId, storage, networkMock)
+            val sut = PeerImpl(peerId, storage, mock(), networkMock)
             val chunk = Chunk(Key(chunkId), chunkData)
             val queryRequest = QueryRequest(receiverId, chunkId, untimedData)
         }

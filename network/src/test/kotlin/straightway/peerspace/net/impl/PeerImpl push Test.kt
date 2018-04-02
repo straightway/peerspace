@@ -46,7 +46,7 @@ class `PeerImpl push Test` {
     private val test get() = Given {
         object {
             val dataStore = mock<DataChunkStore>()
-            val sut = PeerImpl(peerId, dataStore, mock())
+            val sut = PeerImpl(peerId, dataStore, mock(), mock())
             val chunk = Chunk(Key(chunkId), data)
         }
     }

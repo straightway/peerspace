@@ -13,27 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.net
 
-package straightway.peerspace.data
-
-import java.io.Serializable
+import straightway.peerspace.data.Id
+import straightway.peerspace.data.IdType
 
 /**
- * Enumeration of data content types.
+ * Enumeration of special fixed IDs, used for administrative purposes.
  */
-enum class ContentType : Serializable {
+enum class Administrative(val id: Id) {
 
     /**
-     * Normal data, either timed or not timed
+     * Data ID to push or query a collection of known peers between two peers.
      */
-    Data,
+    KnownPeers("KnownPeers");
 
-    /**
-     * Administrative information used to tune the network behavior.
-     */
-    Administrative;
-
-    companion object {
-        const val serialVersionUID = 1L
-    }
+    constructor(id: String) : this(Id(IdType.Administrative, id))
 }

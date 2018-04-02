@@ -19,10 +19,12 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
+
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerStubFactory
 import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.TransientDataChunkStore
+import straightway.peerspace.net.impl.TransientPeerDirectory
 import straightway.sim.core.Simulator
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.units.bit
@@ -49,8 +51,12 @@ private class MainClass(numberOfPeers: Int) {
 
     private fun createPeer(id: Id) {
         @Suppress("UNUSED_VARIABLE")
-        val infrastructure = createPeerNetwork(id)
-        peers[id] = PeerImpl(id, TransientDataChunkStore(), infrastructure)
+        val network = createPeerNetwork(id)
+        peers[id] = PeerImpl(
+                id,
+                TransientDataChunkStore(),
+                TransientPeerDirectory(),
+                network)
     }
 
     private fun createPeerNetwork(peerId: Id): Network {

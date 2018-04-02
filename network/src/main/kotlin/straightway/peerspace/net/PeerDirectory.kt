@@ -13,18 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.net
 
-import java.io.Serializable
+import straightway.peerspace.data.Id
 
 /**
- * Identification of an object.
+ * Collection of the IDs of all know other peers.
  */
-data class Id(val type: IdType, val identifier: String) : Serializable {
-
-    constructor(identifier: String) : this(IdType.General, identifier)
-
-    companion object {
-        const val serialVersionUID = 1L
-    }
+interface PeerDirectory {
+    val allKnownPeersIds: Iterable<Id>
+    infix fun add(id: Id)
 }

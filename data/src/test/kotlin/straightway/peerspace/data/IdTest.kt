@@ -46,7 +46,7 @@ class IdTest {
 
     @Test
     fun `Id with only identifier is a data id`() {
-        test while_ { expect(sut.type is_ Equal to_ ContentType.Data) }
+        test while_ { expect(sut.type is_ Equal to_ IdType.General) }
     }
 
     @Test

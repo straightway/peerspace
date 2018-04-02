@@ -13,33 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.mock
-import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.testing.bdd.Given
-import straightway.testing.flow.Equal
-import straightway.testing.flow.expect
-import straightway.testing.flow.is_
-import straightway.testing.flow.to_
+import straightway.peerspace.net.PeerDirectory
 
-class PeerImplTest {
+/**
+ * PeerDirectory implementation holding the given peer IDs transiently.
+ */
+class TransientPeerDirectory : PeerDirectory {
+    override val allKnownPeersIds: Iterable<Id> get() = ids
+    override infix fun add(id: Id) { ids += id }
 
-    private companion object {
-        val id = Id("thePeerId")
-    }
-
-    private val test get() = Given {
-        object {
-            val sut = PeerImpl(id, mock(), mock(), mock())
-        }
-    }
-
-    @Test
-    fun `toString contains peer id`() =
-            test when_ { sut.toString() } then {
-                expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")
-            }
+    private val ids = mutableListOf<Id>()
 }

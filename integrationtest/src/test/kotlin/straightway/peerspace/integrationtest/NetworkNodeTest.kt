@@ -42,7 +42,7 @@ class NetworkNodeTest : TestBase<NetworkClient>() {
 
     @Test
     fun receiveData_isRegistered() {
-        val data = Chunk(Key(Id("0815")), arrayOf(1, 2, 3))
+        val data = Chunk(Key(Id("0815")), byteArrayOf(1, 2, 3))
         sut.push(PushRequest(data))
         expect(sut.receivedData is_ Equal to_ listOf(data))
     }

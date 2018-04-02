@@ -29,7 +29,7 @@ class ChunkTest {
 
     private companion object {
         val chunkId = Id("1234")
-        val chunkData = "data"
+        val chunkData = "data".toByteArray()
     }
 
     @Test
@@ -41,11 +41,17 @@ class ChunkTest {
             expect(Chunk(Key(chunkId), chunkData).data is_ Equal to_ chunkData)
 
     @Test
+    fun `chunks are equal if byte arrays are content equal`() =
+            expect(Chunk(Key(chunkId), chunkData) is_ Equal to_
+                           Chunk(Key(chunkId), ByteArray(chunkData.size) { chunkData[it] }))
+
+    @Test
     fun `Chunk is serializable`() {
         val sut = Chunk(Key(chunkId), chunkData)
         val serialized = sut.serializeToByteArray()
         val deserialized = serialized.deserializeTo<Chunk>()
-        expect(deserialized is_ Equal to_ sut)
+        expect(deserialized.key is_ Equal to_ sut.key)
+        expect(deserialized.data contentEquals sut.data)
     }
 
     @Test

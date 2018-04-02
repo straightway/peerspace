@@ -45,7 +45,7 @@ class SimNode_Node_Test {
 
     private companion object {
         val peerId = Id("id")
-        const val chunkData = "Hello"
+        val chunkData = "Hello".toByteArray()
         val chunkKey = Key(Id("chunkId"))
         val messageSize = 50[byte]
         val invalidRequest = object { override fun toString() = "Invalid Request" }

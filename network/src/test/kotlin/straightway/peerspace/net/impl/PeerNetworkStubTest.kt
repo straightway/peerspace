@@ -45,7 +45,7 @@ class PeerNetworkStubTest {
                 on { create(peerId) }.thenReturn(channel)
             }
             val sut = PeerNetworkStub(peerId, channelFactoryMock)
-            val data = Chunk(Key(Id("Key")), arrayOf(1, 2, 3))
+            val data = Chunk(Key(Id("Key")), byteArrayOf(1, 2, 3))
             val pushRequest = PushRequest(data)
             val queryRequest = QueryRequest(Id("originatorId"), data.key.id, untimedData)
         }

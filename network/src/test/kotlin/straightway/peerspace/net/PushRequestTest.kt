@@ -34,7 +34,7 @@ class PushRequestTest {
 
     private val test get() = Given {
         object {
-            val chunk = Chunk(Key(Id("4711")), "Hello")
+            val chunk = Chunk(Key(Id("4711")), "Hello".toByteArray())
             val sut = PushRequest(chunk)
         }
     }

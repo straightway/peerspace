@@ -16,12 +16,29 @@
 package straightway.peerspace.data
 
 import java.io.Serializable
+import java.util.Arrays
 
 /**
  * A chunk of data with a key.
  */
-data class Chunk(val key: Key, val data: Serializable) : Serializable {
+data class Chunk(val key: Key, val data: ByteArray) : Serializable {
+
     companion object {
         const val serialVersionUID = 1L
+        private const val KeyHashFactor = 31
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chunk
+
+        return key == other.key && data contentEquals other.data
+    }
+
+    @Suppress("SENSELESS_COMPARISON")
+    override fun hashCode() =
+            KeyHashFactor * if (key == null) 0 else key.hashCode() +
+                if (data == null) 0 else Arrays.hashCode(data)
 }

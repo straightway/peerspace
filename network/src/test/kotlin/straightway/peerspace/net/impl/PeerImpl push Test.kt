@@ -40,7 +40,7 @@ class `PeerImpl push Test` {
     private companion object {
         val peerId = Id("peerId")
         val chunkId = Id("chunkId")
-        const val data = "Data"
+        val data = "Data".toByteArray()
     }
 
     private val test get() = Given {

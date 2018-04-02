@@ -39,7 +39,7 @@ class `PeerImpl query Test` {
         val peerId = Id("peerId")
         val receiverId = Id("receiverId")
         val chunkId = Id("chunkId")
-        const val chunkData = "ChunkData"
+        val chunkData = "ChunkData".toByteArray()
     }
 
     private val test get() = Given {

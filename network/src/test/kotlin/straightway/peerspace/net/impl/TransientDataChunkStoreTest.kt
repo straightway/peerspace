@@ -35,7 +35,7 @@ class TransientDataChunkStoreTest {
         val peerId = Id("peerId")
         val receiverId = Id("receiverId")
         val chunkId = Id("chunkId")
-        const val chunkData = "ChunkData"
+        val chunkData = "ChunkData".toByteArray()
         const val chunkTimeStamp = 83L
     }
 

@@ -13,16 +13,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.data
 
 import java.io.Serializable
 
 /**
- * Identification of an object.
+ * Enumeration of data content types.
  */
-data class Id(val type: ContentType, val identifier: String) : Serializable {
+enum class ContentType : Serializable {
 
-    constructor(identifier: String) : this(ContentType.Data, identifier)
+    /**
+     * Normal data, either timed or not timed
+     */
+    Data,
+
+    /**
+     * Administrative information used to tune the network behavior.
+     */
+    Administrative;
 
     companion object {
         const val serialVersionUID = 1L

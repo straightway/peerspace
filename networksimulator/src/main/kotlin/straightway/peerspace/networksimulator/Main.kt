@@ -16,6 +16,7 @@
 package straightway.peerspace.networksimulator
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
@@ -56,7 +57,8 @@ private class MainClass(numberOfPeers: Int) {
                 id,
                 TransientDataChunkStore(),
                 TransientPeerDirectory(),
-                network)
+                network,
+                Configuration())
     }
 
     private fun createPeerNetwork(peerId: Id): Network {

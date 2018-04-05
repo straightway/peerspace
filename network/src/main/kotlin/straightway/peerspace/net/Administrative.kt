@@ -17,11 +17,12 @@ package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.IdType
+import straightway.peerspace.data.Identifyable
 
 /**
  * Enumeration of special fixed IDs, used for administrative purposes.
  */
-enum class Administrative(val id: Id) {
+enum class Administrative(override val id: Id): Identifyable {
 
     /**
      * Data ID to push or query a collection of known peers between two peers.

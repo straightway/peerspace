@@ -13,8 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.net
 
-dependencies {
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
-}
+data class Configuration(
+        val maxPeersToQueryForKnownPeers: Int = 10)

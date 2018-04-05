@@ -16,6 +16,7 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Identifyable
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHashable
 import java.io.Serializable
@@ -36,6 +37,12 @@ data class QueryRequest private constructor(
 
     constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>)
             : this(originatorId, id, timestamps.start, timestamps.endInclusive)
+
+    constructor(originatorId: Id, id: Id)
+            : this(originatorId, id, LongRange(0, 0))
+
+    constructor(originatorId: Id, identifyable: Identifyable)
+            : this(originatorId, identifyable.id)
 
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
@@ -58,7 +59,7 @@ class `PeerImpl query Test` {
                 }
                 on { getPushTarget(receiverId) }.thenReturn(receiver)
             }
-            val sut = PeerImpl(peerId, storage, mock(), networkMock)
+            val sut = PeerImpl(peerId, storage, mock(), networkMock, Configuration())
             val chunk = Chunk(Key(chunkId), chunkData)
             val queryRequest = QueryRequest(receiverId, chunkId, untimedData)
         }

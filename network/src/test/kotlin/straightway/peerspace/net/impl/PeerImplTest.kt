@@ -19,6 +19,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.Configuration
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -33,7 +34,7 @@ class PeerImplTest {
 
     private val test get() = Given {
         object {
-            val sut = PeerImpl(id, mock(), mock(), mock())
+            val sut = PeerImpl(id, mock(), mock(), mock(), Configuration())
         }
     }
 

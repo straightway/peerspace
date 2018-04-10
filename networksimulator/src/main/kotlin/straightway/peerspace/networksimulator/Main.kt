@@ -26,6 +26,8 @@ import straightway.peerspace.net.impl.PeerStubFactory
 import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
+import straightway.random.RandomChooser
+import straightway.random.RandomSource
 import straightway.sim.core.Simulator
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.units.bit
@@ -36,8 +38,9 @@ import straightway.units.kilo
 import straightway.units.mega
 import straightway.units.milli
 import straightway.units.second
+import java.util.Random
 
-private class MainClass(numberOfPeers: Int) {
+private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
     val simulator = Simulator()
 
@@ -50,6 +53,8 @@ private class MainClass(numberOfPeers: Int) {
 
     private val peers = mutableMapOf<Id, Peer>()
 
+    private val randomSource = RandomSource(Random(randomSeed))
+
     private fun createPeer(id: Id) {
         @Suppress("UNUSED_VARIABLE")
         val network = createPeerNetwork(id)
@@ -58,7 +63,8 @@ private class MainClass(numberOfPeers: Int) {
                 TransientDataChunkStore(),
                 TransientPeerDirectory(),
                 network,
-                Configuration())
+                Configuration(),
+                RandomChooser(randomSource))
     }
 
     private fun createPeerNetwork(peerId: Id): Network {
@@ -96,7 +102,7 @@ private class MainClass(numberOfPeers: Int) {
 fun main(args: Array<String>) {
     println("Starting simulation")
 
-    val mainClass = MainClass(numberOfPeers = 100)
+    val mainClass = MainClass(numberOfPeers = 100, randomSeed = 1234L)
     mainClass.simulator.run()
 
     println("Simulation finished")

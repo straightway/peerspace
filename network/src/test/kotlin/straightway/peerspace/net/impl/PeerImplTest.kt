@@ -34,7 +34,7 @@ class PeerImplTest {
 
     private val test get() = Given {
         object {
-            val sut = PeerImpl(id, mock(), mock(), mock(), Configuration())
+            val sut = PeerImpl(id, mock(), mock(), mock(), Configuration(), mock())
         }
     }
 

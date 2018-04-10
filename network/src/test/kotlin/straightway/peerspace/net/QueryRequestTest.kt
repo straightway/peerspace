@@ -18,7 +18,6 @@ package straightway.peerspace.net
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.IdType
 import straightway.peerspace.data.Identifyable
 import straightway.peerspace.data.Key
 import straightway.utils.deserializeTo
@@ -51,7 +50,7 @@ class QueryRequestTest {
 
     @Test
     fun `construction with Id instance creates query with given originator id`() =
-            Given { QueryRequest(originatorId, matchedId) } when_{
+            Given { QueryRequest(originatorId, matchedId) } when_ {
                 originatorId
             } then {
                 expect(it.result is_ Equal to_ QueryRequestTest.originatorId)
@@ -59,7 +58,7 @@ class QueryRequestTest {
 
     @Test
     fun `construction with Id instance creates query for id`() =
-            Given { QueryRequest(originatorId, matchedId) } when_{
+            Given { QueryRequest(originatorId, matchedId) } when_ {
                 id
             } then {
                 expect(it.result is_ Equal to_ matchedId)
@@ -67,7 +66,7 @@ class QueryRequestTest {
 
     @Test
     fun `construction with Id instance creates query with zero timestamp range`() =
-            Given { QueryRequest(originatorId, matchedId) } when_{
+            Given { QueryRequest(originatorId, matchedId) } when_ {
                 timestamps
             } then {
                 expect(it.result is_ Equal to_ LongRange(0L, 0L))
@@ -75,7 +74,7 @@ class QueryRequestTest {
 
     @Test
     fun `construction with Identifyable creates query with given originator id`() =
-            Given { QueryRequest(originatorId, matchedIdentifyable) } when_{
+            Given { QueryRequest(originatorId, matchedIdentifyable) } when_ {
                 originatorId
             } then {
                 expect(it.result is_ Equal to_ QueryRequestTest.originatorId)
@@ -83,7 +82,7 @@ class QueryRequestTest {
 
     @Test
     fun `construction with Identifyable creates query for id`() =
-            Given { QueryRequest(originatorId, matchedIdentifyable) } when_{
+            Given { QueryRequest(originatorId, matchedIdentifyable) } when_ {
                 id
             } then {
                 expect(it.result is_ Equal to_ matchedId)
@@ -91,7 +90,7 @@ class QueryRequestTest {
 
     @Test
     fun `construction with Identifyable creates query with zero timestamp range`() =
-            Given { QueryRequest(originatorId, matchedIdentifyable) } when_{
+            Given { QueryRequest(originatorId, matchedIdentifyable) } when_ {
                 timestamps
             } then {
                 expect(it.result is_ Equal to_ LongRange(0L, 0L))

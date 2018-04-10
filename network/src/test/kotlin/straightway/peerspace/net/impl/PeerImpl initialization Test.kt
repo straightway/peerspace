@@ -31,6 +31,7 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.QueryRequest
+import straightway.random.Chooser
 import straightway.testing.bdd.Given
 
 class `PeerImpl initialization Test` {
@@ -61,13 +62,21 @@ class `PeerImpl initialization Test` {
             val dataChunkStore = mock<DataChunkStore> {
                 onGeneric { query(any()) }.thenReturn(listOf(chunk))
             }
+            var chosenIds: List<Id>? = null
+            val knownPeerQueryChooser = mock<Chooser> {
+                on { chooseFrom(any<List<Id>>(), any()) }.thenAnswer {
+                    chosenIds ?: peers.map { it.id }
+                            .take(configuration.maxPeersToQueryForKnownPeers)
+                }
+            }
             var configuration = Configuration(maxPeersToQueryForKnownPeers = 2)
             val sut = PeerImpl(
                     peerId,
                     dataChunkStore = dataChunkStore,
                     peerDirectory = peerDirectory,
                     network = network,
-                    configuration = configuration)
+                    configuration = configuration,
+                    knownPeerQueryChooser = knownPeerQueryChooser)
         }
     }
 
@@ -108,6 +117,7 @@ class `PeerImpl initialization Test` {
             test while_ {
                 peers += mock<Peer> { on { id }.thenReturn(Id("1")) }
                 peers += mock<Peer> { on { id }.thenReturn(Id("2")) }
+                chosenIds = listOf(peers[0].id, peers[2].id)
             } when_ {
                 sut.refreshKnownPeers()
             } then {

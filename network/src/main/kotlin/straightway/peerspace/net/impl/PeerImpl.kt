@@ -24,7 +24,7 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
-import straightway.utils.Chooser
+import straightway.random.Chooser
 
 /**
  * Default productive implementation of a peerspace peer.
@@ -34,12 +34,12 @@ class PeerImpl(
         private val dataChunkStore: DataChunkStore,
         private val peerDirectory: PeerDirectory,
         private val network: Network,
-        private val configuration: Configuration/*,
-        private val knownPeerQueryChoose: Chooser<Id>*/
+        private val configuration: Configuration,
+        private val knownPeerQueryChooser: Chooser
 ) : Peer {
 
     fun refreshKnownPeers() =
-            peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
+        peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
     override fun push(request: PushRequest) =
             dataChunkStore.store(request.chunk)
@@ -52,11 +52,13 @@ class PeerImpl(
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
-    private val peersToQueryForOtherKnownPeers: Iterable<Id>
-        get() {
-            val allKnownPeersIds = peerDirectory.allKnownPeersIds
-            return allKnownPeersIds.take(configuration.maxPeersToQueryForKnownPeers)
-        }
+    private val allKnownPeersIds get() =
+            peerDirectory.allKnownPeersIds.toList()
+
+    private val peersToQueryForOtherKnownPeers get() =
+            knownPeerQueryChooser.chooseFrom(
+                allKnownPeersIds,
+                configuration.maxPeersToQueryForKnownPeers)
 
     private fun queryForKnownPeers(it: Id) {
         val peer = network.getQuerySource(it)

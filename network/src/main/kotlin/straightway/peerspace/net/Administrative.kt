@@ -22,7 +22,7 @@ import straightway.peerspace.data.Identifyable
 /**
  * Enumeration of special fixed IDs, used for administrative purposes.
  */
-enum class Administrative(override val id: Id): Identifyable {
+enum class Administrative(override val id: Id) : Identifyable {
 
     /**
      * Data ID to push or query a collection of known peers between two peers.

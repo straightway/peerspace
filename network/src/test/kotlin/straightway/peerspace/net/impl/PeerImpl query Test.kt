@@ -17,18 +17,12 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
-import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
@@ -41,39 +35,28 @@ class `PeerImpl query Test` {
         val receiverId = Id("receiverId")
         val chunkId = Id("chunkId")
         val chunkData = "ChunkData".toByteArray()
+        val chunk = Chunk(Key(chunkId), chunkData)
+        val queryRequest = QueryRequest(receiverId, chunkId, untimedData)
     }
 
     private val test get() = Given {
-        object {
-            val receiver = mock<Peer>()
-            val queryResult = mutableListOf<Chunk>()
-            val storage = mock<DataChunkStore> {
-                on { query(any()) }.thenAnswer { queryResult }
-            }
-            val networkMock = mock<Network> {
-                on { getPushTarget(any()) }.thenAnswer {
-                    when (it.arguments[0]) {
-                        receiverId -> receiver
-                        else -> fail("Invalid method call: $it")
-                    }
-                }
-                on { getPushTarget(receiverId) }.thenReturn(receiver)
-            }
-            val sut = PeerImpl(peerId, storage, mock(), networkMock, Configuration(), mock())
-            val chunk = Chunk(Key(chunkId), chunkData)
-            val queryRequest = QueryRequest(receiverId, chunkId, untimedData)
+        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+                peerId,
+                knownPeersIds = listOf(receiverId)
+        ) {
+            val receiver = getPeer(receiverId)
         }
     }
 
     @Test
     fun `query is forwarded to chunk data store`() =
             test when_ { sut.query(queryRequest) } then {
-                verify(storage).query(queryRequest)
+                verify(chunkDataStore).query(queryRequest)
             }
 
     @Test
     fun `query for not existing data does not push back`() =
-            test while_ { queryResult.clear() } when_ {
+            test when_ {
                 sut.query(queryRequest)
             } then {
                 verify(receiver, never()).push(any())
@@ -82,7 +65,7 @@ class `PeerImpl query Test` {
     @Test
     fun `query hit returns result to sender`() =
             test while_ {
-                queryResult += chunk
+                chunkDataStore.store(chunk)
             } when_ {
                 sut.query(queryRequest)
             } then {

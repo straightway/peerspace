@@ -19,4 +19,5 @@ package straightway.peerspace.net
  * Global configuration for a peerspace peer node.
  */
 data class Configuration(
-        val maxPeersToQueryForKnownPeers: Int = 10)
+        val maxPeersToQueryForKnownPeers: Int = 10,
+        val maxKnownPeersAnswers: Int = 20)

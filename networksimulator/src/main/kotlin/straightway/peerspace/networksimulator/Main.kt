@@ -64,6 +64,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 TransientPeerDirectory(),
                 network,
                 Configuration(),
+                RandomChooser(randomSource),
                 RandomChooser(randomSource))
     }
 

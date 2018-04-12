@@ -16,15 +16,12 @@
 
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
@@ -42,14 +39,11 @@ class `PeerImpl push Test` {
         val peerId = Id("peerId")
         val chunkId = Id("chunkId")
         val data = "Data".toByteArray()
+        val chunk = Chunk(Key(chunkId), data)
     }
 
     private val test get() = Given {
-        object {
-            val dataStore = mock<DataChunkStore>()
-            val sut = PeerImpl(peerId, dataStore, mock(), mock(), Configuration(), mock())
-            val chunk = Chunk(Key(chunkId), data)
-        }
+        PeerTestEnvironmentImpl(peerId)
     }
 
     @Test
@@ -71,6 +65,6 @@ class `PeerImpl push Test` {
     @Test
     fun `pushed data is stored`() =
             test when_ { sut.push(PushRequest(chunk)) } then {
-                verify(dataStore).store(chunk)
+                verify(chunkDataStore).store(chunk)
             }
 }

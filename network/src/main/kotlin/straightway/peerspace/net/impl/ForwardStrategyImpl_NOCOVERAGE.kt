@@ -20,12 +20,17 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.QueryRequest
 
 /**
  * Implementation of the forward strategy for queries and pushes.
  */
 class ForwardStrategyImpl : ForwardStrategy {
     override fun getPushForwardPeerIdsFor(chunkKey: Key): Iterable<Id> {
+        TODO("not implemented")
+    }
+
+    override fun getQueryForwardPeerIdsFor(request: QueryRequest): Iterable<Id> {
         TODO("not implemented")
     }
 }

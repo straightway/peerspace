@@ -23,4 +23,5 @@ import straightway.peerspace.data.Key
  */
 interface ForwardStrategy {
     fun getPushForwardPeerIdsFor(chunkKey: Key): Iterable<Id>
+    fun getQueryForwardPeerIdsFor(request: QueryRequest): Iterable<Id>
 }

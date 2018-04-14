@@ -55,7 +55,7 @@ class PeerImpl(
     override fun query(request: QueryRequest) {
         when (request.id) {
             Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
-            else -> pushBackDataQueryResult(request)
+            else -> handleDataQuery(request)
         }
     }
 
@@ -65,6 +65,15 @@ class PeerImpl(
             forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
                 getPushTargetFor(it).push(request)
             }
+
+    private fun handleDataQuery(request: QueryRequest) {
+        pushBackDataQueryResult(request)
+
+        val forwardedRequest = request.copy(originatorId = id)
+        forwardStrategy.getQueryForwardPeerIdsFor(request).forEach {
+            getQuerySourceFor(it).query(forwardedRequest)
+        }
+    }
 
     private fun pushBackDataQueryResult(request: QueryRequest) {
         val originator by lazy { request.pushTarget }
@@ -79,6 +88,8 @@ class PeerImpl(
     private val QueryRequest.pushTarget get() = getPushTargetFor(originatorId)
 
     private fun getPushTargetFor(id: Id) = network.getPushTarget(id)
+
+    private fun getQuerySourceFor(id: Id) = network.getQuerySource(id)
 
     private val knownPeersChunkKey = Key(Administrative.KnownPeers.id)
 

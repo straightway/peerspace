@@ -15,16 +15,22 @@
  */
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.ForwardStrategy
 
+/**
+ * Implementation of the test environment for testing the PeerImpl class.
+ */
 data class PeerTestEnvironmentImpl(
         override val peerId: Id,
         override val knownPeersIds: List<Id> = listOf(),
         override val unknownPeerIds: List<Id> = listOf(),
         override var configuration: Configuration = Configuration(),
-        override val localChunks: List<Chunk> = listOf()
+        override val localChunks: List<Chunk> = listOf(),
+        override val forwardStrategy: ForwardStrategy = mock()
 ) : PeerTestEnvironment {
     override val knownPeers = knownPeersIds.map { createPeerMock(it) }
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
@@ -41,7 +47,8 @@ data class PeerTestEnvironmentImpl(
                 configuration = configuration,
                 dataChunkStore = chunkDataStore,
                 knownPeerQueryChooser = knownPeerQueryChooser,
-                knownPeerAnswerChooser = knownPeerAnswerChooser)
+                knownPeerAnswerChooser = knownPeerAnswerChooser,
+                forwardStrategy = forwardStrategy)
     }
 
     override fun getPeer(id: Id) =

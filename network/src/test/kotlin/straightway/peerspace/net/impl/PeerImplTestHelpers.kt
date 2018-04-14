@@ -21,6 +21,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
@@ -36,7 +37,8 @@ fun createPeerImpl(
         peerDirectory: PeerDirectory = mock(),
         dataChunkStore: DataChunkStore = mock(),
         knownPeerQueryChooser: Chooser = mock(),
-        knownPeerAnswerChooser: Chooser = mock()
+        knownPeerAnswerChooser: Chooser = mock(),
+        forwardStrategy: ForwardStrategy = mock()
 ) =
         PeerImpl(
                 id = id,
@@ -45,9 +47,10 @@ fun createPeerImpl(
                 peerDirectory = peerDirectory,
                 dataChunkStore = dataChunkStore,
                 knownPeerQueryChooser = knownPeerQueryChooser,
-                knownPeerAnswerChooser = knownPeerAnswerChooser)
+                knownPeerAnswerChooser = knownPeerAnswerChooser,
+                forwardStrategy = forwardStrategy)
 
-fun createPeerMock(id: Id): Peer = mock<Peer> { on { this.id }.thenReturn(id) }
+fun createPeerMock(id: Id) = mock<Peer> { on { this.id }.thenReturn(id) }
 fun createPeerMocks(ids: Iterable<Id>) = ids.map { createPeerMock(it) }
 
 fun ids(vararg ids: String) = ids.map { Id(it) }

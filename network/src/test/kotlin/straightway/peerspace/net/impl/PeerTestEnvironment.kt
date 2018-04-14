@@ -20,11 +20,15 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.random.Chooser
 
+/**
+ * Test environment for testing the PeerImpl class.
+ */
 @Suppress("ComplexInterface")
 interface PeerTestEnvironment {
     val peerId: Id
@@ -39,6 +43,7 @@ interface PeerTestEnvironment {
     var knownPeerQueryChooser: Chooser
     var knownPeerAnswerChooser: Chooser
     val chunkDataStore: DataChunkStore
+    val forwardStrategy: ForwardStrategy
     val sut: PeerImpl
     fun getPeer(id: Id): Peer
 }

@@ -21,6 +21,7 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
@@ -39,14 +40,17 @@ class PeerImpl(
         private val network: Network,
         private val configuration: Configuration,
         private val knownPeerQueryChooser: Chooser,
-        private val knownPeerAnswerChooser: Chooser
+        private val knownPeerAnswerChooser: Chooser,
+        private val forwardStrategy: ForwardStrategy
 ) : Peer {
 
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
-    override fun push(request: PushRequest) =
-            dataChunkStore.store(request.chunk)
+    override fun push(request: PushRequest) {
+        dataChunkStore.store(request.chunk)
+        forwardPushRequest(request)
+    }
 
     override fun query(request: QueryRequest) {
         when (request.id) {
@@ -56,6 +60,11 @@ class PeerImpl(
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
+
+    private fun forwardPushRequest(request: PushRequest) =
+            forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
+                getPushTargetFor(it).push(request)
+            }
 
     private fun pushBackDataQueryResult(request: QueryRequest) {
         val originator by lazy { request.pushTarget }

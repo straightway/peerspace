@@ -67,7 +67,8 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 Configuration(),
                 RandomChooser(randomSource),
                 RandomChooser(randomSource),
-                ForwardStrategyImpl())
+                ForwardStrategyImpl(),
+                simulator)
     }
 
     private fun createPeerNetwork(peerId: Id): Network {

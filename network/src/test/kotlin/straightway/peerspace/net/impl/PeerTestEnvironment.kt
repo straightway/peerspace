@@ -25,6 +25,7 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.random.Chooser
+import straightway.utils.TimeProvider
 
 /**
  * Test environment for testing the PeerImpl class.
@@ -44,6 +45,7 @@ interface PeerTestEnvironment {
     var knownPeerAnswerChooser: Chooser
     val chunkDataStore: DataChunkStore
     val forwardStrategy: ForwardStrategy
+    var timeProvider: TimeProvider
     val sut: PeerImpl
     fun getPeer(id: Id): Peer
 }

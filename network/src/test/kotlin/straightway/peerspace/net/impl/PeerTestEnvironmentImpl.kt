@@ -20,6 +20,8 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardStrategy
+import straightway.utils.TimeProvider
+import java.time.LocalDateTime
 
 /**
  * Implementation of the test environment for testing the PeerImpl class.
@@ -30,7 +32,10 @@ data class PeerTestEnvironmentImpl(
         override val unknownPeerIds: List<Id> = listOf(),
         override var configuration: Configuration = Configuration(),
         override val localChunks: List<Chunk> = listOf(),
-        override val forwardStrategy: ForwardStrategy = mock()
+        override val forwardStrategy: ForwardStrategy = mock(),
+        override var timeProvider: TimeProvider = mock {
+            on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
+        }
 ) : PeerTestEnvironment {
     override val knownPeers = knownPeersIds.map { createPeerMock(it) }
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
@@ -48,7 +53,8 @@ data class PeerTestEnvironmentImpl(
                 dataChunkStore = chunkDataStore,
                 knownPeerQueryChooser = knownPeerQueryChooser,
                 knownPeerAnswerChooser = knownPeerAnswerChooser,
-                forwardStrategy = forwardStrategy)
+                forwardStrategy = forwardStrategy,
+                timeProvider = timeProvider)
     }
 
     override fun getPeer(id: Id) =

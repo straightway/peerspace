@@ -15,9 +15,16 @@
  */
 package straightway.peerspace.net
 
+import straightway.units.Time
+import straightway.units.UnitNumber
+import straightway.units.get
+import straightway.units.minute
+
 /**
  * Global configuration for a peerspace peer node.
  */
+@Suppress("MagicNumber")
 data class Configuration(
         val maxPeersToQueryForKnownPeers: Int = 10,
-        val maxKnownPeersAnswers: Int = 20)
+        val maxKnownPeersAnswers: Int = 20,
+        val untimedDataQueryTimeout: UnitNumber<Time> = 5[minute])

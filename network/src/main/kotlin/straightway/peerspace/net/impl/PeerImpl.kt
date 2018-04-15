@@ -27,8 +27,12 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
+import straightway.units.toDuration
+import straightway.utils.TimeProvider
 import straightway.utils.serializeToByteArray
+import java.time.LocalDateTime
 
 /**
  * Default productive implementation of a peerspace peer.
@@ -41,7 +45,8 @@ class PeerImpl(
         private val configuration: Configuration,
         private val knownPeerQueryChooser: Chooser,
         private val knownPeerAnswerChooser: Chooser,
-        private val forwardStrategy: ForwardStrategy
+        private val forwardStrategy: ForwardStrategy,
+        private val timeProvider: TimeProvider
 ) : Peer {
 
     fun refreshKnownPeers() =
@@ -61,12 +66,19 @@ class PeerImpl(
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
-    private fun forwardPushRequest(request: PushRequest) =
-            forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
-                getPushTargetFor(it).push(request)
-            }
+    private fun forwardPushRequest(request: PushRequest) {
+        forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
+            getPushTargetFor(it).push(request)
+        }
+
+        pendingQueries.filter { it.query.isMatching(request.chunk.key) }.forEach {
+            getPushTargetFor(it.query.originatorId).push(request)
+        }
+    }
 
     private fun handleDataQuery(request: QueryRequest) {
+        _pendingQueries += PendingQuery(request, timeProvider.currentTime)
+
         pushBackDataQueryResult(request)
 
         val forwardedRequest = request.copy(originatorId = id)
@@ -112,4 +124,19 @@ class PeerImpl(
         val peer = network.getQuerySource(it)
         peer.query(QueryRequest(id, Administrative.KnownPeers))
     }
+
+    data class PendingQuery(val query: QueryRequest, val receiveTime: LocalDateTime)
+
+    private val pendingQueries: List<PendingQuery> get() {
+        removeOldPendingQueries()
+        return _pendingQueries
+    }
+
+    private fun removeOldPendingQueries() {
+        val tooOldTime =
+                timeProvider.currentTime - configuration.untimedDataQueryTimeout.toDuration()
+        _pendingQueries.removeAll { it.receiveTime < tooOldTime }
+    }
+
+    private val _pendingQueries = mutableListOf<PendingQuery>()
 }

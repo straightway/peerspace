@@ -28,6 +28,7 @@ import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
+import straightway.utils.TimeProvider
 
 @Suppress("LongParameterList")
 fun createPeerImpl(
@@ -38,7 +39,8 @@ fun createPeerImpl(
         dataChunkStore: DataChunkStore = mock(),
         knownPeerQueryChooser: Chooser = mock(),
         knownPeerAnswerChooser: Chooser = mock(),
-        forwardStrategy: ForwardStrategy = mock()
+        forwardStrategy: ForwardStrategy = mock(),
+        timeProvider: TimeProvider = mock()
 ) =
         PeerImpl(
                 id = id,
@@ -48,10 +50,10 @@ fun createPeerImpl(
                 dataChunkStore = dataChunkStore,
                 knownPeerQueryChooser = knownPeerQueryChooser,
                 knownPeerAnswerChooser = knownPeerAnswerChooser,
-                forwardStrategy = forwardStrategy)
+                forwardStrategy = forwardStrategy,
+                timeProvider = timeProvider)
 
 fun createPeerMock(id: Id) = mock<Peer> { on { this.id }.thenReturn(id) }
-fun createPeerMocks(ids: Iterable<Id>) = ids.map { createPeerMock(it) }
 
 fun ids(vararg ids: String) = ids.map { Id(it) }
 

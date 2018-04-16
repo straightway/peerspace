@@ -28,7 +28,10 @@ import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
+import straightway.peerspace.net.isUntimed
 import straightway.random.Chooser
+import straightway.units.Time
+import straightway.units.UnitNumber
 import straightway.units.toDuration
 import straightway.utils.TimeProvider
 import straightway.utils.serializeToByteArray
@@ -73,6 +76,10 @@ class PeerImpl(
 
         pendingQueries.filter { it.query.isMatching(request.chunk.key) }.forEach {
             getPushTargetFor(it.query.originatorId).push(request)
+        }
+
+        _pendingQueries.removeIf {
+            it.query.isUntimed && it.query.isMatching(request.chunk.key)
         }
     }
 
@@ -125,18 +132,26 @@ class PeerImpl(
         peer.query(QueryRequest(id, Administrative.KnownPeers))
     }
 
-    data class PendingQuery(val query: QueryRequest, val receiveTime: LocalDateTime)
+    private data class PendingQuery(val query: QueryRequest, val receiveTime: LocalDateTime)
 
     private val pendingQueries: List<PendingQuery> get() {
         removeOldPendingQueries()
         return _pendingQueries
     }
 
-    private fun removeOldPendingQueries() {
-        val tooOldTime =
-                timeProvider.currentTime - configuration.untimedDataQueryTimeout.toDuration()
-        _pendingQueries.removeAll { it.receiveTime < tooOldTime }
+    private fun removeOldPendingQueries() = _pendingQueries.removeAll { it.isTooOld }
+
+    private val PendingQuery.isTooOld get() = when {
+        query.isUntimed -> receiveTime < tooOldTimeForUntimedQueries
+        else -> receiveTime < tooOldTimeForTimedQueries
     }
+
+    private val tooOldTimeForUntimedQueries get() = getTimeBorder { untimedDataQueryTimeout }
+
+    private val tooOldTimeForTimedQueries get() = getTimeBorder { timedDataQueryTimeout }
+
+    private fun getTimeBorder(duration: Configuration.() -> UnitNumber<Time>) =
+            timeProvider.currentTime - configuration.duration().toDuration()
 
     private val _pendingQueries = mutableListOf<PendingQuery>()
 }

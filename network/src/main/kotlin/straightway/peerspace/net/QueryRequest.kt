@@ -62,3 +62,5 @@ data class QueryRequest private constructor(
 
 fun QueryRequest.isMatching(key: Key) =
         key.timestamp in timestamps && key.id == id
+
+val QueryRequest.isUntimed get() = timestamps == untimedData

@@ -19,6 +19,7 @@ import straightway.units.Time
 import straightway.units.UnitNumber
 import straightway.units.get
 import straightway.units.minute
+import straightway.units.second
 
 /**
  * Global configuration for a peerspace peer node.
@@ -27,4 +28,5 @@ import straightway.units.minute
 data class Configuration(
         val maxPeersToQueryForKnownPeers: Int = 10,
         val maxKnownPeersAnswers: Int = 20,
-        val untimedDataQueryTimeout: UnitNumber<Time> = 5[minute])
+        val untimedDataQueryTimeout: UnitNumber<Time> = 30[second],
+        val timedDataQueryTimeout: UnitNumber<Time> = 5[minute])

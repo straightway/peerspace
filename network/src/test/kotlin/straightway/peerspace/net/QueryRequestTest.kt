@@ -180,4 +180,21 @@ class QueryRequestTest {
             } then {
                 expect(it.result is_ Equal to_ originatorId)
             }
+
+    @Test
+    fun `isUntimed if the timestamp range is 0L to 0L`() =
+            Given { QueryRequest(originatorId, matchedId, untimedData) } when_ {
+                isUntimed
+            } then {
+                expect(it.result is_ True)
+            }
+
+    @Test
+    fun `isUntimed if the timestamp range is other than 0L to 0L`() =
+            Given { QueryRequest(originatorId, matchedId, 1L..1L) } when_ {
+                isUntimed
+            } then {
+                expect(it.result is_ False)
+            }
+
 }

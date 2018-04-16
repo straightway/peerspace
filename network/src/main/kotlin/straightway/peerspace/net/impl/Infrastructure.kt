@@ -13,32 +13,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Chunk
-import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.Peer
+import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.PeerDirectory
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
 
 /**
- * Test environment for testing the PeerImpl class.
+ * Infrastructure containing components required for implementing
+ * the peer functionality.
  */
-@Suppress("ComplexInterface")
-interface PeerTestEnvironment {
-    val peerId: Id
-    val knownPeersIds: List<Id>
-    val unknownPeerIds: List<Id>
-    var configuration: Configuration
-    val localChunks: List<Chunk>
-    val knownPeers: List<Peer>
-    val unknownPeers: List<Peer>
-    var knownPeerQueryChooser: Chooser
-    var knownPeerAnswerChooser: Chooser
-    var timeProvider: TimeProvider
-    val infrastructure: Infrastructure
-    val sut: PeerImpl
-    fun getPeer(id: Id): Peer
-}
+data class Infrastructure(
+    val dataChunkStore: DataChunkStore,
+    val peerDirectory: PeerDirectory,
+    val network: Network,
+    val configuration: Configuration,
+    val knownPeerQueryChooser: Chooser,
+    val knownPeerAnswerChooser: Chooser,
+    val forwardStrategy: ForwardStrategy,
+    val timeProvider: TimeProvider)

@@ -19,96 +19,49 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
-import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
-import straightway.peerspace.net.isMatching
-import straightway.peerspace.net.isUntimed
-import straightway.random.Chooser
-import straightway.units.Time
-import straightway.units.UnitNumber
-import straightway.units.toDuration
-import straightway.utils.TimeProvider
 import straightway.utils.serializeToByteArray
-import java.time.LocalDateTime
 
 /**
  * Default productive implementation of a peerspace peer.
  */
 class PeerImpl(
         override val id: Id,
-        private val dataChunkStore: DataChunkStore,
-        private val peerDirectory: PeerDirectory,
-        private val network: Network,
-        private val configuration: Configuration,
-        private val knownPeerQueryChooser: Chooser,
-        private val knownPeerAnswerChooser: Chooser,
-        private val forwardStrategy: ForwardStrategy,
-        private val timeProvider: TimeProvider
+        private val infrastructure: Infrastructure
 ) : Peer {
 
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
     override fun push(request: PushRequest) {
-        dataChunkStore.store(request.chunk)
+        infrastructure.dataChunkStore.store(request.chunk)
         forwardPushRequest(request)
     }
 
     override fun query(request: QueryRequest) {
         when (request.id) {
             Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
-            else -> handleDataQuery(request)
+            else -> dataQueryHandler.handleDataQuery(request)
         }
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
     private fun forwardPushRequest(request: PushRequest) {
-        forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
+        infrastructure.forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
             getPushTargetFor(it).push(request)
         }
 
-        pendingQueries.filter { it.query.isMatching(request.chunk.key) }.forEach {
-            getPushTargetFor(it.query.originatorId).push(request)
-        }
-
-        _pendingQueries.removeIf {
-            it.query.isUntimed && it.query.isMatching(request.chunk.key)
-        }
-    }
-
-    private fun handleDataQuery(request: QueryRequest) {
-        _pendingQueries += PendingQuery(request, timeProvider.currentTime)
-
-        pushBackDataQueryResult(request)
-
-        val forwardedRequest = request.copy(originatorId = id)
-        forwardStrategy.getQueryForwardPeerIdsFor(request).forEach {
-            getQuerySourceFor(it).query(forwardedRequest)
-        }
-    }
-
-    private fun pushBackDataQueryResult(request: QueryRequest) {
-        val originator by lazy { request.pushTarget }
-        val queryResult = dataChunkStore.query(request)
-        queryResult.forEach { originator.push(PushRequest(it)) }
+        dataQueryHandler.notifyDataArrived(request)
     }
 
     private fun pushBackKnownPeersTo(originatorId: Id) =
             getPushTargetFor(originatorId).push(
                     PushRequest(Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer)))
 
-    private val QueryRequest.pushTarget get() = getPushTargetFor(originatorId)
-
-    private fun getPushTargetFor(id: Id) = network.getPushTarget(id)
-
-    private fun getQuerySourceFor(id: Id) = network.getQuerySource(id)
+    private fun getPushTargetFor(id: Id) = infrastructure.network.getPushTarget(id)
 
     private val knownPeersChunkKey = Key(Administrative.KnownPeers.id)
 
@@ -116,42 +69,21 @@ class PeerImpl(
         knownPeersQueryAnswer.serializeToByteArray()
 
     private val knownPeersQueryAnswer get() =
-            knownPeerAnswerChooser.chooseFrom(
+        infrastructure.knownPeerAnswerChooser.chooseFrom(
                     allKnownPeersIds,
-                    configuration.maxKnownPeersAnswers)
+                    infrastructure.configuration.maxKnownPeersAnswers)
 
     private val peersToQueryForOtherKnownPeers get() =
-            knownPeerQueryChooser.chooseFrom(
+        infrastructure.knownPeerQueryChooser.chooseFrom(
                 allKnownPeersIds,
-                configuration.maxPeersToQueryForKnownPeers)
+                infrastructure.configuration.maxPeersToQueryForKnownPeers)
 
-    private val allKnownPeersIds get() = peerDirectory.allKnownPeersIds.toList()
+    private val allKnownPeersIds get() = infrastructure.peerDirectory.allKnownPeersIds.toList()
 
     private fun queryForKnownPeers(it: Id) {
-        val peer = network.getQuerySource(it)
+        val peer = infrastructure.network.getQuerySource(it)
         peer.query(QueryRequest(id, Administrative.KnownPeers))
     }
 
-    private data class PendingQuery(val query: QueryRequest, val receiveTime: LocalDateTime)
-
-    private val pendingQueries: List<PendingQuery> get() {
-        removeOldPendingQueries()
-        return _pendingQueries
-    }
-
-    private fun removeOldPendingQueries() = _pendingQueries.removeAll { it.isTooOld }
-
-    private val PendingQuery.isTooOld get() = when {
-        query.isUntimed -> receiveTime < tooOldTimeForUntimedQueries
-        else -> receiveTime < tooOldTimeForTimedQueries
-    }
-
-    private val tooOldTimeForUntimedQueries get() = getTimeBorder { untimedDataQueryTimeout }
-
-    private val tooOldTimeForTimedQueries get() = getTimeBorder { timedDataQueryTimeout }
-
-    private fun getTimeBorder(duration: Configuration.() -> UnitNumber<Time>) =
-            timeProvider.currentTime - configuration.duration().toDuration()
-
-    private val _pendingQueries = mutableListOf<PendingQuery>()
+    private val dataQueryHandler = DataQueryHandler(id, infrastructure)
 }

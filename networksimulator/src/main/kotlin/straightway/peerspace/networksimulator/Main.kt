@@ -21,6 +21,7 @@ import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.impl.ForwardStrategyImpl
+import straightway.peerspace.net.impl.Infrastructure
 
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerStubFactory
@@ -61,14 +62,15 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
         val network = createPeerNetwork(id)
         peers[id] = PeerImpl(
                 id,
-                TransientDataChunkStore(),
-                TransientPeerDirectory(),
-                network,
-                Configuration(),
-                RandomChooser(randomSource),
-                RandomChooser(randomSource),
-                ForwardStrategyImpl(),
-                simulator)
+                Infrastructure(
+                    TransientDataChunkStore(),
+                    TransientPeerDirectory(),
+                    network,
+                    Configuration(),
+                    RandomChooser(randomSource),
+                    RandomChooser(randomSource),
+                    ForwardStrategyImpl(),
+                    simulator))
     }
 
     private fun createPeerNetwork(peerId: Id): Network {

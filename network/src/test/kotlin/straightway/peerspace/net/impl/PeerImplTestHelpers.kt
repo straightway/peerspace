@@ -31,8 +31,7 @@ import straightway.random.Chooser
 import straightway.utils.TimeProvider
 
 @Suppress("LongParameterList")
-fun createPeerImpl(
-        id: Id,
+fun createInfrastructure(
         network: Network = mock(),
         configuration: Configuration = Configuration(),
         peerDirectory: PeerDirectory = mock(),
@@ -42,16 +41,15 @@ fun createPeerImpl(
         forwardStrategy: ForwardStrategy = mock(),
         timeProvider: TimeProvider = mock()
 ) =
-        PeerImpl(
-                id = id,
-                network = network,
-                configuration = configuration,
-                peerDirectory = peerDirectory,
-                dataChunkStore = dataChunkStore,
-                knownPeerQueryChooser = knownPeerQueryChooser,
-                knownPeerAnswerChooser = knownPeerAnswerChooser,
-                forwardStrategy = forwardStrategy,
-                timeProvider = timeProvider)
+        Infrastructure(
+            network = network,
+            configuration = configuration,
+            peerDirectory = peerDirectory,
+            dataChunkStore = dataChunkStore,
+            knownPeerQueryChooser = knownPeerQueryChooser,
+            knownPeerAnswerChooser = knownPeerAnswerChooser,
+            forwardStrategy = forwardStrategy,
+            timeProvider = timeProvider)
 
 fun createPeerMock(id: Id) = mock<Peer> { on { this.id }.thenReturn(id) }
 

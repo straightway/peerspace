@@ -196,5 +196,4 @@ class QueryRequestTest {
             } then {
                 expect(it.result is_ False)
             }
-
 }

@@ -51,7 +51,7 @@ class `PeerImpl query Test` {
     @Test
     fun `query is forwarded to chunk data store`() =
             test when_ { sut.query(queryRequest) } then {
-                verify(chunkDataStore).query(queryRequest)
+                verify(infrastructure.dataChunkStore).query(queryRequest)
             }
 
     @Test
@@ -65,7 +65,7 @@ class `PeerImpl query Test` {
     @Test
     fun `query hit returns result to sender`() =
             test while_ {
-                chunkDataStore.store(chunk)
+                infrastructure.dataChunkStore.store(chunk)
             } when_ {
                 sut.query(queryRequest)
             } then {

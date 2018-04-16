@@ -32,30 +32,27 @@ data class PeerTestEnvironmentImpl(
         override val unknownPeerIds: List<Id> = listOf(),
         override var configuration: Configuration = Configuration(),
         override val localChunks: List<Chunk> = listOf(),
-        override val forwardStrategy: ForwardStrategy = mock(),
+        val forwardStrategy: ForwardStrategy = mock(),
         override var timeProvider: TimeProvider = mock {
             on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
         }
 ) : PeerTestEnvironment {
     override val knownPeers = knownPeersIds.map { createPeerMock(it) }
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
-    override val network = createNetworkMock { knownPeers + unknownPeers }
-    override val peerDirectory = createPeerDirectory { knownPeers }
     override var knownPeerQueryChooser = createChooser { knownPeersIds }
     override var knownPeerAnswerChooser = createChooser { knownPeersIds }
-    override val chunkDataStore = createChunkDataStore { localChunks }
-    override val sut by lazy {
-        createPeerImpl(
-                peerId,
-                peerDirectory = peerDirectory,
-                network = network,
+    override val infrastructure by lazy {
+        createInfrastructure(
+                peerDirectory = createPeerDirectory { knownPeers },
+                network = createNetworkMock { knownPeers + unknownPeers },
                 configuration = configuration,
-                dataChunkStore = chunkDataStore,
+                dataChunkStore = createChunkDataStore { localChunks },
                 knownPeerQueryChooser = knownPeerQueryChooser,
                 knownPeerAnswerChooser = knownPeerAnswerChooser,
                 forwardStrategy = forwardStrategy,
                 timeProvider = timeProvider)
     }
+    override val sut by lazy { PeerImpl(peerId, infrastructure) }
 
     override fun getPeer(id: Id) =
             knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!

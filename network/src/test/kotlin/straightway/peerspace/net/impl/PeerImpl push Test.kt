@@ -65,6 +65,6 @@ class `PeerImpl push Test` {
     @Test
     fun `pushed data is stored`() =
             test when_ { sut.push(PushRequest(chunk)) } then {
-                verify(chunkDataStore).store(chunk)
+                verify(infrastructure.dataChunkStore).store(chunk)
             }
 }

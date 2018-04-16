@@ -26,7 +26,6 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given

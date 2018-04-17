@@ -42,16 +42,16 @@ class `PeerImpl refreshKnownPeers Test` {
 
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
-            test when_ { sut.refreshKnownPeers() } then {
+            test when_ { peer.refreshKnownPeers() } then {
                 verify(knownPeers.single()).query(knownPeersRequest)
             }
 
     @Test
     fun `a second call to refreshKnownPeers is effective`() =
             test while_ {
-                sut.refreshKnownPeers()
+                peer.refreshKnownPeers()
             } when_ {
-                sut.refreshKnownPeers()
+                peer.refreshKnownPeers()
             } then {
                 verify(knownPeers.single(), times(2)).query(knownPeersRequest)
             }
@@ -62,7 +62,7 @@ class `PeerImpl refreshKnownPeers Test` {
                 defaultEnvironment.copy(
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"))
             } when_ {
-                sut.refreshKnownPeers()
+                peer.refreshKnownPeers()
             } then {
                 knownPeers.take(configuration.maxPeersToQueryForKnownPeers).forEach {
                     verify(it).query(knownPeersRequest)
@@ -83,7 +83,7 @@ class `PeerImpl refreshKnownPeers Test` {
                     }
                 }
             } when_ {
-                sut.refreshKnownPeers()
+                peer.refreshKnownPeers()
             } then {
                 verify(knownPeers[0]).query(knownPeersRequest)
                 verify(knownPeers[1], never()).query(knownPeersRequest)

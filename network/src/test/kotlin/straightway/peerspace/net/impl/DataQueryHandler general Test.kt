@@ -28,7 +28,7 @@ import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 
-class `PeerImpl query Test` {
+class `DataQueryHandler general Test` {
 
     private companion object {
         val peerId = Id("peerId")
@@ -42,7 +42,8 @@ class `PeerImpl query Test` {
     private val test get() = Given {
         object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
-                knownPeersIds = listOf(receiverId)
+                knownPeersIds = listOf(receiverId),
+                dataQueryHandler = DataQueryHandlerImpl(peerId)
         ) {
             val receiver = getPeer(receiverId)
         }
@@ -50,14 +51,16 @@ class `PeerImpl query Test` {
 
     @Test
     fun `query is forwarded to chunk data store`() =
-            test when_ { sut.query(queryRequest) } then {
-                verify(infrastructure.dataChunkStore).query(queryRequest)
+            test when_ {
+                dataQueryHandler.handle(queryRequest)
+            } then {
+                verify(dataChunkStore).query(queryRequest)
             }
 
     @Test
     fun `query for not existing data does not push back`() =
             test when_ {
-                sut.query(queryRequest)
+                dataQueryHandler.handle(queryRequest)
             } then {
                 verify(receiver, never()).push(any())
             }
@@ -65,9 +68,9 @@ class `PeerImpl query Test` {
     @Test
     fun `query hit returns result to sender`() =
             test while_ {
-                infrastructure.dataChunkStore.store(chunk)
+                dataChunkStore.store(chunk)
             } when_ {
-                sut.query(queryRequest)
+                dataQueryHandler.handle(queryRequest)
             } then {
                 verify(receiver).push(PushRequest(chunk))
             }

@@ -21,6 +21,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
@@ -39,9 +40,10 @@ fun createInfrastructure(
         knownPeerQueryChooser: Chooser = mock(),
         knownPeerAnswerChooser: Chooser = mock(),
         forwardStrategy: ForwardStrategy = mock(),
-        timeProvider: TimeProvider = mock()
+        timeProvider: TimeProvider = mock(),
+        dataQueryHandler: DataQueryHandler = mock()
 ) =
-        Infrastructure(
+        InfrastructureImpl(
             network = network,
             configuration = configuration,
             peerDirectory = peerDirectory,
@@ -49,7 +51,8 @@ fun createInfrastructure(
             knownPeerQueryChooser = knownPeerQueryChooser,
             knownPeerAnswerChooser = knownPeerAnswerChooser,
             forwardStrategy = forwardStrategy,
-            timeProvider = timeProvider)
+            timeProvider = timeProvider,
+            dataQueryHandler = dataQueryHandler)
 
 fun createPeerMock(id: Id) = mock<Peer> { on { this.id }.thenReturn(id) }
 

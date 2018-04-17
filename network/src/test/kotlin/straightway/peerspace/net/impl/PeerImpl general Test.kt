@@ -16,8 +16,13 @@
 
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
+import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -28,6 +33,8 @@ class `PeerImpl general Test` {
 
     private companion object {
         val id = Id("thePeerId")
+        val dataQuery = QueryRequest(Id("queryingPeer"), Id("chunkId"))
+        val pushRequest = PushRequest(Chunk(Key(Id("Id")), byteArrayOf()))
     }
 
     private val test get() = Given {
@@ -36,7 +43,19 @@ class `PeerImpl general Test` {
 
     @Test
     fun `toString contains peer id`() =
-            test when_ { sut.toString() } then {
+            test when_ { peer.toString() } then {
                 expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")
+            }
+
+    @Test
+    fun `data queries are delegated to DataQueryHandler`() =
+            test when_ { peer.query(dataQuery) } then {
+                verify(dataQueryHandler).handle(dataQuery)
+            }
+
+    @Test
+    fun `DataQueryHandler is notified of incoming data`() =
+            test when_ { peer.push(pushRequest) } then {
+                verify(dataQueryHandler).notifyDataArrived(pushRequest)
             }
 }

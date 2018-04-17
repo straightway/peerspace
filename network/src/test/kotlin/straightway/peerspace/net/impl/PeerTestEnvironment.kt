@@ -19,6 +19,7 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
@@ -27,7 +28,7 @@ import straightway.utils.TimeProvider
  * Test environment for testing the PeerImpl class.
  */
 @Suppress("ComplexInterface")
-interface PeerTestEnvironment {
+interface PeerTestEnvironment : InfrastructureProvider {
     val peerId: Id
     val knownPeersIds: List<Id>
     val unknownPeerIds: List<Id>
@@ -38,7 +39,8 @@ interface PeerTestEnvironment {
     var knownPeerQueryChooser: Chooser
     var knownPeerAnswerChooser: Chooser
     var timeProvider: TimeProvider
-    val infrastructure: Infrastructure
-    val sut: PeerImpl
-    fun getPeer(id: Id): Peer
+    val peer: PeerImpl
 }
+
+fun PeerTestEnvironment.getPeer(id: Id) =
+        knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!

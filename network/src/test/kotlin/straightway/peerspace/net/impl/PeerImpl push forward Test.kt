@@ -47,7 +47,7 @@ class `PeerImpl push forward Test` {
     @Test
     fun `push request is forwarded according to forward strategy`() =
             test when_ {
-                sut.push(PushRequest(chunk))
+                peer.push(PushRequest(chunk))
             } then {
                 verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key)
             }
@@ -55,7 +55,7 @@ class `PeerImpl push forward Test` {
     @Test
     fun `push request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                sut.push(PushRequest(chunk))
+                peer.push(PushRequest(chunk))
             } then {
                 forwardedPeers.forEach {
                     verify(knownPeers[it]).push(PushRequest(chunk))

@@ -47,7 +47,7 @@ class `PeerImpl query for known peers Test` {
     @Test
     fun `a query for known peers is answered immediately`() =
             test when_ {
-                sut.query(knownPeersRequest)
+                peer.query(knownPeersRequest)
             } then {
                 verify(queryingPeer).push(any())
             }
@@ -55,7 +55,7 @@ class `PeerImpl query for known peers Test` {
     @Test
     fun `a query for known peers is answered with Administrative_KnownPeers_id`() =
             test when_ {
-                sut.query(knownPeersRequest)
+                peer.query(knownPeersRequest)
             } then {
                 verify(queryingPeer).push(argThat {
                     chunk.key == Key(Administrative.KnownPeers.id)
@@ -65,7 +65,7 @@ class `PeerImpl query for known peers Test` {
     @Test
     fun `a query for known peers is answered with the list of known peers`() =
             test when_ {
-                sut.query(knownPeersRequest)
+                peer.query(knownPeersRequest)
             } then {
                 verify(queryingPeer).push(argThat {
                     chunk.data.deserializeTo<List<Id>>() == knownPeersIds
@@ -78,7 +78,7 @@ class `PeerImpl query for known peers Test` {
                 configuration = configuration.copy(maxKnownPeersAnswers = 1)
                 knownPeerAnswerChooser = createChooser { knownPeersIds.slice(0..0) }
             } when_ {
-                sut.query(knownPeersRequest)
+                peer.query(knownPeersRequest)
             } then {
                 verify(queryingPeer).push(argThat {
                     chunk.data.deserializeTo<List<Id>>() == knownPeersIds.slice(0..0)

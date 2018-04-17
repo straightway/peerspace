@@ -13,44 +13,54 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+@file:Suppress("ForbiddenComment")
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
+import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.utils.serializeToByteArray
+
+// TODO:
+// * Avoid routing loops:
+// ** Don't push back to the originator
+// ** Don't push the same chunk twice to the same peer (within a certain time)
+// * Optimize routing: Send chunks only once
+// * Collect known peers while receiving requests
 
 /**
  * Default productive implementation of a peerspace peer.
  */
 class PeerImpl(
         override val id: Id,
-        private val infrastructure: Infrastructure
-) : Peer {
+        override val infrastructure: Infrastructure
+) : Peer, InfrastructureProvider {
 
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
     override fun push(request: PushRequest) {
-        infrastructure.dataChunkStore.store(request.chunk)
+        dataChunkStore.store(request.chunk)
         forwardPushRequest(request)
     }
 
     override fun query(request: QueryRequest) {
         when (request.id) {
             Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
-            else -> dataQueryHandler.handleDataQuery(request)
+            else -> dataQueryHandler.handle(request)
         }
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
     private fun forwardPushRequest(request: PushRequest) {
-        infrastructure.forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
+        forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
             getPushTargetFor(it).push(request)
         }
 
@@ -61,29 +71,25 @@ class PeerImpl(
             getPushTargetFor(originatorId).push(
                     PushRequest(Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer)))
 
-    private fun getPushTargetFor(id: Id) = infrastructure.network.getPushTarget(id)
-
     private val knownPeersChunkKey = Key(Administrative.KnownPeers.id)
 
     private val serializedKnownPeersQueryAnswer get() =
         knownPeersQueryAnswer.serializeToByteArray()
 
     private val knownPeersQueryAnswer get() =
-        infrastructure.knownPeerAnswerChooser.chooseFrom(
+        knownPeerAnswerChooser.chooseFrom(
                     allKnownPeersIds,
-                    infrastructure.configuration.maxKnownPeersAnswers)
+                    configuration.maxKnownPeersAnswers)
 
     private val peersToQueryForOtherKnownPeers get() =
-        infrastructure.knownPeerQueryChooser.chooseFrom(
+        knownPeerQueryChooser.chooseFrom(
                 allKnownPeersIds,
-                infrastructure.configuration.maxPeersToQueryForKnownPeers)
+                configuration.maxPeersToQueryForKnownPeers)
 
-    private val allKnownPeersIds get() = infrastructure.peerDirectory.allKnownPeersIds.toList()
+    private val allKnownPeersIds get() = peerDirectory.allKnownPeersIds.toList()
 
     private fun queryForKnownPeers(it: Id) {
-        val peer = infrastructure.network.getQuerySource(it)
+        val peer = network.getQuerySource(it)
         peer.query(QueryRequest(id, Administrative.KnownPeers))
     }
-
-    private val dataQueryHandler = DataQueryHandler(id, infrastructure)
 }

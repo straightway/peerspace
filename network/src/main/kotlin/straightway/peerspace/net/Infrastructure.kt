@@ -13,26 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net.impl
 
-import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerDirectory
+package straightway.peerspace.net
+
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
 
 /**
- * Infrastructure containing components required for implementing
- * the peer functionality.
+ * Collection of components used for a peer.
  */
-data class Infrastructure(
-    val dataChunkStore: DataChunkStore,
-    val peerDirectory: PeerDirectory,
-    val network: Network,
-    val configuration: Configuration,
-    val knownPeerQueryChooser: Chooser,
-    val knownPeerAnswerChooser: Chooser,
-    val forwardStrategy: ForwardStrategy,
-    val timeProvider: TimeProvider)
+@Suppress("ComplexInterface")
+interface Infrastructure {
+    val dataChunkStore: DataChunkStore
+    val peerDirectory: PeerDirectory
+    val network: Network
+    val configuration: Configuration
+    val knownPeerQueryChooser: Chooser
+    val knownPeerAnswerChooser: Chooser
+    val forwardStrategy: ForwardStrategy
+    val timeProvider: TimeProvider
+    val dataQueryHandler: DataQueryHandler
+}

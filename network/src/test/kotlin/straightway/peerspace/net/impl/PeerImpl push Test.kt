@@ -48,23 +48,23 @@ class `PeerImpl push Test` {
 
     @Test
     fun `PeerImpl implements Peer`() =
-            test when_ { sut as Peer } then {
+            test when_ { peer as Peer } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `id passed on construction is accessible`() =
-            test when_ { sut.id } then { expect(it.result is_ Equal to_ peerId) }
+            test when_ { peer.id } then { expect(it.result is_ Equal to_ peerId) }
 
     @Test
     fun `push does not throw`() =
-            test when_ { sut.push(PushRequest(chunk)) } then {
+            test when_ { peer.push(PushRequest(chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { sut.push(PushRequest(chunk)) } then {
-                verify(infrastructure.dataChunkStore).store(chunk)
+            test when_ { peer.push(PushRequest(chunk)) } then {
+                verify(dataChunkStore).store(chunk)
             }
 }

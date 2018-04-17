@@ -23,7 +23,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `PeerImpl query forward Test` {
+class `DataQueryHandler query forward Test` {
 
     companion object {
         val peerId = Id("peerId")
@@ -42,13 +42,14 @@ class `PeerImpl query forward Test` {
                 forwardStrategy = mock {
                     on { getQueryForwardPeerIdsFor(any()) }
                             .thenReturn(knownPeersIds.slice(forwardedPeers))
-                })
+                },
+                dataQueryHandler = DataQueryHandlerImpl(peerId))
     }
 
     @Test
     fun `query request is forwarded according to forward strategy`() =
             test when_ {
-                sut.query(receivedQueryRequest)
+                dataQueryHandler.handle(receivedQueryRequest)
             } then {
                 verify(forwardStrategy).getQueryForwardPeerIdsFor(receivedQueryRequest)
             }
@@ -56,7 +57,7 @@ class `PeerImpl query forward Test` {
     @Test
     fun `query request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                sut.query(receivedQueryRequest)
+                dataQueryHandler.handle(receivedQueryRequest)
             } then {
                 forwardedPeers.forEach {
                     verify(knownPeers[it]).query(forwardedQueryRequest)

@@ -16,11 +16,11 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.calls
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -36,7 +36,7 @@ import straightway.units.toDuration
 import straightway.units.year
 import java.time.LocalDateTime
 
-class `PeerImpl query receive result Test` {
+class `DataQueryHandler receive result Test` {
 
     companion object {
         val peerId = Id("peerId")
@@ -45,22 +45,24 @@ class `PeerImpl query receive result Test` {
         val knownPeersIds = ids("1") + listOf(queryingPeerId)
         val untimedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId)
         val untimedQueryResult = Chunk(Key(queriedChunkId), byteArrayOf(1, 2, 3))
-        val timedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId, 1L..1L)
+        val timedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId, 1L..2L)
         val timedQueryResult = Chunk(Key(queriedChunkId, 1L), byteArrayOf(1, 2, 3))
+        val otherTimedQueryResult = Chunk(Key(queriedChunkId, 2L), byteArrayOf(1, 2, 3))
         val forwardedPeers = 0..0
     }
 
     private val test get() = Given {
         object : PeerTestEnvironment by PeerTestEnvironmentImpl(
-            peerId,
-            knownPeersIds = knownPeersIds,
-            forwardStrategy = mock {
-                on { getQueryForwardPeerIdsFor(any()) }
-                        .thenReturn(knownPeersIds.slice(forwardedPeers))
-            },
-            configuration = Configuration(
-                    untimedDataQueryTimeout = 10[second],
-                    timedDataQueryTimeout = 10[second])
+                peerId,
+                knownPeersIds = knownPeersIds,
+                forwardStrategy = mock {
+                    on { getQueryForwardPeerIdsFor(any()) }
+                            .thenReturn(knownPeersIds.slice(forwardedPeers))
+                },
+                configuration = Configuration(
+                        untimedDataQueryTimeout = 10[second],
+                        timedDataQueryTimeout = 10[second]),
+                dataQueryHandler = DataQueryHandlerImpl(peerId)
         ) {
             var currTime = LocalDateTime.of(2001, 1, 1, 14, 30)
             init {
@@ -74,9 +76,10 @@ class `PeerImpl query receive result Test` {
     @Test
     fun `not matching chunk is not pushed back as query result`() =
             test while_ {
-                sut.query(untimedQueryRequest)
+                dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                sut.push(PushRequest(Chunk(Key(Id("otherId")), byteArrayOf())))
+                dataQueryHandler.notifyDataArrived(
+                        PushRequest(Chunk(Key(Id("otherId")), byteArrayOf())))
             } then {
                 verify(queryingPeer, never()).push(any())
             }
@@ -84,9 +87,9 @@ class `PeerImpl query receive result Test` {
     @Test
     fun `untimed result being pushed back immediately is pushed back on`() =
             test while_ {
-                sut.query(untimedQueryRequest)
+                dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                sut.push(PushRequest(untimedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
             } then {
                 verify(queryingPeer).push(PushRequest(untimedQueryResult))
             }
@@ -94,10 +97,10 @@ class `PeerImpl query receive result Test` {
     @Test
     fun `untimed result being received twice is pushed back on only once`() =
             test while_ {
-                sut.query(untimedQueryRequest)
+                dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                sut.push(PushRequest(untimedQueryResult))
-                sut.push(PushRequest(untimedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
             } then {
                 verify(queryingPeer).push(PushRequest(untimedQueryResult))
             }
@@ -105,10 +108,10 @@ class `PeerImpl query receive result Test` {
     @Test
     fun `untimed result being received after another result is pushed back on`() =
             test while_ {
-                sut.query(untimedQueryRequest)
+                dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                sut.push(PushRequest(timedQueryResult))
-                sut.push(PushRequest(untimedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
             } then {
                 verify(queryingPeer).push(PushRequest(untimedQueryResult))
             }
@@ -117,10 +120,10 @@ class `PeerImpl query receive result Test` {
     fun `untimed result not pushed back after timeout expired`() =
             test while_ {
                 delayForwardingOfTimedQueries()
-                sut.query(untimedQueryRequest)
+                dataQueryHandler.handle(untimedQueryRequest)
                 currTime += (configuration.untimedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
-                sut.push(PushRequest(untimedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
             } then {
                 verify(queryingPeer, never()).push(any())
             }
@@ -128,9 +131,9 @@ class `PeerImpl query receive result Test` {
     @Test
     fun `timed result being pushed back immediately is pushed back on`() =
             test while_ {
-                sut.query(timedQueryRequest)
+                dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                sut.push(PushRequest(timedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
             } then {
                 verify(queryingPeer).push(PushRequest(timedQueryResult))
             }
@@ -139,25 +142,38 @@ class `PeerImpl query receive result Test` {
     fun `timed result not pushed back after timeout expired`() =
             test while_ {
                 delayForwardingOfUntimedQueries()
-                sut.query(timedQueryRequest)
+                dataQueryHandler.handle(timedQueryRequest)
                 currTime += (configuration.timedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
-                sut.push(PushRequest(timedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
             } then {
                 verify(queryingPeer, never()).push(any())
             }
 
     @Test
-    fun `timed result being received twice is pushed back on twice`() =
+    fun `multiple timed result being received are all pushed back on`() =
             test while_ {
-                sut.query(timedQueryRequest)
+                dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                sut.push(PushRequest(timedQueryResult))
-                sut.push(PushRequest(timedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(otherTimedQueryResult))
             } then {
                 inOrder(queryingPeer) {
-                    verify(queryingPeer, calls(2)).push(PushRequest(timedQueryResult))
+                    verify(queryingPeer).push(PushRequest(timedQueryResult))
+                    verify(queryingPeer).push(PushRequest(otherTimedQueryResult))
                 }
+            }
+
+    @Test
+    @Disabled
+    fun `timed result being received twice is pushed back on only once`() =
+            test while_ {
+                dataQueryHandler.handle(timedQueryRequest)
+            } when_ {
+                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+            } then {
+                verify(queryingPeer).push(PushRequest(timedQueryResult))
             }
 
     private val PeerTestEnvironment.queryingPeer get() =

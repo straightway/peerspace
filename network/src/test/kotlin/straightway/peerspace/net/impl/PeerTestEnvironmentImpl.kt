@@ -19,6 +19,7 @@ import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
@@ -35,7 +36,8 @@ data class PeerTestEnvironmentImpl(
         val forwardStrategy: ForwardStrategy = mock(),
         override var timeProvider: TimeProvider = mock {
             on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
-        }
+        },
+        private val dataQueryHandler: DataQueryHandler = mock()
 ) : PeerTestEnvironment {
     override val knownPeers = knownPeersIds.map { createPeerMock(it) }
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
@@ -50,10 +52,9 @@ data class PeerTestEnvironmentImpl(
                 knownPeerQueryChooser = knownPeerQueryChooser,
                 knownPeerAnswerChooser = knownPeerAnswerChooser,
                 forwardStrategy = forwardStrategy,
-                timeProvider = timeProvider)
+                timeProvider = timeProvider,
+                dataQueryHandler = dataQueryHandler)
     }
-    override val sut by lazy { PeerImpl(peerId, infrastructure) }
 
-    override fun getPeer(id: Id) =
-            knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!
+    override val peer by lazy { PeerImpl(peerId, infrastructure) }
 }

@@ -17,34 +17,39 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isUntimed
 import straightway.units.Time
-import straightway.units.UnitNumber
 import straightway.units.toDuration
+import straightway.units.UnitNumber
 import java.time.LocalDateTime
 
 /**
  * Handle timed and untimed data queries.
  */
-class DataQueryHandler(
-        private val peerId: Id,
-        private val infrastructure: Infrastructure
-) {
-    fun handleDataQuery(request: QueryRequest) {
-        _pendingQueries += PendingQuery(request, infrastructure.timeProvider.currentTime)
+class DataQueryHandlerImpl(private val peerId: Id)
+    : DataQueryHandler, InfrastructureProvider {
+
+    override lateinit var infrastructure: Infrastructure
+
+    override fun handle(request: QueryRequest) {
+        _pendingQueries +=
+                PendingQuery(request, timeProvider.currentTime)
 
         pushBackDataQueryResult(request)
 
         val forwardedRequest = request.copy(originatorId = peerId)
-        infrastructure.forwardStrategy.getQueryForwardPeerIdsFor(request).forEach {
+        forwardStrategy.getQueryForwardPeerIdsFor(request).forEach {
             getQuerySourceFor(it).query(forwardedRequest)
         }
     }
 
-    fun notifyDataArrived(request: PushRequest) {
+    override fun notifyDataArrived(request: PushRequest) {
         pendingQueries.filter { it.query.isMatching(request.chunk.key) }.forEach {
             getPushTargetFor(it.query.originatorId).push(request)
         }
@@ -56,15 +61,13 @@ class DataQueryHandler(
 
     private fun pushBackDataQueryResult(request: QueryRequest) {
         val originator by lazy { request.pushTarget }
-        val queryResult = infrastructure.dataChunkStore.query(request)
+        val queryResult = dataChunkStore.query(request)
         queryResult.forEach { originator.push(PushRequest(it)) }
     }
 
     private val QueryRequest.pushTarget get() = getPushTargetFor(originatorId)
 
-    private fun getPushTargetFor(id: Id) = infrastructure.network.getPushTarget(id)
-
-    private fun getQuerySourceFor(id: Id) = infrastructure.network.getQuerySource(id)
+    private fun getQuerySourceFor(id: Id) = network.getQuerySource(id)
 
     private data class PendingQuery(val query: QueryRequest, val receiveTime: LocalDateTime)
 
@@ -85,8 +88,7 @@ class DataQueryHandler(
     private val tooOldTimeForTimedQueries get() = getTimeBorder { timedDataQueryTimeout }
 
     private fun getTimeBorder(duration: Configuration.() -> UnitNumber<Time>) =
-            infrastructure.timeProvider.currentTime -
-                    infrastructure.configuration.duration().toDuration()
+            timeProvider.currentTime - configuration.duration().toDuration()
 
     private val _pendingQueries = mutableListOf<PendingQuery>()
 }

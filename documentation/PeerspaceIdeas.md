@@ -38,6 +38,14 @@ This is of course the consequence, that the peer's  _distance_ to an item change
 ### Redundancy vs. capacity
 To be robust against failed queries due to (temporary) offline peers, data must be stored redundantly on multiple peers. As the overall storage capacity of the Peerspace network is limited, redundancy further reduces this capacity. So a trade-off between redundancy and capacity must made by a smart distribution algorithm.
 
+## Privileges
+
+The read and write access to plain data chunks is unrestricted on the basic level. In order to control read access, the content must be encrypted.
+
+The same is true for read access to lists. However, to restrict write access to lists, each list entry must be cryptographically signed using an asymmetric key pair. The public key is used as list id, the private key is called _list access token_ and used to sign the data. This allows any peer to check if the sender of a list entry has the write privilege on that list (i.e. access to the private key).
+
+Peers ignore all invalid requests they receive.
+
 ## Storage space management
 Since the storage space on each peer is limited. So a peer must free some space from time to time in order to store new data. To have as much information available as possible, this should only be done of there is no space left on the peer's storage.
 

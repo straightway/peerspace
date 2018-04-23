@@ -20,10 +20,12 @@ import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Infrastructure
+import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
+import kotlin.reflect.full.memberProperties
 
 /**
  * Infrastructure containing components required for implementing
@@ -41,6 +43,11 @@ data class InfrastructureImpl(
         override val dataQueryHandler: DataQueryHandler
 ) : Infrastructure {
     init {
-        dataQueryHandler.infrastructure = this
+        InfrastructureImpl::class.memberProperties.forEach {
+            val currProperty = it.get(this)
+            if (currProperty is InfrastructureReceiver)
+                currProperty.infrastructure = this
+
+        }
     }
 }

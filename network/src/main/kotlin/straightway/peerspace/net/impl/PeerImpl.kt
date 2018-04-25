@@ -25,6 +25,7 @@ import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.random.Chooser
 import straightway.utils.serializeToByteArray
 
 // TODO:
@@ -86,14 +87,13 @@ class PeerImpl(
         get() = knownPeersQueryAnswer.serializeToByteArray()
 
     private val knownPeersQueryAnswer
-        get() = knownPeerAnswerChooser.chooseFrom(
-                    allKnownPeersIds,
-                    configuration.maxKnownPeersAnswers)
+        get() = knownPeerAnswerChooser choosePeers configuration.maxKnownPeersAnswers
 
     private val peersToQueryForOtherKnownPeers
-        get() = knownPeerQueryChooser.chooseFrom(
-                    allKnownPeersIds,
-                    configuration.maxPeersToQueryForKnownPeers)
+        get() = knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers
+
+    private infix fun Chooser.choosePeers(number: Int) =
+            chooseFrom(allKnownPeersIds, number)
 
     private val allKnownPeersIds
         get() = peerDirectory.allKnownPeersIds.toList()

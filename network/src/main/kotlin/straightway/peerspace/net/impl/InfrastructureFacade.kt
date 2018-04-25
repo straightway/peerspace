@@ -29,3 +29,4 @@ val InfrastructureProvider.timeProvider get() = infrastructure.timeProvider
 val InfrastructureProvider.dataQueryHandler get() = infrastructure.dataQueryHandler
 
 fun InfrastructureProvider.getPushTargetFor(id: Id) = network.getPushTarget(id)
+fun InfrastructureProvider.getQuerySourceFor(id: Id) = network.getQuerySource(id)

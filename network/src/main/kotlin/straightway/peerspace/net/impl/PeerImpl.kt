@@ -50,49 +50,62 @@ class PeerImpl(
         forwardPushRequest(request)
     }
 
-    override fun query(request: QueryRequest) {
+    override fun query(request: QueryRequest) =
         when (request.id) {
             Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
             else -> dataQueryHandler.handle(request)
         }
-    }
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
     private fun forwardPushRequest(request: PushRequest) =
-            getForwardPeersFor(request).forEach {
-                getPushTargetFor(it).push(request)
-            }
+            request.forwardPeers.forEach { request pushOnTo it }
 
-    private fun getForwardPeersFor(request: PushRequest) =
-            (forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key) +
-             dataQueryHandler.getForwardPeerIdsFor(request)).toSet()
+    private infix fun PushRequest.pushOnTo(receiverId: Id) =
+        getPushTargetFor(receiverId).push(PushRequest(id, chunk))
+
+    private val PushRequest.forwardPeers
+        get() = forwardPeersFromStrategies.toSet().filter { it != originatorId }
+
+    private val PushRequest.forwardPeersFromStrategies
+        get() = pushForwardPeerIds + queryForwardPeerIds
+
+    private val PushRequest.pushForwardPeerIds
+        get() = forwardStrategy.getPushForwardPeerIdsFor(chunk.key)
+
+    private val PushRequest.queryForwardPeerIds: Iterable<Id>
+        get() = dataQueryHandler.getForwardPeerIdsFor(this)
 
     private fun pushBackKnownPeersTo(originatorId: Id) =
-            getPushTargetFor(originatorId).push(
-                    PushRequest(
-                            id,
-                            Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer)))
+            originatorId.asPushTarget.push(knownPeersAnswerRequest)
 
-    private val serializedKnownPeersQueryAnswer get() =
-        knownPeersQueryAnswer.serializeToByteArray()
+    private val knownPeersAnswerRequest
+        get() = PushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
 
-    private val knownPeersQueryAnswer get() =
-        knownPeerAnswerChooser.chooseFrom(
+    private val serializedKnownPeersQueryAnswer
+        get() = knownPeersQueryAnswer.serializeToByteArray()
+
+    private val knownPeersQueryAnswer
+        get() = knownPeerAnswerChooser.chooseFrom(
                     allKnownPeersIds,
                     configuration.maxKnownPeersAnswers)
 
-    private val peersToQueryForOtherKnownPeers get() =
-        knownPeerQueryChooser.chooseFrom(
-                allKnownPeersIds,
-                configuration.maxPeersToQueryForKnownPeers)
+    private val peersToQueryForOtherKnownPeers
+        get() = knownPeerQueryChooser.chooseFrom(
+                    allKnownPeersIds,
+                    configuration.maxPeersToQueryForKnownPeers)
 
-    private val allKnownPeersIds get() = peerDirectory.allKnownPeersIds.toList()
+    private val allKnownPeersIds
+        get() = peerDirectory.allKnownPeersIds.toList()
 
-    private fun queryForKnownPeers(it: Id) {
-        val peer = network.getQuerySource(it)
-        peer.query(QueryRequest(id, Administrative.KnownPeers))
-    }
+    private fun queryForKnownPeers(peerId: Id) =
+        peerId.asQuerySource.query(QueryRequest(id, Administrative.KnownPeers))
+
+    private val Id.asQuerySource
+        get() = getQuerySourceFor(this)
+
+    private val Id.asPushTarget
+        get() = getPushTargetFor(this)
 
     private companion object {
         val knownPeersChunkKey = Key(Administrative.KnownPeers.id)

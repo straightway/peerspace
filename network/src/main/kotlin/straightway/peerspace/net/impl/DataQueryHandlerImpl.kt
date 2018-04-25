@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Infrastructure
@@ -53,12 +54,17 @@ class DataQueryHandlerImpl(private val peerId: Id)
     override fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id> {
         val result = pendingQueries
                 .filter { it.query.isMatching(request.chunk.key) }
+                .filter { !it.forwardedChunks.contains(request.chunk.key) }
                 .map { it.query.originatorId }
                 .toList()
 
         _pendingQueries.removeIf {
             it.query.isUntimed && it.query.isMatching(request.chunk.key)
         }
+
+        _pendingQueries
+                .filter { it.query.isMatching(request.chunk.key) }
+                .forEach { it.forwardedChunks.add(request.chunk.key) }
 
         return result
     }
@@ -73,7 +79,12 @@ class DataQueryHandlerImpl(private val peerId: Id)
 
     private fun getQuerySourceFor(id: Id) = network.getQuerySource(id)
 
-    private data class PendingQuery(val query: QueryRequest, val receiveTime: LocalDateTime)
+    private data class PendingQuery(
+            val query: QueryRequest,
+            val receiveTime: LocalDateTime
+    ) {
+        var forwardedChunks = mutableListOf<Key>()
+    }
 
     private val pendingQueries: List<PendingQuery> get() {
         removeOldPendingQueries()

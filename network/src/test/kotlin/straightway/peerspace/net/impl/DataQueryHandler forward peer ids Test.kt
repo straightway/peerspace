@@ -17,7 +17,6 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -171,7 +170,6 @@ class `DataQueryHandler forward peer ids Test` {
             }
 
     @Test
-    @Disabled
     fun `timed result being received twice is forwarded on only once`() =
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)

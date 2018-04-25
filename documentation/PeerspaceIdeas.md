@@ -46,7 +46,7 @@ Privileges
 
 The read and write access to plain data chunks is unrestricted on the basic level. In order to control read access, the content must be encrypted.
 
-The same is true for read access to lists. However, to restrict write access to lists, each list entry must be cryptographically signed using an asymmetric key pair. The public key is used as list id, the private key is called list access token and used to sign the data. This allows any peer to check if the sender of a list entry has the write privilege on that list (i.e. access to the list access token ).
+The same is true for read access to lists. However, to restrict write access to lists, each list entry must be cryptographically signed using an asymmetric key pair. The public key is used as list id, the private key is called list access token and used to sign the data. This allows any peer to check if the sender of a list entry has the write privilege on that list (i.e. access to the _list access token_).
 
 Peers ignore all invalid requests they receive.
 

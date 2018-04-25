@@ -16,6 +16,10 @@
 
 package straightway.peerspace.net
 
+/**
+ * Classes implementing this interface will receive the
+ * infrastructure via the setter when assigned to an infrastructure
+ */
 interface InfrastructureReceiver {
     var infrastructure: Infrastructure set
 }

@@ -34,7 +34,7 @@ class `PeerImpl general Test` {
     private companion object {
         val id = Id("thePeerId")
         val dataQuery = QueryRequest(Id("queryingPeer"), Id("chunkId"))
-        val pushRequest = PushRequest(Chunk(Key(Id("Id")), byteArrayOf()))
+        val pushRequest = PushRequest(id, Chunk(Key(Id("Id")), byteArrayOf()))
     }
 
     private val test get() = Given {
@@ -56,6 +56,6 @@ class `PeerImpl general Test` {
     @Test
     fun `DataQueryHandler is notified of incoming data`() =
             test when_ { peer.push(pushRequest) } then {
-                verify(dataQueryHandler).notifyDataArrived(pushRequest)
+                verify(dataQueryHandler).getForwardPeerIdsFor(pushRequest)
             }
 }

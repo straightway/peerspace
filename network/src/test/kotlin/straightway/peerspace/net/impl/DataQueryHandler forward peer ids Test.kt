@@ -16,10 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
@@ -29,6 +26,12 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Empty
+import straightway.testing.flow.Equal
+import straightway.testing.flow.Values
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 import straightway.units.get
 import straightway.units.plus
 import straightway.units.second
@@ -36,23 +39,26 @@ import straightway.units.toDuration
 import straightway.units.year
 import java.time.LocalDateTime
 
-class `DataQueryHandler receive result Test` {
+class `DataQueryHandler forward peer ids Test` {
 
-    companion object {
+    private companion object {
         val peerId = Id("peerId")
-        val queryingPeerId = Id("queryingPeerId")
+        val timedQueryingPeerId = Id("timedQueryingPeerId")
+        val untimedQueryingPeerId = Id("untimedQueryingPeerId")
         val queriedChunkId = Id("queriedChunkId")
-        val knownPeersIds = ids("1") + listOf(queryingPeerId)
-        val untimedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId)
+        val knownPeersIds = ids("1") + listOf(timedQueryingPeerId, untimedQueryingPeerId)
+        val untimedQueryRequest = QueryRequest(untimedQueryingPeerId, queriedChunkId)
         val untimedQueryResult = Chunk(Key(queriedChunkId), byteArrayOf(1, 2, 3))
-        val timedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId, 1L..2L)
+        val untimedResultPushRequest = PushRequest(peerId, untimedQueryResult)
+        val timedQueryRequest = QueryRequest(timedQueryingPeerId, queriedChunkId, 1L..2L)
         val timedQueryResult = Chunk(Key(queriedChunkId, 1L), byteArrayOf(1, 2, 3))
+        val timedResultPushRequest = PushRequest(peerId, timedQueryResult)
         val otherTimedQueryResult = Chunk(Key(queriedChunkId, 2L), byteArrayOf(1, 2, 3))
         val forwardedPeers = 0..0
     }
 
     private val test get() = Given {
-        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        val result = object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = knownPeersIds,
                 forwardStrategy = mock {
@@ -71,113 +77,110 @@ class `DataQueryHandler receive result Test` {
                 }
             }
         }
+
+        result.fixed()
+        result
     }
 
     @Test
-    fun `not matching chunk is not pushed back as query result`() =
+    fun `not matching chunk is not forwarded`() =
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(
-                        PushRequest(Chunk(Key(Id("otherId")), byteArrayOf())))
+                dataQueryHandler.getForwardPeerIdsFor(
+                        PushRequest(peerId, Chunk(Key(Id("otherId")), byteArrayOf())))
             } then {
-                verify(queryingPeer, never()).push(any())
+                expect(it.result is_ Empty)
             }
 
     @Test
-    fun `untimed result being pushed back immediately is pushed back on`() =
+    fun `untimed result being pushed back immediately is forwarded`() =
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
             } then {
-                verify(queryingPeer).push(PushRequest(untimedQueryResult))
+                expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))
             }
 
     @Test
-    fun `untimed result being received twice is pushed back on only once`() =
+    fun `untimed result being received twice is forwarded on only once`() =
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
-                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest) +
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
             } then {
-                verify(queryingPeer).push(PushRequest(untimedQueryResult))
+                expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))
             }
 
     @Test
-    fun `untimed result being received after another result is pushed back on`() =
+    fun `untimed result being received after another result is forwarded`() =
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
-                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest) +
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
             } then {
-                verify(queryingPeer).push(PushRequest(untimedQueryResult))
+                expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))
             }
 
     @Test
-    fun `untimed result not pushed back after timeout expired`() =
+    fun `untimed result not forwarded after timeout expired`() =
             test while_ {
                 delayForwardingOfTimedQueries()
                 dataQueryHandler.handle(untimedQueryRequest)
                 currTime += (configuration.untimedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(untimedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
             } then {
-                verify(queryingPeer, never()).push(any())
+                expect(it.result is_ Empty)
             }
 
     @Test
-    fun `timed result being pushed back immediately is pushed back on`() =
+    fun `timed result being received immediately is forwarded`() =
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
             } then {
-                verify(queryingPeer).push(PushRequest(timedQueryResult))
+                expect(it.result is_ Equal to_ Values(timedQueryingPeerId))
             }
 
     @Test
-    fun `timed result not pushed back after timeout expired`() =
+    fun `timed result not forwarded after timeout expired`() =
             test while_ {
                 delayForwardingOfUntimedQueries()
                 dataQueryHandler.handle(timedQueryRequest)
                 currTime += (configuration.timedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
             } then {
-                verify(queryingPeer, never()).push(any())
+                expect(it.result is_ Empty)
             }
 
     @Test
-    fun `multiple timed result being received are all pushed back on`() =
+    fun `multiple timed result being received are all forwarded`() =
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
-                dataQueryHandler.notifyDataArrived(PushRequest(otherTimedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest) +
+                dataQueryHandler.getForwardPeerIdsFor(PushRequest(peerId, otherTimedQueryResult))
             } then {
-                inOrder(queryingPeer) {
-                    verify(queryingPeer).push(PushRequest(timedQueryResult))
-                    verify(queryingPeer).push(PushRequest(otherTimedQueryResult))
-                }
+                expect(it.result is_ Equal to_ Values(timedQueryingPeerId, timedQueryingPeerId))
             }
 
     @Test
     @Disabled
-    fun `timed result being received twice is pushed back on only once`() =
+    fun `timed result being received twice is forwarded on only once`() =
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
-                dataQueryHandler.notifyDataArrived(PushRequest(timedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest) +
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
             } then {
-                verify(queryingPeer).push(PushRequest(timedQueryResult))
+                expect(it.result is_ Equal to_ Values(timedQueryingPeerId))
             }
-
-    private val PeerTestEnvironment.queryingPeer get() =
-        knownPeers.single { it.id == queryingPeerId }
 
     private fun PeerTestEnvironment.delayForwardingOfTimedQueries() {
         configuration = configuration.copy(timedDataQueryTimeout = 1[year])

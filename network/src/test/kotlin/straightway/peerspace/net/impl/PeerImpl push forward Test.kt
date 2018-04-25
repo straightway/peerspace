@@ -18,6 +18,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -27,27 +28,44 @@ import straightway.testing.bdd.Given
 
 class `PeerImpl push forward Test` {
 
-    companion object {
+    private companion object {
         val peerId = Id("peerId")
-        val knownPeersIds = ids("1", "2", "3")
+        val queryingPeerId = Id("queryingPeerId")
+        val knownPeersIds = ids("1", "2", "3") + queryingPeerId
         val chunk = Chunk(Key(Id("chunkId")), byteArrayOf(1, 2, 3))
-        val forwardedPeers = 1..2
+        val request = PushRequest(knownPeersIds.first(), chunk)
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(
+        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
-                knownPeersIds = knownPeersIds,
+                knownPeersIds = knownPeersIds
+        ) {
+            var forwardedPeers = 1..2
+            var queryForwardPeerIds = ids()
+            init {
                 forwardStrategy = mock {
-                    on { getPushForwardPeerIdsFor(any()) }
-                            .thenReturn(knownPeersIds.slice(forwardedPeers))
-                })
+                    on {
+                        getPushForwardPeerIdsFor(any())
+                    }.thenAnswer {
+                        knownPeersIds.slice(forwardedPeers)
+                    }
+                }
+                dataQueryHandler = mock {
+                    on {
+                        getForwardPeerIdsFor(any())
+                    }.thenAnswer {
+                        queryForwardPeerIds
+                    }
+                }
+            }
+        }
     }
 
     @Test
     fun `push request is forwarded according to forward strategy`() =
             test when_ {
-                peer.push(PushRequest(chunk))
+                peer.push(request)
             } then {
                 verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key)
             }
@@ -55,10 +73,42 @@ class `PeerImpl push forward Test` {
     @Test
     fun `push request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                peer.push(PushRequest(chunk))
+                peer.push(request)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).push(PushRequest(chunk))
+                    verify(knownPeers[it]).push(request)
                 }
+            }
+
+    @Test
+    fun `push request is forwarded to peers which queried the pushed data`() =
+            test while_ {
+                forwardedPeers = IntRange.EMPTY
+                queryForwardPeerIds = listOf(queryingPeerId)
+            } when_ {
+                peer.push(request)
+            } then {
+                verify(knownPeers.single { it.id == queryingPeerId }).push(request)
+            }
+
+    @Test
+    fun `request is forwarded once if same in query and forward strategy `() =
+            test while_ {
+                forwardedPeers = 1..1
+                queryForwardPeerIds = knownPeersIds.slice(forwardedPeers)
+            } when_ {
+                peer.push(request)
+            } then {
+                knownPeers
+                        .filter { it.id in knownPeersIds.slice(forwardedPeers) }
+                        .forEach { verify(it).push(request) }
+            }
+
+    @Test
+    @Disabled
+    fun `don't push back to the originator`() =
+            test when_ {
+                peer.push(request)
+            } then {
             }
 }

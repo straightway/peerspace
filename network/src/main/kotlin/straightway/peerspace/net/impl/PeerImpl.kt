@@ -59,19 +59,20 @@ class PeerImpl(
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
-    private fun forwardPushRequest(request: PushRequest) {
-        forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key).forEach {
-            getPushTargetFor(it).push(request)
-        }
+    private fun forwardPushRequest(request: PushRequest) =
+            getForwardPeersFor(request).forEach {
+                getPushTargetFor(it).push(request)
+            }
 
-        dataQueryHandler.notifyDataArrived(request)
-    }
+    private fun getForwardPeersFor(request: PushRequest) =
+            (forwardStrategy.getPushForwardPeerIdsFor(request.chunk.key) +
+             dataQueryHandler.getForwardPeerIdsFor(request)).toSet()
 
     private fun pushBackKnownPeersTo(originatorId: Id) =
             getPushTargetFor(originatorId).push(
-                    PushRequest(Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer)))
-
-    private val knownPeersChunkKey = Key(Administrative.KnownPeers.id)
+                    PushRequest(
+                            id,
+                            Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer)))
 
     private val serializedKnownPeersQueryAnswer get() =
         knownPeersQueryAnswer.serializeToByteArray()
@@ -91,5 +92,9 @@ class PeerImpl(
     private fun queryForKnownPeers(it: Id) {
         val peer = network.getQuerySource(it)
         peer.query(QueryRequest(id, Administrative.KnownPeers))
+    }
+
+    private companion object {
+        val knownPeersChunkKey = Key(Administrative.KnownPeers.id)
     }
 }

@@ -17,12 +17,13 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Id
 import java.io.Serializable
 
 /**
  * A request to push data to another peer.
  */
-data class PushRequest(val chunk: Chunk) : Serializable {
+data class PushRequest(val originatorId: Id, val chunk: Chunk) : Serializable {
     companion object {
         const val serialVersionUID = 1L
     }

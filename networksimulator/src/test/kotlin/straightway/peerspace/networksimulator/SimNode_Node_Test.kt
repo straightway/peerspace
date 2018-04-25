@@ -59,7 +59,7 @@ class SimNode_Node_Test {
             val pushTarget = mock<PushTarget>()
             val pushTargets = mutableMapOf(Pair(peerId, pushTarget))
             val chunk = Chunk(chunkKey, chunkData)
-            val pushRequest = PushRequest(chunk)
+            val pushRequest = PushRequest(Id("senderId"), chunk)
             val querySource = mock<QuerySource>()
             val querySources = mutableMapOf(Pair(peerId, querySource))
             val queryRequest = QueryRequest(Id("originId"), Id("chunkId"), untimedData)

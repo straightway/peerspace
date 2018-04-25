@@ -58,13 +58,13 @@ class `PeerImpl push Test` {
 
     @Test
     fun `push does not throw`() =
-            test when_ { peer.push(PushRequest(chunk)) } then {
+            test when_ { peer.push(PushRequest(peerId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { peer.push(PushRequest(chunk)) } then {
+            test when_ { peer.push(PushRequest(peerId, chunk)) } then {
                 verify(dataChunkStore).store(chunk)
             }
 }

@@ -20,6 +20,7 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
+import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
@@ -33,7 +34,7 @@ import java.time.LocalDateTime
  * Handle timed and untimed data queries.
  */
 class DataQueryHandlerImpl(private val peerId: Id)
-    : DataQueryHandler, InfrastructureProvider {
+    : DataQueryHandler, InfrastructureReceiver, InfrastructureProvider {
 
     override lateinit var infrastructure: Infrastructure
 
@@ -49,20 +50,23 @@ class DataQueryHandlerImpl(private val peerId: Id)
         }
     }
 
-    override fun notifyDataArrived(request: PushRequest) {
-        pendingQueries.filter { it.query.isMatching(request.chunk.key) }.forEach {
-            getPushTargetFor(it.query.originatorId).push(request)
-        }
+    override fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id> {
+        val result = pendingQueries
+                .filter { it.query.isMatching(request.chunk.key) }
+                .map { it.query.originatorId }
+                .toList()
 
         _pendingQueries.removeIf {
             it.query.isUntimed && it.query.isMatching(request.chunk.key)
         }
+
+        return result
     }
 
     private fun pushBackDataQueryResult(request: QueryRequest) {
         val originator by lazy { request.pushTarget }
         val queryResult = dataChunkStore.query(request)
-        queryResult.forEach { originator.push(PushRequest(it)) }
+        queryResult.forEach { originator.push(PushRequest(peerId, it)) }
     }
 
     private val QueryRequest.pushTarget get() = getPushTargetFor(originatorId)

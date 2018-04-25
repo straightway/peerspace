@@ -15,10 +15,12 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.Id
+
 /**
  * Handle functionality associated with data queries.
  */
 interface DataQueryHandler : InfrastructureReceiver {
     fun handle(request: QueryRequest)
-    fun notifyDataArrived(request: PushRequest)
+    fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id>
 }

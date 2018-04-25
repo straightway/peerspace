@@ -32,6 +32,7 @@ class NetworkNodeTest : TestBase<NetworkClient>() {
     private companion object {
         val peerId = Id("peer")
     }
+
     @BeforeEach
     fun setup() {
         sut = NetworkClient(peerId)
@@ -43,7 +44,7 @@ class NetworkNodeTest : TestBase<NetworkClient>() {
     @Test
     fun receiveData_isRegistered() {
         val data = Chunk(Key(Id("0815")), byteArrayOf(1, 2, 3))
-        sut.push(PushRequest(data))
+        sut.push(PushRequest(Id("senderId"), data))
         expect(sut.receivedData is_ Equal to_ listOf(data))
     }
 }

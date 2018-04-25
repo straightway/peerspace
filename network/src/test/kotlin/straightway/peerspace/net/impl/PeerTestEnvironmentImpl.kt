@@ -33,11 +33,11 @@ data class PeerTestEnvironmentImpl(
         override val unknownPeerIds: List<Id> = listOf(),
         override var configuration: Configuration = Configuration(),
         override val localChunks: List<Chunk> = listOf(),
-        val forwardStrategy: ForwardStrategy = mock(),
+        override var forwardStrategy: ForwardStrategy = mock(),
         override var timeProvider: TimeProvider = mock {
             on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
         },
-        private val dataQueryHandler: DataQueryHandler = mock()
+        override var dataQueryHandler: DataQueryHandler = mock()
 ) : PeerTestEnvironment {
     override val knownPeers = knownPeersIds.map { createPeerMock(it) }
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
@@ -57,4 +57,8 @@ data class PeerTestEnvironmentImpl(
     }
 
     override val peer by lazy { PeerImpl(peerId, infrastructure) }
+    override fun fixed(): PeerTestEnvironmentImpl {
+        peer
+        return this
+    }
 }

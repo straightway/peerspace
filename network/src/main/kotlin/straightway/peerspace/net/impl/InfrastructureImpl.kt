@@ -47,7 +47,6 @@ data class InfrastructureImpl(
             val currProperty = it.get(this)
             if (currProperty is InfrastructureReceiver)
                 currProperty.infrastructure = this
-
         }
     }
 }

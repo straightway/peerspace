@@ -44,7 +44,7 @@ class `DataQueryHandler general Test` {
                 peerId,
                 knownPeersIds = listOf(receiverId),
                 dataQueryHandler = DataQueryHandlerImpl(peerId)
-        ) {
+        ).fixed() {
             val receiver = getPeer(receiverId)
         }
     }
@@ -72,6 +72,6 @@ class `DataQueryHandler general Test` {
             } when_ {
                 dataQueryHandler.handle(queryRequest)
             } then {
-                verify(receiver).push(PushRequest(chunk))
+                verify(receiver).push(PushRequest(peerId, chunk))
             }
 }

@@ -19,6 +19,8 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
 import straightway.random.Chooser
@@ -40,6 +42,10 @@ interface PeerTestEnvironment : InfrastructureProvider {
     var knownPeerAnswerChooser: Chooser
     var timeProvider: TimeProvider
     val peer: PeerImpl
+    var forwardStrategy: ForwardStrategy
+    var dataQueryHandler: DataQueryHandler
+
+    fun fixed(): PeerTestEnvironment
 }
 
 fun PeerTestEnvironment.getPeer(id: Id) =

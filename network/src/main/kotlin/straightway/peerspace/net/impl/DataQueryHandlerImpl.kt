@@ -13,8 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-@file:Suppress("ForbiddenComment")
-
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Chunk
@@ -46,20 +44,22 @@ class DataQueryHandlerImpl(private val peerId: Id)
 
     override fun handle(request: QueryRequest) {
         request.setPending()
-        pushBackDataQueryResult(request) // TODO: Not pending when untimed and with immediate result
-        request.forward() // TODO: Untimed request already satisfied: No need to forward
+        val localResult = request.result.toList()
+        localResult forwardTo request.pushTarget
+        if (!(request.isUntimed && localResult.any()))
+            request.forward()
     }
 
     override fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id> =
             request.resultReceiverIds.toList().apply { request.markAsHandled() }
 
-    val QueryRequest.forwardCopy get() =
+    private val QueryRequest.forwardCopy get() =
             copy(originatorId = peerId)
 
-    val QueryRequest.forwardPeerIds get() =
+    private val QueryRequest.forwardPeerIds get() =
             forwardStrategy.getQueryForwardPeerIdsFor(this)
 
-    fun QueryRequest.forward() = forwardCopy.let {
+    private fun QueryRequest.forward() = forwardCopy.let {
         forwardPeerIds.forEach { peerId -> getQuerySourceFor(peerId).query(it) }
     }
 
@@ -88,9 +88,6 @@ class DataQueryHandlerImpl(private val peerId: Id)
 
     private fun PushRequest.addToForwardedChunksOfMatchingQueries() =
             pendingQueries.forEach { it.forwardedChunks.add(chunk.key) }
-
-    private fun pushBackDataQueryResult(request: QueryRequest) =
-            request.result forwardTo request.pushTarget
 
     private val QueryRequest.result get() =
             dataChunkStore.query(this)

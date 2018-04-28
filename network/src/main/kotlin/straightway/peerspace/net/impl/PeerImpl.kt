@@ -30,9 +30,7 @@ import straightway.utils.serializeToByteArray
 
 // TODO:
 // * Avoid routing loops:
-// ** Don't push back to the originator
 // ** Don't push the same chunk twice to the same peer (within a certain time)
-// * Optimize routing: Send chunks only once
 // * Collect known peers while receiving requests
 
 /**

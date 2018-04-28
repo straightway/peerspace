@@ -29,7 +29,7 @@ class `DataQueryHandler query forward Test` {
         val peerId = Id("peerId")
         val queryingPeerId = Id("queryingPeerId")
         val queriedChunkId = Id("queriedChunkId")
-        val knownPeersIds = ids("1", "2", "3")
+        val knownPeersIds = ids("1", "2", "3") + queryingPeerId
         val receivedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId, 0L..83L)
         val forwardedQueryRequest = QueryRequest(peerId, queriedChunkId, 0L..83L)
         val forwardedPeers = 1..2

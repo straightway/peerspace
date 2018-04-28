@@ -13,8 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+@file:Suppress("ForbiddenComment")
+
 package straightway.peerspace.net.impl
 
+import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
@@ -23,9 +26,11 @@ import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isUntimed
+import straightway.peerspace.net.untimedData
 import straightway.units.Time
 import straightway.units.toDuration
 import straightway.units.UnitNumber
@@ -40,40 +45,61 @@ class DataQueryHandlerImpl(private val peerId: Id)
     override lateinit var infrastructure: Infrastructure
 
     override fun handle(request: QueryRequest) {
-        _pendingQueries +=
-                PendingQuery(request, timeProvider.currentTime)
-
-        pushBackDataQueryResult(request)
-
-        val forwardedRequest = request.copy(originatorId = peerId)
-        forwardStrategy.getQueryForwardPeerIdsFor(request).forEach {
-            getQuerySourceFor(it).query(forwardedRequest)
-        }
+        request.setPending()
+        pushBackDataQueryResult(request) // TODO: Not pending when untimed and with immediate result
+        request.forward() // TODO: Untimed request already satisfied: No need to forward
     }
 
-    override fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id> {
-        val result = pendingQueries
-                .filter { it.query.isMatching(request.chunk.key) }
-                .filter { !it.forwardedChunks.contains(request.chunk.key) }
+    override fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id> =
+            request.resultReceiverIds.toList().apply { request.markAsHandled() }
+
+    val QueryRequest.forwardCopy get() =
+            copy(originatorId = peerId)
+
+    val QueryRequest.forwardPeerIds get() =
+            forwardStrategy.getQueryForwardPeerIdsFor(this)
+
+    fun QueryRequest.forward() = forwardCopy.let {
+        forwardPeerIds.forEach { peerId -> getQuerySourceFor(peerId).query(it) }
+    }
+
+    private fun QueryRequest.setPending() {
+        _pendingQueries += PendingQuery(this, timeProvider.currentTime)
+    }
+
+    private fun PushRequest.markAsHandled() {
+        removeUntimedMatchingQueries()
+        addToForwardedChunksOfMatchingQueries()
+    }
+
+    private val PushRequest.resultReceiverIds get() =
+            pendingQueries
+                .filter { !it.forwardedChunks.contains(chunk.key) }
                 .map { it.query.originatorId }
-                .toList()
 
-        _pendingQueries.removeIf {
-            it.query.isUntimed && it.query.isMatching(request.chunk.key)
-        }
+    private val PushRequest.pendingQueries get() =
+            this@DataQueryHandlerImpl.pendingQueries.filter { it.query.isMatching(chunk.key) }
 
-        _pendingQueries
-                .filter { it.query.isMatching(request.chunk.key) }
-                .forEach { it.forwardedChunks.add(request.chunk.key) }
+    private fun PushRequest.removeUntimedMatchingQueries() =
+            isUntimed && _pendingQueries.removeIf { it.query.isMatching(chunk.key) }
 
-        return result
-    }
+    private val PushRequest.isUntimed get() =
+            chunk.key.timestamp in untimedData
 
-    private fun pushBackDataQueryResult(request: QueryRequest) {
-        val originator by lazy { request.pushTarget }
-        val queryResult = dataChunkStore.query(request)
-        queryResult.forEach { originator.push(PushRequest(peerId, it)) }
-    }
+    private fun PushRequest.addToForwardedChunksOfMatchingQueries() =
+            pendingQueries.forEach { it.forwardedChunks.add(chunk.key) }
+
+    private fun pushBackDataQueryResult(request: QueryRequest) =
+            request.result forwardTo request.pushTarget
+
+    private val QueryRequest.result get() =
+            dataChunkStore.query(this)
+
+    private infix fun Iterable<Chunk>.forwardTo(target: PushTarget) =
+            forEach { chunk -> chunk forwardTo target }
+
+    private infix fun Chunk.forwardTo(target: PushTarget) =
+            target.push(PushRequest(peerId, this))
 
     private val QueryRequest.pushTarget get() = getPushTargetFor(originatorId)
 
@@ -83,7 +109,7 @@ class DataQueryHandlerImpl(private val peerId: Id)
             val query: QueryRequest,
             val receiveTime: LocalDateTime
     ) {
-        var forwardedChunks = mutableListOf<Key>()
+        var forwardedChunks = mutableSetOf<Key>()
     }
 
     private val pendingQueries: List<PendingQuery> get() {

@@ -13,14 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net
+package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Id
-
-/**
- * Handle functionality associated with data queries.
- */
-interface DataQueryHandler : InfrastructureReceiver {
-    fun handle(query: QueryRequest)
-    fun getForwardPeerIdsFor(push: PushRequest): Iterable<Id>
-}
+class DataQueryHandlerImplTest

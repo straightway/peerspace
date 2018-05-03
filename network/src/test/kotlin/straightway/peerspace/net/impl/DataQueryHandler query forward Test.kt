@@ -50,7 +50,9 @@ class `DataQueryHandler query forward Test` {
                     on { getQueryForwardPeerIdsFor(any()) }
                             .thenReturn(knownPeersIds.slice(forwardedPeers))
                 },
-                dataQueryHandler = DataQueryHandlerImpl(peerId)).fixed()
+                dataQueryHandler = DataQueryHandlerImpl(
+                        UntimedDataQueryHandler(peerId),
+                        TimedDataQueryHandler(peerId))).fixed()
     }
 
     @Test

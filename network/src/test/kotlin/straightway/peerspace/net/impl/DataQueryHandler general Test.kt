@@ -43,7 +43,9 @@ class `DataQueryHandler general Test` {
         object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(receiverId),
-                dataQueryHandler = DataQueryHandlerImpl(peerId)
+                dataQueryHandler = DataQueryHandlerImpl(
+                        UntimedDataQueryHandler(peerId),
+                        TimedDataQueryHandler(peerId))
         ).fixed() {
             val receiver = getPeer(receiverId)
         }

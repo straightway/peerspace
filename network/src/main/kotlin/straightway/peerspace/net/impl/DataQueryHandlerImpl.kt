@@ -15,118 +15,33 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Chunk
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
-import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isUntimed
-import straightway.peerspace.net.untimedData
-import straightway.units.Time
-import straightway.units.toDuration
-import straightway.units.UnitNumber
-import java.time.LocalDateTime
 
 /**
  * Handle timed and untimed data queries.
  */
-class DataQueryHandlerImpl(private val peerId: Id)
-    : DataQueryHandler, InfrastructureReceiver, InfrastructureProvider {
+class DataQueryHandlerImpl(
+        private val untimedDataQueryHandler: DataQueryHandler,
+        private val timedDataQueryHandler: DataQueryHandler)
+    : DataQueryHandler, InfrastructureReceiver {
 
-    override lateinit var infrastructure: Infrastructure
+    override var infrastructure: Infrastructure
+        get() = throw UnsupportedOperationException()
+        set(newInfrastructure) {
+            untimedDataQueryHandler.infrastructure = newInfrastructure
+            timedDataQueryHandler.infrastructure = newInfrastructure
+        }
 
-    override fun handle(request: QueryRequest) {
-        request.setPending()
-        val localResult = request.result.toList()
-        localResult forwardTo request.pushTarget
-        if (!(request.isUntimed && localResult.any()))
-            request.forward()
-    }
+    override fun handle(query: QueryRequest) =
+        if (query.isUntimed) untimedDataQueryHandler.handle(query)
+        else timedDataQueryHandler.handle(query)
 
-    override fun getForwardPeerIdsFor(request: PushRequest): Iterable<Id> =
-            request.resultReceiverIds.toList().apply { request.markAsHandled() }
-
-    private val QueryRequest.forwardCopy get() =
-            copy(originatorId = peerId)
-
-    private val QueryRequest.forwardPeerIds get() =
-            forwardStrategy.getQueryForwardPeerIdsFor(this)
-
-    private fun QueryRequest.forward() = forwardCopy.let {
-        forwardPeerIds.forEach { peerId -> getQuerySourceFor(peerId).query(it) }
-    }
-
-    private fun QueryRequest.setPending() {
-        _pendingQueries += PendingQuery(this, timeProvider.currentTime)
-    }
-
-    private fun PushRequest.markAsHandled() {
-        removeUntimedMatchingQueries()
-        addToForwardedChunksOfMatchingQueries()
-    }
-
-    private val PushRequest.resultReceiverIds get() =
-            pendingQueries
-                .filter { !it.forwardedChunks.contains(chunk.key) }
-                .map { it.query.originatorId }
-
-    private val PushRequest.pendingQueries get() =
-            this@DataQueryHandlerImpl.pendingQueries.filter { it.query.isMatching(chunk.key) }
-
-    private fun PushRequest.removeUntimedMatchingQueries() =
-            isUntimed && _pendingQueries.removeIf { it.query.isMatching(chunk.key) }
-
-    private val PushRequest.isUntimed get() =
-            chunk.key.timestamp in untimedData
-
-    private fun PushRequest.addToForwardedChunksOfMatchingQueries() =
-            pendingQueries.forEach { it.forwardedChunks.add(chunk.key) }
-
-    private val QueryRequest.result get() =
-            dataChunkStore.query(this)
-
-    private infix fun Iterable<Chunk>.forwardTo(target: PushTarget) =
-            forEach { chunk -> chunk forwardTo target }
-
-    private infix fun Chunk.forwardTo(target: PushTarget) =
-            target.push(PushRequest(peerId, this))
-
-    private val QueryRequest.pushTarget get() = getPushTargetFor(originatorId)
-
-    private fun getQuerySourceFor(id: Id) = network.getQuerySource(id)
-
-    private data class PendingQuery(
-            val query: QueryRequest,
-            val receiveTime: LocalDateTime
-    ) {
-        var forwardedChunks = mutableSetOf<Key>()
-    }
-
-    private val pendingQueries: List<PendingQuery> get() {
-        removeOldPendingQueries()
-        return _pendingQueries
-    }
-
-    private fun removeOldPendingQueries() = _pendingQueries.removeAll { it.isTooOld }
-
-    private val PendingQuery.isTooOld get() = when {
-        query.isUntimed -> receiveTime < tooOldTimeForUntimedQueries
-        else -> receiveTime < tooOldTimeForTimedQueries
-    }
-
-    private val tooOldTimeForUntimedQueries get() = getTimeBorder { untimedDataQueryTimeout }
-
-    private val tooOldTimeForTimedQueries get() = getTimeBorder { timedDataQueryTimeout }
-
-    private fun getTimeBorder(duration: Configuration.() -> UnitNumber<Time>) =
-            timeProvider.currentTime - configuration.duration().toDuration()
-
-    private val _pendingQueries = mutableListOf<PendingQuery>()
+    override fun getForwardPeerIdsFor(push: PushRequest) =
+            (untimedDataQueryHandler.getForwardPeerIdsFor(push) +
+             timedDataQueryHandler.getForwardPeerIdsFor(push)).toSet()
 }

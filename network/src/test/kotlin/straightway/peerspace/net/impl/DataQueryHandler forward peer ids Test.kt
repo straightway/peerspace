@@ -67,7 +67,9 @@ class `DataQueryHandler forward peer ids Test` {
                 configuration = Configuration(
                         untimedDataQueryTimeout = 10[second],
                         timedDataQueryTimeout = 10[second]),
-                dataQueryHandler = DataQueryHandlerImpl(peerId)
+                dataQueryHandler = DataQueryHandlerImpl(
+                        UntimedDataQueryHandler(peerId),
+                        TimedDataQueryHandler(peerId))
         ) {
             var currTime = LocalDateTime.of(2001, 1, 1, 14, 30)
             init {

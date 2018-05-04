@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net.impl
 
+import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureReceiver
@@ -37,9 +38,10 @@ class DataQueryHandlerImpl(
             timedDataQueryHandler.infrastructure = newInfrastructure
         }
 
-    override fun handle(query: QueryRequest) =
+    override fun handle(query: QueryRequest) {
         if (query.isUntimed) untimedDataQueryHandler.handle(query)
         else timedDataQueryHandler.handle(query)
+    }
 
     override fun getForwardPeerIdsFor(push: PushRequest) =
             (untimedDataQueryHandler.getForwardPeerIdsFor(push) +

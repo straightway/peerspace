@@ -28,7 +28,7 @@ import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 
-class `DataQueryHandler general Test` {
+class `UntimedDataQueryHandler general Test` {
 
     private companion object {
         val peerId = Id("peerId")
@@ -43,9 +43,7 @@ class `DataQueryHandler general Test` {
         object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(receiverId),
-                dataQueryHandler = DataQueryHandlerImpl(
-                        UntimedDataQueryHandler(peerId),
-                        TimedDataQueryHandler(peerId))
+                dataQueryHandler = UntimedDataQueryHandler(peerId)
         ).fixed() {
             val receiver = getPeer(receiverId)
         }

@@ -26,17 +26,14 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `DataQueryHandler query forward Test` {
+class `UntimedDataQueryHandler query forward Test` {
 
     companion object {
         val peerId = Id("peerId")
         val queryingPeerId = Id("queryingPeerId")
         val queriedChunkId = Id("queriedChunkId")
         val untimedQueriedChunk = Chunk(Key(queriedChunkId), byteArrayOf(1, 2, 3))
-        val timedQueriedChunk = Chunk(Key(queriedChunkId, 1), byteArrayOf(1, 2, 3))
         val knownPeersIds = ids("1", "2", "3") + queryingPeerId
-        val receivedTimedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId, 0L..83L)
-        val forwardedTimedQueryRequest = QueryRequest(peerId, queriedChunkId, 0L..83L)
         val receivedUntimedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId)
         val forwardedUntimedQueryRequest = QueryRequest(peerId, queriedChunkId)
         val forwardedPeers = 1..2
@@ -50,31 +47,29 @@ class `DataQueryHandler query forward Test` {
                     on { getQueryForwardPeerIdsFor(any()) }
                             .thenReturn(knownPeersIds.slice(forwardedPeers))
                 },
-                dataQueryHandler = DataQueryHandlerImpl(
-                        UntimedDataQueryHandler(peerId),
-                        TimedDataQueryHandler(peerId))).fixed()
+                dataQueryHandler = UntimedDataQueryHandler(peerId)).fixed()
     }
 
     @Test
     fun `query request is forwarded according to forward strategy`() =
             test when_ {
-                dataQueryHandler.handle(receivedTimedQueryRequest)
+                dataQueryHandler.handle(receivedUntimedQueryRequest)
             } then {
-                verify(forwardStrategy).getQueryForwardPeerIdsFor(receivedTimedQueryRequest)
+                verify(forwardStrategy).getQueryForwardPeerIdsFor(receivedUntimedQueryRequest)
             }
 
     @Test
     fun `query request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                dataQueryHandler.handle(receivedTimedQueryRequest)
+                dataQueryHandler.handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(forwardedTimedQueryRequest)
+                    verify(knownPeers[it]).query(forwardedUntimedQueryRequest)
                 }
             }
 
     @Test
-    fun `query is not forwarded if untimed and local result found`() =
+    fun `query is not forwarded if local result found`() =
             test while_ {
                 dataChunkStore.store(untimedQueriedChunk)
             } when_ {
@@ -82,18 +77,6 @@ class `DataQueryHandler query forward Test` {
             } then {
                 forwardedPeers.forEach {
                     verify(knownPeers[it], never()).query(any())
-                }
-            }
-
-    @Test
-    fun `query is forwarded if timed even if local result found`() =
-            test while_ {
-                dataChunkStore.store(timedQueriedChunk)
-            } when_ {
-                dataQueryHandler.handle(receivedTimedQueryRequest)
-            } then {
-                forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(forwardedTimedQueryRequest)
                 }
             }
 }

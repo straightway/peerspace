@@ -29,7 +29,7 @@ class TimedDataQueryHandler(peerId: Id)
     override fun QueryRequest.forward(hasLocalResult: Boolean) =
             forward()
 
-    override val tooOldTime get() = getTimeBorder { timedDataQueryTimeout }
+    override val tooOldThreshold get() = nowPlus(-configuration.timedDataQueryTimeout)
 
     override fun PushRequest.markAsHandled() =
             pendingQueriesForThisPush.forEach { it.forwardedChunks.add(chunk.key) }

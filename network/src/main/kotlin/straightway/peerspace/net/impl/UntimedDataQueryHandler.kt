@@ -27,9 +27,9 @@ class UntimedDataQueryHandler(peerId: Id)
     : SpecializedDataQueryHandlerBase(peerId) {
 
     override fun QueryRequest.forward(hasLocalResult: Boolean) =
-        if (hasLocalResult) forward() else Unit
+            if (hasLocalResult) Unit else forward()
 
-    override val tooOldTime get() = getTimeBorder { untimedDataQueryTimeout }
+    override val tooOldThreshold get() = nowPlus(-configuration.untimedDataQueryTimeout)
 
     override fun PushRequest.markAsHandled() =
             removeQueriesIf { isMatching(chunk.key) }

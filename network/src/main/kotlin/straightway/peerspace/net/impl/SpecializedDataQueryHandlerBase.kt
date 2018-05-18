@@ -18,7 +18,6 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
@@ -27,9 +26,6 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
-import straightway.units.Time
-import straightway.units.UnitNumber
-import straightway.units.toDuration
 import java.time.LocalDateTime
 
 /**
@@ -38,27 +34,22 @@ import java.time.LocalDateTime
 abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     : InfrastructureReceiver, InfrastructureProvider, DataQueryHandler {
 
-    protected abstract val tooOldTime: LocalDateTime
+    protected abstract val tooOldThreshold: LocalDateTime
     protected abstract val PushRequest.resultReceiverIds: Iterable<Id>
     protected abstract fun QueryRequest.forward(hasLocalResult: Boolean)
     protected abstract fun PushRequest.markAsHandled()
 
     final override lateinit var infrastructure: Infrastructure
 
-    final override fun handle(query: QueryRequest) {
-        query.setPending()
-        val localResult = query.result.toList()
-        localResult forwardTo query.issuer
-        query.forward(localResult.isEmpty())
-    }
+    final override fun handle(query: QueryRequest) =
+            if (query.isPending) Unit else handleNewQueryRequest(query)
 
     final override fun getForwardPeerIdsFor(push: PushRequest) =
             push.resultReceiverIds.toList().apply { push.markAsHandled() }
 
-    protected val QueryRequest.result get() =
-        dataChunkStore.query(this)
+    protected val QueryRequest.result get() = dataChunkStore.query(this)
 
-    protected data class PendingQuery(
+    data class PendingQuery(
             val query: QueryRequest,
             val receiveTime: LocalDateTime
     ) {
@@ -66,7 +57,7 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     }
 
     protected fun removeQueriesIf(predicate: QueryRequest.() -> Boolean) {
-        _pendingQueries.removeAll { it.query.predicate() }
+        _pendingQueries.removeIf { it.query.predicate() }
     }
 
     protected fun QueryRequest.forward() = forwardCopy.let {
@@ -74,14 +65,26 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     }
 
     protected val PushRequest.pendingQueriesForThisPush get() =
-        pendingQueries.filter { it.query.isMatching(chunk.key) }
+            pendingQueries.filter { it.query.isMatching(chunk.key) }
 
-    protected fun getTimeBorder(duration: Configuration.() -> UnitNumber<Time>) =
-            (timeProvider.currentTime - configuration.duration().toDuration())!!
-
-    private val pendingQueries: MutableList<PendingQuery> get() {
+    protected val pendingQueries: MutableList<PendingQuery> get() {
         removeOldPendingQueries()
         return _pendingQueries
+    }
+
+    private val QueryRequest.isPending get() =
+            pendingQueries.any { it.query == this }
+
+    private fun handleNewQueryRequest(query: QueryRequest) {
+        query.setPending()
+        val hasLocalResult = returnLocalResult(query)
+        query.copy(originatorId = peerId).forward(hasLocalResult)
+    }
+
+    private fun returnLocalResult(query: QueryRequest): Boolean {
+        val localResult = query.result.toList()
+        localResult forwardTo query.issuer
+        return localResult.any()
     }
 
     private infix fun Iterable<Chunk>.forwardTo(target: PushTarget) =
@@ -92,19 +95,18 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     private infix fun Chunk.forwardTo(target: PushTarget) =
             target.push(PushRequest(peerId, this))
 
-    private val QueryRequest.forwardCopy get() =
-        copy(originatorId = peerId)
+    private val QueryRequest.forwardCopy get() = copy(originatorId = peerId)
 
     private val QueryRequest.forwardPeerIds get() =
-        forwardStrategy.getQueryForwardPeerIdsFor(this)
+            forwardStrategy.getQueryForwardPeerIdsFor(this)
 
     private fun QueryRequest.setPending() {
         pendingQueries += PendingQuery(this, timeProvider.currentTime)
     }
 
-    private fun removeOldPendingQueries() = _pendingQueries.removeAll { it.isTooOld }
+    private fun removeOldPendingQueries() = _pendingQueries.removeIf { it.isTooOld }
 
-    private val PendingQuery.isTooOld get() = receiveTime < tooOldTime
+    private val PendingQuery.isTooOld get() = receiveTime < tooOldThreshold
 
     private val _pendingQueries = mutableListOf<PendingQuery>()
 }

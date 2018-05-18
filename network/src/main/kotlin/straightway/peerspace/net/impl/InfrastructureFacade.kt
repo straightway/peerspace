@@ -17,6 +17,9 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.InfrastructureProvider
+import straightway.units.Time
+import straightway.units.UnitNumber
+import straightway.units.toDuration
 
 val InfrastructureProvider.dataChunkStore get() = infrastructure.dataChunkStore
 val InfrastructureProvider.peerDirectory get() = infrastructure.peerDirectory
@@ -30,3 +33,5 @@ val InfrastructureProvider.dataQueryHandler get() = infrastructure.dataQueryHand
 
 fun InfrastructureProvider.getPushTargetFor(id: Id) = network.getPushTarget(id)
 fun InfrastructureProvider.getQuerySourceFor(id: Id) = network.getQuerySource(id)
+fun InfrastructureProvider.nowPlus(duration: UnitNumber<Time>) =
+        (timeProvider.currentTime + duration.toDuration())!!

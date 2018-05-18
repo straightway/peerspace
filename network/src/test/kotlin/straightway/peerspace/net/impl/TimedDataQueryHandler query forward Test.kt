@@ -54,7 +54,8 @@ class `TimedDataQueryHandler query forward Test` {
             test when_ {
                 dataQueryHandler.handle(receivedTimedQueryRequest)
             } then {
-                verify(forwardStrategy).getQueryForwardPeerIdsFor(receivedTimedQueryRequest)
+                verify(forwardStrategy).getQueryForwardPeerIdsFor(
+                        receivedTimedQueryRequest.copy(originatorId = peerId))
             }
 
     @Test

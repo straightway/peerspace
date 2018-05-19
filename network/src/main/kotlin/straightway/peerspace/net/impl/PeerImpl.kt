@@ -75,7 +75,7 @@ class PeerImpl(
         get() = forwardStrategy.getPushForwardPeerIdsFor(chunk.key)
 
     private val PushRequest.queryForwardPeerIds: Iterable<Id>
-        get() = dataQueryHandler.getForwardPeerIdsFor(this)
+        get() = dataQueryHandler.getForwardPeerIdsFor(chunk.key)
 
     private fun pushBackKnownPeersTo(originatorId: Id) =
             originatorId.asPushTarget.push(knownPeersAnswerRequest)

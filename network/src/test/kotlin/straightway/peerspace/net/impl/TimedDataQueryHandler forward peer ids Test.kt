@@ -82,8 +82,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(
-                        PushRequest(peerId, Chunk(Key(Id("otherId")), byteArrayOf())))
+                dataQueryHandler.getForwardPeerIdsFor(Key(Id("otherId")))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -93,7 +92,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Equal to_ Values(timedQueryingPeerId))
             }
@@ -105,7 +104,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
                 dataQueryHandler.handle(timedQueryRequest)
                 currTime += (configuration.timedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
@@ -115,8 +114,8 @@ class `TimedDataQueryHandler forward peer ids Test` {
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest) +
-                dataQueryHandler.getForwardPeerIdsFor(PushRequest(peerId, otherTimedQueryResult))
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key) +
+                dataQueryHandler.getForwardPeerIdsFor(otherTimedQueryResult.key)
             } then {
                 expect(it.result is_ Equal to_ Values(timedQueryingPeerId, timedQueryingPeerId))
             }
@@ -127,7 +126,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
                 dataQueryHandler.handle(timedQueryRequest)
                 dataQueryHandler.notifyChunkForwarded(timedResultPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }

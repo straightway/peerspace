@@ -113,21 +113,21 @@ class DataQueryHandlerImplTest {
 
     @Test
     fun `getForwardPeerIdsFor yields ids returned by untimed subhandler`() =
-            test when_ { sut.getForwardPeerIdsFor(push) } then {
-                verify(untimedDataQueryHandler).getForwardPeerIdsFor(push)
+            test when_ { sut.getForwardPeerIdsFor(push.chunk.key) } then {
+                verify(untimedDataQueryHandler).getForwardPeerIdsFor(push.chunk.key)
                 expect(it.result has Values(untimedId, timedUntimedId))
             }
 
     @Test
     fun `getForwardPeerIdsFor yields ids returned by timed subhandler`() =
-            test when_ { sut.getForwardPeerIdsFor(push) } then {
-                verify(timedDataQueryHandler).getForwardPeerIdsFor(push)
+            test when_ { sut.getForwardPeerIdsFor(push.chunk.key) } then {
+                verify(timedDataQueryHandler).getForwardPeerIdsFor(push.chunk.key)
                 expect(it.result has Values(timedId, timedUntimedId))
             }
 
     @Test
     fun `getForwardPeerIdsFor does not yield duplicates`() =
-            test when_ { sut.getForwardPeerIdsFor(push) } then {
+            test when_ { sut.getForwardPeerIdsFor(push.chunk.key) } then {
                 expect(it.result.size is_ Equal to_ 3)
             }
 

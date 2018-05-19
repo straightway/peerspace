@@ -198,7 +198,7 @@ class SpecializedDataQueryHandlerBaseTest {
             test while_ {
                 sut.resultReceiverIds.clear()
             } when_ {
-                sut.getForwardPeerIdsFor(PushRequest(anyPeerId, chunk))
+                sut.getForwardPeerIdsFor(chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
@@ -208,7 +208,7 @@ class SpecializedDataQueryHandlerBaseTest {
             test while_ {
                 sut.resultReceiverIds += anyPeerId
             } when_ {
-                sut.getForwardPeerIdsFor(PushRequest(anyPeerId, chunk))
+                sut.getForwardPeerIdsFor(chunk.key)
             } then {
                 expect(it.result is_ Equal to_ Values(anyPeerId))
             }
@@ -216,7 +216,7 @@ class SpecializedDataQueryHandlerBaseTest {
     @Test
     fun `getForwardPeerIdsFor does not mark push as handled`() =
             test when_ {
-                sut.getForwardPeerIdsFor(PushRequest(anyPeerId, chunk))
+                sut.getForwardPeerIdsFor(chunk.key)
             } then {
                 expect(sut.handledPushRequests is_ Empty)
             }
@@ -228,7 +228,7 @@ class SpecializedDataQueryHandlerBaseTest {
                 sut.resultReceiverIds.clear()
                 sut.resultReceiverIds.add(queryRequest.originatorId)
             } when_ {
-                sut.getForwardPeerIdsFor(PushRequest(anyPeerId, queryRequest.matchingChunk))
+                sut.getForwardPeerIdsFor(queryRequest.matchingChunk.key)
             } then {
                 expect(it.result is_ Equal to_ Values(queryRequest.originatorId))
             }

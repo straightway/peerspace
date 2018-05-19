@@ -23,6 +23,6 @@ import straightway.peerspace.data.Key
  */
 interface DataQueryHandler : InfrastructureReceiver {
     fun handle(query: QueryRequest)
-    fun getForwardPeerIdsFor(push: PushRequest): Iterable<Id>
+    fun getForwardPeerIdsFor(chunkKey: Key): Iterable<Id>
     fun notifyChunkForwarded(key: Key)
 }

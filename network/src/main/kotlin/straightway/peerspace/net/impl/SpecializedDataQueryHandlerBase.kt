@@ -43,8 +43,8 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     final override fun handle(query: QueryRequest) =
             if (query.isPending) Unit else handleNewQueryRequest(query)
 
-    final override fun getForwardPeerIdsFor(push: PushRequest) =
-            push.chunk.key.resultReceiverIdsForChunk.toList()
+    final override fun getForwardPeerIdsFor(chunkKey: Key) =
+            chunkKey.resultReceiverIdsForChunk.toList()
 
     protected val QueryRequest.result get() = dataChunkStore.query(this)
 

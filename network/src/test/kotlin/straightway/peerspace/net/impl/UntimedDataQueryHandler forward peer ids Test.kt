@@ -83,8 +83,7 @@ class `UntimedDataQueryHandler forward peer ids Test` {
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(
-                        PushRequest(peerId, Chunk(Key(Id("otherId")), byteArrayOf())))
+                dataQueryHandler.getForwardPeerIdsFor(Key(Id("otherId")))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -94,7 +93,7 @@ class `UntimedDataQueryHandler forward peer ids Test` {
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))
             }
@@ -105,7 +104,7 @@ class `UntimedDataQueryHandler forward peer ids Test` {
                 dataQueryHandler.handle(untimedQueryRequest)
                 dataQueryHandler.notifyChunkForwarded(untimedResultPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
@@ -116,7 +115,7 @@ class `UntimedDataQueryHandler forward peer ids Test` {
                 dataQueryHandler.handle(untimedQueryRequest)
                 dataQueryHandler.notifyChunkForwarded(otherPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))
             }
@@ -128,7 +127,7 @@ class `UntimedDataQueryHandler forward peer ids Test` {
                 dataQueryHandler.handle(untimedQueryRequest)
                 currTime += (configuration.untimedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
+                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }

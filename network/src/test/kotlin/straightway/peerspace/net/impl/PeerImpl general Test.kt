@@ -56,6 +56,6 @@ class `PeerImpl general Test` {
     @Test
     fun `DataQueryHandler is notified of incoming data`() =
             test when_ { peer.push(pushRequest) } then {
-                verify(dataQueryHandler).getForwardPeerIdsFor(pushRequest)
+                verify(dataQueryHandler).getForwardPeerIdsFor(pushRequest.chunk.key)
             }
 }

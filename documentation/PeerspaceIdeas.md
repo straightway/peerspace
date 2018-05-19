@@ -9,7 +9,7 @@ Each peer has a list of other known peers and knows how to contact them. The com
 Each chunk of data is identified by a key which either is
 
 - the content hash code of the data chunk, or
-- a list id together with the timestamp of the creation of the data chunk
+- a list or mutable chunk id together with the timestamp of the creation of the data chunk
 
 ### Data forwarding
 To find out the best peer where a data chunk should be stored, the _distance_ between the peer and a chunk of data is considered. This _distance_ is defined as the absolute difference of the hash code of the peer's id and the hash code of the data chunk's key.
@@ -34,6 +34,9 @@ Since we assume that the access frequency for a given list item becomes lower an
 The _distance_ of a list item to a peer's id should be determined from the combined hash code of the item's list id and epoch.
 
 This is of course the consequence, that the peer's  _distance_ to an item changes when the item enters the next epoch, which in turn may result in forwarding and/or deleting the item.
+
+### Forwarding and mutable chunks
+Mutable chunks work very much like lists. The only difference is, that peers only store the most recent instance of a mutable chunk, i.e. receiving a mutable chunk instance with a newer timestamp than the existing one overrides it. Received mutable chunk instances with an older timestamp than the existing one are ignored.
 
 ### Redundancy vs. capacity
 To be robust against failed queries due to (temporary) offline peers, data must be stored redundantly on multiple peers. As the overall storage capacity of the Peerspace network is limited, redundancy further reduces this capacity. So a trade-off between redundancy and capacity must made by a smart distribution algorithm.

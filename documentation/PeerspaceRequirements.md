@@ -18,6 +18,7 @@
 - Data shall be identified either by
   - **S005** content hash code, or by
   - **S006** list id. _Note: This identifies a list of multiple data items. This list may be extended by posting new data items under the same list id._
+  - **S007** mutable chunk id. _Note: This identifies a chunk who's content may be changed. 
 
 ## Query
 It shall be possible for peers to query the Peerspace network for stored data by:
@@ -28,7 +29,6 @@ It shall be possible for peers to query the Peerspace network for stored data by
     - **Q004** all list items that have been created not earlier than a given timestamp.
     - **Q005** all list items that have been created not later than a given timestamp.
     - **Q006** all list items that have been created within a given time frame.
-    - **Q007** the most recent item of a list.
 
 **Q008** Performance: The first query reply shall arrive within 3 seconds in 95% of the cases if the peer is connected to the internet with at least 1 mbit/s upload and download rate.
 

@@ -48,7 +48,7 @@ class `UntimedDataQueryHandler forward peer ids Test` {
         val untimedQueryRequest = QueryRequest(untimedQueryingPeerId, queriedChunkId)
         val untimedQueryResult = Chunk(Key(queriedChunkId), byteArrayOf(1, 2, 3))
         val untimedResultPushRequest = PushRequest(peerId, untimedQueryResult)
-        val otherChunk = Chunk(Key(queriedChunkId), byteArrayOf(1, 2, 3))
+        val otherChunk = Chunk(Key(Id("otherChunkId")), byteArrayOf(1, 2, 3))
         val otherPushRequest = PushRequest(peerId, otherChunk)
         val forwardedPeers = 0..0
     }
@@ -100,22 +100,22 @@ class `UntimedDataQueryHandler forward peer ids Test` {
             }
 
     @Test
-    fun `untimed result being received twice is forwarded on only once`() =
+    fun `untimed result being received again after push is not forwarded again`() =
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
+                dataQueryHandler.notifyChunkForwarded(untimedResultPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest) +
                 dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
             } then {
-                expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))
+                expect(it.result is_ Empty)
             }
 
     @Test
     fun `untimed result being received after another result is forwarded`() =
             test while_ {
                 dataQueryHandler.handle(untimedQueryRequest)
+                dataQueryHandler.notifyChunkForwarded(otherPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(otherPushRequest) +
                 dataQueryHandler.getForwardPeerIdsFor(untimedResultPushRequest)
             } then {
                 expect(it.result is_ Equal to_ Values(untimedQueryingPeerId))

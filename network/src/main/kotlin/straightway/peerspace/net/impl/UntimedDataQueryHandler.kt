@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
 
@@ -31,9 +31,8 @@ class UntimedDataQueryHandler(peerId: Id)
 
     override val tooOldThreshold get() = nowPlus(-configuration.untimedDataQueryTimeout)
 
-    override fun PushRequest.markAsHandled() =
-            removeQueriesIf { isMatching(chunk.key) }
+    override fun notifyChunkForwarded(key: Key) = removeQueriesIf { isMatching(key) }
 
-    override val PushRequest.resultReceiverIds get() =
+    override val Key.resultReceiverIdsForChunk get() =
             pendingQueriesForThisPush.map { it.query.originatorId }.toList()
 }

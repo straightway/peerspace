@@ -98,7 +98,7 @@ class SpecializedDataQueryHandlerBaseTest {
         override var tooOldThreshold = LocalDateTime.of(2000, 1, 1, 0, 0)!!
         fun changeTooOldThreshold(new: LocalDateTime) { tooOldThreshold = new }
 
-        override val PushRequest.resultReceiverIds: Iterable<Id>
+        override val Key.resultReceiverIdsForChunk: Iterable<Id>
             get() = this@DerivedSut.resultReceiverIds
 
         val resultReceiverIds = mutableListOf<Id>()
@@ -110,19 +110,19 @@ class SpecializedDataQueryHandlerBaseTest {
         data class ForwardedQuery(val query: QueryRequest, val hasLocalResult: Boolean)
         val forwardedQueries = mutableListOf<ForwardedQuery>()
 
-        override fun PushRequest.markAsHandled() {
-            handledPushRequests += this
+        override fun notifyChunkForwarded(key: Key) {
+            handledPushRequests += key
         }
 
-        val handledPushRequests = mutableListOf<PushRequest>()
+        val handledPushRequests = mutableListOf<Key>()
 
         fun protectedRemoveQueriesIf(predicate: QueryRequest.() -> Boolean) =
                 removeQueriesIf(predicate)
 
         fun protectedForwardQueryRequest(query: QueryRequest) = query.forward()
 
-        fun protectedPendingQueriesForThisPush(push: PushRequest) =
-                push.pendingQueriesForThisPush
+        fun protectedPendingQueriesForThisPush(key: Key) =
+                key.pendingQueriesForThisPush
 
         val protectedPendingQueries: List<PendingQuery> get() = pendingQueries
     }
@@ -214,11 +214,11 @@ class SpecializedDataQueryHandlerBaseTest {
             }
 
     @Test
-    fun `getForwardPeerIdsFor marks push as handled`() =
+    fun `getForwardPeerIdsFor does not mark push as handled`() =
             test when_ {
                 sut.getForwardPeerIdsFor(PushRequest(anyPeerId, chunk))
             } then {
-                expect(sut.handledPushRequests is_ Equal to_ Values(PushRequest(anyPeerId, chunk)))
+                expect(sut.handledPushRequests is_ Empty)
             }
 
     @Test
@@ -294,7 +294,7 @@ class SpecializedDataQueryHandlerBaseTest {
     @Test
     fun `pendingQueriesForThisPush is empty without pending queries`() =
             test when_ {
-                sut.protectedPendingQueriesForThisPush(PushRequest(originatorId, chunk))
+                sut.protectedPendingQueriesForThisPush(chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
@@ -304,7 +304,7 @@ class SpecializedDataQueryHandlerBaseTest {
             test while_ {
                 sut.handle(queryRequest)
             } when_ {
-                sut.protectedPendingQueriesForThisPush(PushRequest(originatorId, queryRequest.matchingChunk))
+                sut.protectedPendingQueriesForThisPush(queryRequest.matchingChunk.key)
             } then {
                 expect(it.result.map { it.query } is_ Equal to_ Values(queryRequest))
             }
@@ -314,7 +314,7 @@ class SpecializedDataQueryHandlerBaseTest {
             test while_ {
                 sut.handle(queryRequest)
             } when_ {
-                sut.protectedPendingQueriesForThisPush(PushRequest(originatorId, chunk))
+                sut.protectedPendingQueriesForThisPush(chunk.key)
             } then {
                 expect(it.result.map { it.query } is_ Empty)
             }

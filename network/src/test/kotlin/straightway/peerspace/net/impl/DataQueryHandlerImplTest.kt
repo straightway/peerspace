@@ -39,12 +39,16 @@ import straightway.testing.flow.to_
 
 class DataQueryHandlerImplTest {
 
+    private companion object {
+        val chunkKey = Key(Id("chunkId"))
+    }
+
     private val test get() =
             Given {
                 object {
                     val push = PushRequest(
                             Id("originator"),
-                            Chunk(Key(Id("chunkId")), byteArrayOf()))
+                            Chunk(chunkKey, byteArrayOf()))
                     val untimedId = Id("untimed")
                     val timedId = Id("timed")
                     val timedUntimedId = Id("timedUntimed")
@@ -126,4 +130,22 @@ class DataQueryHandlerImplTest {
             test when_ { sut.getForwardPeerIdsFor(push) } then {
                 expect(it.result.size is_ Equal to_ 3)
             }
+
+    @Test
+    fun `notifyChunkForwarded forwards timedKey only to timed handler`() {
+        val key = Key(Id("0815"), 1L)
+        test when_ { sut.notifyChunkForwarded(key) } then {
+            verify(timedDataQueryHandler).notifyChunkForwarded(key)
+            verify(untimedDataQueryHandler, never()).notifyChunkForwarded(any())
+        }
+    }
+
+    @Test
+    fun `notifyChunkForwarded forwards untimedKey only to untimed handler`() {
+        val key = Key(Id("0815"))
+        test when_ { sut.notifyChunkForwarded(key) } then {
+            verify(untimedDataQueryHandler).notifyChunkForwarded(key)
+            verify(timedDataQueryHandler, never()).notifyChunkForwarded(any())
+        }
+    }
 }

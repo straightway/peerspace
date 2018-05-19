@@ -16,6 +16,7 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 
 /**
  * Handle functionality associated with data queries.
@@ -23,4 +24,5 @@ import straightway.peerspace.data.Id
 interface DataQueryHandler : InfrastructureReceiver {
     fun handle(query: QueryRequest)
     fun getForwardPeerIdsFor(push: PushRequest): Iterable<Id>
+    fun notifyChunkForwarded(key: Key)
 }

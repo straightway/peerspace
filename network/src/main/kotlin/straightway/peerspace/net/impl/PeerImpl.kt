@@ -57,8 +57,10 @@ class PeerImpl(
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
-    private fun forwardPushRequest(request: PushRequest) =
-            request.forwardPeers.forEach { request pushOnTo it }
+    private fun forwardPushRequest(request: PushRequest) {
+        request.forwardPeers.forEach { request pushOnTo it }
+        dataQueryHandler.notifyChunkForwarded(request.chunk.key)
+    }
 
     private infix fun PushRequest.pushOnTo(receiverId: Id) =
         getPushTargetFor(receiverId).push(PushRequest(id, chunk))

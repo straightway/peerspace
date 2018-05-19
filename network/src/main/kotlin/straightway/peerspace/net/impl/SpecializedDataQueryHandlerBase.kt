@@ -35,9 +35,8 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     : InfrastructureReceiver, InfrastructureProvider, DataQueryHandler {
 
     protected abstract val tooOldThreshold: LocalDateTime
-    protected abstract val PushRequest.resultReceiverIds: Iterable<Id>
+    protected abstract val Key.resultReceiverIdsForChunk: Iterable<Id>
     protected abstract fun QueryRequest.forward(hasLocalResult: Boolean)
-    protected abstract fun PushRequest.markAsHandled()
 
     final override lateinit var infrastructure: Infrastructure
 
@@ -45,7 +44,7 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
             if (query.isPending) Unit else handleNewQueryRequest(query)
 
     final override fun getForwardPeerIdsFor(push: PushRequest) =
-            push.resultReceiverIds.toList().apply { push.markAsHandled() }
+            push.chunk.key.resultReceiverIdsForChunk.toList()
 
     protected val QueryRequest.result get() = dataChunkStore.query(this)
 
@@ -64,8 +63,8 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
         forwardPeerIds.forEach { peerId -> getQuerySourceFor(peerId).query(it) }
     }
 
-    protected val PushRequest.pendingQueriesForThisPush get() =
-            pendingQueries.filter { it.query.isMatching(chunk.key) }
+    protected val Key.pendingQueriesForThisPush get() =
+            pendingQueries.filter { it.query.isMatching(this) }
 
     protected val pendingQueries: MutableList<PendingQuery> get() {
         removeOldPendingQueries()

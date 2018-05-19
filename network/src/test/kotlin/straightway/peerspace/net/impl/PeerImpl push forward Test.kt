@@ -115,4 +115,12 @@ class `PeerImpl push forward Test` {
             } then {
                 verify(getPeer(pushingPeerId), never()).push(any())
             }
+
+    @Test
+    fun `DataQueryHandler is notified of forward push`() =
+            test when_ {
+                peer.push(incomingRequest)
+            } then {
+                verify(dataQueryHandler).notifyChunkForwarded(incomingRequest.chunk.key)
+            }
 }

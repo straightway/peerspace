@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net.impl
 
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureReceiver
@@ -45,4 +46,11 @@ class DataQueryHandlerImpl(
     override fun getForwardPeerIdsFor(push: PushRequest) =
             (untimedDataQueryHandler.getForwardPeerIdsFor(push) +
              timedDataQueryHandler.getForwardPeerIdsFor(push)).toSet()
+
+    override fun notifyChunkForwarded(key: Key) {
+        if (key.isUntimed) untimedDataQueryHandler.notifyChunkForwarded(key)
+        else timedDataQueryHandler.notifyChunkForwarded(key)
+    }
+
+    private val Key.isUntimed get() = timestamp == 0L
 }

@@ -122,14 +122,14 @@ class `TimedDataQueryHandler forward peer ids Test` {
             }
 
     @Test
-    fun `timed result being received twice is forwarded on only once`() =
+    fun `timed result being received twice is not forwarded after again`() =
             test while_ {
                 dataQueryHandler.handle(timedQueryRequest)
+                dataQueryHandler.notifyChunkForwarded(timedResultPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest) +
                 dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest)
             } then {
-                expect(it.result is_ Equal to_ Values(timedQueryingPeerId))
+                expect(it.result is_ Empty)
             }
 
     private fun PeerTestEnvironment.delayForwardingOfUntimedQueries() {

@@ -63,16 +63,16 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
         forwardPeerIds.forEach { peerId -> getQuerySourceFor(peerId).query(it) }
     }
 
-    protected val Key.pendingQueriesForThisPush get() =
-            pendingQueries.filter { it.query.isMatching(this) }
+    protected val Key.pendingQueriesForThisPush
+        get() = pendingQueries.filter { it.query.isMatching(this) }
 
     protected val pendingQueries: MutableList<PendingQuery> get() {
         removeOldPendingQueries()
         return _pendingQueries
     }
 
-    private val QueryRequest.isPending get() =
-            pendingQueries.any { it.query == this }
+    private val QueryRequest.isPending
+        get() = pendingQueries.any { it.query == this }
 
     private fun handleNewQueryRequest(query: QueryRequest) {
         query.setPending()
@@ -89,15 +89,17 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
     private infix fun Iterable<Chunk>.forwardTo(target: PushTarget) =
             forEach { chunk -> chunk forwardTo target }
 
-    private val QueryRequest.issuer get() = getPushTargetFor(originatorId)
+    private val QueryRequest.issuer
+        get() = getPushTargetFor(originatorId)
 
     private infix fun Chunk.forwardTo(target: PushTarget) =
             target.push(PushRequest(peerId, this))
 
-    private val QueryRequest.forwardCopy get() = copy(originatorId = peerId)
+    private val QueryRequest.forwardCopy
+        get() = copy(originatorId = peerId)
 
-    private val QueryRequest.forwardPeerIds get() =
-            forwardStrategy.getQueryForwardPeerIdsFor(this)
+    private val QueryRequest.forwardPeerIds
+        get() = forwardStrategy.getQueryForwardPeerIdsFor(this)
 
     private fun QueryRequest.setPending() {
         pendingQueries += PendingQuery(this, timeProvider.currentTime)

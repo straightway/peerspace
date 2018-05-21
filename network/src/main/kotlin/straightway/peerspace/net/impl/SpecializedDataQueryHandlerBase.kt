@@ -29,6 +29,9 @@ import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
 import java.time.LocalDateTime
 
+// TODO
+// * Remove pending queries for unreachable peers
+
 /**
  * Base class for DataQueryHandler implementations.
  */

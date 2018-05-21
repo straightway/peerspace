@@ -33,6 +33,7 @@ import straightway.utils.serializeToByteArray
 // * Avoid routing loops:
 // ** Don't push the same chunk twice to the same peer (within a certain time)
 // * Collect known peers while receiving requests
+// * Push to other peers if some peers returned by the strategy are not reachable.
 
 /**
  * Default productive implementation of a peerspace peer.

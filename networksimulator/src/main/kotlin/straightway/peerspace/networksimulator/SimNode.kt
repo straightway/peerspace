@@ -46,6 +46,13 @@ class SimNode(
         private val simNodes: MutableMap<Id, SimNode>
 ) : Factory<Channel>, Node {
 
+    override var isOnline: Boolean
+        get() = uploadStream.isOnline && downloadStream.isOnline
+        set(new) {
+            uploadStream.isOnline = new
+            downloadStream.isOnline = new
+        }
+
     override fun notifyReceive(sender: Node, message: Message) {
         message.content.let {
             when (it) {

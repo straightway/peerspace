@@ -16,6 +16,7 @@
 
 package straightway.peerspace.networksimulator
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -31,8 +32,10 @@ import straightway.peerspace.net.untimedData
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
+import straightway.testing.flow.False
 import straightway.testing.flow.Same
 import straightway.testing.flow.Throw
+import straightway.testing.flow.True
 import straightway.testing.flow.as_
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
@@ -54,8 +57,14 @@ class SimNode_Node_Test {
 
     private val test get() = Given {
         object {
-            val upload = mock<TransmissionStream>()
-            val download = mock<TransmissionStream>()
+            var isUploadOnline = true
+            val upload = mock<TransmissionStream> {
+                on { isOnline }.thenAnswer { isUploadOnline }
+            }
+            var isDownloadOnline = true
+            val download = mock<TransmissionStream> {
+                on { isOnline }.thenAnswer { isDownloadOnline }
+            }
             val pushTarget = mock<PushTarget>()
             val pushTargets = mutableMapOf(Pair(peerId, pushTarget))
             val chunk = Chunk(chunkKey, chunkData)
@@ -105,5 +114,76 @@ class SimNode_Node_Test {
                 sut.notifyReceive(mock(), Message(invalidRequest, messageSize))
             } then {
                 expect({ it.result } does Throw.type<Panic>())
+            }
+
+    @Test
+    fun `node is online when both channels are online`() =
+            test while_ {
+                isUploadOnline = true
+                isDownloadOnline = true
+            } when_ {
+                sut.isOnline
+            } then {
+                expect(it.result is_ True)
+            }
+
+    @Test
+    fun `node is offline if upload stream is offline`() =
+            test while_ {
+                isUploadOnline = false
+            } when_ {
+                sut.isOnline
+            } then {
+                expect(it.result is_ False)
+            }
+
+    @Test
+    fun `node is offline if download stream is offline`() =
+            test while_ {
+                isDownloadOnline = false
+            } when_ {
+                sut.isOnline
+            } then {
+                expect(it.result is_ False)
+            }
+
+    @Test
+    fun `setting node offline sets upload stream offline`() =
+            test while_ {
+                isUploadOnline = true
+            } when_ {
+                sut.isOnline = false
+            } then {
+                verify(upload).isOnline = false
+            }
+
+    @Test
+    fun `setting node offline sets download stream offline`() =
+            test while_ {
+                isDownloadOnline = true
+            } when_ {
+                sut.isOnline = false
+            } then {
+                verify(download).isOnline = false
+            }
+
+    @Test
+    fun `setting node online sets upload stream offline`() =
+            test while_ {
+                isUploadOnline = false
+            } when_ {
+                sut.isOnline = true
+            } then {
+                verify(upload).isOnline = true
+            }
+
+    @Test
+    fun `setting node online sets download stream offline`() =
+            test while_ {
+                isDownloadOnline = false
+            } when_ {
+                sut.isOnline = true
+            } then {
+                verify(download).isOnline = true
             }
 }

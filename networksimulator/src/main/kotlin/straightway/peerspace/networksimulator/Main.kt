@@ -15,15 +15,16 @@
  */
 package straightway.peerspace.networksimulator
 
+import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
+import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
 import straightway.peerspace.net.impl.InfrastructureImpl
-
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerStubFactory
 import straightway.peerspace.net.impl.PeerImpl
@@ -43,9 +44,16 @@ import straightway.units.kilo
 import straightway.units.mega
 import straightway.units.milli
 import straightway.units.second
+import straightway.utils.toByteArray
+import java.io.Serializable
 import java.util.Random
 
 private class MainClass(numberOfPeers: Int, randomSeed: Long) {
+
+    private class SimHasher : Hasher {
+        override fun getHash(obj: Serializable) = obj.hashCode().toByteArray()
+
+    }
 
     val simulator = Simulator()
 
@@ -63,18 +71,25 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
     private fun createPeer(id: Id) {
         @Suppress("UNUSED_VARIABLE")
         val network = createPeerNetwork(id)
+        val hasher = EpochKeyHasher(SimHasher(), simulator, arrayOf(
+                LongRange(0L, 86400000L), // epoch 0: 1 day
+                LongRange(86400001L, 604800000L), // epoch 1: 1 week
+                LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
+                LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
+                LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
+                LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
         peers[id] = PeerImpl(
                 id,
                 InfrastructureImpl(
-                    TransientDataChunkStore(),
-                    TransientPeerDirectory(),
-                    network,
-                    Configuration(),
-                    RandomChooser(randomSource),
-                    RandomChooser(randomSource),
-                    ForwardStrategyImpl(),
-                    simulator,
-                    DataQueryHandlerImpl(
+                        TransientDataChunkStore(),
+                        TransientPeerDirectory(),
+                        network,
+                        Configuration(),
+                        RandomChooser(randomSource),
+                        RandomChooser(randomSource),
+                        ForwardStrategyImpl(hasher),
+                        simulator,
+                        DataQueryHandlerImpl(
                             UntimedDataQueryHandler(id),
                             TimedDataQueryHandler(id)
                     )))

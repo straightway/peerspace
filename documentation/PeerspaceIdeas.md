@@ -55,7 +55,7 @@ Since the storage space on each peer is limited. So a peer must free some space 
 There are two ways to free space:
 
 1. Discard data
-2. Move data to another peer````
+2. Move data to another peer
 
 It is subject to a data storage strategy deciding which of both ways is applied to which chunk of data. It could consider the following criteria:
 

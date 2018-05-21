@@ -18,7 +18,7 @@
 - Data shall be identified either by
   - **S005** content hash code, or by
   - **S006** list id. _Note: This identifies a list of multiple data items. This list may be extended by posting new data items under the same list id._
-  - **S007** mutable chunk id. _Note: This identifies a chunk who's content may be changed. 
+  - **S007** mutable chunk id. _Note: This identifies a chunk who's content may be changed._ 
 
 ## Query
 It shall be possible for peers to query the Peerspace network for stored data by:

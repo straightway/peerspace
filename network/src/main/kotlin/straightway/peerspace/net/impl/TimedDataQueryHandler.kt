@@ -18,7 +18,6 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 
 /**

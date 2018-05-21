@@ -18,6 +18,9 @@ package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 
+/**
+ * State of forwarding a query or chunk to to other peers.
+ */
 data class ForwardState(
         val successful: List<Id> = listOf(),
         val failed: List<Id> = listOf(),

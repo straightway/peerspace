@@ -71,6 +71,8 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
     private fun createPeer(id: Id) {
         @Suppress("UNUSED_VARIABLE")
         val network = createPeerNetwork(id)
+
+        @Suppress("MagicNumber")
         val hasher = EpochKeyHasher(SimHasher(), simulator, arrayOf(
                 LongRange(0L, 86400000L), // epoch 0: 1 day
                 LongRange(86400001L, 604800000L), // epoch 1: 1 week

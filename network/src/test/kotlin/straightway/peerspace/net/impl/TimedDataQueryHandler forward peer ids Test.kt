@@ -57,7 +57,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
                 peerId,
                 knownPeersIds = knownPeersIds,
                 forwardStrategy = mock {
-                    on { getQueryForwardPeerIdsFor(any()) }
+                    on { getQueryForwardPeerIdsFor(any(), any()) }
                             .thenReturn(knownPeersIds.slice(forwardedPeers))
                 },
                 configuration = Configuration(

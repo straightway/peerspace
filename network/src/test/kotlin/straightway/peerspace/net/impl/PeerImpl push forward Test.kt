@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
 
@@ -48,7 +49,7 @@ class `PeerImpl push forward Test` {
             init {
                 forwardStrategy = mock {
                     on {
-                        getPushForwardPeerIdsFor(any())
+                        getPushForwardPeerIdsFor(any(), any())
                     }.thenAnswer {
                         knownPeersIds.slice(forwardedPeers)
                     }
@@ -69,7 +70,7 @@ class `PeerImpl push forward Test` {
             test when_ {
                 peer.push(incomingRequest)
             } then {
-                verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key)
+                verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key, ForwardState())
             }
 
     @Test

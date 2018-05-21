@@ -20,6 +20,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
+import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
@@ -72,7 +73,7 @@ class PeerImpl(
         get() = pushForwardPeerIds + queryForwardPeerIds
 
     private val PushRequest.pushForwardPeerIds
-        get() = forwardStrategy.getPushForwardPeerIdsFor(chunk.key)
+        get() = forwardStrategy.getPushForwardPeerIdsFor(chunk.key, ForwardState())
 
     private val PushRequest.queryForwardPeerIds: Iterable<Id>
         get() = dataQueryHandler.getForwardPeerIdsFor(chunk.key)

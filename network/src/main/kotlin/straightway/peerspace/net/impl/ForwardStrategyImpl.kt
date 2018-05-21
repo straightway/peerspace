@@ -13,15 +13,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net
+@file:Suppress("MatchingDeclarationName")
+
+package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.data.KeyHasher
+import straightway.peerspace.net.ForwardState
+import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.QueryRequest
 
 /**
- * Forward strategy for queries and pushes.
+ * Implementation of the forward strategy for queries and pushes.
  */
-interface ForwardStrategy {
-    fun getPushForwardPeerIdsFor(chunkKey: Key, state: ForwardState): Iterable<Id>
-    fun getQueryForwardPeerIdsFor(query: QueryRequest, state: ForwardState): Iterable<Id>
+class ForwardStrategyImpl(private val hasher: KeyHasher) : ForwardStrategy {
+    override fun getPushForwardPeerIdsFor(chunkKey: Key, state: ForwardState): Iterable<Id> {
+        TODO("not implemented")
+    }
+
+    override fun getQueryForwardPeerIdsFor(query: QueryRequest, state: ForwardState): Iterable<Id> {
+        TODO("not implemented")
+    }
 }

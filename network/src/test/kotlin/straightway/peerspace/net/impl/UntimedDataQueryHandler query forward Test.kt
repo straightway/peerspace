@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
@@ -44,7 +45,7 @@ class `UntimedDataQueryHandler query forward Test` {
                 peerId,
                 knownPeersIds = knownPeersIds,
                 forwardStrategy = mock {
-                    on { getQueryForwardPeerIdsFor(any()) }
+                    on { getQueryForwardPeerIdsFor(any(), any()) }
                             .thenReturn(knownPeersIds.slice(forwardedPeers))
                 },
                 dataQueryHandler = UntimedDataQueryHandler(peerId)).fixed()
@@ -56,7 +57,7 @@ class `UntimedDataQueryHandler query forward Test` {
                 dataQueryHandler.handle(receivedUntimedQueryRequest)
             } then {
                 verify(forwardStrategy).getQueryForwardPeerIdsFor(
-                        receivedUntimedQueryRequest.copy(originatorId = peerId))
+                        receivedUntimedQueryRequest.copy(originatorId = peerId), ForwardState())
             }
 
     @Test

@@ -24,6 +24,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
@@ -76,7 +77,7 @@ class SpecializedDataQueryHandlerBaseTest {
                     on { getPushTarget(anyPeerId) }.thenReturn(anyPeer)
                 }
                 val forwardStrategy = mock<ForwardStrategy> {
-                    on { getQueryForwardPeerIdsFor(any()) }.thenReturn(listOf(forwardPeerId))
+                    on { getQueryForwardPeerIdsFor(any(), any()) }.thenReturn(listOf(forwardPeerId))
                 }
                 var currentTime = LocalDateTime.of(2000, 1, 1, 0, 0)
                 val timeProvider = mock<TimeProvider> {
@@ -272,7 +273,7 @@ class SpecializedDataQueryHandlerBaseTest {
             test when_ {
                 sut.protectedForwardQueryRequest(queryRequest)
             } then {
-                verify(forwardStrategy).getQueryForwardPeerIdsFor(queryRequest)
+                verify(forwardStrategy).getQueryForwardPeerIdsFor(queryRequest, ForwardState())
             }
 
     @Test

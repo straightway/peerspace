@@ -13,15 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net
+package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.mock
+import straightway.peerspace.data.KeyHasher
+import straightway.testing.bdd.Given
 
-/**
- * Forward strategy for queries and pushes.
- */
-interface ForwardStrategy {
-    fun getPushForwardPeerIdsFor(chunkKey: Key, state: ForwardState): Iterable<Id>
-    fun getQueryForwardPeerIdsFor(query: QueryRequest, state: ForwardState): Iterable<Id>
+class ForwardStrategyImplTest {
+
+    private val test get() = Given {
+        object {
+            val hashes = mutableListOf<Long>()
+            val hasher = mock<KeyHasher> {
+                on { getHashes(any()) }.thenAnswer { hashes }
+            }
+            val sut = ForwardStrategyImpl(hasher)
+        }
+    }
 }

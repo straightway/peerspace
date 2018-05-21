@@ -19,6 +19,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.InfrastructureReceiver
@@ -99,7 +100,7 @@ abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
         get() = copy(originatorId = peerId)
 
     private val QueryRequest.forwardPeerIds
-        get() = forwardStrategy.getQueryForwardPeerIdsFor(this)
+        get() = forwardStrategy.getQueryForwardPeerIdsFor(this, ForwardState())
 
     private fun QueryRequest.setPending() {
         pendingQueries += PendingQuery(this, timeProvider.currentTime)

@@ -15,13 +15,13 @@
  */
 package straightway.peerspace.net
 
-import straightway.utils.EventRegistry
 import java.io.Serializable
 
 /**
  * A channel allowing direct transmission of data between network peers.
  */
 interface Channel {
-    fun transmit(data: Serializable)
-    val finished: EventRegistry<FinalTransmissionResult>
+    fun transmit(
+            data: Serializable,
+            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
 }

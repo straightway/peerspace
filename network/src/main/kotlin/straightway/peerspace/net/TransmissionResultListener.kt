@@ -15,12 +15,17 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Id
-
 /**
  * Get notified about transmission results.
  */
-interface TransmissionListener {
-    fun notifyTransmissionSucceeded(receiverId: Id)
-    fun notifyTransmissionFailed(receiverId: Id)
+interface TransmissionResultListener {
+    fun notifySuccess()
+    fun notifyFailure()
+
+    companion object {
+        val Ignore = object : TransmissionResultListener {
+            override fun notifySuccess() {}
+            override fun notifyFailure() {}
+        }
+    }
 }

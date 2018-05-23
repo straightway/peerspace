@@ -48,9 +48,9 @@ class SimNode(
 
     override var isOnline: Boolean
         get() = uploadStream.isOnline && downloadStream.isOnline
-        set(new) {
-            uploadStream.isOnline = new
-            downloadStream.isOnline = new
+        set(isOnline) {
+            uploadStream.isOnline = isOnline
+            downloadStream.isOnline = isOnline
         }
 
     override fun notifyReceive(sender: Node, message: Message) {
@@ -70,13 +70,9 @@ class SimNode(
                     from = this,
                     to = simNodes[id]!!)
 
-    override fun notifySuccess(receiver: Node) {
-        TODO("not implemented")
-    }
+    override fun notifySuccess(receiver: Node) {}
 
-    override fun notifyFailure(receiver: Node) {
-        TODO("not implemented")
-    }
+    override fun notifyFailure(receiver: Node) {}
 
     private val parentPushTarget get() = pushTargets[id]!!
     private val parentQuerySource get() = querySources[id]!!

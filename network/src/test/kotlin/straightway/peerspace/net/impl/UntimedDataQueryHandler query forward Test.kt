@@ -78,7 +78,7 @@ class `UntimedDataQueryHandler query forward Test` {
                 dataQueryHandler.handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it], never()).query(any())
+                    verify(knownPeers[it], never()).query(any(), any())
                 }
             }
 }

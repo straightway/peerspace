@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -25,12 +26,14 @@ import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Factory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import java.io.Serializable
 
 class PeerNetworkStubTest {
 
@@ -40,7 +43,15 @@ class PeerNetworkStubTest {
 
     private val test get() = Given {
         object {
-            val channel = mock<Channel>()
+            var transmitCallback: (Serializable, TransmissionResultListener) -> Unit =
+                    { _, _ -> }
+            val channel = mock<Channel> {
+                on { transmit(any(), any()) }.thenAnswer {
+                    transmitCallback(
+                            it.arguments[0] as Serializable,
+                            it.arguments[1] as TransmissionResultListener)
+                }
+            }
             val channelFactoryMock = mock<Factory<Channel>> {
                 on { create(peerId) }.thenReturn(channel)
             }
@@ -72,4 +83,28 @@ class PeerNetworkStubTest {
             test when_ { sut.query(queryRequest) } then {
                 verify(channel).transmit(queryRequest)
             }
+
+    @Test
+    fun `push forwards notifications to resultListener`() {
+        val resultListener = mock<TransmissionResultListener>()
+        test while_ {
+            transmitCallback = { _, listener -> listener.notifySuccess() }
+        } when_ {
+            sut.push(pushRequest, resultListener)
+        } then {
+            verify(resultListener).notifySuccess()
+        }
+    }
+
+    @Test
+    fun `query forwards notifications to resultListener`() {
+        val resultListener = mock<TransmissionResultListener>()
+        test while_ {
+            transmitCallback = { _, listener -> listener.notifySuccess() }
+        } when_ {
+            sut.query(queryRequest, resultListener)
+        } then {
+            verify(resultListener).notifySuccess()
+        }
+    }
 }

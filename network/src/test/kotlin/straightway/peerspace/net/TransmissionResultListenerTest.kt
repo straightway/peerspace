@@ -13,13 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net
 
-/**
- * Enumeration of all possible results of a data transmission.
- */
-enum class FinalTransmissionResult {
-    Success,
-    Failure
+import org.junit.jupiter.api.Test
+
+class TransmissionResultListenerTest {
+
+    @Test
+    fun `notifySuccess on Ignore does nothing`() =
+            TransmissionResultListener.Ignore.notifySuccess()
+
+    @Test
+    fun `notifyFailure on Ignore does nothing`() =
+            TransmissionResultListener.Ignore.notifyFailure()
 }

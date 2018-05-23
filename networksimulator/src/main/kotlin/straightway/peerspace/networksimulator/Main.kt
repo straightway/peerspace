@@ -52,7 +52,6 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
     private class SimHasher : Hasher {
         override fun getHash(obj: Serializable) = obj.hashCode().toByteArray()
-
     }
 
     val simulator = Simulator()

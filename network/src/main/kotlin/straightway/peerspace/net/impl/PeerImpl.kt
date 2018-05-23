@@ -26,6 +26,7 @@ import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 import straightway.utils.serializeToByteArray
 
@@ -46,12 +47,12 @@ class PeerImpl(
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
-    override fun push(request: PushRequest) {
+    override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
         dataChunkStore.store(request.chunk)
         forwardPushRequest(request)
     }
 
-    override fun query(request: QueryRequest) =
+    override fun query(request: QueryRequest, resultListener: TransmissionResultListener) =
         when (request.id) {
             Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
             else -> dataQueryHandler.handle(request)

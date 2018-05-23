@@ -20,13 +20,14 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * A simulated client of the peerspace network.
  */
 class NetworkClient(override val id: Id) : Identifyable, PushTarget {
 
-    override fun push(request: PushRequest) {
+    override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
         _receivedData += request.chunk
     }
 

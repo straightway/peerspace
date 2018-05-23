@@ -17,8 +17,16 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
+import org.junit.jupiter.api.Test
+import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHasher
+import straightway.peerspace.net.ForwardState
+import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Throw
+import straightway.testing.flow.does
+import straightway.testing.flow.expect
 
 class ForwardStrategyImplTest {
 
@@ -31,4 +39,22 @@ class ForwardStrategyImplTest {
             val sut = ForwardStrategyImpl(hasher)
         }
     }
+
+    @Test
+    fun `getPushForwardPeerIdsFor is not implemented`() =
+            test when_ {
+                sut.getPushForwardPeerIdsFor(Key(Id("chunkId")), ForwardState())
+            } then {
+                expect({ it.result } does Throw.type<NotImplementedError>())
+            }
+
+    @Test
+    fun `getQueryForwardPeerIdsFor is not implemented`() =
+            test when_ {
+                sut.getQueryForwardPeerIdsFor(
+                        QueryRequest(Id("originatorId"), Id("chunkId")),
+                        ForwardState())
+            } then {
+                expect({ it.result } does Throw.type<NotImplementedError>())
+            }
 }

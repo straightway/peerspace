@@ -21,6 +21,7 @@ import straightway.peerspace.net.Factory
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Implementation of a network stub for a peer.
@@ -32,7 +33,16 @@ class PeerNetworkStub(
         override val id: Id,
         var channelFactory: Factory<Channel>
 ) : Peer {
-    override fun push(request: PushRequest) = channel.transmit(request)
-    override fun query(request: QueryRequest) = channel.transmit(request)
+
+    override fun push(
+            request: PushRequest,
+            resultListener: TransmissionResultListener) =
+            channel.transmit(request, resultListener)
+
+    override fun query(
+            request: QueryRequest,
+            resultListener: TransmissionResultListener) =
+            channel.transmit(request, resultListener)
+
     private val channel by lazy { channelFactory.create(id) }
 }

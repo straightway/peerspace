@@ -49,7 +49,7 @@ class `PeerImpl query for known peers Test` {
             test when_ {
                 peer.query(knownPeersRequest)
             } then {
-                verify(queryingPeer).push(any())
+                verify(queryingPeer).push(any(), any())
             }
 
     @Test
@@ -57,9 +57,9 @@ class `PeerImpl query for known peers Test` {
             test when_ {
                 peer.query(knownPeersRequest)
             } then {
-                verify(queryingPeer).push(argThat {
-                    chunk.key == Key(Administrative.KnownPeers.id)
-                })
+                verify(queryingPeer).push(
+                        argThat { chunk.key == Key(Administrative.KnownPeers.id) },
+                        any())
             }
 
     @Test
@@ -67,9 +67,9 @@ class `PeerImpl query for known peers Test` {
             test when_ {
                 peer.query(knownPeersRequest)
             } then {
-                verify(queryingPeer).push(argThat {
-                    chunk.data.deserializeTo<List<Id>>() == knownPeersIds
-                })
+                verify(queryingPeer).push(
+                        argThat { chunk.data.deserializeTo<List<Id>>() == knownPeersIds },
+                        any())
             }
 
     @Test
@@ -80,8 +80,9 @@ class `PeerImpl query for known peers Test` {
             } when_ {
                 peer.query(knownPeersRequest)
             } then {
-                verify(queryingPeer).push(argThat {
-                    chunk.data.deserializeTo<List<Id>>() == knownPeersIds.slice(0..0)
-                })
+                verify(queryingPeer).push(
+                        argThat { chunk.data.deserializeTo<List<Id>>() ==
+                                knownPeersIds.slice(0..0) },
+                        any())
             }
 }

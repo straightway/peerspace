@@ -114,7 +114,7 @@ class `PeerImpl push forward Test` {
             } when_ {
                 peer.push(incomingRequest)
             } then {
-                verify(getPeer(pushingPeerId), never()).push(any())
+                verify(getPeer(pushingPeerId), never()).push(any(), any())
             }
 
     @Test

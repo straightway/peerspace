@@ -20,7 +20,6 @@ package straightway.peerspace.data
  * An object which can be hashed according to its ID and its
  * timestamps.
  */
-interface KeyHashable {
-    val id: Id
+interface KeyHashable : Identifyable {
     val timestamps: ClosedRange<Long>
 }

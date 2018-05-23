@@ -20,7 +20,9 @@ import com.nhaarman.mockito_kotlin.argForWhich
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.sim.net.Node
+import straightway.sim.net.Transmission
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
@@ -32,7 +34,12 @@ class SimChannelTest {
     private val test get() = Given {
         object {
             var chunkSize = 16[byte]
-            val net = mock<TransmissionRequestHandler>()
+            var transmitCallback: Transmission.() -> Unit = {}
+            val net = mock<TransmissionRequestHandler> {
+                on { transmit(any()) }.thenAnswer {
+                    (it.arguments[0] as Transmission).transmitCallback()
+                }
+            }
             val fromUpload = mock<TransmissionStream>()
             val toDownload = mock<TransmissionStream>()
             val fromNode = mock<Node> { on { uploadStream }.thenReturn(fromUpload) }
@@ -50,7 +57,10 @@ class SimChannelTest {
     @Test
     fun `transmit sends from the origin node`() =
             test when_ { sut.transmit("Hello") } then {
-                verify(net).transmit(argForWhich { sender === fromNode })
+                verify(net).transmit(argForWhich {
+                    sender.uploadStream === fromNode.uploadStream &&
+                    sender.downloadStream === fromNode.downloadStream
+                })
             }
 
     @Test
@@ -70,4 +80,50 @@ class SimChannelTest {
             test when_ { sut.transmit("Hello") } then {
                 verify(net).transmit(argForWhich { message.size == chunkSize })
             }
+
+    @Test
+    fun `transmit notifies resultListener of success`() {
+        var resultListener = mock<TransmissionResultListener>()
+        test while_ {
+            transmitCallback = { sender.notifySuccess(receiver) }
+        } when_ {
+            sut.transmit("Hello", resultListener)
+        } then {
+            verify(resultListener).notifySuccess()
+        }
+    }
+
+    @Test
+    fun `transmit notifies sender node of success`() {
+        test while_ {
+            transmitCallback = { sender.notifySuccess(receiver) }
+        } when_ {
+            sut.transmit("Hello")
+        } then {
+            verify(fromNode).notifySuccess(toNode)
+        }
+    }
+
+    @Test
+    fun `transmit notifies resultListener of failure`() {
+        var resultListener = mock<TransmissionResultListener>()
+        test while_ {
+            transmitCallback = { sender.notifyFailure(receiver) }
+        } when_ {
+            sut.transmit("Hello", resultListener)
+        } then {
+            verify(resultListener).notifyFailure()
+        }
+    }
+
+    @Test
+    fun `transmit notifies sender of failure`() {
+        test while_ {
+            transmitCallback = { sender.notifyFailure(receiver) }
+        } when_ {
+            sut.transmit("Hello")
+        } then {
+            verify(fromNode).notifyFailure(toNode)
+        }
+    }
 }

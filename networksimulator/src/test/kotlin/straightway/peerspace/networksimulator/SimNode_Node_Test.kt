@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
+import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -32,6 +33,7 @@ import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
+import straightway.testing.flow.Not
 import straightway.testing.flow.Same
 import straightway.testing.flow.Throw
 import straightway.testing.flow.True
@@ -184,5 +186,17 @@ class SimNode_Node_Test {
                 sut.isOnline = true
             } then {
                 verify(download).isOnline = true
+            }
+
+    @Test
+    fun `notifySuccess does not throw`() =
+            test when_ { sut.notifySuccess(mock()) } then {
+                expect({ it.result } does Not - Throw.exception)
+            }
+
+    @Test
+    fun `notifyFailure does not throw`() =
+            test when_ { sut.notifyFailure(mock()) } then {
+                expect({ it.result } does Not - Throw.exception)
             }
 }

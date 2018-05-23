@@ -17,14 +17,13 @@
 package straightway.peerspace.networksimulator
 
 import straightway.peerspace.net.Channel
-import straightway.peerspace.net.FinalTransmissionResult
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.Node
 import straightway.sim.net.Transmission
 import straightway.units.AmountOfData
 import straightway.units.UnitValue
-import straightway.utils.Event
 import java.io.Serializable
 
 /**
@@ -37,9 +36,29 @@ class SimChannel(
         val to: Node
 ) : Channel {
 
-    override val finished = Event<FinalTransmissionResult>()
-    override fun transmit(data: Serializable) {
-        transmissionRequestHandler.transmit(
-                Transmission(from, to, Message(data, size = chunkSizeGetter(data))))
+    override fun transmit(data: Serializable, resultListener: TransmissionResultListener) {
+        transmissionRequestHandler.transmit(Transmission(
+                from.forwardNotificationsTo(resultListener),
+                to,
+                Message(data, size = chunkSizeGetter(data))))
     }
+
+    private class NodeNotifier(
+            private val wrapped: Node,
+            private val resultListener: TransmissionResultListener
+    ) : Node by wrapped {
+
+        override fun notifySuccess(receiver: Node) {
+            resultListener.notifySuccess()
+            wrapped.notifySuccess(receiver)
+        }
+
+        override fun notifyFailure(receiver: Node) {
+            resultListener.notifyFailure()
+            wrapped.notifyFailure(receiver)
+        }
+    }
+
+    private fun Node.forwardNotificationsTo(resultListener: TransmissionResultListener): Node =
+            NodeNotifier(this, resultListener)
 }

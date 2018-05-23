@@ -62,7 +62,7 @@ class `UntimedDataQueryHandler general Test` {
             test when_ {
                 dataQueryHandler.handle(queryRequest)
             } then {
-                verify(receiver, never()).push(any())
+                verify(receiver, never()).push(any(), any())
             }
 
     @Test

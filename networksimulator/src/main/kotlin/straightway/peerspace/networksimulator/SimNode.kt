@@ -70,6 +70,14 @@ class SimNode(
                     from = this,
                     to = simNodes[id]!!)
 
+    override fun notifySuccess(receiver: Node) {
+        TODO("not implemented")
+    }
+
+    override fun notifyFailure(receiver: Node) {
+        TODO("not implemented")
+    }
+
     private val parentPushTarget get() = pushTargets[id]!!
     private val parentQuerySource get() = querySources[id]!!
 

@@ -60,7 +60,8 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
     private val simNet = SimNetwork(
             simScheduler = simulator,
             timeProvider = simulator,
-            latency = LATENCY)
+            latency = LATENCY,
+            offlineDetectionTime = OFFLINE_DETECTION_TIME)
 
     private val simPeers = mutableMapOf<Id, SimNode>()
 
@@ -122,6 +123,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
     private companion object {
         val LATENCY = 50[milli(second)]
+        val OFFLINE_DETECTION_TIME = 5[second]
         val UPLOAD_BANDWIDTH = 500[kilo(bit) / second]
         val DOWNLOAD_BANDWIDTH = 2[mega(bit) / second]
         val CHUNK_SIZE = 64[kilo(byte)]

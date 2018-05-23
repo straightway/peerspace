@@ -13,15 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
-import straightway.utils.EventRegistry
-import java.io.Serializable
-
 /**
- * A channel allowing direct transmission of data between network peers.
+ * Enumeration of all possible results of a data transmission.
  */
-interface Channel {
-    fun transmit(data: Serializable)
-    val finished: EventRegistry<FinalTransmissionResult>
+enum class FinalTransmissionResult {
+    Success,
+    Failure
 }

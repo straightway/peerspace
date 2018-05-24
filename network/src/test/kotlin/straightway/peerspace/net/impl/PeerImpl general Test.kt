@@ -70,5 +70,4 @@ class `PeerImpl general Test` {
             verify(resultListener, never()).notifyFailure()
         }
     }
-
 }

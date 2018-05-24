@@ -50,13 +50,16 @@ class PeerImpl(
     override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
         dataChunkStore.store(request.chunk)
         forwardPushRequest(request)
+        resultListener.notifySuccess()
     }
 
-    override fun query(request: QueryRequest, resultListener: TransmissionResultListener) =
+    override fun query(request: QueryRequest, resultListener: TransmissionResultListener) {
         when (request.id) {
             Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
             else -> dataQueryHandler.handle(request)
         }
+        resultListener.notifySuccess()
+    }
 
     override fun toString() = "PeerImpl(${id.identifier})"
 

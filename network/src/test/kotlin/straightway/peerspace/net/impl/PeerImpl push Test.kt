@@ -16,6 +16,8 @@
 
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
@@ -24,6 +26,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -67,4 +70,13 @@ class `PeerImpl push Test` {
             test when_ { peer.push(PushRequest(peerId, chunk)) } then {
                 verify(dataChunkStore).store(chunk)
             }
+
+    @Test
+    fun `push notifies resultListener of success`() {
+        val resultListener = mock<TransmissionResultListener>()
+        test when_ { peer.push(PushRequest(peerId, chunk), resultListener) } then {
+            verify(resultListener).notifySuccess()
+            verify(resultListener, never()).notifyFailure()
+        }
+    }
 }

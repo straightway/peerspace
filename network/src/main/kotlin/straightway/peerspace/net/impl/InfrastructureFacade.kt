@@ -30,6 +30,7 @@ val InfrastructureProvider.knownPeerAnswerChooser get() = infrastructure.knownPe
 val InfrastructureProvider.forwardStrategy get() = infrastructure.forwardStrategy
 val InfrastructureProvider.timeProvider get() = infrastructure.timeProvider
 val InfrastructureProvider.dataQueryHandler get() = infrastructure.dataQueryHandler
+val InfrastructureProvider.dataPushForwarder get() = infrastructure.dataPushForwarder
 
 fun InfrastructureProvider.getPushTargetFor(id: Id) = network.getPushTarget(id)
 fun InfrastructureProvider.getQuerySourceFor(id: Id) = network.getQuerySource(id)

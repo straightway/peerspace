@@ -27,7 +27,7 @@ import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
 
-class `PeerImpl push forward Test` {
+class DataPushForwarderImplTest {
 
     private companion object {
         val peerId = Id("peerId")
@@ -40,9 +40,10 @@ class `PeerImpl push forward Test` {
     }
 
     private val test get() = Given {
-        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        val result = object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
-                knownPeersIds = knownPeersIds
+                knownPeersIds = knownPeersIds,
+                dataPushForwarder = DataPushForwarderImpl(peerId)
         ) {
             var forwardedPeers = 1..2
             var queryForwardPeerIds = ids()
@@ -63,12 +64,15 @@ class `PeerImpl push forward Test` {
                 }
             }
         }
+
+        result.fixed()
+        result
     }
 
     @Test
     fun `push request is forwarded according to forward strategy`() =
             test when_ {
-                peer.push(incomingRequest)
+                dataPushForwarder.forward(incomingRequest)
             } then {
                 verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key, ForwardState())
             }
@@ -76,7 +80,7 @@ class `PeerImpl push forward Test` {
     @Test
     fun `push request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                peer.push(incomingRequest)
+                dataPushForwarder.forward(incomingRequest)
             } then {
                 forwardedPeers.forEach {
                     verify(knownPeers[it]).push(forwardedRequest)
@@ -89,7 +93,7 @@ class `PeerImpl push forward Test` {
                 forwardedPeers = IntRange.EMPTY
                 queryForwardPeerIds = listOf(queryingPeerId)
             } when_ {
-                peer.push(incomingRequest)
+                dataPushForwarder.forward(incomingRequest)
             } then {
                 verify(knownPeers.single { it.id == queryingPeerId }).push(forwardedRequest)
             }
@@ -100,7 +104,7 @@ class `PeerImpl push forward Test` {
                 forwardedPeers = 1..1
                 queryForwardPeerIds = knownPeersIds.slice(forwardedPeers)
             } when_ {
-                peer.push(incomingRequest)
+                dataPushForwarder.forward(incomingRequest)
             } then {
                 knownPeers
                         .filter { it.id in knownPeersIds.slice(forwardedPeers) }
@@ -112,7 +116,7 @@ class `PeerImpl push forward Test` {
             test while_ {
                 forwardedPeers = 0..0
             } when_ {
-                peer.push(incomingRequest)
+                dataPushForwarder.forward(incomingRequest)
             } then {
                 verify(getPeer(pushingPeerId), never()).push(any(), any())
             }
@@ -120,8 +124,18 @@ class `PeerImpl push forward Test` {
     @Test
     fun `DataQueryHandler is notified of forward push`() =
             test when_ {
-                peer.push(incomingRequest)
+                dataPushForwarder.forward(incomingRequest)
             } then {
                 verify(dataQueryHandler).notifyChunkForwarded(incomingRequest.chunk.key)
             }
+
+    @Test
+    fun `DataQueryHandler is notified of incoming data`() {
+        val pushRequest = PushRequest(Id("originatorId"), Chunk(Key(Id("pushId")), byteArrayOf()))
+        test when_ {
+            dataPushForwarder.forward(pushRequest)
+        } then {
+            verify(dataQueryHandler).getForwardPeerIdsFor(pushRequest.chunk.key)
+        }
+    }
 }

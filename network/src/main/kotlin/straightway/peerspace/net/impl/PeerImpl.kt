@@ -49,7 +49,7 @@ class PeerImpl(
 
     override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
         dataChunkStore.store(request.chunk)
-        forwardPushRequest(request)
+        dataPushForwarder.forward(request)
         resultListener.notifySuccess()
     }
 
@@ -62,26 +62,6 @@ class PeerImpl(
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
-
-    private fun forwardPushRequest(request: PushRequest) {
-        request.forwardPeers.forEach { request pushOnTo it }
-        dataQueryHandler.notifyChunkForwarded(request.chunk.key)
-    }
-
-    private infix fun PushRequest.pushOnTo(receiverId: Id) =
-        getPushTargetFor(receiverId).push(PushRequest(id, chunk))
-
-    private val PushRequest.forwardPeers
-        get() = forwardPeersFromStrategies.toSet().filter { it != originatorId }
-
-    private val PushRequest.forwardPeersFromStrategies
-        get() = pushForwardPeerIds + queryForwardPeerIds
-
-    private val PushRequest.pushForwardPeerIds
-        get() = forwardStrategy.getPushForwardPeerIdsFor(chunk.key, ForwardState())
-
-    private val PushRequest.queryForwardPeerIds: Iterable<Id>
-        get() = dataQueryHandler.getForwardPeerIdsFor(chunk.key)
 
     private fun pushBackKnownPeersTo(originatorId: Id) =
             originatorId.asPushTarget.push(knownPeersAnswerRequest)

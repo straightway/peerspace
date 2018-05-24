@@ -19,6 +19,7 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.InfrastructureProvider
@@ -44,6 +45,7 @@ interface PeerTestEnvironment : InfrastructureProvider {
     val peer: PeerImpl
     var forwardStrategy: ForwardStrategy
     var dataQueryHandler: DataQueryHandler
+    var dataPushForwarder: DataPushForwarder
 
     fun fixed(): PeerTestEnvironment
 }

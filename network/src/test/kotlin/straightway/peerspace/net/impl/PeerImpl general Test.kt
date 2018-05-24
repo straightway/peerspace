@@ -57,12 +57,6 @@ class `PeerImpl general Test` {
             }
 
     @Test
-    fun `DataQueryHandler is notified of incoming data`() =
-            test when_ { peer.push(pushRequest) } then {
-                verify(dataQueryHandler).getForwardPeerIdsFor(pushRequest.chunk.key)
-            }
-
-    @Test
     fun `query notifies resultListener of success`() {
         val resultListener = mock<TransmissionResultListener>()
         test when_ { peer.query(dataQuery, resultListener) } then {

@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Infrastructure
@@ -40,7 +41,8 @@ data class InfrastructureImpl(
         override val knownPeerAnswerChooser: Chooser,
         override val forwardStrategy: ForwardStrategy,
         override val timeProvider: TimeProvider,
-        override val dataQueryHandler: DataQueryHandler
+        override val dataQueryHandler: DataQueryHandler,
+        override val dataPushForwarder: DataPushForwarder
 ) : Infrastructure {
     init {
         InfrastructureImpl::class.memberProperties.forEach {

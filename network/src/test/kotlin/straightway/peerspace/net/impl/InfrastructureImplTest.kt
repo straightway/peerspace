@@ -52,7 +52,8 @@ class InfrastructureImplTest {
                 forwardStrategy = mock(infrastructureReceiverClass),
                 timeProvider = mock(infrastructureReceiverClass),
                 dataQueryHandler = mock(infrastructureReceiverClass),
-                dataPushForwarder = mock(infrastructureReceiverClass))
+                dataPushForwarder = mock(infrastructureReceiverClass),
+                knownPeersProvider = mock(infrastructureReceiverClass))
         InfrastructureImpl::class.memberProperties.forEach {
             val currProperty = it.get(sut)
             if (currProperty is InfrastructureReceiver)

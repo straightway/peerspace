@@ -13,26 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net
 
-import straightway.random.Chooser
-import straightway.utils.TimeProvider
+import straightway.peerspace.data.Id
 
 /**
- * Collection of components used for a peer.
+ * Provide known peers to some other peer.
  */
-@Suppress("ComplexInterface")
-interface Infrastructure {
-    val dataChunkStore: DataChunkStore
-    val peerDirectory: PeerDirectory
-    val network: Network
-    val configuration: Configuration
-    val knownPeerQueryChooser: Chooser
-    val knownPeerAnswerChooser: Chooser
-    val forwardStrategy: ForwardStrategy
-    val timeProvider: TimeProvider
-    val dataQueryHandler: DataQueryHandler
-    val dataPushForwarder: DataPushForwarder
-    val knownPeersProvider: KnownPeersProvider
+interface KnownPeersProvider {
+    fun pushKnownPeersTo(targetPeerId: Id)
 }

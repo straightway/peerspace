@@ -21,10 +21,12 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
 import straightway.peerspace.net.impl.InfrastructureImpl
+import straightway.peerspace.net.impl.KnownPeersProviderImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerStubFactory
 import straightway.peerspace.net.impl.PeerImpl
@@ -93,8 +95,10 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                         simulator,
                         DataQueryHandlerImpl(
                             UntimedDataQueryHandler(id),
-                            TimedDataQueryHandler(id)
-                    )))
+                            TimedDataQueryHandler(id)),
+                        DataPushForwarderImpl(id),
+                        KnownPeersProviderImpl(id)
+                    ))
     }
 
     private fun createPeerNetwork(peerId: Id): Network {

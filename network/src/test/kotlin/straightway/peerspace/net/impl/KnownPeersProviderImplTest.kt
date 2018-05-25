@@ -22,23 +22,22 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
-import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.utils.deserializeTo
 
-class `PeerImpl query for known peers Test` {
+class KnownPeersProviderImplTest {
 
     private companion object {
         val peerId = Id("PeerId")
         val knownPeerId = Id("knownPeerId")
         val queryingPeerId = Id("QueryingPeerId")
-        val knownPeersRequest = QueryRequest(queryingPeerId, Administrative.KnownPeers)
     }
 
     private val test get() = Given {
         object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
-                knownPeersIds = listOf(knownPeerId, queryingPeerId)
+                knownPeersIds = listOf(knownPeerId, queryingPeerId),
+                knownPeersProvider = KnownPeersProviderImpl(peerId)
         ) {
             val queryingPeer = getPeer(queryingPeerId)
         }
@@ -46,16 +45,16 @@ class `PeerImpl query for known peers Test` {
 
     @Test
     fun `a query for known peers is answered immediately`() =
-            test when_ {
-                peer.query(knownPeersRequest)
+            test while_ { fixed() } when_ {
+                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(any(), any())
             }
 
     @Test
     fun `a query for known peers is answered with Administrative_KnownPeers_id`() =
-            test when_ {
-                peer.query(knownPeersRequest)
+            test while_ { fixed() } when_ {
+                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(
                         argThat { chunk.key == Key(Administrative.KnownPeers.id) },
@@ -64,8 +63,8 @@ class `PeerImpl query for known peers Test` {
 
     @Test
     fun `a query for known peers is answered with the list of known peers`() =
-            test when_ {
-                peer.query(knownPeersRequest)
+            test while_ { fixed() } when_ {
+                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(
                         argThat { chunk.data.deserializeTo<List<Id>>() == knownPeersIds },
@@ -77,12 +76,14 @@ class `PeerImpl query for known peers Test` {
             test while_ {
                 configuration = configuration.copy(maxKnownPeersAnswers = 1)
                 knownPeerAnswerChooser = createChooser { knownPeersIds.slice(0..0) }
+                fixed()
             } when_ {
-                peer.query(knownPeersRequest)
+                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(
-                        argThat { chunk.data.deserializeTo<List<Id>>() ==
-                                knownPeersIds.slice(0..0) },
+                        argThat {
+                            val receivedIds = chunk.data.deserializeTo<List<Id>>()
+                            receivedIds == knownPeersIds.slice(0..0) },
                         any())
             }
 }

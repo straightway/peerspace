@@ -23,6 +23,7 @@ import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.InfrastructureProvider
+import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Peer
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
@@ -46,6 +47,7 @@ interface PeerTestEnvironment : InfrastructureProvider {
     var forwardStrategy: ForwardStrategy
     var dataQueryHandler: DataQueryHandler
     var dataPushForwarder: DataPushForwarder
+    var knownPeersProvider: KnownPeersProvider
 
     fun fixed(): PeerTestEnvironment
 }

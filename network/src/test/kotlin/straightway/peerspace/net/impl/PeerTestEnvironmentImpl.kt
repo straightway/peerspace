@@ -22,6 +22,7 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.KnownPeersProvider
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
@@ -39,7 +40,8 @@ data class PeerTestEnvironmentImpl(
             on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
         },
         override var dataQueryHandler: DataQueryHandler = mock(),
-        override var dataPushForwarder: DataPushForwarder = mock()
+        override var dataPushForwarder: DataPushForwarder = mock(),
+        override var knownPeersProvider: KnownPeersProvider = mock()
 ) : PeerTestEnvironment {
     override val knownPeers = knownPeersIds.map { createPeerMock(it) }
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
@@ -56,7 +58,8 @@ data class PeerTestEnvironmentImpl(
                 forwardStrategy = forwardStrategy,
                 timeProvider = timeProvider,
                 dataQueryHandler = dataQueryHandler,
-                dataPushForwarder = dataPushForwarder)
+                dataPushForwarder = dataPushForwarder,
+                knownPeersProvider = knownPeersProvider)
     }
 
     override val peer by lazy { PeerImpl(peerId, infrastructure) }

@@ -31,8 +31,11 @@ val InfrastructureProvider.forwardStrategy get() = infrastructure.forwardStrateg
 val InfrastructureProvider.timeProvider get() = infrastructure.timeProvider
 val InfrastructureProvider.dataQueryHandler get() = infrastructure.dataQueryHandler
 val InfrastructureProvider.dataPushForwarder get() = infrastructure.dataPushForwarder
+val InfrastructureProvider.knownPeersProvider get() = infrastructure.knownPeersProvider
 
 fun InfrastructureProvider.getPushTargetFor(id: Id) = network.getPushTarget(id)
 fun InfrastructureProvider.getQuerySourceFor(id: Id) = network.getQuerySource(id)
 fun InfrastructureProvider.nowPlus(duration: UnitNumber<Time>) =
         (timeProvider.currentTime + duration.toDuration())!!
+
+val InfrastructureProvider.allKnownPeersIds get() = peerDirectory.allKnownPeersIds.toList()

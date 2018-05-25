@@ -20,10 +20,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
@@ -37,7 +35,7 @@ class `PeerImpl general Test` {
     private companion object {
         val id = Id("thePeerId")
         val dataQuery = QueryRequest(Id("queryingPeer"), Id("chunkId"))
-        val pushRequest = PushRequest(id, Chunk(Key(Id("Id")), byteArrayOf()))
+        val knownPeersRequest = QueryRequest(Id("queryingPeerId"), Administrative.KnownPeers)
     }
 
     private val test get() = Given {
@@ -64,4 +62,12 @@ class `PeerImpl general Test` {
             verify(resultListener, never()).notifyFailure()
         }
     }
+
+    @Test
+    fun `a query for known peers is delegated to the known peers provider`() =
+            test when_ {
+                peer.query(knownPeersRequest)
+            } then {
+                verify(knownPeersProvider).pushKnownPeersTo(knownPeersRequest.originatorId)
+            }
 }

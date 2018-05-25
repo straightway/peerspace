@@ -23,6 +23,9 @@ import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.PushRequest
 
+/**
+ * Push data to a target peer.
+ */
 class DataPushForwarderImpl(
         private val id: Id
 ) : DataPushForwarder, InfrastructureProvider, InfrastructureReceiver {
@@ -48,5 +51,4 @@ class DataPushForwarderImpl(
 
     private val PushRequest.queryForwardPeerIds: Iterable<Id>
         get() = dataQueryHandler.getForwardPeerIdsFor(chunk.key)
-
 }

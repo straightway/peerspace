@@ -16,11 +16,8 @@
 @file:Suppress("ForbiddenComment")
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
-import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
@@ -28,7 +25,6 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
-import straightway.utils.serializeToByteArray
 
 // TODO:
 // * Avoid routing loops:
@@ -55,25 +51,15 @@ class PeerImpl(
 
     override fun query(request: QueryRequest, resultListener: TransmissionResultListener) {
         when (request.id) {
-            Administrative.KnownPeers.id -> pushBackKnownPeersTo(request.originatorId)
-            else -> dataQueryHandler.handle(request)
+            Administrative.KnownPeers.id ->
+                knownPeersProvider.pushKnownPeersTo(request.originatorId)
+            else ->
+                dataQueryHandler.handle(request)
         }
         resultListener.notifySuccess()
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
-
-    private fun pushBackKnownPeersTo(originatorId: Id) =
-            originatorId.asPushTarget.push(knownPeersAnswerRequest)
-
-    private val knownPeersAnswerRequest
-        get() = PushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
-
-    private val serializedKnownPeersQueryAnswer
-        get() = knownPeersQueryAnswer.serializeToByteArray()
-
-    private val knownPeersQueryAnswer
-        get() = knownPeerAnswerChooser choosePeers configuration.maxKnownPeersAnswers
 
     private val peersToQueryForOtherKnownPeers
         get() = knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers
@@ -81,19 +67,9 @@ class PeerImpl(
     private infix fun Chooser.choosePeers(number: Int) =
             chooseFrom(allKnownPeersIds, number)
 
-    private val allKnownPeersIds
-        get() = peerDirectory.allKnownPeersIds.toList()
-
     private fun queryForKnownPeers(peerId: Id) =
         peerId.asQuerySource.query(QueryRequest(id, Administrative.KnownPeers))
 
     private val Id.asQuerySource
         get() = getQuerySourceFor(this)
-
-    private val Id.asPushTarget
-        get() = getPushTargetFor(this)
-
-    private companion object {
-        val knownPeersChunkKey = Key(Administrative.KnownPeers.id)
-    }
 }

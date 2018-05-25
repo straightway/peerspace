@@ -15,6 +15,9 @@
  */
 package straightway.peerspace.net
 
+/**
+ * Forward data from a push request.
+ */
 interface DataPushForwarder {
     fun forward(push: PushRequest)
 }

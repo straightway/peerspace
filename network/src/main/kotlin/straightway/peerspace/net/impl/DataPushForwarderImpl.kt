@@ -16,12 +16,14 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Push data to a target peer.
@@ -37,11 +39,27 @@ class DataPushForwarderImpl(
         dataQueryHandler.notifyChunkForwarded(push.chunk.key)
     }
 
+    val forwardStates get() = _forwardStates
+
     private val PushRequest.forwardPeers
         get() = forwardPeersFromStrategies.toSet().filter { it != originatorId }
 
-    private infix fun PushRequest.pushOnTo(receiverId: Id) =
-            getPushTargetFor(receiverId).push(PushRequest(id, chunk))
+    private infix fun PushRequest.pushOnTo(receiverId: Id) {
+        setTransmissionPendingTo(receiverId)
+        val target = getPushTargetFor(receiverId)
+        val request = PushRequest(id, chunk)
+        target.push(request, ResultListener(request, receiverId))
+    }
+
+    private fun PushRequest.setTransmissionPendingTo(receiverId: Id) {
+        val oldState = _forwardStates[chunk.key] ?: ForwardState()
+        _forwardStates += Pair(
+                chunk.key,
+                ForwardState(
+                        successful = oldState.successful - receiverId,
+                        failed = oldState.failed - receiverId,
+                        pending = oldState.pending - receiverId + receiverId))
+    }
 
     private val PushRequest.forwardPeersFromStrategies
         get() = pushForwardPeerIds + queryForwardPeerIds
@@ -51,4 +69,37 @@ class DataPushForwarderImpl(
 
     private val PushRequest.queryForwardPeerIds: Iterable<Id>
         get() = dataQueryHandler.getForwardPeerIdsFor(chunk.key)
+
+    private inner class ResultListener(
+            private val push: PushRequest,
+            private val receiverId: Id
+    ) : TransmissionResultListener {
+
+        override fun notifySuccess() {
+            updateTransmissionState(success = receiverId)
+        }
+
+        override fun notifyFailure() {
+            val newState = updateTransmissionState(fail = receiverId)
+            val rePushPeers = forwardStrategy.getPushForwardPeerIdsFor(chunkKey, newState)
+            rePushPeers.forEach { push pushOnTo it }
+        }
+
+        private val chunkKey get() = push.chunk.key
+
+        private fun updateTransmissionState(success: Id? = null, fail: Id? = null ) =
+                _forwardStates[chunkKey]!!.updated(success, fail).also {
+                    _forwardStates += Pair(chunkKey, it)
+                }
+
+        private fun ForwardState.updated(success: Id? = null, fail: Id? = null) =
+                ForwardState(
+                        pending = pending.filter { it != success && it != fail },
+                        successful = successful + success.list,
+                        failed = failed + fail.list)
+
+        private val Id?.list get() = if (this == null) listOf() else listOf(this)
+    }
+
+    private var _forwardStates = mapOf<Key, ForwardState>()
 }

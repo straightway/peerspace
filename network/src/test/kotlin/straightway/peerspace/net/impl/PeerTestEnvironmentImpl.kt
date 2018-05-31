@@ -18,11 +18,13 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
@@ -43,7 +45,11 @@ data class PeerTestEnvironmentImpl(
         override var dataPushForwarder: DataPushForwarder = mock(),
         override var knownPeersProvider: KnownPeersProvider = mock()
 ) : PeerTestEnvironment {
-    override val knownPeers = knownPeersIds.map { createPeerMock(it) }
+    override val knownPeers = knownPeersIds.map {
+        createPeerMock(it) { pushRequest, resultForwarder ->
+            pushTransmissionResultListeners[Pair(it, pushRequest.chunk.key)] = resultForwarder
+        }
+    }.toMutableList()
     override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
     override var knownPeerQueryChooser = createChooser { knownPeersIds }
     override var knownPeerAnswerChooser = createChooser { knownPeersIds }
@@ -63,8 +69,16 @@ data class PeerTestEnvironmentImpl(
     }
 
     override val peer by lazy { PeerImpl(peerId, infrastructure) }
-    override fun fixed(): PeerTestEnvironmentImpl {
-        peer
-        return this
+    override fun setPeerPushSuccess(id: Id, success: Boolean) {
+        peerPushSuccess[id] = success
     }
+    override val pushTransmissionResultListeners =
+            mutableMapOf<Pair<Id, Key>, TransmissionResultListener>()
+
+    private val peerPushSuccess = mutableMapOf<Id, Boolean>()
+}
+
+fun <T : PeerTestEnvironment> T.fixed(): T {
+    peer
+    return this
 }

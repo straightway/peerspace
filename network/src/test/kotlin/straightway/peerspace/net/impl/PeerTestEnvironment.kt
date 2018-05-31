@@ -18,6 +18,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
@@ -25,6 +26,7 @@ import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
 
@@ -38,7 +40,7 @@ interface PeerTestEnvironment : InfrastructureProvider {
     val unknownPeerIds: List<Id>
     var configuration: Configuration
     val localChunks: List<Chunk>
-    val knownPeers: List<Peer>
+    val knownPeers: MutableList<Peer>
     val unknownPeers: List<Peer>
     var knownPeerQueryChooser: Chooser
     var knownPeerAnswerChooser: Chooser
@@ -48,8 +50,8 @@ interface PeerTestEnvironment : InfrastructureProvider {
     var dataQueryHandler: DataQueryHandler
     var dataPushForwarder: DataPushForwarder
     var knownPeersProvider: KnownPeersProvider
-
-    fun fixed(): PeerTestEnvironment
+    fun setPeerPushSuccess(id: Id, success: Boolean)
+    val pushTransmissionResultListeners: MutableMap<Pair<Id, Key>, TransmissionResultListener>
 }
 
 fun PeerTestEnvironment.getPeer(id: Id) =

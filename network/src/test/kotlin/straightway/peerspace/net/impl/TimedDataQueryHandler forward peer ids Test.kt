@@ -53,7 +53,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
     }
 
     private val test get() = Given {
-        val result = object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = knownPeersIds,
                 forwardStrategy = mock {
@@ -71,10 +71,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
                     on { currentTime }.thenAnswer { currTime }
                 }
             }
-        }
-
-        result.fixed()
-        result
+        }.fixed()
     }
 
     @Test

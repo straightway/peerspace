@@ -28,7 +28,9 @@ import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
@@ -60,7 +62,18 @@ fun createInfrastructure(
             dataPushForwarder = dataPushForwarder,
             knownPeersProvider = knownPeersProvider)
 
-fun createPeerMock(id: Id) = mock<Peer> { on { this.id }.thenReturn(id) }
+fun createPeerMock(
+        id: Id,
+        callback: (PushRequest, TransmissionResultListener) -> Unit = { _, _ -> }
+) =
+        mock<Peer> {
+            on { this.id }.thenReturn(id)
+            on { push(any(), any()) }.thenAnswer {
+                callback(
+                        it.arguments[0] as PushRequest,
+                        it.arguments[1] as TransmissionResultListener)
+            }
+        }
 
 fun ids(vararg ids: String) = ids.map { Id(it) }
 

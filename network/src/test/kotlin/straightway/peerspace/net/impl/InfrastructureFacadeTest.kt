@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 package straightway.peerspace.net.impl
-
+/*
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.net.Infrastructure
@@ -66,4 +66,4 @@ class InfrastructureFacadeTest {
             test when_ { infrastructure.nowPlus(-1[second]) } then {
                 expect(it.result is_ Equal to_ currentTime.minusSeconds(1))
             }
-}
+}*/

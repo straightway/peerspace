@@ -35,31 +35,6 @@ import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
 
-@Suppress("LongParameterList")
-fun createInfrastructure(
-        network: Network = mock(),
-        configuration: Configuration = Configuration(),
-        peerDirectory: PeerDirectory = mock(),
-        knownPeerQueryChooser: Chooser = mock(),
-        knownPeerAnswerChooser: Chooser = mock(),
-        forwardStrategy: ForwardStrategy = mock(),
-        timeProvider: TimeProvider = mock(),
-        dataQueryHandler: DataQueryHandler = mock(),
-        dataPushForwarder: DataPushForwarder = mock(),
-        knownPeersProvider: KnownPeersProvider = mock()
-) =
-        InfrastructureImpl(
-            network = network,
-            configuration = configuration,
-            peerDirectory = peerDirectory,
-            knownPeerQueryChooser = knownPeerQueryChooser,
-            knownPeerAnswerChooser = knownPeerAnswerChooser,
-            forwardStrategy = forwardStrategy,
-            timeProvider = timeProvider,
-            dataQueryHandler = dataQueryHandler,
-            dataPushForwarder = dataPushForwarder,
-            knownPeersProvider = knownPeersProvider)
-
 fun createPeerMock(
         id: Id,
         callback: (PushRequest, TransmissionResultListener) -> Unit = { _, _ -> }

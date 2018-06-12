@@ -25,12 +25,12 @@ import straightway.peerspace.koinutils.IgnoreLogger
 abstract class KoinTestBase {
 
     @BeforeEach
-    fun setup() {
+    fun setupKoinLogger() {
         Koin.logger = IgnoreLogger()
     }
 
     @AfterEach
-    fun tearDown() {
+    fun tearDownKoinLogger() {
         Koin.logger = oldLogger
     }
 

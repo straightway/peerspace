@@ -17,22 +17,21 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.property
 import straightway.peerspace.net.DataPushForwarder
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
-import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.InfrastructureProvider
-import straightway.peerspace.net.InfrastructureReceiver
+import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Push data to a target peer.
  */
-class DataPushForwarderImpl(
-        private val id: Id
-) : DataPushForwarder, InfrastructureProvider, InfrastructureReceiver {
-
-    override lateinit var infrastructure: Infrastructure
+class DataPushForwarderImpl : DataPushForwarder, KoinModuleComponent by KoinModuleComponent() {
 
     override fun forward(push: PushRequest) {
         push.forwardPeers.forEach { push pushOnTo it }
@@ -41,12 +40,17 @@ class DataPushForwarderImpl(
 
     val forwardStates get() = _forwardStates
 
+    private val id: Id by property("peerId") { Id(it) }
+    private val dataQueryHandler: DataQueryHandler by inject()
+    private val forwardStrategy: ForwardStrategy by inject()
+    private val network: Network by inject()
+
     private val PushRequest.forwardPeers
         get() = forwardPeersFromStrategies.toSet().filter { it != originatorId }
 
     private infix fun PushRequest.pushOnTo(receiverId: Id) {
         setTransmissionPendingTo(receiverId)
-        val target = getPushTargetFor(receiverId)
+        val target = network.getPushTarget(receiverId)
         val request = PushRequest(id, chunk)
         target.push(request, ResultListener(request, receiverId))
     }

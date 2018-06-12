@@ -36,10 +36,8 @@ import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
-import straightway.testing.flow.Same
 import straightway.testing.flow.True
 import straightway.testing.flow.Values
-import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -66,6 +64,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                             on { query(any()) }.thenAnswer { localChunks }
                         }
                     }
+                    bean { timeProvider }
+                    bean { network }
+                    bean { forwardStrategy }
                 }.apply {
                     extraProperties["peerId"] = peerId.identifier
                 } make {
@@ -97,11 +98,6 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                 val timeProvider = mock<TimeProvider> {
                     on { currentTime }.thenAnswer { currentTime }
                 }
-                val infrastructure = createInfrastructure(
-                        dataQueryHandler = sut,
-                        network = network,
-                        forwardStrategy = forwardStrategy,
-                        timeProvider = timeProvider)
                 val queryRequest = QueryRequest(originatorId, Id("queriedId"), 1L..2L)
                 infix fun isPending(query: QueryRequest) =
                         sut.protectedPendingQueries.any { it.query === query }
@@ -140,14 +136,6 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
         val protectedPendingQueries: List<PendingQuery> get() = pendingQueries
     }
-
-    @Test
-    fun `infrastructure is set properly`() =
-            test when_ {
-                sut.infrastructure
-            } then {
-                expect(it.result is_ Same as_ infrastructure)
-            }
 
     @Test
     fun `new handled query is set pending`() =

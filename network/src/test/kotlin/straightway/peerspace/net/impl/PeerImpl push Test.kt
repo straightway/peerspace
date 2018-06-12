@@ -50,12 +50,6 @@ class `PeerImpl push Test` : KoinTestBase() {
     }
 
     @Test
-    fun `PeerImpl implements Peer`() =
-            test when_ { peer as Peer } then {
-                expect ({ it.result } does Not - Throw.exception)
-            }
-
-    @Test
     fun `id passed on construction is accessible`() =
             test when_ { peer.id } then { expect(it.result is_ Equal to_ peerId) }
 

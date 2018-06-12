@@ -21,10 +21,14 @@ import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.koinutils.inject
 import straightway.peerspace.koinutils.property
 import straightway.peerspace.net.Administrative
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.InfrastructureProvider
+import straightway.peerspace.net.DataPushForwarder
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
@@ -38,12 +42,9 @@ import straightway.random.Chooser
 /**
  * Default productive implementation of a peerspace peer.
  */
-class PeerImpl(
-        override val infrastructure: Infrastructure
-) : Peer, InfrastructureProvider, KoinModuleComponent by KoinModuleComponent() {
+class PeerImpl: Peer, KoinModuleComponent by KoinModuleComponent() {
 
     override val id: Id by property("peerId") { Id(it) }
-    private val dataChunkStore: DataChunkStore by inject()
 
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
@@ -66,15 +67,24 @@ class PeerImpl(
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
+    private val configuration: Configuration by inject()
+    private val dataChunkStore: DataChunkStore by inject()
+    private val dataQueryHandler: DataQueryHandler by inject()
+    private val network: Network by inject()
+    private val knownPeersProvider: KnownPeersProvider by inject()
+    private val dataPushForwarder: DataPushForwarder by inject()
+    private val peerDirectory: PeerDirectory by inject()
+    private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
+
     private val peersToQueryForOtherKnownPeers
         get() = knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers
 
     private infix fun Chooser.choosePeers(number: Int) =
-            chooseFrom(allKnownPeersIds, number)
+            chooseFrom(peerDirectory.allKnownPeersIds.toList(), number)
 
     private fun queryForKnownPeers(peerId: Id) =
         peerId.asQuerySource.query(QueryRequest(id, Administrative.KnownPeers))
 
     private val Id.asQuerySource
-        get() = getQuerySourceFor(this)
+        get() = network.getQuerySource(this)
 }

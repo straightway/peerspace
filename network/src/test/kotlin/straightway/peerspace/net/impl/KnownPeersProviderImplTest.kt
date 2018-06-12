@@ -34,13 +34,11 @@ class KnownPeersProviderImplTest : KoinTestBase() {
     }
 
     private val test get() = Given {
-        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(knownPeerId, queryingPeerId),
-                knownPeersProvider = KnownPeersProviderImpl(peerId)
-        ) {
-            val queryingPeer = getPeer(queryingPeerId)
-        }
+                knownPeersProviderFactory =  { KnownPeersProviderImpl() }
+        )
     }
 
     @Test
@@ -73,10 +71,14 @@ class KnownPeersProviderImplTest : KoinTestBase() {
 
     @Test
     fun `a query for known peers yields not more peers than specified`() =
-            test while_ {
-                configuration = configuration.copy(maxKnownPeersAnswers = 1)
-                knownPeerAnswerChooser = createChooser { knownPeersIds.slice(0..0) }
-                fixed()
+            test andGiven {
+                it.copy(
+                        configurationFactory = {
+                            it.configuration.copy(maxKnownPeersAnswers = 1)
+                        },
+                        knownPeerAnswerChooserFactory =  {
+                            createChooser { knownPeersIds.slice(0..0) }
+                        }).fixed()
             } when_ {
                 knownPeersProvider.pushKnownPeersTo(queryingPeerId)
             } then {
@@ -86,4 +88,6 @@ class KnownPeersProviderImplTest : KoinTestBase() {
                             receivedIds == knownPeersIds.slice(0..0) },
                         any())
             }
+
+    private val PeerTestEnvironmentImpl.queryingPeer get() = getPeer(queryingPeerId)
 }

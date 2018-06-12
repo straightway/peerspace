@@ -20,10 +20,10 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.TransmissionResultListener
@@ -34,24 +34,25 @@ import straightway.utils.TimeProvider
  * Test environment for testing the PeerImpl class.
  */
 @Suppress("ComplexInterface")
-interface PeerTestEnvironment : InfrastructureProvider {
+interface PeerTestEnvironment {
     val peerId: Id
     val knownPeersIds: List<Id>
     val unknownPeerIds: List<Id>
-    var configuration: Configuration
+    val configuration: Configuration
     val localChunks: List<Chunk>
     val knownPeers: MutableList<Peer>
     val unknownPeers: List<Peer>
-    var knownPeerQueryChooser: Chooser
-    var knownPeerAnswerChooser: Chooser
-    var timeProvider: TimeProvider
-    val peer: PeerImpl
-    var forwardStrategy: ForwardStrategy
+    val knownPeerQueryChooser: Chooser
+    val knownPeerAnswerChooser: Chooser
+    val timeProvider: TimeProvider
+    val peer: Peer
+    val forwardStrategy: ForwardStrategy
     val dataQueryHandler: DataQueryHandler
-    var dataPushForwarder: DataPushForwarder
-    var knownPeersProvider: KnownPeersProvider
-    fun setPeerPushSuccess(id: Id, success: Boolean)
+    val dataPushForwarder: DataPushForwarder
+    val knownPeersProvider: KnownPeersProvider
+    val dataChunkStore: DataChunkStore
     val pushTransmissionResultListeners: MutableMap<Pair<Id, Key>, TransmissionResultListener>
+    fun setPeerPushSuccess(id: Id, success: Boolean)
 }
 
 fun PeerTestEnvironment.getPeer(id: Id) =

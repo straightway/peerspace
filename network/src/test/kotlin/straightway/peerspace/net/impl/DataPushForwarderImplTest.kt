@@ -51,10 +51,11 @@ class DataPushForwarderImplTest : KoinTestBase() {
 
     private val test get() = Given {
         var localQueryForwardIds = ids()
+        var localForwardedPeerIndices = 1..2
         val baseEnvironment = PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = knownPeersIds,
-                dataPushForwarder = DataPushForwarderImpl(peerId),
+                dataPushForwarderFactory = { DataPushForwarderImpl() },
                 dataQueryHandlerFactory = {
                     mock {
                         on {
@@ -62,10 +63,22 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         }.thenAnswer {
                             localQueryForwardIds
                         }
-                }}
+                    }
+                },
+                forwardStrategyFactory = {
+                    mock {
+                        on {
+                            getPushForwardPeerIdsFor(any(), any())
+                        }.thenAnswer {
+                            knownPeersIds.slice(localForwardedPeerIndices)
+                        }
+                    }
+                }
         )
         object : PeerTestEnvironment by baseEnvironment {
-            var forwardedPeerIndices = 1..2
+            var forwardedPeerIndices
+                get() = localForwardedPeerIndices
+                set(new) { localForwardedPeerIndices = new }
             val forwardedPeerIds get() = knownPeersIds.slice(forwardedPeerIndices)
             var queryForwardPeerIds
                 get() = localQueryForwardIds
@@ -78,15 +91,6 @@ class DataPushForwarderImplTest : KoinTestBase() {
                     return action()
                 } finally {
                     forwardedPeerIndices = oldForwardPeerIndices
-                }
-            }
-            init {
-                forwardStrategy = mock {
-                    on {
-                        getPushForwardPeerIdsFor(any(), any())
-                    }.thenAnswer {
-                        knownPeersIds.slice(forwardedPeerIndices)
-                    }
                 }
             }
         }.fixed()

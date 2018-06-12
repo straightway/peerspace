@@ -33,27 +33,27 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
         val knownPeersRequest = QueryRequest(peerId, Administrative.KnownPeers)
     }
 
-    private val defaultEnvironment by lazy {
+    private val test get() = Given {
         PeerTestEnvironmentImpl(
-                peerId,
-                knownPeersIds = listOf(knownPeerId),
-                configuration = Configuration(maxPeersToQueryForKnownPeers = 2))
+            peerId,
+            knownPeersIds = listOf(knownPeerId),
+            configurationFactory = { Configuration(maxPeersToQueryForKnownPeers = 2) })
     }
 
-    private val test get() = Given { defaultEnvironment }
+    private val PeerTestEnvironment.peerImpl get() = peer as PeerImpl
 
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
-            test when_ { peer.refreshKnownPeers() } then {
+            test when_ { peerImpl.refreshKnownPeers() } then {
                 verify(knownPeers.single()).query(knownPeersRequest)
             }
 
     @Test
     fun `a second call to refreshKnownPeers is effective`() =
             test while_ {
-                peer.refreshKnownPeers()
+                peerImpl.refreshKnownPeers()
             } when_ {
-                peer.refreshKnownPeers()
+                peerImpl.refreshKnownPeers()
             } then {
                 verify(knownPeers.single(), times(2)).query(knownPeersRequest)
             }
@@ -61,10 +61,14 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
     @Test
     fun `number of peers queried for knownPeers is determined by configuration`() =
             Given {
-                defaultEnvironment.copy(
-                        knownPeersIds = ids(knownPeerId.identifier, "1", "2"))
+                PeerTestEnvironmentImpl(
+                        peerId,
+                        knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
+                        configurationFactory = {
+                            Configuration(maxPeersToQueryForKnownPeers = 2)
+                        })
             } when_ {
-                peer.refreshKnownPeers()
+                peerImpl.refreshKnownPeers()
             } then {
                 knownPeers.take(configuration.maxPeersToQueryForKnownPeers).forEach {
                     verify(it).query(knownPeersRequest)
@@ -77,15 +81,19 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
     @Test
     fun `set peers to query for other known peers is randomized`() =
             Given {
-                defaultEnvironment.copy(
-                        knownPeersIds = ids(knownPeerId.identifier, "1", "2")
-                ).apply {
-                    knownPeerQueryChooser = createChooser {
-                        listOf(knownPeers[0].id, knownPeers[2].id)
-                    }
-                }
+                PeerTestEnvironmentImpl(
+                        peerId,
+                        knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
+                        configurationFactory = {
+                            Configuration(maxPeersToQueryForKnownPeers = 2)
+                        },
+                        knownPeerQueryChooserFactory = {
+                            createChooser {
+                                listOf(knownPeers[0].id, knownPeers[2].id)
+                            }
+                        })
             } when_ {
-                peer.refreshKnownPeers()
+                peerImpl.refreshKnownPeers()
             } then {
                 verify(knownPeers[0]).query(knownPeersRequest)
                 verify(knownPeers[1], never()).query(knownPeersRequest)

@@ -17,8 +17,6 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.InfrastructureReceiver
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isUntimed
 
@@ -27,15 +25,8 @@ import straightway.peerspace.net.isUntimed
  */
 class DataQueryHandlerImpl(
         private val untimedDataQueryHandler: DataQueryHandler,
-        private val timedDataQueryHandler: DataQueryHandler)
-    : DataQueryHandler, InfrastructureReceiver {
-
-    override var infrastructure: Infrastructure
-        get() = throw UnsupportedOperationException()
-        set(newInfrastructure) {
-            untimedDataQueryHandler.infrastructure = newInfrastructure
-            timedDataQueryHandler.infrastructure = newInfrastructure
-        }
+        private val timedDataQueryHandler: DataQueryHandler
+) : DataQueryHandler {
 
     override fun handle(query: QueryRequest) {
         if (query.isUntimed) untimedDataQueryHandler.handle(query)

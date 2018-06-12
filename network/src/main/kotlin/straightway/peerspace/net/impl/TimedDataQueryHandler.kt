@@ -15,21 +15,22 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.QueryRequest
 
 /**
  * DataQueryHandler for timed queries.
  */
-class TimedDataQueryHandler()
+class TimedDataQueryHandler
     : SpecializedDataQueryHandlerBase(), DataQueryHandler {
 
     override fun QueryRequest.forward(hasLocalResult: Boolean) =
             forward()
 
-    override val tooOldThreshold get() = nowPlus(-configuration.timedDataQueryTimeout)
+    override val tooOldThreshold get() = timeProvider.nowPlus(-configuration.timedDataQueryTimeout)
 
     override fun notifyChunkForwarded(key: Key) =
             key.pendingQueriesForThisPush.forEach { it.forwardedChunks.add(key) }
@@ -38,6 +39,8 @@ class TimedDataQueryHandler()
             pendingQueriesForThisPush
                     .filter { !isAlreadyForwardedFor(it) }
                     .map { it.query.originatorId }
+
+    private val configuration: Configuration by inject()
 
     private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
             it.forwardedChunks.contains(this)

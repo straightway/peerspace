@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
@@ -41,14 +40,13 @@ class `UntimedDataQueryHandler general Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        val baseInstance = PeerTestEnvironmentImpl(
+        PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(receiverId),
-                dataQueryHandlerFactory = { UntimedDataQueryHandler() })
-        object : PeerTestEnvironment by baseInstance, KoinProvider by baseInstance {
-            val receiver = getPeer(receiverId)
-        }.fixed()
+                dataQueryHandlerFactory = { UntimedDataQueryHandler() }).fixed()
     }
+
+    private val PeerTestEnvironment.receiver get() = getPeer(receiverId)
 
     @Test
     fun `query is forwarded to chunk data store`() =

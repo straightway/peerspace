@@ -109,10 +109,13 @@ fun KoinModuleComponent.releaseProperties(vararg keys: String) =
 fun KoinModuleComponent.releaseContext(name: String) =
         context.releaseContext(name)
 
-fun <T> KoinModuleComponent.withOwnContext(action: KoinContext.() -> T) =
-        try {
-            KoinModuleComponent.currentContext = context
-            context.action()
-        } finally {
-            KoinModuleComponent.currentContext = null
-        }
+fun <T> KoinModuleComponent.withOwnContext(action: KoinContext.() -> T): T {
+    val oldContext = if (KoinModuleComponent.hasContext)
+        KoinModuleComponent.currentContext else null
+    try {
+        KoinModuleComponent.currentContext = context
+        return context.action()
+    } finally {
+        KoinModuleComponent.currentContext = oldContext
+    }
+}

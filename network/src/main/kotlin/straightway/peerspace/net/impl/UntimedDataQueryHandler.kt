@@ -17,22 +17,26 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
 
 /**
  * DataQueryHandler for untimed queries.
  */
-class UntimedDataQueryHandler()
+class UntimedDataQueryHandler
     : SpecializedDataQueryHandlerBase() {
 
     override fun QueryRequest.forward(hasLocalResult: Boolean) =
             if (hasLocalResult) Unit else forward()
 
-    override val tooOldThreshold get() = nowPlus(-configuration.untimedDataQueryTimeout)
+    override val tooOldThreshold get() = timeProvider.nowPlus(-configuration.untimedDataQueryTimeout)
 
     override fun notifyChunkForwarded(key: Key) = removeQueriesIf { isMatching(key) }
 
     override val Key.resultReceiverIdsForChunk get() =
             pendingQueriesForThisPush.map { it.query.originatorId }.toList()
+
+    private val configuration: Configuration by inject()
 }

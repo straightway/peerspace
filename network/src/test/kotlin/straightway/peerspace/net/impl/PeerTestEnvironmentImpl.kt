@@ -16,13 +16,10 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.mock
-import org.koin.Koin
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.IgnoreLogger
 import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.get
 import straightway.peerspace.koinutils.inject
 import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.Configuration
@@ -31,13 +28,13 @@ import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.random.Chooser
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
-
-interface KoinProvider {
-    val koin: KoinModuleComponent
-}
 
 /**
  * Implementation of the test environment for testing the PeerImpl class.
@@ -46,61 +43,84 @@ data class PeerTestEnvironmentImpl(
         override val peerId: Id,
         override val knownPeersIds: List<Id> = listOf(),
         override val unknownPeerIds: List<Id> = listOf(),
-        override var configuration: Configuration = Configuration(),
         override val localChunks: List<Chunk> = listOf(),
-        override var forwardStrategy: ForwardStrategy = mock(),
-        override var timeProvider: TimeProvider = mock {
-            on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
+        private val configurationFactory: PeerTestEnvironment.() -> Configuration = {
+            Configuration()
         },
-        private var dataQueryHandlerFactory: () -> DataQueryHandler = { mock() },
-        override var dataPushForwarder: DataPushForwarder = mock(),
-        override var knownPeersProvider: KnownPeersProvider = mock()
-) : PeerTestEnvironment, KoinProvider {
-
-    override val koin = withContext {
-        bean { dataQueryHandlerFactory() }
-        bean { createChunkDataStore { localChunks } }
-        bean {
-            PeerImpl(createInfrastructure(
-                peerDirectory = createPeerDirectory { knownPeers },
-                network = createNetworkMock { knownPeers + unknownPeers },
-                configuration = configuration,
-                knownPeerQueryChooser = knownPeerQueryChooser,
-                knownPeerAnswerChooser = knownPeerAnswerChooser,
-                forwardStrategy = forwardStrategy,
-                timeProvider = timeProvider,
-                dataQueryHandler = get(),
-                dataPushForwarder = dataPushForwarder,
-                knownPeersProvider = knownPeersProvider))
+        private val forwardStrategyFactory: PeerTestEnvironment.() -> ForwardStrategy = {
+            mock()
+        },
+        private val timeProviderFactory: PeerTestEnvironment.() -> TimeProvider = {
+            mock {
+                on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
+            }
+        },
+        private val dataQueryHandlerFactory: PeerTestEnvironment.() -> DataQueryHandler = {
+            mock()
+        },
+        private val dataPushForwarderFactory: PeerTestEnvironment.() -> DataPushForwarder = {
+            mock()
+        },
+        private val knownPeersProviderFactory: PeerTestEnvironment.() -> KnownPeersProvider = {
+            mock()
+        },
+        private val knownPeerQueryChooserFactory: PeerTestEnvironment.() -> Chooser = {
+            createChooser { knownPeersIds }
+        },
+        private val knownPeerAnswerChooserFactory: PeerTestEnvironment.() -> Chooser = {
+            createChooser { knownPeersIds }
+        },
+        private val peerDirectoryFactory: PeerTestEnvironment.() -> PeerDirectory = {
+            createPeerDirectory { knownPeers }
+        },
+        private val networkFactory: PeerTestEnvironment.() -> Network = {
+            createNetworkMock { knownPeers + unknownPeers }
+        },
+        private val dataChunkStoreFactory: PeerTestEnvironment.() -> DataChunkStore = {
+            createChunkDataStore { localChunks }
+        },
+        private val peerFactory: PeerTestEnvironment.() -> Peer = {
+            PeerImpl()
         }
-    }.apply {
-        extraProperties["peerId"] = peerId.identifier
-    } make { KoinModuleComponent() }
+) : PeerTestEnvironment {
 
+    val koin by lazy {
+        withContext {
+            bean { configurationFactory() }
+            bean { forwardStrategyFactory() }
+            bean { timeProviderFactory() }
+            bean { dataQueryHandlerFactory() }
+            bean { dataPushForwarderFactory() }
+            bean { knownPeersProviderFactory() }
+            bean("knownPeerQueryChooser") { knownPeerQueryChooserFactory() }
+            bean("knownPeerAnswerChooser") { knownPeerAnswerChooserFactory() }
+            bean { peerDirectoryFactory() }
+            bean { networkFactory() }
+            bean { dataChunkStoreFactory() }
+            bean { peerFactory() }
+        }.apply {
+            extraProperties["peerId"] = peerId.identifier
+        } make { KoinModuleComponent() }
+    }
+
+    override val peer by koin.inject<Peer>()
+    override val configuration: Configuration by koin.inject()
+    override val knownPeerQueryChooser: Chooser by koin.inject("knownPeerQueryChooser")
+    override val knownPeerAnswerChooser: Chooser by koin.inject("knownPeerAnswerChooser")
+    override val timeProvider: TimeProvider by koin.inject()
+    override val forwardStrategy: ForwardStrategy by koin.inject()
+    override val dataPushForwarder: DataPushForwarder by koin.inject()
+    override val knownPeersProvider: KnownPeersProvider by koin.inject()
     override val dataQueryHandler: DataQueryHandler by koin.inject()
+    override val dataChunkStore: DataChunkStore by koin.inject()
+
     override val knownPeers = knownPeersIds.map {
         createPeerMock(it) { pushRequest, resultForwarder ->
             pushTransmissionResultListeners[Pair(it, pushRequest.chunk.key)] = resultForwarder
         }
     }.toMutableList()
-    override val unknownPeers = knownPeersIds.map { createPeerMock(it) }
-    override var knownPeerQueryChooser = createChooser { knownPeersIds }
-    override var knownPeerAnswerChooser = createChooser { knownPeersIds }
-    override val infrastructure by lazy {
-        createInfrastructure(
-                peerDirectory = createPeerDirectory { knownPeers },
-                network = createNetworkMock { knownPeers + unknownPeers },
-                configuration = configuration,
-                knownPeerQueryChooser = knownPeerQueryChooser,
-                knownPeerAnswerChooser = knownPeerAnswerChooser,
-                forwardStrategy = forwardStrategy,
-                timeProvider = timeProvider,
-                dataQueryHandler = dataQueryHandler,
-                dataPushForwarder = dataPushForwarder,
-                knownPeersProvider = knownPeersProvider)
-    }
 
-    override val peer by koin.inject<PeerImpl>()
+    override val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
 
     override fun setPeerPushSuccess(id: Id, success: Boolean) {
         peerPushSuccess[id] = success
@@ -115,6 +135,3 @@ fun <T : PeerTestEnvironment> T.fixed(): T {
     peer
     return this
 }
-
-val KoinProvider.dataChunkStore: DataChunkStore get() =
-    koin.get()

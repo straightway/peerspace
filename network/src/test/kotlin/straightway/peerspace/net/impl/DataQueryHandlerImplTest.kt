@@ -24,14 +24,11 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
-import straightway.testing.flow.Throw
 import straightway.testing.flow.Values
-import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.has
 import straightway.testing.flow.is_
@@ -60,31 +57,12 @@ class DataQueryHandlerImplTest {
                         on { getForwardPeerIdsFor(any()) }
                                 .thenReturn(listOf(timedId, timedUntimedId))
                     }
-                    val infrastructure = mock<Infrastructure>()
                     val untimedQuery = QueryRequest(Id("originator"), Id("untimedQuery"))
                     val timedQuery = QueryRequest(Id("originator"), Id("timedQuery"), 1L..2L)
                     val sut = DataQueryHandlerImpl(
                             untimedDataQueryHandler,
                             timedDataQueryHandler)
                 }
-            }
-
-    @Test
-    fun `getting infrastructure throws`() =
-            test when_ { sut.infrastructure } then {
-                expect({ it.result } does Throw.type<UnsupportedOperationException>())
-            }
-
-    @Test
-    fun `setting infrastructure forwards to timed subhandler`() =
-            test when_ { sut.infrastructure = infrastructure } then {
-                verify(timedDataQueryHandler).infrastructure = infrastructure
-            }
-
-    @Test
-    fun `setting infrastructure forwards to untimed subhandler`() =
-            test when_ { sut.infrastructure = infrastructure } then {
-                verify(untimedDataQueryHandler).infrastructure = infrastructure
             }
 
     @Test

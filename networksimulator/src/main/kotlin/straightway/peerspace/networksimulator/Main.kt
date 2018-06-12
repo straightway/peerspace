@@ -20,14 +20,16 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
-import straightway.peerspace.net.impl.InfrastructureImpl
 import straightway.peerspace.net.impl.KnownPeersProviderImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerStubFactory
@@ -48,6 +50,7 @@ import straightway.units.kilo
 import straightway.units.mega
 import straightway.units.milli
 import straightway.units.second
+import straightway.utils.TimeProvider
 import straightway.utils.toByteArray
 import java.io.Serializable
 import java.util.Random
@@ -73,8 +76,6 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
     private val randomSource = RandomSource(Random(randomSeed))
 
     private fun createPeer(id: Id) {
-        @Suppress("UNUSED_VARIABLE")
-        val network = createPeerNetwork(id)
 
         @Suppress("MagicNumber")
         val hasher = EpochKeyHasher(SimHasher(), simulator, arrayOf(
@@ -84,26 +85,25 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
                 LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                 LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
+
         peers[id] = withContext {
-            bean {TransientDataChunkStore() as DataChunkStore }
+            bean { TransientDataChunkStore() as DataChunkStore }
+            bean { DataQueryHandlerImpl(
+                    UntimedDataQueryHandler(),
+                    TimedDataQueryHandler()) as DataQueryHandler }
+            bean { TransientPeerDirectory() as PeerDirectory }
+            bean { createPeerNetwork(id) }
+            bean { Configuration() }
+            bean("knownPeerQueryChooser") { RandomChooser(randomSource) }
+            bean("knownPeerAnswerChooser") { RandomChooser(randomSource) }
+            bean { ForwardStrategyImpl(hasher) as ForwardStrategy }
+            bean { simulator as TimeProvider }
+            bean { DataPushForwarderImpl() }
+            bean { KnownPeersProviderImpl() }
         }.apply {
             extraProperties["peerId"] = id.identifier
         } make {
-            PeerImpl(
-                InfrastructureImpl(
-                        TransientPeerDirectory(),
-                        network,
-                        Configuration(),
-                        RandomChooser(randomSource),
-                        RandomChooser(randomSource),
-                        ForwardStrategyImpl(hasher),
-                        simulator,
-                        DataQueryHandlerImpl(
-                            UntimedDataQueryHandler(),
-                            TimedDataQueryHandler()),
-                        DataPushForwarderImpl(id),
-                        KnownPeersProviderImpl(id)
-                    ))
+            PeerImpl()
         }
     }
 

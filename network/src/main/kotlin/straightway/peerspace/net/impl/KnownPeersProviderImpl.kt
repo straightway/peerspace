@@ -18,11 +18,14 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.property
 import straightway.peerspace.net.Administrative
-import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.InfrastructureProvider
-import straightway.peerspace.net.InfrastructureReceiver
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushRequest
 import straightway.random.Chooser
 import straightway.utils.serializeToByteArray
@@ -30,16 +33,19 @@ import straightway.utils.serializeToByteArray
 /**
  * Push known peers to a target peer.
  */
-class KnownPeersProviderImpl(private val id: Id)
-    : KnownPeersProvider, InfrastructureProvider, InfrastructureReceiver {
-
-    override lateinit var infrastructure: Infrastructure
+class KnownPeersProviderImpl : KnownPeersProvider, KoinModuleComponent by KoinModuleComponent() {
 
     override fun pushKnownPeersTo(targetPeerId: Id) =
             targetPeerId.asPushTarget.push(knownPeersAnswerRequest)
 
     private val knownPeersAnswerRequest
         get() = PushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
+
+    private val id: Id by property("peerId") { Id(it) }
+    private val configuration: Configuration by inject()
+    private val peerDirectory: PeerDirectory by inject()
+    private val network: Network by inject()
+    private val knownPeerAnswerChooser: Chooser by inject("knownPeerAnswerChooser")
 
     private val serializedKnownPeersQueryAnswer
         get() = knownPeersQueryAnswer.serializeToByteArray()
@@ -54,7 +60,7 @@ class KnownPeersProviderImpl(private val id: Id)
         get() = peerDirectory.allKnownPeersIds.toList()
 
     private val Id.asPushTarget
-        get() = getPushTargetFor(this)
+        get() = network.getPushTarget(this)
 
     private companion object {
         val knownPeersChunkKey = Key(Administrative.KnownPeers.id)

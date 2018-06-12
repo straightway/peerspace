@@ -24,13 +24,13 @@ import straightway.peerspace.koinutils.property
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
-import straightway.peerspace.net.Infrastructure
-import straightway.peerspace.net.InfrastructureProvider
-import straightway.peerspace.net.InfrastructureReceiver
+import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
+import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
 // TODO
@@ -39,17 +39,13 @@ import java.time.LocalDateTime
 /**
  * Base class for DataQueryHandler implementations.
  */
-abstract class SpecializedDataQueryHandlerBase()
-    : InfrastructureReceiver, InfrastructureProvider, DataQueryHandler, KoinModuleComponent by KoinModuleComponent() {
+abstract class SpecializedDataQueryHandlerBase
+    : DataQueryHandler, KoinModuleComponent by KoinModuleComponent() {
 
     protected val peerId: Id by property("peerId") { Id(it) }
-    private val dataChunkStore: DataChunkStore by inject()
-
     protected abstract val tooOldThreshold: LocalDateTime
     protected abstract val Key.resultReceiverIdsForChunk: Iterable<Id>
     protected abstract fun QueryRequest.forward(hasLocalResult: Boolean)
-
-    final override lateinit var infrastructure: Infrastructure
 
     final override fun handle(query: QueryRequest) =
             if (query.isPending) Unit else handleNewQueryRequest(query)
@@ -71,7 +67,7 @@ abstract class SpecializedDataQueryHandlerBase()
     }
 
     protected fun QueryRequest.forward() = forwardCopy.let {
-        forwardPeerIds.forEach { peerId -> getQuerySourceFor(peerId).query(it) }
+        forwardPeerIds.forEach { peerId -> network.getQuerySource(peerId).query(it) }
     }
 
     protected val Key.pendingQueriesForThisPush
@@ -81,6 +77,12 @@ abstract class SpecializedDataQueryHandlerBase()
         removeOldPendingQueries()
         return _pendingQueries
     }
+
+    protected val network: Network by inject()
+    protected val timeProvider: TimeProvider by inject()
+
+    private val dataChunkStore: DataChunkStore by inject()
+    private val forwardStrategy: ForwardStrategy by inject()
 
     private val QueryRequest.isPending
         get() = pendingQueries.any { it.query == this }
@@ -101,7 +103,7 @@ abstract class SpecializedDataQueryHandlerBase()
             forEach { chunk -> chunk forwardTo target }
 
     private val QueryRequest.issuer
-        get() = getPushTargetFor(originatorId)
+        get() = network.getPushTarget(originatorId)
 
     private infix fun Chunk.forwardTo(target: PushTarget) =
             target.push(PushRequest(peerId, this))

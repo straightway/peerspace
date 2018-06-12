@@ -41,13 +41,10 @@ class `TimedDataQueryHandler general Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        val baseInstance = PeerTestEnvironmentImpl(
+        PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(receiverId),
-                dataQueryHandlerFactory = { TimedDataQueryHandler() })
-        object : PeerTestEnvironment by baseInstance, KoinProvider by baseInstance {
-            val receiver = getPeer(receiverId)
-        }.fixed()
+                dataQueryHandlerFactory = { TimedDataQueryHandler() }).fixed()
     }
 
     @Test
@@ -75,4 +72,6 @@ class `TimedDataQueryHandler general Test` : KoinTestBase() {
             } then {
                 verify(receiver).push(PushRequest(peerId, chunk))
             }
+
+    private val PeerTestEnvironment.receiver get() = getPeer(receiverId)
 }

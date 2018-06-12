@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -52,26 +53,33 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
         val forwardedPeers = 0..0
     }
 
+    private var currentTime = LocalDateTime.of(2001, 1, 1, 14, 30)
     private val test get() = Given {
-        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = knownPeersIds,
-                forwardStrategy = mock {
-                    on { getQueryForwardPeerIdsFor(any(), any()) }
-                            .thenReturn(knownPeersIds.slice(forwardedPeers))
+                forwardStrategyFactory = {
+                    mock {
+                        on { getQueryForwardPeerIdsFor(any(), any()) }
+                                .thenReturn(knownPeersIds.slice(forwardedPeers))
+                    }
                 },
-                configuration = Configuration(
+                configurationFactory = {
+                    Configuration(
                         untimedDataQueryTimeout = 10[second],
-                        timedDataQueryTimeout = 10[second]),
-                dataQueryHandlerFactory = { TimedDataQueryHandler() }
-        ) {
-            var currTime = LocalDateTime.of(2001, 1, 1, 14, 30)
-            init {
-                timeProvider = mock {
-                    on { currentTime }.thenAnswer { currTime }
-                }
-            }
-        }.fixed()
+                        timedDataQueryTimeout = 10[second])
+                },
+                dataQueryHandlerFactory = { TimedDataQueryHandler() },
+                timeProviderFactory = {
+                    mock {
+                        on { currentTime }.thenAnswer { currentTime }
+                    }
+                }).fixed()
+    }
+
+    @BeforeEach
+    fun setup() {
+        currentTime = LocalDateTime.of(2001, 1, 1, 14, 30)
     }
 
     @Test
@@ -96,10 +104,11 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
 
     @Test
     fun `timed result not forwarded after timeout expired`() =
-            test while_ {
-                delayForwardingOfUntimedQueries()
+            test andGiven {
+                it.delayForwardingOfUntimedQueries()
+            } while_ {
                 dataQueryHandler.handle(timedQueryRequest)
-                currTime += (configuration.timedDataQueryTimeout + 1[second]).toDuration()
+                currentTime += (configuration.timedDataQueryTimeout + 1[second]).toDuration()
             } when_ {
                 dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
@@ -128,7 +137,9 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
                 expect(it.result is_ Empty)
             }
 
-    private fun PeerTestEnvironment.delayForwardingOfUntimedQueries() {
-        configuration = configuration.copy(untimedDataQueryTimeout = 1[year])
-    }
+    private fun PeerTestEnvironmentImpl.delayForwardingOfUntimedQueries() = copy(
+            configurationFactory = {
+                this@delayForwardingOfUntimedQueries
+                        .configuration.copy(untimedDataQueryTimeout = 1[year])
+            })
 }

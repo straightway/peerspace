@@ -44,9 +44,12 @@ class `UntimedDataQueryHandler query forward Test` : KoinTestBase() {
         PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = knownPeersIds,
-                forwardStrategy = mock {
-                    on { getQueryForwardPeerIdsFor(any(), any()) }
-                            .thenReturn(knownPeersIds.slice(forwardedPeers))
+                forwardStrategyFactory = {
+                    mock {
+                        on {
+                            getQueryForwardPeerIdsFor(any(), any())
+                        }.thenReturn(knownPeersIds.slice(forwardedPeers))
+                    }
                 },
                 dataQueryHandlerFactory = { UntimedDataQueryHandler() }).fixed()
     }

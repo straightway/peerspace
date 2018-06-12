@@ -21,7 +21,7 @@ import straightway.peerspace.data.Key
 /**
  * Handle functionality associated with data queries.
  */
-interface DataQueryHandler : InfrastructureReceiver {
+interface DataQueryHandler {
     fun handle(query: QueryRequest)
     fun getForwardPeerIdsFor(chunkKey: Key): Iterable<Id>
     fun notifyChunkForwarded(key: Key)

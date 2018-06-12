@@ -15,11 +15,14 @@
  */
 package straightway.peerspace.net.impl
 
+import straightway.units.Time
+import straightway.units.toDuration
+import straightway.units.UnitNumber
+import straightway.utils.TimeProvider
+
+/*
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.InfrastructureProvider
-import straightway.units.Time
-import straightway.units.UnitNumber
-import straightway.units.toDuration
 
 val InfrastructureProvider.peerDirectory get() = infrastructure.peerDirectory
 val InfrastructureProvider.network get() = infrastructure.network
@@ -28,13 +31,11 @@ val InfrastructureProvider.knownPeerQueryChooser get() = infrastructure.knownPee
 val InfrastructureProvider.knownPeerAnswerChooser get() = infrastructure.knownPeerAnswerChooser
 val InfrastructureProvider.forwardStrategy get() = infrastructure.forwardStrategy
 val InfrastructureProvider.timeProvider get() = infrastructure.timeProvider
-val InfrastructureProvider.dataQueryHandler get() = infrastructure.dataQueryHandler
 val InfrastructureProvider.dataPushForwarder get() = infrastructure.dataPushForwarder
 val InfrastructureProvider.knownPeersProvider get() = infrastructure.knownPeersProvider
-
-fun InfrastructureProvider.getPushTargetFor(id: Id) = network.getPushTarget(id)
-fun InfrastructureProvider.getQuerySourceFor(id: Id) = network.getQuerySource(id)
-fun InfrastructureProvider.nowPlus(duration: UnitNumber<Time>) =
-        (timeProvider.currentTime + duration.toDuration())!!
-
+*/
+fun TimeProvider.nowPlus(duration: UnitNumber<Time>) =
+        (currentTime + duration.toDuration())!!
+/*
 val InfrastructureProvider.allKnownPeersIds get() = peerDirectory.allKnownPeersIds.toList()
+*/

@@ -34,7 +34,6 @@ import kotlin.reflect.full.memberProperties
  * the peer functionality.
  */
 data class InfrastructureImpl(
-        override val dataChunkStore: DataChunkStore,
         override val peerDirectory: PeerDirectory,
         override val network: Network,
         override val configuration: Configuration,

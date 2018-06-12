@@ -25,7 +25,7 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `PeerImpl refreshKnownPeers Test` {
+class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
 
     private companion object {
         val peerId = Id("PeerId")
@@ -33,10 +33,12 @@ class `PeerImpl refreshKnownPeers Test` {
         val knownPeersRequest = QueryRequest(peerId, Administrative.KnownPeers)
     }
 
-    private val defaultEnvironment = PeerTestEnvironmentImpl(
-            peerId,
-            knownPeersIds = listOf(knownPeerId),
-            configuration = Configuration(maxPeersToQueryForKnownPeers = 2))
+    private val defaultEnvironment by lazy {
+        PeerTestEnvironmentImpl(
+                peerId,
+                knownPeersIds = listOf(knownPeerId),
+                configuration = Configuration(maxPeersToQueryForKnownPeers = 2))
+    }
 
     private val test get() = Given { defaultEnvironment }
 

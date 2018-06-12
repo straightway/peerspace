@@ -17,7 +17,11 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.property
 import straightway.peerspace.net.Administrative
+import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Infrastructure
 import straightway.peerspace.net.InfrastructureProvider
 import straightway.peerspace.net.Peer
@@ -30,15 +34,16 @@ import straightway.random.Chooser
 // * Avoid routing loops:
 // ** Don't push the same chunk twice to the same peer (within a certain time)
 // * Collect known peers while receiving requests
-// * Push to other peers if some peers returned by the strategy are not reachable.
 
 /**
  * Default productive implementation of a peerspace peer.
  */
 class PeerImpl(
-        override val id: Id,
         override val infrastructure: Infrastructure
-) : Peer, InfrastructureProvider {
+) : Peer, InfrastructureProvider, KoinModuleComponent by KoinModuleComponent() {
+
+    override val id: Id by property("peerId") { Id(it) }
+    private val dataChunkStore: DataChunkStore by inject()
 
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }

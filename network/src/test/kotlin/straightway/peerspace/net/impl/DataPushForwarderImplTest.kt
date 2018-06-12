@@ -34,7 +34,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class DataPushForwarderImplTest {
+class DataPushForwarderImplTest : KoinTestBase() {
 
     private companion object {
         val peerId = Id("peerId")
@@ -50,14 +50,26 @@ class DataPushForwarderImplTest {
     }
 
     private val test get() = Given {
-        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        var localQueryForwardIds = ids()
+        val baseEnvironment = PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = knownPeersIds,
-                dataPushForwarder = DataPushForwarderImpl(peerId)
-        ) {
+                dataPushForwarder = DataPushForwarderImpl(peerId),
+                dataQueryHandlerFactory = {
+                    mock {
+                        on {
+                            getForwardPeerIdsFor(any())
+                        }.thenAnswer {
+                            localQueryForwardIds
+                        }
+                }}
+        )
+        object : PeerTestEnvironment by baseEnvironment {
             var forwardedPeerIndices = 1..2
             val forwardedPeerIds get() = knownPeersIds.slice(forwardedPeerIndices)
-            var queryForwardPeerIds = ids()
+            var queryForwardPeerIds
+                get() = localQueryForwardIds
+                set(new) { localQueryForwardIds = new }
             val sut = dataPushForwarder as DataPushForwarderImpl
             fun <R> suspendForwarding(action: () -> R ): R {
                 val oldForwardPeerIndices = forwardedPeerIndices
@@ -74,13 +86,6 @@ class DataPushForwarderImplTest {
                         getPushForwardPeerIdsFor(any(), any())
                     }.thenAnswer {
                         knownPeersIds.slice(forwardedPeerIndices)
-                    }
-                }
-                dataQueryHandler = mock {
-                    on {
-                        getForwardPeerIdsFor(any())
-                    }.thenAnswer {
-                        queryForwardPeerIds
                     }
                 }
             }

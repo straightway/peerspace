@@ -35,7 +35,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import java.io.Serializable
 
-class PeerNetworkStubTest {
+class PeerNetworkStubTest : KoinTestBase() {
 
     private companion object {
         val peerId = Id("id")

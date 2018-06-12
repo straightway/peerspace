@@ -23,12 +23,13 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 
-class `UntimedDataQueryHandler general Test` {
+class `UntimedDataQueryHandler general Test` : KoinTestBase() {
 
     private companion object {
         val peerId = Id("peerId")
@@ -40,13 +41,13 @@ class `UntimedDataQueryHandler general Test` {
     }
 
     private val test get() = Given {
-        object : PeerTestEnvironment by PeerTestEnvironmentImpl(
+        val baseInstance = PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(receiverId),
-                dataQueryHandler = UntimedDataQueryHandler(peerId)
-        ).fixed() {
+                dataQueryHandlerFactory = { UntimedDataQueryHandler() })
+        object : PeerTestEnvironment by baseInstance, KoinProvider by baseInstance {
             val receiver = getPeer(receiverId)
-        }
+        }.fixed()
     }
 
     @Test

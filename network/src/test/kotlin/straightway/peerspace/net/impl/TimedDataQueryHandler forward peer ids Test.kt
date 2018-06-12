@@ -38,7 +38,7 @@ import straightway.units.toDuration
 import straightway.units.year
 import java.time.LocalDateTime
 
-class `TimedDataQueryHandler forward peer ids Test` {
+class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
 
     private companion object {
         val peerId = Id("peerId")
@@ -63,7 +63,7 @@ class `TimedDataQueryHandler forward peer ids Test` {
                 configuration = Configuration(
                         untimedDataQueryTimeout = 10[second],
                         timedDataQueryTimeout = 10[second]),
-                dataQueryHandler = TimedDataQueryHandler(peerId)
+                dataQueryHandlerFactory = { TimedDataQueryHandler() }
         ) {
             var currTime = LocalDateTime.of(2001, 1, 1, 14, 30)
             init {

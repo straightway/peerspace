@@ -18,6 +18,10 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.property
+import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.Infrastructure
@@ -35,8 +39,11 @@ import java.time.LocalDateTime
 /**
  * Base class for DataQueryHandler implementations.
  */
-abstract class SpecializedDataQueryHandlerBase(protected val peerId: Id)
-    : InfrastructureReceiver, InfrastructureProvider, DataQueryHandler {
+abstract class SpecializedDataQueryHandlerBase()
+    : InfrastructureReceiver, InfrastructureProvider, DataQueryHandler, KoinModuleComponent by KoinModuleComponent() {
+
+    protected val peerId: Id by property("peerId") { Id(it) }
+    private val dataChunkStore: DataChunkStore by inject()
 
     protected abstract val tooOldThreshold: LocalDateTime
     protected abstract val Key.resultReceiverIdsForChunk: Iterable<Id>

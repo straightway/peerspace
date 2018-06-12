@@ -21,7 +21,6 @@ import straightway.units.Time
 import straightway.units.UnitNumber
 import straightway.units.toDuration
 
-val InfrastructureProvider.dataChunkStore get() = infrastructure.dataChunkStore
 val InfrastructureProvider.peerDirectory get() = infrastructure.peerDirectory
 val InfrastructureProvider.network get() = infrastructure.network
 val InfrastructureProvider.configuration get() = infrastructure.configuration

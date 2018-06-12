@@ -26,7 +26,7 @@ import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `TimedDataQueryHandler query forward Test` {
+class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
 
     companion object {
         val peerId = Id("peerId")
@@ -47,7 +47,7 @@ class `TimedDataQueryHandler query forward Test` {
                     on { getQueryForwardPeerIdsFor(any(), any()) }
                             .thenReturn(knownPeersIds.slice(forwardedPeers))
                 },
-                dataQueryHandler = TimedDataQueryHandler(peerId)).fixed()
+                dataQueryHandlerFactory = { TimedDataQueryHandler() }).fixed()
     }
 
     @Test

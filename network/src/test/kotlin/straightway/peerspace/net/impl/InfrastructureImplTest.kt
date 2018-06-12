@@ -43,7 +43,6 @@ class InfrastructureImplTest {
     fun `infrastructure is set to members implementing InfrastructureReceiver`() {
         val infrastructureReceiverClass = arrayOf<KClass<out Any>>(InfrastructureReceiver::class)
         val sut = InfrastructureImpl(
-                dataChunkStore = mock(infrastructureReceiverClass),
                 peerDirectory = mock(infrastructureReceiverClass),
                 network = mock(infrastructureReceiverClass),
                 configuration = Configuration(),

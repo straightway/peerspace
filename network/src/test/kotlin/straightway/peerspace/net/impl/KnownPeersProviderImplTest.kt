@@ -25,7 +25,7 @@ import straightway.peerspace.net.Administrative
 import straightway.testing.bdd.Given
 import straightway.utils.deserializeTo
 
-class KnownPeersProviderImplTest {
+class KnownPeersProviderImplTest : KoinTestBase() {
 
     private companion object {
         val peerId = Id("PeerId")

@@ -30,7 +30,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class `PeerImpl general Test` {
+class `PeerImpl general Test` : KoinTestBase() {
 
     private companion object {
         val id = Id("thePeerId")

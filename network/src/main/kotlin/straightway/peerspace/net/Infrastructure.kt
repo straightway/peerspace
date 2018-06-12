@@ -24,7 +24,6 @@ import straightway.utils.TimeProvider
  */
 @Suppress("ComplexInterface")
 interface Infrastructure {
-    val dataChunkStore: DataChunkStore
     val peerDirectory: PeerDirectory
     val network: Network
     val configuration: Configuration

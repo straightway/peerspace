@@ -23,8 +23,8 @@ import straightway.peerspace.net.isMatching
 /**
  * DataQueryHandler for untimed queries.
  */
-class UntimedDataQueryHandler(peerId: Id)
-    : SpecializedDataQueryHandlerBase(peerId) {
+class UntimedDataQueryHandler()
+    : SpecializedDataQueryHandlerBase() {
 
     override fun QueryRequest.forward(hasLocalResult: Boolean) =
             if (hasLocalResult) Unit else forward()

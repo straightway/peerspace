@@ -23,8 +23,8 @@ import straightway.peerspace.net.QueryRequest
 /**
  * DataQueryHandler for timed queries.
  */
-class TimedDataQueryHandler(peerId: Id)
-    : SpecializedDataQueryHandlerBase(peerId), DataQueryHandler {
+class TimedDataQueryHandler()
+    : SpecializedDataQueryHandlerBase(), DataQueryHandler {
 
     override fun QueryRequest.forward(hasLocalResult: Boolean) =
             forward()

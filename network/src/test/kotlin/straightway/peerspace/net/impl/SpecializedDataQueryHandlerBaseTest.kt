@@ -23,6 +23,9 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
@@ -43,7 +46,7 @@ import straightway.testing.flow.to_
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
-class SpecializedDataQueryHandlerBaseTest {
+class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     private companion object {
         val peerId = Id("peerId")
@@ -56,11 +59,22 @@ class SpecializedDataQueryHandlerBaseTest {
     private val test get() =
         Given {
             object {
-                val sut = DerivedSut()
-                val localChunks = mutableListOf<Chunk>()
-                val dataChunkStore = mock<DataChunkStore> {
-                    on { query(any()) }.thenAnswer { localChunks }
+                private val koin = withContext {
+                    bean { DerivedSut() }
+                    bean {
+                        mock<DataChunkStore> {
+                            on { query(any()) }.thenAnswer { localChunks }
+                        }
+                    }
+                }.apply {
+                    extraProperties["peerId"] = peerId.identifier
+                } make {
+                    KoinModuleComponent()
                 }
+
+                val sut by koin.inject<DerivedSut>()
+                val localChunks = mutableListOf<Chunk>()
+                val dataChunkStore by koin.inject<DataChunkStore>()
                 val originator = mock<Peer> {
                     on { id }.thenReturn(originatorId)
                 }
@@ -85,7 +99,6 @@ class SpecializedDataQueryHandlerBaseTest {
                 }
                 val infrastructure = createInfrastructure(
                         dataQueryHandler = sut,
-                        dataChunkStore = dataChunkStore,
                         network = network,
                         forwardStrategy = forwardStrategy,
                         timeProvider = timeProvider)
@@ -95,7 +108,7 @@ class SpecializedDataQueryHandlerBaseTest {
             }
         }
 
-    private class DerivedSut : SpecializedDataQueryHandlerBase(peerId) {
+    private class DerivedSut : SpecializedDataQueryHandlerBase() {
         override var tooOldThreshold = LocalDateTime.of(2000, 1, 1, 0, 0)!!
         fun changeTooOldThreshold(new: LocalDateTime) { tooOldThreshold = new }
 
@@ -158,7 +171,7 @@ class SpecializedDataQueryHandlerBaseTest {
             test when_ {
                 sut.handle(queryRequest)
             } then {
-                verify(infrastructure.dataChunkStore).query(queryRequest)
+                verify(dataChunkStore).query(queryRequest)
             }
 
     @Test

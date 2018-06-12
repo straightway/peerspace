@@ -47,7 +47,7 @@ interface PeerTestEnvironment : InfrastructureProvider {
     var timeProvider: TimeProvider
     val peer: PeerImpl
     var forwardStrategy: ForwardStrategy
-    var dataQueryHandler: DataQueryHandler
+    val dataQueryHandler: DataQueryHandler
     var dataPushForwarder: DataPushForwarder
     var knownPeersProvider: KnownPeersProvider
     fun setPeerPushSuccess(id: Id, success: Boolean)

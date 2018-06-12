@@ -17,7 +17,9 @@ package straightway.peerspace.networksimulator
 
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
@@ -82,10 +84,13 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
                 LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                 LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
-        peers[id] = PeerImpl(
-                id,
+        peers[id] = withContext {
+            bean {TransientDataChunkStore() as DataChunkStore }
+        }.apply {
+            extraProperties["peerId"] = id.identifier
+        } make {
+            PeerImpl(
                 InfrastructureImpl(
-                        TransientDataChunkStore(),
                         TransientPeerDirectory(),
                         network,
                         Configuration(),
@@ -94,11 +99,12 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                         ForwardStrategyImpl(hasher),
                         simulator,
                         DataQueryHandlerImpl(
-                            UntimedDataQueryHandler(id),
-                            TimedDataQueryHandler(id)),
+                            UntimedDataQueryHandler(),
+                            TimedDataQueryHandler()),
                         DataPushForwarderImpl(id),
                         KnownPeersProviderImpl(id)
                     ))
+        }
     }
 
     private fun createPeerNetwork(peerId: Id): Network {

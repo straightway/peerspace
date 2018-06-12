@@ -19,12 +19,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushForwarder
-import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
@@ -33,7 +28,6 @@ import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
-import straightway.utils.TimeProvider
 
 fun createPeerMock(
         id: Id,

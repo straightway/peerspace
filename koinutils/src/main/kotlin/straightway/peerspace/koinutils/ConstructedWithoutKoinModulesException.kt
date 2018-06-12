@@ -16,5 +16,13 @@
 
 package straightway.peerspace.koinutils
 
+/**
+ * This exception is thrown when a class implementing KoinModuleComponent or
+ * having it as member, is not instantiated with a Koin context.
+ * @see WithModules
+ * @see withContext
+ * @see withOwnContext
+ * @see KoinModuleComponent
+ */
 class ConstructedWithoutKoinModulesException
     : IllegalStateException("Constructed without Koin modules")

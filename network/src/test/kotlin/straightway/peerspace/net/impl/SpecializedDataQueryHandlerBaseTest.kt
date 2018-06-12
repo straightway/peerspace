@@ -24,7 +24,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.Bean.inject
 import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.ForwardState

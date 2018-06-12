@@ -16,10 +16,15 @@
 package straightway.peerspace.koinutils
 
 import org.koin.KoinContext
-import org.koin.core.parameter.Parameters
-import org.koin.dsl.context.emptyParameters
-import org.koin.error.MissingPropertyException
 
+/**
+ * Base interface for Koin components having their own context (and thus don't depend on
+ * global koinStart). The default way is to implement this interface by KoinModuleComponent().
+ * Such classes must be instantiated with a given local Koin context.
+ * @see WithModules
+ * @see withContext
+ * @see withOwnContext
+ */
 interface KoinModuleComponent {
 
     val context: KoinContext
@@ -40,71 +45,6 @@ interface KoinModuleComponent {
         private var currentThreadContext = ThreadLocal<KoinContext?>()
     }
 }
-
-inline fun <reified T> KoinModuleComponent.inject(name: String = "") = kotlin.lazy {
-    get<T>(name, emptyParameters())
-}
-
-inline fun <reified T> KoinModuleComponent.inject(
-        name: String,
-        noinline parameters: Parameters
-) = kotlin.lazy { get<T>(name, parameters) }
-
-inline fun <reified T> KoinModuleComponent.inject(
-        noinline parameters: Parameters
-) = kotlin.lazy { get<T>("", parameters) }
-
-inline fun <reified T> KoinModuleComponent.property(key: String) =
-        kotlin.lazy { getProperty<T>(key) }
-
-inline fun <reified T> KoinModuleComponent.property(key: String, default: T) =
-        kotlin.lazy { getProperty(key, default) }
-
-inline fun <reified T> KoinModuleComponent.property(
-        key: String,
-        noinline converter: (String) -> T) =
-        kotlin.lazy { getProperty(key, converter) }
-
-inline fun <reified T> KoinModuleComponent.property(
-        key: String,
-        default: T,
-        noinline converter: (String) -> T) =
-        kotlin.lazy { getProperty(key, default, converter) }
-
-inline fun <reified T> KoinModuleComponent.get(name: String = "") =
-        withOwnContext { get<T>(name, emptyParameters()) }
-
-inline fun <reified T> KoinModuleComponent.get(
-        name: String,
-        noinline parameters: Parameters
-) = withOwnContext { get<T>(name, parameters) }
-
-inline fun <reified T> KoinModuleComponent.get(noinline parameters: Parameters) =
-        withOwnContext { get<T>("", parameters) }
-
-inline fun <reified T> KoinModuleComponent.getProperty(key: String) =
-        context.getProperty<T>(key)
-
-inline fun <reified T> KoinModuleComponent.getProperty(key: String, defaultValue: T) =
-        context.getProperty(key, defaultValue)
-
-inline fun <reified T> KoinModuleComponent.getProperty(
-        key: String,
-        noinline converter: (String) -> T) =
-        converter(context.getProperty(key))
-
-inline fun <reified T> KoinModuleComponent.getProperty(
-        key: String,
-        default: T,
-        noinline converter: (String) -> T) =
-        try {
-            converter(context.getProperty(key))
-        } catch (e: MissingPropertyException) {
-            default
-        }
-
-fun KoinModuleComponent.releaseProperties(vararg keys: String) =
-        context.releaseProperties(*keys)
 
 fun KoinModuleComponent.releaseContext(name: String) =
         context.releaseContext(name)

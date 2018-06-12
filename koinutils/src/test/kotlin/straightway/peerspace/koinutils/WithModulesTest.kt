@@ -25,11 +25,9 @@ import straightway.testing.flow.False
 import straightway.testing.flow.Not
 import straightway.testing.flow.Null
 import straightway.testing.flow.Same
-import straightway.testing.flow.Throw
 import straightway.testing.flow.True
 import straightway.testing.flow.Values
 import straightway.testing.flow.as_
-import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -166,9 +164,11 @@ class WithModulesTest : KoinTestBase() {
         withContext {
             threadSpecificContext = KoinModuleComponent.currentContext
             withContext {
-                expect(KoinModuleComponent.currentContext is_ Not - Same as_ threadSpecificContext!!)
+                expect(KoinModuleComponent.currentContext is_
+                               Not - Same as_ threadSpecificContext!!)
             } make {
-                expect(KoinModuleComponent.currentContext is_ Not - Same as_ threadSpecificContext!!)
+                expect(KoinModuleComponent.currentContext is_
+                               Not - Same as_ threadSpecificContext!!)
             }
             expect(KoinModuleComponent.currentContext is_ Same as_ threadSpecificContext!!)
         } make {

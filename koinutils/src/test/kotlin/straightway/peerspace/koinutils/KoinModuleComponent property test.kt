@@ -18,6 +18,9 @@ package straightway.peerspace.koinutils
 import org.junit.jupiter.api.Test
 import org.koin.dsl.context.Context
 import straightway.expr.minus
+import straightway.peerspace.koinutils.Bean.get
+import straightway.peerspace.koinutils.Property.getProperty
+import straightway.peerspace.koinutils.Property.releaseProperties
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -63,7 +66,7 @@ class `KoinModuleComponent property test` : KoinTestBase() {
     @Test
     fun `getProperty with default value`() =
             testBinding when_ {
-                declare {  }
+                declare {}
             } then {
                 expect(sut.getProperty("Property.Key", "abc") is_ Equal to_ "abc")
             }

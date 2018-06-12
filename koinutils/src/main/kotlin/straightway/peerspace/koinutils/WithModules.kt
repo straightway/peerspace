@@ -23,6 +23,11 @@ import org.koin.core.instance.InstanceFactory
 import org.koin.core.property.PropertyRegistry
 import org.koin.dsl.context.Context
 
+/**
+ * Instantiate KoinModuleComponent instances specifying a context with beans,
+ * factories and properties.
+ * @see KoinModuleComponent
+ */
 class WithModules(private val modules: Iterable<IndependentModule>) {
 
     var propertiesFile: String? = "/koin.properties"

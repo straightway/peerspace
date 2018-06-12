@@ -18,6 +18,9 @@ package straightway.peerspace.koinutils
 
 import org.koin.log.Logger
 
+/**
+ * Koin logger doing nothing.
+ */
 class IgnoreLogger : Logger {
     override fun debug(msg: String) {}
     override fun log(msg: String) {}

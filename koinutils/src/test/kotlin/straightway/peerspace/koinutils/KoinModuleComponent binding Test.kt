@@ -18,6 +18,9 @@ package straightway.peerspace.koinutils
 import org.junit.jupiter.api.Test
 import org.koin.dsl.context.Context
 import straightway.expr.minus
+import straightway.peerspace.koinutils.Bean.get
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.koinutils.Property.property
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -80,7 +83,7 @@ class `KoinModuleComponent binding Test` : KoinTestBase() {
     @Test
     fun `binding of constructor parameters work`() =
             testBinding when_ {
-                declare { bean {"Hello World!"} }
+                declare { bean { "Hello World!" } }
             } then {
                 expect(sut.constructorBound is_ Equal to_ "Hello World!")
             }
@@ -136,7 +139,7 @@ class `KoinModuleComponent binding Test` : KoinTestBase() {
     @Test
     fun `property with default value`() =
             testBinding when_ {
-                declare {  }
+                declare {}
             } then {
                 expect(sut.propertyWithDefault is_ Equal to_ "Default")
             }

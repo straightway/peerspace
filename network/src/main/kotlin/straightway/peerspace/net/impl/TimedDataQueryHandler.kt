@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.inject
+import straightway.peerspace.koinutils.Bean.inject
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.QueryRequest

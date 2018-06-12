@@ -143,7 +143,7 @@ class `UntimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
             }
 
     private fun PeerTestEnvironmentImpl.delayForwardingOfTimedQueries() =
-            copy(configurationFactory =  {
+            copy(configurationFactory = {
                 this@delayForwardingOfTimedQueries
                         .configuration.copy(timedDataQueryTimeout = 1[year])
             })

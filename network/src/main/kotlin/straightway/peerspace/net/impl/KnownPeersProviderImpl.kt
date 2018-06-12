@@ -19,8 +19,8 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.inject
-import straightway.peerspace.koinutils.property
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersProvider

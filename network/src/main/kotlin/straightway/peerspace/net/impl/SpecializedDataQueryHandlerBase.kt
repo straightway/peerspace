@@ -19,8 +19,8 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.inject
-import straightway.peerspace.koinutils.property
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
@@ -30,6 +30,9 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isMatching
+import straightway.units.Time
+import straightway.units.UnitNumber
+import straightway.units.toDuration
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
@@ -124,3 +127,6 @@ abstract class SpecializedDataQueryHandlerBase
 
     private val _pendingQueries = mutableListOf<PendingQuery>()
 }
+
+fun TimeProvider.nowPlus(duration: UnitNumber<Time>) =
+        (currentTime + duration.toDuration())!!

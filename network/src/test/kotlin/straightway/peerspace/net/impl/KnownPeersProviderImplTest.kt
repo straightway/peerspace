@@ -37,7 +37,7 @@ class KnownPeersProviderImplTest : KoinTestBase() {
         PeerTestEnvironmentImpl(
                 peerId,
                 knownPeersIds = listOf(knownPeerId, queryingPeerId),
-                knownPeersProviderFactory =  { KnownPeersProviderImpl() }
+                knownPeersProviderFactory = { KnownPeersProviderImpl() }
         )
     }
 
@@ -76,7 +76,7 @@ class KnownPeersProviderImplTest : KoinTestBase() {
                         configurationFactory = {
                             it.configuration.copy(maxKnownPeersAnswers = 1)
                         },
-                        knownPeerAnswerChooserFactory =  {
+                        knownPeerAnswerChooserFactory = {
                             createChooser { knownPeersIds.slice(0..0) }
                         }).fixed()
             } when_ {

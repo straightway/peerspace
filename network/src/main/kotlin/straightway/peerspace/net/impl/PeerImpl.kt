@@ -18,8 +18,8 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.inject
-import straightway.peerspace.koinutils.property
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
@@ -42,7 +42,7 @@ import straightway.random.Chooser
 /**
  * Default productive implementation of a peerspace peer.
  */
-class PeerImpl: Peer, KoinModuleComponent by KoinModuleComponent() {
+class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
 
     override val id: Id by property("peerId") { Id(it) }
 

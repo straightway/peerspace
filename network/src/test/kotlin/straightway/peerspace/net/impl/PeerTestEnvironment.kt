@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.mock
+import org.koin.dsl.context.Context
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -83,7 +84,8 @@ data class PeerTestEnvironment(
         },
         private val peerFactory: BeanFactory<Peer> = {
             mock()
-        }
+        },
+        private val additionalInit: Context.() -> Unit = {}
 ) {
 
     val koin by lazy {
@@ -100,6 +102,7 @@ data class PeerTestEnvironment(
             bean { networkFactory() }
             bean { dataChunkStoreFactory() }
             bean { peerFactory() }
+            additionalInit()
         }.apply {
             extraProperties["peerId"] = peerId.identifier
         } make { KoinModuleComponent() }

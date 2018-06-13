@@ -23,14 +23,11 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.Bean.inject
-import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
@@ -41,7 +38,6 @@ import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
 class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
@@ -52,57 +48,43 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
         val originatorId = Id("originatorId")
         val forwardPeerId = Id("forwardPeerId")
         val chunk = Chunk(Key(Id("ChunkId")), byteArrayOf())
+        val queryRequest = QueryRequest(originatorId, Id("queriedId"), 1L..2L)
     }
+
+    private var currentTime = LocalDateTime.of(2000, 1, 1, 0, 0)
 
     private val test get() =
         Given {
-            object {
-                private val koin = withContext {
-                    bean { DerivedSut() }
-                    bean {
-                        mock<DataChunkStore> {
+            PeerTestEnvironment(
+                    peerId = peerId,
+                    knownPeersIds = listOf(originatorId, forwardPeerId, anyPeerId),
+                    dataChunkStoreFactory = {
+                        mock {
                             on { query(any()) }.thenAnswer { localChunks }
                         }
-                    }
-                    bean { timeProvider }
-                    bean { network }
-                    bean { forwardStrategy }
-                }.apply {
-                    extraProperties["peerId"] = peerId.identifier
-                } make {
-                    KoinModuleComponent()
-                }
-
-                val sut by koin.inject<DerivedSut>()
-                val localChunks = mutableListOf<Chunk>()
-                val dataChunkStore by koin.inject<DataChunkStore>()
-                val originator = mock<Peer> {
-                    on { id }.thenReturn(originatorId)
-                }
-                val forwardPeer = mock<Peer> {
-                    on { id }.thenReturn(forwardPeerId)
-                }
-                val anyPeer = mock<Peer> {
-                    on { id }.thenReturn(anyPeerId)
-                }
-                val network = mock<Network> {
-                    on { getPushTarget(originatorId) }.thenReturn(originator)
-                    on { getPushTarget(forwardPeerId) }.thenReturn(forwardPeer)
-                    on { getQuerySource(forwardPeerId) }.thenReturn(forwardPeer)
-                    on { getPushTarget(anyPeerId) }.thenReturn(anyPeer)
-                }
-                val forwardStrategy = mock<ForwardStrategy> {
-                    on { getQueryForwardPeerIdsFor(any(), any()) }.thenReturn(listOf(forwardPeerId))
-                }
-                var currentTime = LocalDateTime.of(2000, 1, 1, 0, 0)
-                val timeProvider = mock<TimeProvider> {
-                    on { currentTime }.thenAnswer { currentTime }
-                }
-                val queryRequest = QueryRequest(originatorId, Id("queriedId"), 1L..2L)
-                infix fun isPending(query: QueryRequest) =
-                        sut.protectedPendingQueries.any { it.query === query }
-            }
+                    },
+                    dataQueryHandlerFactory = { DerivedSut() },
+                    timeProviderFactory = {
+                        mock {
+                            on { currentTime }.thenAnswer { currentTime }
+                        }
+                    },
+                    forwardStrategyFactory = {
+                        mock {
+                            on { getQueryForwardPeerIdsFor(any(), any()) }
+                                    .thenReturn(listOf(forwardPeerId))
+                        }
+                    })
         }
+
+    private val PeerTestEnvironment.sut get() =
+            get<DataQueryHandler>() as DerivedSut
+    private val PeerTestEnvironment.originator get() =
+        getPeer(originatorId)
+    private val PeerTestEnvironment.forwardPeer get() =
+        getPeer(forwardPeerId)
+    private infix fun PeerTestEnvironment.isPending(query: QueryRequest) =
+            sut.protectedPendingQueries.any { it.query === query }
 
     private class DerivedSut : SpecializedDataQueryHandlerBase() {
         override var tooOldThreshold = LocalDateTime.of(2000, 1, 1, 0, 0)!!
@@ -159,14 +141,15 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             test when_ {
                 sut.handle(queryRequest)
             } then {
-                verify(dataChunkStore).query(queryRequest)
+                verify(get<DataChunkStore>()).query(queryRequest)
             }
 
     @Test
     fun `local results are forwarded immediately`() =
-            test while_ {
-                localChunks += Chunk(Key(Id("chunkId1")), byteArrayOf())
-                localChunks += Chunk(Key(Id("chunkId2")), byteArrayOf())
+            test andGiven {
+                it.copy(localChunks = it.localChunks
+                        + Chunk(Key(Id("chunkId1")), byteArrayOf())
+                        + Chunk(Key(Id("chunkId2")), byteArrayOf()))
             } when_ {
                 sut.handle(queryRequest)
             } then {
@@ -186,8 +169,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `query is forwarded with local result`() =
-            test while_ {
-                localChunks += Chunk(Key(Id("chunkId1")), byteArrayOf())
+            test andGiven {
+                it.copy(localChunks = it.localChunks
+                        + Chunk(Key(Id("chunkId1")), byteArrayOf()))
             } when_ {
                 sut.handle(queryRequest)
             } then {
@@ -274,7 +258,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             test when_ {
                 sut.protectedForwardQueryRequest(queryRequest)
             } then {
-                verify(forwardStrategy).getQueryForwardPeerIdsFor(queryRequest, ForwardState())
+                verify(get<ForwardStrategy>())
+                        .getQueryForwardPeerIdsFor(queryRequest, ForwardState())
             }
 
     @Test
@@ -282,7 +267,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             test when_ {
                 sut.protectedForwardQueryRequest(queryRequest)
             } then {
-                verify(network).getQuerySource(forwardPeerId)
+                verify(get<Network>()).getQuerySource(forwardPeerId)
             }
 
     @Test
@@ -339,7 +324,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             } when_ {
                 sut.handle(queryRequest)
             } then {
-                verify(dataChunkStore).query(queryRequest)
+                verify(get<DataChunkStore>()).query(queryRequest)
             }
 
     private fun QueryRequest.forwarded(hasLocalResult: Boolean) =

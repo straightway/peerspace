@@ -24,6 +24,8 @@ import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
@@ -45,29 +47,29 @@ class `PeerImpl push Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(peerId)
+        PeerTestEnvironment(peerId, peerFactory = { PeerImpl() })
     }
 
     @Test
     fun `id passed on construction is accessible`() =
-            test when_ { peer.id } then { expect(it.result is_ Equal to_ peerId) }
+            test when_ { get<Peer>().id } then { expect(it.result is_ Equal to_ peerId) }
 
     @Test
     fun `push does not throw`() =
-            test when_ { peer.push(PushRequest(peerId, chunk)) } then {
+            test when_ { get<Peer>().push(PushRequest(peerId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { peer.push(PushRequest(peerId, chunk)) } then {
-                verify(dataChunkStore).store(chunk)
+            test when_ { get<Peer>().push(PushRequest(peerId, chunk)) } then {
+                verify(get<DataChunkStore>()).store(chunk)
             }
 
     @Test
     fun `push notifies resultListener of success`() {
         val resultListener = mock<TransmissionResultListener>()
-        test when_ { peer.push(PushRequest(peerId, chunk), resultListener) } then {
+        test when_ { get<Peer>().push(PushRequest(peerId, chunk), resultListener) } then {
             verify(resultListener).notifySuccess()
             verify(resultListener, never()).notifyFailure()
         }

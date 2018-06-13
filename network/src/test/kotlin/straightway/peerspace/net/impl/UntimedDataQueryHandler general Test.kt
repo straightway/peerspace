@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
@@ -40,10 +42,10 @@ class `UntimedDataQueryHandler general Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(
+        PeerTestEnvironment(
                 peerId,
                 knownPeersIds = listOf(receiverId),
-                dataQueryHandlerFactory = { UntimedDataQueryHandler() }).fixed()
+                dataQueryHandlerFactory = { UntimedDataQueryHandler() })
     }
 
     private val PeerTestEnvironment.receiver get() = getPeer(receiverId)
@@ -51,15 +53,15 @@ class `UntimedDataQueryHandler general Test` : KoinTestBase() {
     @Test
     fun `query is forwarded to chunk data store`() =
             test when_ {
-                dataQueryHandler.handle(queryRequest)
+                get<DataQueryHandler>().handle(queryRequest)
             } then {
-                verify(dataChunkStore).query(queryRequest)
+                verify(get<DataChunkStore>()).query(queryRequest)
             }
 
     @Test
     fun `query for not existing data does not push back`() =
             test when_ {
-                dataQueryHandler.handle(queryRequest)
+                get<DataQueryHandler>().handle(queryRequest)
             } then {
                 verify(receiver, never()).push(any(), any())
             }
@@ -67,9 +69,9 @@ class `UntimedDataQueryHandler general Test` : KoinTestBase() {
     @Test
     fun `query hit returns result to sender`() =
             test while_ {
-                dataChunkStore.store(chunk)
+                get<DataChunkStore>().store(chunk)
             } when_ {
-                dataQueryHandler.handle(queryRequest)
+                get<DataQueryHandler>().handle(queryRequest)
             } then {
                 verify(receiver).push(PushRequest(peerId, chunk))
             }

@@ -23,7 +23,10 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
@@ -41,7 +44,7 @@ class `UntimedDataQueryHandler query forward Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(
+        PeerTestEnvironment(
                 peerId,
                 knownPeersIds = knownPeersIds,
                 forwardStrategyFactory = {
@@ -51,22 +54,22 @@ class `UntimedDataQueryHandler query forward Test` : KoinTestBase() {
                         }.thenReturn(knownPeersIds.slice(forwardedPeers))
                     }
                 },
-                dataQueryHandlerFactory = { UntimedDataQueryHandler() }).fixed()
+                dataQueryHandlerFactory = { UntimedDataQueryHandler() })
     }
 
     @Test
     fun `query request is forwarded according to forward strategy`() =
             test when_ {
-                dataQueryHandler.handle(receivedUntimedQueryRequest)
+                get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
-                verify(forwardStrategy).getQueryForwardPeerIdsFor(
+                verify(get<ForwardStrategy>()).getQueryForwardPeerIdsFor(
                         receivedUntimedQueryRequest.copy(originatorId = peerId), ForwardState())
             }
 
     @Test
     fun `query request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                dataQueryHandler.handle(receivedUntimedQueryRequest)
+                get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
                     verify(knownPeers[it]).query(forwardedUntimedQueryRequest)
@@ -76,9 +79,9 @@ class `UntimedDataQueryHandler query forward Test` : KoinTestBase() {
     @Test
     fun `query is not forwarded if local result found`() =
             test while_ {
-                dataChunkStore.store(untimedQueriedChunk)
+                get<DataChunkStore>().store(untimedQueriedChunk)
             } when_ {
-                dataQueryHandler.handle(receivedUntimedQueryRequest)
+                get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
                     verify(knownPeers[it], never()).query(any(), any())

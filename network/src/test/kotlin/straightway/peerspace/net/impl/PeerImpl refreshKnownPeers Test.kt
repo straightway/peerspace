@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.Peer
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
@@ -34,13 +35,14 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(
+        PeerTestEnvironment(
             peerId,
+            peerFactory = { PeerImpl() },
             knownPeersIds = listOf(knownPeerId),
             configurationFactory = { Configuration(maxPeersToQueryForKnownPeers = 2) })
     }
 
-    private val PeerTestEnvironment.peerImpl get() = peer as PeerImpl
+    private val PeerTestEnvironment.peerImpl get() = get<Peer>() as PeerImpl
 
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
@@ -61,8 +63,9 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
     @Test
     fun `number of peers queried for knownPeers is determined by configuration`() =
             Given {
-                PeerTestEnvironmentImpl(
+                PeerTestEnvironment(
                         peerId,
+                        peerFactory = { PeerImpl() },
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
                         configurationFactory = {
                             Configuration(maxPeersToQueryForKnownPeers = 2)
@@ -70,10 +73,10 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
             } when_ {
                 peerImpl.refreshKnownPeers()
             } then {
-                knownPeers.take(configuration.maxPeersToQueryForKnownPeers).forEach {
+                knownPeers.take(get<Configuration>().maxPeersToQueryForKnownPeers).forEach {
                     verify(it).query(knownPeersRequest)
                 }
-                knownPeers.drop(configuration.maxPeersToQueryForKnownPeers).forEach {
+                knownPeers.drop(get<Configuration>().maxPeersToQueryForKnownPeers).forEach {
                     verify(it, never()).query(knownPeersRequest)
                 }
             }
@@ -81,8 +84,9 @@ class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
     @Test
     fun `set peers to query for other known peers is randomized`() =
             Given {
-                PeerTestEnvironmentImpl(
+                PeerTestEnvironment(
                         peerId,
+                        peerFactory = { PeerImpl() },
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
                         configurationFactory = {
                             Configuration(maxPeersToQueryForKnownPeers = 2)

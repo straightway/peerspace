@@ -23,6 +23,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
@@ -55,7 +56,7 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
 
     private var currentTime = LocalDateTime.of(2001, 1, 1, 14, 30)
     private val test get() = Given {
-        PeerTestEnvironmentImpl(
+        PeerTestEnvironment(
                 peerId,
                 knownPeersIds = knownPeersIds,
                 forwardStrategyFactory = {
@@ -74,7 +75,7 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
                     mock {
                         on { currentTime }.thenAnswer { currentTime }
                     }
-                }).fixed()
+                })
     }
 
     @BeforeEach
@@ -85,9 +86,9 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
     @Test
     fun `not matching chunk is not forwarded`() =
             test while_ {
-                dataQueryHandler.handle(timedQueryRequest)
+                get<DataQueryHandler>().handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(Key(Id("otherId")))
+                get<DataQueryHandler>().getForwardPeerIdsFor(Key(Id("otherId")))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -95,9 +96,9 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
     @Test
     fun `timed result being received immediately is forwarded`() =
             test while_ {
-                dataQueryHandler.handle(timedQueryRequest)
+                get<DataQueryHandler>().handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
+                get<DataQueryHandler>().getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Equal to_ Values(timedQueryingPeerId))
             }
@@ -107,10 +108,11 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
             test andGiven {
                 it.delayForwardingOfUntimedQueries()
             } while_ {
-                dataQueryHandler.handle(timedQueryRequest)
-                currentTime += (configuration.timedDataQueryTimeout + 1[second]).toDuration()
+                get<DataQueryHandler>().handle(timedQueryRequest)
+                currentTime += (get<Configuration>().timedDataQueryTimeout +
+                        1[second]).toDuration()
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
+                get<DataQueryHandler>().getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
@@ -118,10 +120,10 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
     @Test
     fun `multiple timed result being received are all forwarded`() =
             test while_ {
-                dataQueryHandler.handle(timedQueryRequest)
+                get<DataQueryHandler>().handle(timedQueryRequest)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key) +
-                dataQueryHandler.getForwardPeerIdsFor(otherTimedQueryResult.key)
+                get<DataQueryHandler>().getForwardPeerIdsFor(timedResultPushRequest.chunk.key) +
+                get<DataQueryHandler>().getForwardPeerIdsFor(otherTimedQueryResult.key)
             } then {
                 expect(it.result is_ Equal to_ Values(timedQueryingPeerId, timedQueryingPeerId))
             }
@@ -129,17 +131,17 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
     @Test
     fun `timed result being received twice is not forwarded after again`() =
             test while_ {
-                dataQueryHandler.handle(timedQueryRequest)
-                dataQueryHandler.notifyChunkForwarded(timedResultPushRequest.chunk.key)
+                get<DataQueryHandler>().handle(timedQueryRequest)
+                get<DataQueryHandler>().notifyChunkForwarded(timedResultPushRequest.chunk.key)
             } when_ {
-                dataQueryHandler.getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
+                get<DataQueryHandler>().getForwardPeerIdsFor(timedResultPushRequest.chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
 
-    private fun PeerTestEnvironmentImpl.delayForwardingOfUntimedQueries() = copy(
+    private fun PeerTestEnvironment.delayForwardingOfUntimedQueries() = copy(
             configurationFactory = {
                 this@delayForwardingOfUntimedQueries
-                        .configuration.copy(untimedDataQueryTimeout = 1[year])
+                        .get<Configuration>().copy(untimedDataQueryTimeout = 1[year])
             })
 }

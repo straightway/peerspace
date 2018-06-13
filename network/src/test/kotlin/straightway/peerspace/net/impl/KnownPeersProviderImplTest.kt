@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
+import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.KnownPeersProvider
 import straightway.testing.bdd.Given
 import straightway.utils.deserializeTo
 
@@ -34,7 +36,7 @@ class KnownPeersProviderImplTest : KoinTestBase() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(
+        PeerTestEnvironment(
                 peerId,
                 knownPeersIds = listOf(knownPeerId, queryingPeerId),
                 knownPeersProviderFactory = { KnownPeersProviderImpl() }
@@ -43,16 +45,16 @@ class KnownPeersProviderImplTest : KoinTestBase() {
 
     @Test
     fun `a query for known peers is answered immediately`() =
-            test while_ { fixed() } when_ {
-                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
+            test when_ {
+                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(any(), any())
             }
 
     @Test
     fun `a query for known peers is answered with Administrative_KnownPeers_id`() =
-            test while_ { fixed() } when_ {
-                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
+            test when_ {
+                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(
                         argThat { chunk.key == Key(Administrative.KnownPeers.id) },
@@ -61,8 +63,8 @@ class KnownPeersProviderImplTest : KoinTestBase() {
 
     @Test
     fun `a query for known peers is answered with the list of known peers`() =
-            test while_ { fixed() } when_ {
-                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
+            test when_ {
+                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(
                         argThat { chunk.data.deserializeTo<List<Id>>() == knownPeersIds },
@@ -74,13 +76,13 @@ class KnownPeersProviderImplTest : KoinTestBase() {
             test andGiven {
                 it.copy(
                         configurationFactory = {
-                            it.configuration.copy(maxKnownPeersAnswers = 1)
+                            it.get<Configuration>().copy(maxKnownPeersAnswers = 1)
                         },
                         knownPeerAnswerChooserFactory = {
                             createChooser { knownPeersIds.slice(0..0) }
-                        }).fixed()
+                        })
             } when_ {
-                knownPeersProvider.pushKnownPeersTo(queryingPeerId)
+                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
                 verify(queryingPeer).push(
                         argThat {
@@ -89,5 +91,5 @@ class KnownPeersProviderImplTest : KoinTestBase() {
                         any())
             }
 
-    private val PeerTestEnvironmentImpl.queryingPeer get() = getPeer(queryingPeerId)
+    private val PeerTestEnvironment.queryingPeer get() = getPeer(queryingPeerId)
 }

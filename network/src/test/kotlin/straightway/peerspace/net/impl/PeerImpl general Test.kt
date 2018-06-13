@@ -22,6 +22,9 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Administrative
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.Peer
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
@@ -39,25 +42,25 @@ class `PeerImpl general Test` : KoinTestBase() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironmentImpl(id)
+        PeerTestEnvironment(id, peerFactory = { PeerImpl() })
     }
 
     @Test
     fun `toString contains peer id`() =
-            test when_ { peer.toString() } then {
+            test when_ { get<Peer>().toString() } then {
                 expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")
             }
 
     @Test
     fun `data queries are delegated to DataQueryHandler`() =
-            test when_ { peer.query(dataQuery) } then {
-                verify(dataQueryHandler).handle(dataQuery)
+            test when_ { get<Peer>().query(dataQuery) } then {
+                verify(get<DataQueryHandler>()).handle(dataQuery)
             }
 
     @Test
     fun `query notifies resultListener of success`() {
         val resultListener = mock<TransmissionResultListener>()
-        test when_ { peer.query(dataQuery, resultListener) } then {
+        test when_ { get<Peer>().query(dataQuery, resultListener) } then {
             verify(resultListener).notifySuccess()
             verify(resultListener, never()).notifyFailure()
         }
@@ -66,8 +69,8 @@ class `PeerImpl general Test` : KoinTestBase() {
     @Test
     fun `a query for known peers is delegated to the known peers provider`() =
             test when_ {
-                peer.query(knownPeersRequest)
+                get<Peer>().query(knownPeersRequest)
             } then {
-                verify(knownPeersProvider).pushKnownPeersTo(knownPeersRequest.originatorId)
+                verify(get<KnownPeersProvider>()).pushKnownPeersTo(knownPeersRequest.originatorId)
             }
 }

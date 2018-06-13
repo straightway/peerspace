@@ -25,7 +25,10 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.DataPushForwarder
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
+import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -52,30 +55,30 @@ class DataPushForwarderImplTest : KoinTestBase() {
     private val test get() = Given {
         var localQueryForwardIds = ids()
         var localForwardedPeerIndices = 1..2
-        val baseEnvironment = PeerTestEnvironmentImpl(
-                peerId,
-                knownPeersIds = knownPeersIds,
-                dataPushForwarderFactory = { DataPushForwarderImpl() },
-                dataQueryHandlerFactory = {
-                    mock {
-                        on {
-                            getForwardPeerIdsFor(any())
-                        }.thenAnswer {
-                            localQueryForwardIds
+        object {
+            val environment = PeerTestEnvironment(
+                    peerId,
+                    knownPeersIds = knownPeersIds,
+                    dataPushForwarderFactory = { DataPushForwarderImpl() },
+                    dataQueryHandlerFactory = {
+                        mock {
+                            on {
+                                getForwardPeerIdsFor(any())
+                            }.thenAnswer {
+                                localQueryForwardIds
+                            }
+                        }
+                    },
+                    forwardStrategyFactory = {
+                        mock {
+                            on {
+                                getPushForwardPeerIdsFor(any(), any())
+                            }.thenAnswer {
+                                knownPeersIds.slice(localForwardedPeerIndices)
+                            }
                         }
                     }
-                },
-                forwardStrategyFactory = {
-                    mock {
-                        on {
-                            getPushForwardPeerIdsFor(any(), any())
-                        }.thenAnswer {
-                            knownPeersIds.slice(localForwardedPeerIndices)
-                        }
-                    }
-                }
-        )
-        object : PeerTestEnvironment by baseEnvironment {
+            )
             var forwardedPeerIndices
                 get() = localForwardedPeerIndices
                 set(new) { localForwardedPeerIndices = new }
@@ -83,7 +86,13 @@ class DataPushForwarderImplTest : KoinTestBase() {
             var queryForwardPeerIds
                 get() = localQueryForwardIds
                 set(new) { localQueryForwardIds = new }
-            val sut = dataPushForwarder as DataPushForwarderImpl
+            val dataPushForwarder get() = environment.get<DataPushForwarder>()
+            val forwardStrategy get() = environment.get<ForwardStrategy>()
+            val dataQueryHandler get() = environment.get<DataQueryHandler>()
+            val pushTransmissionResultListeners get() = environment.pushTransmissionResultListeners
+            val knownPeers get() = environment.knownPeers
+            val sut get() = dataPushForwarder as DataPushForwarderImpl
+            fun getPeer(id: Id) = environment.getPeer(id)
             fun <R> suspendForwarding(action: () -> R ): R {
                 val oldForwardPeerIndices = forwardedPeerIndices
                 forwardedPeerIndices = IntRange.EMPTY
@@ -93,7 +102,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                     forwardedPeerIndices = oldForwardPeerIndices
                 }
             }
-        }.fixed()
+        }
     }
 
     @Test

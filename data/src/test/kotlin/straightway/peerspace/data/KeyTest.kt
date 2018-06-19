@@ -67,4 +67,12 @@ class KeyTest {
     @Test
     fun `timestamps is a single element range`() =
             expect(Key(id, timestamp).timestamps is_ Equal to_ LongRange(timestamp, timestamp))
+
+    @Test
+    fun `toString for untimed key returns just the id`() =
+            expect(Key(id).toString() is_ Equal to_ "Key(${id.identifier})")
+
+    @Test
+    fun `toString for timed key returns the id and timestamp`() =
+            expect(Key(id, timestamp).toString() is_ Equal to_ "Key(${id.identifier}@$timestamp)")
 }

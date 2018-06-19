@@ -63,6 +63,25 @@ class IdTest {
             }
 
     @Test
+    fun `toString of general id yields compact string`() =
+            Given {
+                Id(IdType.General, identifier)
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "Id($identifier)")
+            }
+
+    @Test
+    fun `toString of non-general id yields compact string with id type`() =
+            Given {
+                Id(IdType.Administrative, identifier)
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "Id(Administrative::$identifier)")
+            }
+    @Test
     fun `has serialVersionUID`() =
             expect(Id.serialVersionUID is_ Equal to_ 1L)
 }

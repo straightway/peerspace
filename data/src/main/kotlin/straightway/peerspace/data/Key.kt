@@ -26,6 +26,9 @@ data class Key(override val id: Id, val timestamp: Long) : KeyHashable, Serializ
 
     override val timestamps get() = LongRange(timestamp, timestamp)
 
+    override fun toString() =
+            if (timestamp == 0L) "Key(${id.identifier})" else "Key(${id.identifier}@$timestamp)"
+
     companion object {
         const val serialVersionUID = 1L
     }

@@ -24,6 +24,11 @@ data class Id(val type: IdType, val identifier: String) : Serializable {
 
     constructor(identifier: String) : this(IdType.General, identifier)
 
+    override fun toString() = when (type) {
+        IdType.General -> "Id($identifier)"
+        else -> "Id($type::$identifier)"
+    }
+
     companion object {
         const val serialVersionUID = 1L
     }

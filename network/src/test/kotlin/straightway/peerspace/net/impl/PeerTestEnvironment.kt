@@ -32,6 +32,7 @@ import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
@@ -111,9 +112,16 @@ data class PeerTestEnvironment(
     inline fun <reified T> get() = koin.get<T>()
 
     val knownPeers = knownPeersIds.map {
-        createPeerMock(it) { pushRequest, resultForwarder ->
-            pushTransmissionResultListeners[Pair(it, pushRequest.chunk.key)] = resultForwarder
-        }
+        createPeerMock(
+                it,
+                pushCallback = { pushRequest, resultForwarder ->
+                    pushTransmissionResultListeners[Pair(it, pushRequest.chunk.key)] =
+                            resultForwarder
+                },
+                queryCallback = { queryRequest, resultForwarder ->
+                    queryTransmissionResultListeners[Pair(it, queryRequest)] =
+                            resultForwarder
+                })
     }.toMutableList()
 
     val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
@@ -121,6 +129,9 @@ data class PeerTestEnvironment(
     fun setPeerPushSuccess(id: Id, success: Boolean) {
         peerPushSuccess[id] = success
     }
+
+    val queryTransmissionResultListeners =
+            mutableMapOf<Pair<Id, QueryRequest>, TransmissionResultListener>()
 
     val pushTransmissionResultListeners =
             mutableMapOf<Pair<Id, Key>, TransmissionResultListener>()

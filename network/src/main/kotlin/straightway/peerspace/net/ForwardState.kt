@@ -24,4 +24,20 @@ import straightway.peerspace.data.Id
 data class ForwardState(
         val successful: List<Id> = listOf(),
         val failed: List<Id> = listOf(),
-        val pending: List<Id> = listOf())
+        val pending: List<Id> = listOf()
+) {
+    fun setPending(id: Id) = if (id in pending) this else copy(
+            successful = successful - id,
+            pending = pending + id,
+            failed = failed - id)
+
+    fun setSuccess(id: Id) = if (id in successful) this else copy(
+            successful = successful + id,
+            pending = pending - id,
+            failed = failed - id)
+
+    fun setFailed(id: Id) = if (id in failed) this else copy(
+            successful = successful - id,
+            pending = pending - id,
+            failed = failed + id)
+}

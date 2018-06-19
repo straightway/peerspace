@@ -61,7 +61,7 @@ class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
                 get<DataQueryHandler>().handle(receivedTimedQueryRequest)
             } then {
                 verify(get<ForwardStrategy>()).getQueryForwardPeerIdsFor(
-                        receivedTimedQueryRequest.copy(originatorId = peerId), ForwardState())
+                        receivedTimedQueryRequest, ForwardState())
             }
 
     @Test

@@ -31,79 +31,43 @@ import straightway.peerspace.net.TransmissionResultListener
 /**
  * Push data to a target peer.
  */
-class DataPushForwarderImpl : DataPushForwarder, KoinModuleComponent by KoinModuleComponent() {
+class DataPushForwarderImpl :
+        DataPushForwarder,
+        Forwarder<PushRequest, Key>,
+        KoinModuleComponent by KoinModuleComponent() {
+
+    override fun getForwardPeerIdsFor(item: PushRequest, state: ForwardState) =
+            item.getForwardPeersFromStrategies(state) - item.originatorId
+
+    override fun getKeyFor(item: PushRequest) = item.chunk.key
+
+    override fun forwardTo(
+            target: Id,
+            item: PushRequest,
+            transmissionResultListener: TransmissionResultListener) =
+            network.getPushTarget(target).push(
+                    PushRequest(peerId, item.chunk), transmissionResultListener)
 
     override fun forward(push: PushRequest) {
-        push.forwardPeers.forEach { push pushOnTo it }
+        forwardTracker.forward(push)
         dataQueryHandler.notifyChunkForwarded(push.chunk.key)
     }
 
-    val forwardStates get() = _forwardStates
+    val forwardStates get() = forwardTracker.forwardStates
 
-    private val id: Id by property("peerId") { Id(it) }
+    private val peerId: Id by property("peerId") { Id(it) }
     private val dataQueryHandler: DataQueryHandler by inject()
     private val forwardStrategy: ForwardStrategy by inject()
     private val network: Network by inject()
 
-    private val PushRequest.forwardPeers
-        get() = forwardPeersFromStrategies.toSet().filter { it != originatorId }
+    private fun PushRequest.getForwardPeersFromStrategies(forwardState: ForwardState) =
+            (getPushForwardPeerIds(forwardState) + chunk.key.queryForwardPeerIds).toSet()
 
-    private infix fun PushRequest.pushOnTo(receiverId: Id) {
-        setTransmissionPendingTo(receiverId)
-        val target = network.getPushTarget(receiverId)
-        val request = PushRequest(id, chunk)
-        target.push(request, ResultListener(request, receiverId))
-    }
+    private fun PushRequest.getPushForwardPeerIds(forwardState: ForwardState) =
+        forwardStrategy.getPushForwardPeerIdsFor(chunk.key, forwardState)
 
-    private fun PushRequest.setTransmissionPendingTo(receiverId: Id) {
-        val oldState = _forwardStates[chunk.key] ?: ForwardState()
-        _forwardStates += Pair(
-                chunk.key,
-                ForwardState(
-                        successful = oldState.successful - receiverId,
-                        failed = oldState.failed - receiverId,
-                        pending = oldState.pending - receiverId + receiverId))
-    }
+    private val Key.queryForwardPeerIds: Iterable<Id>
+        get() = dataQueryHandler.getForwardPeerIdsFor(this)
 
-    private val PushRequest.forwardPeersFromStrategies
-        get() = pushForwardPeerIds + queryForwardPeerIds
-
-    private val PushRequest.pushForwardPeerIds
-        get() = forwardStrategy.getPushForwardPeerIdsFor(chunk.key, ForwardState())
-
-    private val PushRequest.queryForwardPeerIds: Iterable<Id>
-        get() = dataQueryHandler.getForwardPeerIdsFor(chunk.key)
-
-    private inner class ResultListener(
-            private val push: PushRequest,
-            private val receiverId: Id
-    ) : TransmissionResultListener {
-
-        override fun notifySuccess() {
-            updateTransmissionState(success = receiverId)
-        }
-
-        override fun notifyFailure() {
-            val newState = updateTransmissionState(fail = receiverId)
-            val rePushPeers = forwardStrategy.getPushForwardPeerIdsFor(chunkKey, newState)
-            rePushPeers.forEach { push pushOnTo it }
-        }
-
-        private val chunkKey get() = push.chunk.key
-
-        private fun updateTransmissionState(success: Id? = null, fail: Id? = null ) =
-                _forwardStates[chunkKey]!!.updated(success, fail).also {
-                    _forwardStates += Pair(chunkKey, it)
-                }
-
-        private fun ForwardState.updated(success: Id? = null, fail: Id? = null) =
-                ForwardState(
-                        pending = pending.filter { it != success && it != fail },
-                        successful = successful + success.list,
-                        failed = failed + fail.list)
-
-        private val Id?.list get() = if (this == null) listOf() else listOf(this)
-    }
-
-    private var _forwardStates = mapOf<Key, ForwardState>()
+    private val forwardTracker = ForwardStateTracker(this)
 }

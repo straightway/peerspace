@@ -33,7 +33,7 @@ class TimedDataQueryHandler
     override val tooOldThreshold get() = timeProvider.nowPlus(-configuration.timedDataQueryTimeout)
 
     override fun notifyChunkForwarded(key: Key) =
-            key.pendingQueriesForThisPush.forEach { it.forwardedChunks.add(key) }
+            key.pendingQueriesForThisPush.forEach { it.forwardedChunkKeys.add(key) }
 
     override val Key.resultReceiverIdsForChunk get() =
             pendingQueriesForThisPush
@@ -43,5 +43,5 @@ class TimedDataQueryHandler
     private val configuration: Configuration by inject()
 
     private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
-            it.forwardedChunks.contains(this)
+            it.forwardedChunkKeys.contains(this)
 }

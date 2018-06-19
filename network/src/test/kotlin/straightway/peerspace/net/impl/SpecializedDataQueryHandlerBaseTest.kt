@@ -19,6 +19,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -279,6 +280,30 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             }
 
     @Test
+    fun `forwarded query marks forward peer as pending`() =
+            test while_ {
+                sut.handle(queryRequest)
+                sut.protectedForwardQueryRequest(queryRequest)
+            } when_ {
+                sut.protectedPendingQueries.single().forwardState
+            } then {
+                expect(it.result is_ Equal
+                               to_ ForwardState(pending = listOf(forwardPeerId)))
+            }
+
+    @Test
+    @Disabled
+    fun `forwarded query request is marked accordingly if it fails`() =
+            test while_ {
+                sut.handle(queryRequest)
+                sut.protectedForwardQueryRequest(queryRequest)
+            } when_ {
+                queryTransmissionResultListeners.values.single().notifyFailure()
+            } then {
+                expect(sut.protectedPendingQueries is_ Empty)
+            }
+
+    @Test
     fun `pendingQueriesForThisPush is empty without pending queries`() =
             test when_ {
                 sut.protectedPendingQueriesForThisPush(chunk.key)
@@ -328,9 +353,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             }
 
     private fun QueryRequest.forwarded(hasLocalResult: Boolean) =
-            DerivedSut.ForwardedQuery(
-                    copy(originatorId = peerId),
-                    hasLocalResult)
+            DerivedSut.ForwardedQuery(this, hasLocalResult)
 
     private val QueryRequest.matchingChunk get() = Chunk(Key(id, timestamps.first), byteArrayOf())
 }

@@ -42,7 +42,10 @@ class DataPushForwarderImplTest : KoinTestBase() {
     private companion object {
         val peerId = Id("peerId")
         val queryingPeerId = Id("queryingPeerId")
-        val knownPeersIds = ids("1", "2", "3") + queryingPeerId
+        val keepAlivePeerId = Id("keepAlivePeerId")
+        val knownPeersIds = ids("1", "2", "3") + queryingPeerId + keepAlivePeerId
+        val keepAlivePeerIndex = knownPeersIds.indexOf(keepAlivePeerId)
+        val keepAliveRange = keepAlivePeerIndex..keepAlivePeerIndex
         val pushingPeerId = knownPeersIds.first()
         val chunk = Chunk(Key(Id("chunkId")), byteArrayOf(1, 2, 3))
         val incomingRequest = PushRequest(pushingPeerId, chunk)
@@ -50,6 +53,8 @@ class DataPushForwarderImplTest : KoinTestBase() {
         val pushRequest = PushRequest(
                 Id("pushOriginatorId"),
                 Chunk(Key(Id("pushedChunkId")), byteArrayOf()))
+
+        fun keepingAlive(ids: List<Id> = listOf()) = listOf(keepAlivePeerId) + ids
     }
 
     private val test get() = Given {
@@ -93,6 +98,10 @@ class DataPushForwarderImplTest : KoinTestBase() {
             val knownPeers get() = environment.knownPeers
             val sut get() = dataPushForwarder as DataPushForwarderImpl
             fun getPeer(id: Id) = environment.getPeer(id)
+            fun keepAlive(push: PushRequest) {
+                forwardedPeerIndices = keepAliveRange
+                dataPushForwarder.forward(push)
+            }
             fun <R> suspendForwarding(action: () -> R ): R {
                 val oldForwardPeerIndices = forwardedPeerIndices
                 forwardedPeerIndices = IntRange.EMPTY
@@ -203,9 +212,10 @@ class DataPushForwarderImplTest : KoinTestBase() {
     @Test
     fun `forwarding again after successful forward keeps success state`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..0
                 dataPushForwarder.forward(pushRequest)
-                pushTransmissionResultListeners.values.single().notifySuccess()
+                pushTransmissionResultListeners.values.last().notifySuccess()
                 forwardedPeerIndices = 1..1
             } when_ {
                 dataPushForwarder.forward(pushRequest)
@@ -215,16 +225,17 @@ class DataPushForwarderImplTest : KoinTestBase() {
                                 pushRequest.chunk.key,
                                 ForwardState(
                                         successful = listOf(knownPeersIds[0]),
-                                        pending = forwardedPeerIds))))
+                                        pending = keepingAlive(forwardedPeerIds)))))
             }
 
     @Test
     fun `forwarding again after failed forward keeps failed state`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..0
                 dataPushForwarder.forward(pushRequest)
                 suspendForwarding {
-                    pushTransmissionResultListeners.values.single().notifyFailure()
+                    pushTransmissionResultListeners.values.last().notifyFailure()
                 }
                 forwardedPeerIndices = 1..1
             } when_ {
@@ -235,77 +246,94 @@ class DataPushForwarderImplTest : KoinTestBase() {
                                 pushRequest.chunk.key,
                                 ForwardState(
                                         failed = listOf(knownPeersIds[0]),
-                                        pending = forwardedPeerIds))))
+                                        pending = keepingAlive(forwardedPeerIds)))))
             }
 
     @Test
     fun `succeeded forwarding to one peer leads to a succeeded state for this peer`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..0
                 dataPushForwarder.forward(pushRequest)
             } when_ {
-                pushTransmissionResultListeners.values.single().notifySuccess()
+                pushTransmissionResultListeners.values.last().notifySuccess()
             } then {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(successful = listOf(knownPeersIds[0])))))
+                                ForwardState(
+                                        successful = listOf(knownPeersIds[0]),
+                                        pending = keepingAlive()))))
             }
 
     @Test
     fun `succeeded forwarding to two peers leads to a succeeded state for these peers`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..1
                 dataPushForwarder.forward(pushRequest)
             } when_ {
                 suspendForwarding {
-                    pushTransmissionResultListeners.values.forEach { it.notifySuccess() }
+                    pushTransmissionResultListeners
+                            .filter { it.key.first != keepAlivePeerId }
+                            .forEach { it.value.notifySuccess() }
                 }
             } then {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(successful = forwardedPeerIds))))
+                                ForwardState(
+                                        successful = forwardedPeerIds,
+                                        pending = keepingAlive()))))
             }
 
     @Test
     fun `failed forwarding to one peer leads to a failed state for this peer`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..0
                 dataPushForwarder.forward(pushRequest)
             } when_ {
                 suspendForwarding {
-                    pushTransmissionResultListeners.values.single().notifyFailure()
+                    pushTransmissionResultListeners.values.last().notifyFailure()
                 }
             } then {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(failed = forwardedPeerIds))))
+                                ForwardState(
+                                        failed = forwardedPeerIds,
+                                        pending = keepingAlive()))))
             }
 
     @Test
     fun `failed forwarding to two peers leads to a failed state for these peers`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..1
                 dataPushForwarder.forward(pushRequest)
             } when_ {
                 suspendForwarding {
-                    pushTransmissionResultListeners.values.forEach { it.notifyFailure() }
+                    pushTransmissionResultListeners
+                            .filter { it.key.first != keepAlivePeerId }
+                            .forEach { it.value.notifyFailure() }
                 }
             } then {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(failed = forwardedPeerIds))))
+                                ForwardState(
+                                        failed = forwardedPeerIds,
+                                        pending = keepingAlive()))))
             }
 
     @Test
     fun `failed forwarding to a peers keeps success state for another peer`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..1
                 dataPushForwarder.forward(pushRequest)
-                pushTransmissionResultListeners.values.first().notifySuccess()
+                pushTransmissionResultListeners.values.drop(1).first().notifySuccess()
             } when_ {
                 suspendForwarding {
                     pushTransmissionResultListeners.values.last().notifyFailure()
@@ -316,26 +344,29 @@ class DataPushForwarderImplTest : KoinTestBase() {
                                 pushRequest.chunk.key,
                                 ForwardState(
                                         successful = forwardedPeerIds.slice(0..0),
-                                        failed = forwardedPeerIds.slice(1..1)))))
+                                        failed = forwardedPeerIds.slice(1..1),
+                                        pending = keepingAlive()))))
             }
 
     @Test
     fun `succeeded forwarding to a peers keeps failed state for another peer`() =
             test while_ {
+                keepAlive(pushRequest)
                 forwardedPeerIndices = 0..1
                 dataPushForwarder.forward(pushRequest)
                 suspendForwarding {
                     pushTransmissionResultListeners.values.last().notifyFailure()
                 }
             } when_ {
-                pushTransmissionResultListeners.values.first().notifySuccess()
+                pushTransmissionResultListeners.values.drop(1).first().notifySuccess()
             } then {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
                                         successful = forwardedPeerIds.slice(0..0),
-                                        failed = forwardedPeerIds.slice(1..1)))))
+                                        failed = forwardedPeerIds.slice(1..1),
+                                        pending = keepingAlive()))))
             }
 
     @Test

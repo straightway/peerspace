@@ -29,15 +29,22 @@ import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
 
+@Suppress("LongParameterList")
 fun createPeerMock(
         id: Id,
-        callback: (PushRequest, TransmissionResultListener) -> Unit = { _, _ -> }
+        pushCallback: (PushRequest, TransmissionResultListener) -> Unit = { _, _ -> },
+        queryCallback: (QueryRequest, TransmissionResultListener) -> Unit = { _, _ -> }
 ) =
         mock<Peer> {
             on { this.id }.thenReturn(id)
             on { push(any(), any()) }.thenAnswer {
-                callback(
+                pushCallback(
                         it.arguments[0] as PushRequest,
+                        it.arguments[1] as TransmissionResultListener)
+            }
+            on { query(any(), any()) }.thenAnswer {
+                queryCallback(
+                        it.arguments[0] as QueryRequest,
                         it.arguments[1] as TransmissionResultListener)
             }
         }

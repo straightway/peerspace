@@ -34,8 +34,6 @@ class DataPushForwarderImpl :
         dataQueryHandler.notifyChunkForwarded(push.chunk.key)
     }
 
-    val forwardStates get() = forwardTracker.forwardStates
-
     private val dataQueryHandler: DataQueryHandler by inject()
     private val forwardTracker: ForwardStateTracker<PushRequest, Key>
             by inject("pushForwardTracker")

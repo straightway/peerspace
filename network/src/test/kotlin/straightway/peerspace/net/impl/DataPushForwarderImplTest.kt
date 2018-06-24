@@ -82,7 +82,9 @@ class DataPushForwarderImplTest : KoinTestBase() {
                                 knownPeersIds.slice(localForwardedPeerIndices)
                             }
                         }
-                    }
+                    },
+                    pushForwardTrackerFactory = { ForwardStateTrackerImpl(get("pushForwarder")) },
+                    pushForwarderFactory = { PushForwarder() }
             )
             var forwardedPeerIndices
                 get() = localForwardedPeerIndices

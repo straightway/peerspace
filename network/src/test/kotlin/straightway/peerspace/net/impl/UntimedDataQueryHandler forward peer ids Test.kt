@@ -79,6 +79,9 @@ class `UntimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
                     mock {
                         on { currentTime }.thenAnswer { currentTime }
                     }
+                },
+                pendingUntimedQueryTrackerFactory = {
+                    PendingQueryTrackerImpl({ untimedDataQueryTimeout })
                 }
         )
     }

@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -52,7 +53,9 @@ class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
                                 .thenReturn(knownPeersIds.slice(forwardedPeers))
                     }
                 },
-                dataQueryHandlerFactory = { TimedDataQueryHandler() })
+                dataQueryHandlerFactory = { TimedDataQueryHandler() },
+                queryForwarderFactory = { QueryForwarder() },
+                queryForwardTrackerFactory = { ForwardStateTrackerImpl(get("queryForwarder")) })
     }
 
     @Test
@@ -70,7 +73,7 @@ class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
                 get<DataQueryHandler>().handle(receivedTimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(forwardedTimedQueryRequest)
+                    verify(knownPeers[it]).query(eq(forwardedTimedQueryRequest), any())
                 }
             }
 
@@ -82,7 +85,7 @@ class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
                 get<DataQueryHandler>().handle(receivedTimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(forwardedTimedQueryRequest)
+                    verify(knownPeers[it]).query(eq(forwardedTimedQueryRequest), any())
                 }
             }
 }

@@ -17,6 +17,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Disabled
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
@@ -31,6 +34,7 @@ import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -39,6 +43,11 @@ import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.units.get
+import straightway.units.minute
+import straightway.units.plus
+import straightway.units.second
+import straightway.units.toDuration
 import java.time.LocalDateTime
 
 class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
@@ -50,21 +59,27 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
         val forwardPeerId = Id("forwardPeerId")
         val chunk = Chunk(Key(Id("ChunkId")), byteArrayOf())
         val queryRequest = QueryRequest(originatorId, Id("queriedId"), 1L..2L)
+        val pendingTimeout = 5[minute]
     }
 
     private var currentTime = LocalDateTime.of(2000, 1, 1, 0, 0)
 
-    private val test get() =
+    private fun test(isLocalResultPreventingForwarding: Boolean) =
         Given {
             PeerTestEnvironment(
                     peerId = peerId,
                     knownPeersIds = listOf(originatorId, forwardPeerId, anyPeerId),
+                    configurationFactory = {
+                        Configuration(timedDataQueryTimeout = pendingTimeout)
+                    },
                     dataChunkStoreFactory = {
                         mock {
                             on { query(any()) }.thenAnswer { localChunks }
                         }
                     },
-                    dataQueryHandlerFactory = { DerivedSut() },
+                    dataQueryHandlerFactory = {
+                        DerivedSut(isLocalResultPreventingForwarding)
+                    },
                     timeProviderFactory = {
                         mock {
                             on { currentTime }.thenAnswer { currentTime }
@@ -75,6 +90,34 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                             on { getQueryForwardPeerIdsFor(any(), any()) }
                                     .thenReturn(listOf(forwardPeerId))
                         }
+                    },
+                    queryForwarderFactory = {
+                        val queryForwarder = QueryForwarder()
+                        mock {
+                            on { forwardTo(any(), any(), any())}.thenAnswer {
+                                val request = it.arguments[1] as QueryRequest
+                                queryForwarder.forwardTo(
+                                        it.arguments[0] as Id,
+                                        request,
+                                        it.arguments[2] as TransmissionResultListener)
+                                sut.forwardedQueries.add(request)
+                            }
+                            on { getKeyFor(any()) }.thenAnswer {
+                                queryForwarder.getKeyFor(
+                                        it.arguments[0] as QueryRequest)
+                            }
+                            on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
+                                queryForwarder.getForwardPeerIdsFor(
+                                        it.arguments[0] as QueryRequest,
+                                        it.arguments[1] as ForwardState)
+                            }
+                        }
+                    },
+                    pendingTimedQueryTrackerFactory = {
+                        PendingQueryTrackerImpl({ timedDataQueryTimeout })
+                    },
+                    queryForwardTrackerFactory = {
+                        ForwardStateTrackerImpl(get("queryForwarder"))
                     })
         }
 
@@ -85,44 +128,37 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
     private val PeerTestEnvironment.forwardPeer get() =
         getPeer(forwardPeerId)
     private infix fun PeerTestEnvironment.isPending(query: QueryRequest) =
-            sut.protectedPendingQueries.any { it.query === query }
+            sut.pendingQueries.any { it.query === query }
 
-    private class DerivedSut : SpecializedDataQueryHandlerBase() {
-        override var tooOldThreshold = LocalDateTime.of(2000, 1, 1, 0, 0)!!
-        fun changeTooOldThreshold(new: LocalDateTime) { tooOldThreshold = new }
-
-        override val Key.resultReceiverIdsForChunk: Iterable<Id>
-            get() = this@DerivedSut.resultReceiverIds
+    private class DerivedSut(isLocalResultPreventingForwarding: Boolean) :
+            SpecializedDataQueryHandlerBase(
+                    isLocalResultPreventingForwarding = isLocalResultPreventingForwarding)
+    {
+        override fun resultReceiverIdsForChunk(chunkKey: Key) = resultReceiverIds
 
         val resultReceiverIds = mutableListOf<Id>()
-
-        override fun QueryRequest.forward(hasLocalResult: Boolean) {
-            forwardedQueries += ForwardedQuery(this, hasLocalResult)
-        }
-
-        data class ForwardedQuery(val query: QueryRequest, val hasLocalResult: Boolean)
-        val forwardedQueries = mutableListOf<ForwardedQuery>()
+        val forwardedQueries = mutableListOf<QueryRequest>()
+        val pendingQueries get() = pendingQueryTracker.pendingQueries
 
         override fun notifyChunkForwarded(key: Key) {
             handledPushRequests += key
         }
 
+
+        override val pendingQueryTracker: PendingQueryTracker by inject("pendingTimedQueryTracker")
+
         val handledPushRequests = mutableListOf<Key>()
 
         fun protectedRemoveQueriesIf(predicate: QueryRequest.() -> Boolean) =
-                removeQueriesIf(predicate)
+                pendingQueryTracker.removePendingQueriesIf(predicate)
 
-        fun protectedForwardQueryRequest(query: QueryRequest) = query.forward()
-
-        fun protectedPendingQueriesForThisPush(key: Key) =
-                key.pendingQueriesForThisPush
-
-        val protectedPendingQueries: List<PendingQuery> get() = pendingQueries
+        fun getPendingQueriesForChunk(chunkKey: Key) =
+                pendingQueryTracker.getPendingQueriesForChunk(chunkKey)
     }
 
     @Test
     fun `new handled query is set pending`() =
-            test when_ {
+            test(isLocalResultPreventingForwarding = false) when_ {
                 sut.handle(queryRequest)
             } then {
                 expect(isPending(queryRequest) is_ True)
@@ -130,16 +166,16 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `pending queries get current timestamp`() =
-            test when_ {
+            test(isLocalResultPreventingForwarding = false) when_ {
                 sut.handle(queryRequest)
             } then {
-                val pendingQuery = sut.protectedPendingQueries.single()
+                val pendingQuery = sut.pendingQueries.single()
                 expect(pendingQuery.receiveTime is_ Equal to_ currentTime)
             }
 
     @Test
     fun `local results are queried`() =
-            test when_ {
+            test(isLocalResultPreventingForwarding = false) when_ {
                 sut.handle(queryRequest)
             } then {
                 verify(get<DataChunkStore>()).query(queryRequest)
@@ -147,7 +183,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `local results are forwarded immediately`() =
-            test andGiven {
+            test(isLocalResultPreventingForwarding = false) andGiven {
                 it.copy(localChunks = it.localChunks
                         + Chunk(Key(Id("chunkId1")), byteArrayOf())
                         + Chunk(Key(Id("chunkId2")), byteArrayOf()))
@@ -161,28 +197,26 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `query is forwarded without local result`() =
-            test when_ {
+            test(isLocalResultPreventingForwarding = true) when_ {
                 sut.handle(queryRequest)
             } then {
-                expect(sut.forwardedQueries is_ Equal to_
-                               Values(queryRequest.forwarded(hasLocalResult = false)))
+                expect(sut.forwardedQueries is_ Equal to_ Values(queryRequest))
             }
 
     @Test
     fun `query is forwarded with local result`() =
-            test andGiven {
+            test(isLocalResultPreventingForwarding = false) andGiven {
                 it.copy(localChunks = it.localChunks
                         + Chunk(Key(Id("chunkId1")), byteArrayOf()))
             } when_ {
                 sut.handle(queryRequest)
             } then {
-                expect(sut.forwardedQueries is_ Equal to_
-                               Values(queryRequest.forwarded(hasLocalResult = true)))
+                expect(sut.forwardedQueries is_ Equal to_ Values(queryRequest))
             }
 
     @Test
     fun `getForwardPeerIdsFor returns no ids without result receivers`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.resultReceiverIds.clear()
             } when_ {
                 sut.getForwardPeerIdsFor(chunk.key)
@@ -192,7 +226,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `getForwardPeerIdsFor returns ids of result receivers`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.resultReceiverIds += anyPeerId
             } when_ {
                 sut.getForwardPeerIdsFor(chunk.key)
@@ -202,7 +236,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `getForwardPeerIdsFor does not mark push as handled`() =
-            test when_ {
+            test(isLocalResultPreventingForwarding = false) when_ {
                 sut.getForwardPeerIdsFor(chunk.key)
             } then {
                 expect(sut.handledPushRequests is_ Empty)
@@ -210,7 +244,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `getForwardPeerIdsFor marks push as handled after result is returned`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
                 sut.resultReceiverIds.clear()
                 sut.resultReceiverIds.add(queryRequest.originatorId)
@@ -222,42 +256,42 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `removeQueriesIf removes all queries if predicate yields true`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
                 sut.protectedRemoveQueriesIf { true }
             } then {
-                expect(sut.protectedPendingQueries is_ Empty)
+                expect(sut.pendingQueries is_ Empty)
             }
 
     @Test
     fun `removeQueriesIf removes no query if predicate yields false`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
                 sut.protectedRemoveQueriesIf { false }
             } then {
-                expect(sut.protectedPendingQueries.map { it.query }
+                expect(sut.pendingQueries.map { it.query }
                                is_ Equal to_ Values(queryRequest))
             }
 
     @Test
     fun `removeQueriesIf removes ALL queries matching the predicate`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
                 sut.handle(queryRequest.copy(id = Id("otherId1")))
                 sut.handle(queryRequest.copy(id = Id("otherId2")))
             } when_ {
                 sut.protectedRemoveQueriesIf { id != queryRequest.id }
             } then {
-                expect(sut.protectedPendingQueries.map { it.query }
+                expect(sut.pendingQueries.map { it.query }
                                is_ Equal to_ Values(queryRequest))
             }
 
     @Test
     fun `query request forward peer ids are retrieved from forward strategy`() =
-            test when_ {
-                sut.protectedForwardQueryRequest(queryRequest)
+            test(isLocalResultPreventingForwarding = false) when_ {
+                sut.handle(queryRequest)
             } then {
                 verify(get<ForwardStrategy>())
                         .getQueryForwardPeerIdsFor(queryRequest, ForwardState())
@@ -265,95 +299,90 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     @Test
     fun `query request forward peers are retrieved from network`() =
-            test when_ {
-                sut.protectedForwardQueryRequest(queryRequest)
+            test(isLocalResultPreventingForwarding = false) when_ {
+                sut.handle(queryRequest)
             } then {
                 verify(get<Network>()).getQuerySource(forwardPeerId)
             }
 
     @Test
     fun `query request with receiver as originator is forwarded`() =
-            test when_ {
-                sut.protectedForwardQueryRequest(queryRequest)
+            test(isLocalResultPreventingForwarding = false) when_ {
+                sut.handle(queryRequest)
             } then {
-                verify(forwardPeer).query(queryRequest.copy(originatorId = peerId))
+                verify(forwardPeer).query(eq(queryRequest.copy(originatorId = peerId)), any())
             }
-
+/* TODO
     @Test
     fun `forwarded query marks forward peer as pending`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
-                sut.protectedForwardQueryRequest(queryRequest)
             } when_ {
-                sut.protectedPendingQueries.single().forwardState
+                sut.pendingQueries.single().forwardState
             } then {
                 expect(it.result is_ Equal
                                to_ ForwardState(pending = listOf(forwardPeerId)))
-            }
+            } */
 
     @Test
     @Disabled
     fun `forwarded query request is marked accordingly if it fails`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
-                sut.protectedForwardQueryRequest(queryRequest)
             } when_ {
                 queryTransmissionResultListeners.values.single().notifyFailure()
             } then {
-                expect(sut.protectedPendingQueries is_ Empty)
+                expect(sut.pendingQueries is_ Empty)
             }
 
     @Test
     fun `pendingQueriesForThisPush is empty without pending queries`() =
-            test when_ {
-                sut.protectedPendingQueriesForThisPush(chunk.key)
+            test(isLocalResultPreventingForwarding = false) when_ {
+                sut.getPendingQueriesForChunk(chunk.key)
             } then {
                 expect(it.result is_ Empty)
             }
 
     @Test
     fun `pendingQueriesForThisPush yields matching pending query`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
-                sut.protectedPendingQueriesForThisPush(queryRequest.matchingChunk.key)
+                sut.getPendingQueriesForChunk(queryRequest.matchingChunk.key)
             } then {
                 expect(it.result.map { it.query } is_ Equal to_ Values(queryRequest))
             }
 
     @Test
     fun `pendingQueriesForThisPush yields empty result for non-matching pending query`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
-                sut.protectedPendingQueriesForThisPush(chunk.key)
+                sut.getPendingQueriesForChunk(chunk.key)
             } then {
                 expect(it.result.map { it.query } is_ Empty)
             }
 
     @Test
     fun `too old pending queries are removed`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
-                sut.changeTooOldThreshold(LocalDateTime.of(2001, 1, 1, 0, 0))
+                currentTime += (pendingTimeout + 1[second]).toDuration()
             } when_ {
-                sut.protectedPendingQueries
+                sut.pendingQueries
             } then {
                 expect(it.result is_ Empty)
             }
 
     @Test
     fun `handling the same query a second time is ignored`() =
-            test while_ {
+            test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
                 sut.handle(queryRequest)
             } then {
                 verify(get<DataChunkStore>()).query(queryRequest)
             }
-
-    private fun QueryRequest.forwarded(hasLocalResult: Boolean) =
-            DerivedSut.ForwardedQuery(this, hasLocalResult)
 
     private val QueryRequest.matchingChunk get() = Chunk(Key(id, timestamps.first), byteArrayOf())
 }

@@ -30,29 +30,40 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class ForwardStateTrackerTest {
+class ForwardStateTrackerTest : KoinTestBase() {
 
     private data class Transmission(
             val destination: Id,
             val item: Int,
             val listener: TransmissionResultListener)
-
     private val test get() = Given {
         object {
             val forwardIds = mutableListOf<Id>()
             val transmissions = mutableListOf<Transmission>()
-            val forwarder = mock<Forwarder<Int, String>> {
-                on { getKeyFor(any()) }.thenAnswer { it.arguments[0].toString() }
-                on { getForwardPeerIdsFor(any(), any()) }.thenAnswer { forwardIds }
-                on { forwardTo(any(), any(), any()) }.thenAnswer {
-                    val destinationId = it.arguments[0] as Id
-                    val item = it.arguments[1] as Int
-                    val listener = it.arguments[2] as TransmissionResultListener
-                    val transmission = Transmission(destinationId, item, listener)
-                    transmissions.add(transmission)
+            val environment = PeerTestEnvironment {
+                bean("testForwarder") {
+                    mock<Forwarder<Int, String>> {
+                        on { getKeyFor(any()) }.thenAnswer { it.arguments[0].toString() }
+                        on { getForwardPeerIdsFor(any(), any()) }.thenAnswer { forwardIds }
+                        on { forwardTo(any(), any(), any()) }.thenAnswer {
+                            val destinationId = it.arguments[0] as Id
+                            val item = it.arguments[1] as Int
+                            val listener = it.arguments[2] as TransmissionResultListener
+                            val transmission = Transmission(destinationId, item, listener)
+                            transmissions.add(transmission)
+                        }
+                    }
+                }
+                bean("testTracker") {
+                    ForwardStateTrackerImpl(get<Forwarder<Int, String>>("testForwarder"))
+                            as ForwardStateTracker<Int, String>
                 }
             }
-            val sut = ForwardStateTracker(forwarder)
+
+            @Suppress("UNCHECKED_CAST")
+            val sut = environment.get<ForwardStateTracker<Int, String>>("testTracker")
+                    as ForwardStateTrackerImpl<Int, String>
+            val forwarder = environment.get<Forwarder<Int, String>>("testForwarder")
         }
     }
 

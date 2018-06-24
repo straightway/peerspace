@@ -17,30 +17,27 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.peerspace.koinutils.Bean.inject
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.QueryRequest
 
 /**
  * DataQueryHandler for timed queries.
  */
-class TimedDataQueryHandler
-    : SpecializedDataQueryHandlerBase(), DataQueryHandler {
-
-    override fun QueryRequest.forward(hasLocalResult: Boolean) =
-            forward()
-
-    override val tooOldThreshold get() = timeProvider.nowPlus(-configuration.timedDataQueryTimeout)
-
+class TimedDataQueryHandler :
+        SpecializedDataQueryHandlerBase(
+                isLocalResultPreventingForwarding = false),
+        DataQueryHandler
+{
     override fun notifyChunkForwarded(key: Key) =
-            key.pendingQueriesForThisPush.forEach { it.forwardedChunkKeys.add(key) }
+            pendingQueryTracker.getPendingQueriesForChunk(key).forEach {
+                pendingQueryTracker.addForwardedChunk(it, key)
+            }
 
-    override val Key.resultReceiverIdsForChunk get() =
-            pendingQueriesForThisPush
-                    .filter { !isAlreadyForwardedFor(it) }
+    override fun resultReceiverIdsForChunk(chunkKey: Key) =
+            pendingQueryTracker.getPendingQueriesForChunk(chunkKey)
+                    .filter { !chunkKey.isAlreadyForwardedFor(it) }
                     .map { it.query.originatorId }
 
-    private val configuration: Configuration by inject()
+    override val pendingQueryTracker: PendingQueryTracker by inject("pendingTimedQueryTracker")
 
     private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
             it.forwardedChunkKeys.contains(this)

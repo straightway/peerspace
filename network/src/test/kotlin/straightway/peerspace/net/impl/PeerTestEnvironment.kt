@@ -32,6 +32,7 @@ import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
@@ -44,7 +45,7 @@ typealias BeanFactory<T> = PeerTestEnvironment.() -> T
  * Implementation of the test environment for testing the PeerImpl class.
  */
 data class PeerTestEnvironment(
-        val peerId: Id,
+        val peerId: Id = Id("peerId"),
         val knownPeersIds: List<Id> = listOf(),
         val unknownPeerIds: List<Id> = listOf(),
         val localChunks: List<Chunk> = listOf(),
@@ -86,6 +87,26 @@ data class PeerTestEnvironment(
         private val peerFactory: BeanFactory<Peer> = {
             mock()
         },
+        private val queryForwarderFactory: BeanFactory<Forwarder<QueryRequest, QueryRequest>> = {
+            mock()
+        },
+        private val pushForwarderFactory: BeanFactory<Forwarder<PushRequest, Key>> = {
+            mock()
+        },
+        private val pendingTimedQueryTrackerFactory: BeanFactory<PendingQueryTracker> = {
+            mock()
+        },
+        private val pendingUntimedQueryTrackerFactory: BeanFactory<PendingQueryTracker> = {
+            mock()
+        },
+        private val queryForwardTrackerFactory:
+        BeanFactory<ForwardStateTracker<QueryRequest, QueryRequest>> = {
+            mock()
+        },
+        private val pushForwardTrackerFactory:
+        BeanFactory<ForwardStateTracker<PushRequest, Key>> = {
+            mock()
+        },
         private val additionalInit: Context.() -> Unit = {}
 ) {
 
@@ -103,6 +124,12 @@ data class PeerTestEnvironment(
             bean { networkFactory() }
             bean { dataChunkStoreFactory() }
             bean { peerFactory() }
+            bean("queryForwarder") { queryForwarderFactory() }
+            bean("pendingTimedQueryTracker") { pendingTimedQueryTrackerFactory() }
+            bean("pendingUntimedQueryTracker") { pendingUntimedQueryTrackerFactory() }
+            bean("queryForwardTracker") { queryForwardTrackerFactory() }
+            bean("pushForwarder") { pushForwarderFactory() }
+            bean("pushForwardTracker") { pushForwardTrackerFactory() }
             additionalInit()
         }.apply {
             extraProperties["peerId"] = peerId.identifier
@@ -110,6 +137,7 @@ data class PeerTestEnvironment(
     }
 
     inline fun <reified T> get() = koin.get<T>()
+    inline fun <reified T> get(beanName: String) = koin.get<T>(beanName)
 
     val knownPeers = knownPeersIds.map {
         createPeerMock(

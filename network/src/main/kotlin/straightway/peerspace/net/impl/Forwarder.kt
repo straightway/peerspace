@@ -21,7 +21,7 @@ import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
- * Counterpart of the ForwardStateTracker to execute forwards and ask the forward strategy.
+ * Counterpart of the ForwardStateTrackerImpl to execute forwards and ask the forward strategy.
  */
 interface Forwarder<TItem, TKey> {
     fun getKeyFor(item: TItem): TKey
@@ -31,6 +31,5 @@ interface Forwarder<TItem, TKey> {
     fun forwardTo(
             target: Id,
             item: TItem,
-            transmissionResultListener: TransmissionResultListener
-    )
+            transmissionResultListener: TransmissionResultListener)
 }

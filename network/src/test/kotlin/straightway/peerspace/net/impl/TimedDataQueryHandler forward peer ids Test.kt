@@ -75,6 +75,9 @@ class `TimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
                     mock {
                         on { currentTime }.thenAnswer { currentTime }
                     }
+                },
+                pendingTimedQueryTrackerFactory = {
+                    PendingQueryTrackerImpl({ timedDataQueryTimeout })
                 })
     }
 

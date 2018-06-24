@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -54,7 +55,12 @@ class `UntimedDataQueryHandler query forward Test` : KoinTestBase() {
                         }.thenReturn(knownPeersIds.slice(forwardedPeers))
                     }
                 },
-                dataQueryHandlerFactory = { UntimedDataQueryHandler() })
+                dataQueryHandlerFactory = { UntimedDataQueryHandler() },
+                queryForwarderFactory = { QueryForwarder() },
+                queryForwardTrackerFactory = {
+                    ForwardStateTrackerImpl(get("queryForwarder"))
+                },
+                pushForwarderFactory = { PushForwarder() })
     }
 
     @Test
@@ -72,7 +78,7 @@ class `UntimedDataQueryHandler query forward Test` : KoinTestBase() {
                 get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(forwardedUntimedQueryRequest)
+                    verify(knownPeers[it]).query(eq(forwardedUntimedQueryRequest), any())
                 }
             }
 

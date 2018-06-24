@@ -18,12 +18,19 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.QueryRequest
-import java.time.LocalDateTime
+import straightway.peerspace.net.isMatching
 
 /**
- * A data record for a pending query.
+ * Track pending queries through time and while chunks come in which my satisfy
+ * pending queries.
  */
-data class PendingQuery(
-        val query: QueryRequest,
-        val receiveTime: LocalDateTime,
-        val forwardedChunkKeys: Set<Key> = setOf())
+interface PendingQueryTracker {
+    val pendingQueries: List<PendingQuery>
+    fun isPending(query: QueryRequest): Boolean
+    fun setPending(query: QueryRequest)
+    fun removePendingQueriesIf(predicate: QueryRequest.() -> Boolean)
+    fun addForwardedChunk(pendingQuery: PendingQuery, chunkKey: Key)
+}
+
+fun PendingQueryTracker.getPendingQueriesForChunk(chunkKey: Key) =
+        pendingQueries.filter { it.query.isMatching(chunkKey) }

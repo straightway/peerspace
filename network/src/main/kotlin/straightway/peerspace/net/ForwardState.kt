@@ -18,6 +18,7 @@ package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 
+// TODO: Change lists to sets
 /**
  * State of forwarding a query or chunk to to other peers.
  */

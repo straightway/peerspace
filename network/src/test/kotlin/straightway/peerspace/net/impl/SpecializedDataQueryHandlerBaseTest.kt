@@ -20,7 +20,6 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -310,27 +309,30 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             } then {
                 verify(forwardPeer).query(eq(queryRequest.copy(originatorId = peerId)), any())
             }
-/* TODO
+
     @Test
     fun `forwarded query marks forward peer as pending`() =
             test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
-                sut.pendingQueries.single().forwardState
+                getForwardStateFor(queryRequest)
             } then {
                 expect(it.result is_ Equal
                                to_ ForwardState(pending = listOf(forwardPeerId)))
-            } */
+            }
 
     @Test
-    @Disabled
     fun `forwarded query request is marked accordingly if it fails`() =
             test(isLocalResultPreventingForwarding = false) while_ {
                 sut.handle(queryRequest)
             } when_ {
                 queryTransmissionResultListeners.values.single().notifyFailure()
             } then {
-                expect(sut.pendingQueries is_ Empty)
+                expect(sut.pendingQueries.single() is_ Equal to_
+                               PendingQuery(queryRequest, currentTime))
+                // The query is re-forwarded to the same peer after failure,
+                // so it looks like nothing happened
+                expect(getForwardStateFor(queryRequest) is_ Equal to_ ForwardState(pending=listOf(forwardPeerId)))
             }
 
     @Test
@@ -383,4 +385,10 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             }
 
     private val QueryRequest.matchingChunk get() = Chunk(Key(id, timestamps.first), byteArrayOf())
+
+    private fun PeerTestEnvironment.getForwardStateFor(queryRequest: QueryRequest): ForwardState {
+        val queryForwardTracker =
+                get<ForwardStateTracker<QueryRequest, QueryRequest>>("queryForwardTracker")
+        return queryForwardTracker.getStateFor(queryRequest)
+    }
 }

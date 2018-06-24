@@ -23,9 +23,9 @@ import straightway.peerspace.data.Id
  * State of forwarding a query or chunk to to other peers.
  */
 data class ForwardState(
-        val successful: List<Id> = listOf(),
-        val failed: List<Id> = listOf(),
-        val pending: List<Id> = listOf()
+        val successful: Set<Id> = setOf(),
+        val failed: Set<Id> = setOf(),
+        val pending: Set<Id> = setOf()
 ) {
     fun setPending(id: Id) = if (id in pending) this else copy(
             successful = successful - id,

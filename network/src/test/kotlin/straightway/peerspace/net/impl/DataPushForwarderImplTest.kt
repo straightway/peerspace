@@ -54,7 +54,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                 Id("pushOriginatorId"),
                 Chunk(Key(Id("pushedChunkId")), byteArrayOf()))
 
-        fun keepingAlive(ids: List<Id> = listOf()) = listOf(keepAlivePeerId) + ids
+        fun keepingAlive(ids: Set<Id> = setOf()) = setOf(keepAlivePeerId) + ids
     }
 
     private val test get() = Given {
@@ -195,7 +195,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(pending = listOf(knownPeersIds[0])))))
+                                ForwardState(pending = setOf(knownPeersIds[0])))))
             }
 
     @Test
@@ -208,7 +208,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(pending = forwardedPeerIds))))
+                                ForwardState(pending = forwardedPeerIds.toSet()))))
             }
 
     @Test
@@ -226,8 +226,8 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        successful = listOf(knownPeersIds[0]),
-                                        pending = keepingAlive(forwardedPeerIds)))))
+                                        successful = setOf(knownPeersIds[0]),
+                                        pending = keepingAlive(forwardedPeerIds.toSet())))))
             }
 
     @Test
@@ -247,8 +247,8 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        failed = listOf(knownPeersIds[0]),
-                                        pending = keepingAlive(forwardedPeerIds)))))
+                                        failed = setOf(knownPeersIds[0]),
+                                        pending = keepingAlive(forwardedPeerIds.toSet())))))
             }
 
     @Test
@@ -264,7 +264,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        successful = listOf(knownPeersIds[0]),
+                                        successful = setOf(knownPeersIds[0]),
                                         pending = keepingAlive()))))
             }
 
@@ -285,7 +285,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        successful = forwardedPeerIds,
+                                        successful = forwardedPeerIds.toSet(),
                                         pending = keepingAlive()))))
             }
 
@@ -304,7 +304,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        failed = forwardedPeerIds,
+                                        failed = forwardedPeerIds.toSet(),
                                         pending = keepingAlive()))))
             }
 
@@ -325,7 +325,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        failed = forwardedPeerIds,
+                                        failed = forwardedPeerIds.toSet(),
                                         pending = keepingAlive()))))
             }
 
@@ -345,8 +345,8 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        successful = forwardedPeerIds.slice(0..0),
-                                        failed = forwardedPeerIds.slice(1..1),
+                                        successful = forwardedPeerIds.slice(0..0).toSet(),
+                                        failed = forwardedPeerIds.slice(1..1).toSet(),
                                         pending = keepingAlive()))))
             }
 
@@ -366,8 +366,8 @@ class DataPushForwarderImplTest : KoinTestBase() {
                         Pair(
                                 pushRequest.chunk.key,
                                 ForwardState(
-                                        successful = forwardedPeerIds.slice(0..0),
-                                        failed = forwardedPeerIds.slice(1..1),
+                                        successful = forwardedPeerIds.slice(0..0).toSet(),
+                                        failed = forwardedPeerIds.slice(1..1).toSet(),
                                         pending = keepingAlive()))))
             }
 
@@ -385,7 +385,7 @@ class DataPushForwarderImplTest : KoinTestBase() {
                             ForwardState())
                     verify(forwardStrategy).getPushForwardPeerIdsFor(
                             pushRequest.chunk.key,
-                            ForwardState(failed = listOf(forwardedPeerIds.first())))
+                            ForwardState(failed = setOf(forwardedPeerIds.first())))
                 }
             }
 
@@ -413,6 +413,6 @@ class DataPushForwarderImplTest : KoinTestBase() {
                 expect(sut.forwardStates is_ Equal to_ Values(
                         Pair(
                                 pushRequest.chunk.key,
-                                ForwardState(pending = forwardedPeerIds.slice(0..0)))))
+                                ForwardState(pending = forwardedPeerIds.slice(0..0).toSet()))))
             }
 }

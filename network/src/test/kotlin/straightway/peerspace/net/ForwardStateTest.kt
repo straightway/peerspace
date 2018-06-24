@@ -52,9 +52,9 @@ class ForwardStateTest {
 
     private val test = Given {
         ForwardState(
-                pending = listOf(idPending),
-                successful = listOf(idSuccess),
-                failed = listOf(idFailed))
+                pending = setOf(idPending),
+                successful = setOf(idSuccess),
+                failed = setOf(idFailed))
     }
 
     @Test
@@ -62,7 +62,7 @@ class ForwardStateTest {
             test when_ {
                 setPending(idNew)
             } then {
-                expect(it.result is_ Equal to_ copy(pending = listOf(idPending, idNew)))
+                expect(it.result is_ Equal to_ copy(pending = setOf(idPending, idNew)))
             }
 
     @Test
@@ -71,8 +71,8 @@ class ForwardStateTest {
                 setPending(idSuccess)
             } then {
                 expect(it.result is_ Equal to_ copy(
-                        successful = listOf(),
-                        pending = listOf(idPending, idSuccess)))
+                        successful = setOf(),
+                        pending = setOf(idPending, idSuccess)))
             }
 
     @Test
@@ -81,8 +81,8 @@ class ForwardStateTest {
                 setPending(idFailed)
             } then {
                 expect(it.result is_ Equal to_ copy(
-                        failed = listOf(),
-                        pending = listOf(idPending, idFailed)))
+                        failed = setOf(),
+                        pending = setOf(idPending, idFailed)))
             }
 
     @Test
@@ -98,7 +98,7 @@ class ForwardStateTest {
             test when_ {
                 setSuccess(idNew)
             } then {
-                expect(it.result is_ Equal to_ copy(successful = listOf(idSuccess, idNew)))
+                expect(it.result is_ Equal to_ copy(successful = setOf(idSuccess, idNew)))
             }
 
     @Test
@@ -107,8 +107,8 @@ class ForwardStateTest {
                 setSuccess(idPending)
             } then {
                 expect(it.result is_ Equal to_ copy(
-                        pending = listOf(),
-                        successful = listOf(idSuccess, idPending)))
+                        pending = setOf(),
+                        successful = setOf(idSuccess, idPending)))
             }
 
     @Test
@@ -117,8 +117,8 @@ class ForwardStateTest {
                 setSuccess(idFailed)
             } then {
                 expect(it.result is_ Equal to_ copy(
-                        failed = listOf(),
-                        successful = listOf(idSuccess, idFailed)))
+                        failed = setOf(),
+                        successful = setOf(idSuccess, idFailed)))
             }
 
     @Test
@@ -134,7 +134,7 @@ class ForwardStateTest {
             test when_ {
                 setFailed(idNew)
             } then {
-                expect(it.result is_ Equal to_ copy(failed = listOf(idFailed, idNew)))
+                expect(it.result is_ Equal to_ copy(failed = setOf(idFailed, idNew)))
             }
 
     @Test
@@ -143,8 +143,8 @@ class ForwardStateTest {
                 setFailed(idSuccess)
             } then {
                 expect(it.result is_ Equal to_ copy(
-                        successful = listOf(),
-                        failed = listOf(idFailed, idSuccess)))
+                        successful = setOf(),
+                        failed = setOf(idFailed, idSuccess)))
             }
 
     @Test
@@ -153,8 +153,8 @@ class ForwardStateTest {
                 setFailed(idPending)
             } then {
                 expect(it.result is_ Equal to_ copy(
-                        pending = listOf(),
-                        failed = listOf(idFailed, idPending)))
+                        pending = setOf(),
+                        failed = setOf(idFailed, idPending)))
             }
 
     @Test

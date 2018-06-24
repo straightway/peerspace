@@ -318,7 +318,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                 getForwardStateFor(queryRequest)
             } then {
                 expect(it.result is_ Equal
-                               to_ ForwardState(pending = listOf(forwardPeerId)))
+                               to_ ForwardState(pending = setOf(forwardPeerId)))
             }
 
     @Test
@@ -332,7 +332,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                                PendingQuery(queryRequest, currentTime))
                 // The query is re-forwarded to the same peer after failure,
                 // so it looks like nothing happened
-                expect(getForwardStateFor(queryRequest) is_ Equal to_ ForwardState(pending=listOf(forwardPeerId)))
+                expect(getForwardStateFor(queryRequest) is_ Equal to_
+                               ForwardState(pending=setOf(forwardPeerId)))
             }
 
     @Test

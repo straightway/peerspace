@@ -91,7 +91,7 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 sut.forward(83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_
-                               ForwardState(pending = forwardIds))
+                               ForwardState(pending = forwardIds.toSet()))
             }
 
     @Test
@@ -112,7 +112,7 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 sut.forward(83)
             } then {
                 verify(forwarder).getForwardPeerIdsFor(83, ForwardState(
-                        pending = listOf(Id("forward"))))
+                        pending = setOf(Id("forward"))))
             }
 
     @Test
@@ -124,9 +124,9 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 sut.forward(2)
             } then {
                 expect(sut.getStateFor("2") is_ Equal to_
-                               ForwardState(pending = forwardIds))
+                               ForwardState(pending = forwardIds.toSet()))
                 expect(sut.getStateFor("83") is_ Equal to_
-                               ForwardState(pending = forwardIds))
+                               ForwardState(pending = forwardIds.toSet()))
             }
 
     @Test
@@ -138,7 +138,7 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 sut.forward(83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_
-                               ForwardState(pending = forwardIds))
+                               ForwardState(pending = forwardIds.toSet()))
             }
 
     @Test
@@ -150,7 +150,7 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 sut.forward(83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_
-                               ForwardState(pending = forwardIds))
+                               ForwardState(pending = forwardIds.toSet()))
             }
 
     @Test
@@ -164,7 +164,7 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 sut.forward(83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_ ForwardState(
-                        pending = listOf(Id("forward1"), Id("forward2"))))
+                        pending = setOf(Id("forward1"), Id("forward2"))))
             }
 
     @Test
@@ -188,8 +188,8 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 transmissions.first().listener.notifySuccess()
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_ ForwardState(
-                        successful = forwardIds.slice(0..0),
-                        pending = forwardIds.slice(1..1)))
+                        successful = forwardIds.slice(0..0).toSet(),
+                        pending = forwardIds.slice(1..1).toSet()))
             }
 
     @Test
@@ -214,8 +214,8 @@ class ForwardStateTrackerTest : KoinTestBase() {
                 transmissions.first().listener.notifyFailure()
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_ ForwardState(
-                        failed = listOf(Id("forward1")),
-                        pending = listOf(Id("forward2"))))
+                        failed = setOf(Id("forward1")),
+                        pending = setOf(Id("forward2"))))
             }
 
     @Test
@@ -246,8 +246,8 @@ class ForwardStateTrackerTest : KoinTestBase() {
             }
 
             expect(sut.getStateFor("83") is_ Equal to_ ForwardState(
-                    failed = listOf(Id("forward1")),
-                    pending = listOf(Id("forward2"))
+                    failed = setOf(Id("forward1")),
+                    pending = setOf(Id("forward2"))
             ))
         }
 }

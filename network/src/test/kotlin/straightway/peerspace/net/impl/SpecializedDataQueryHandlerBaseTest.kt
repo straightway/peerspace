@@ -333,7 +333,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                 // The query is re-forwarded to the same peer after failure,
                 // so it looks like nothing happened
                 expect(getForwardStateFor(queryRequest) is_ Equal to_
-                               ForwardState(pending=setOf(forwardPeerId)))
+                               ForwardState(pending = setOf(forwardPeerId)))
             }
 
     @Test

@@ -23,10 +23,9 @@ import straightway.peerspace.net.DataQueryHandler
  * DataQueryHandler for timed queries.
  */
 class TimedDataQueryHandler :
-        SpecializedDataQueryHandlerBase(
-                isLocalResultPreventingForwarding = false),
-        DataQueryHandler
-{
+        SpecializedDataQueryHandlerBase(isLocalResultPreventingForwarding = false),
+        DataQueryHandler {
+
     override fun notifyChunkForwarded(key: Key) =
             pendingQueryTracker.getPendingQueriesForChunk(key).forEach {
                 pendingQueryTracker.addForwardedChunk(it, key)

@@ -26,11 +26,13 @@ import straightway.peerspace.net.isMatching
  */
 interface PendingQueryTracker {
     val pendingQueries: List<PendingQuery>
-    fun isPending(query: QueryRequest): Boolean
     fun setPending(query: QueryRequest)
     fun removePendingQueriesIf(predicate: QueryRequest.() -> Boolean)
     fun addForwardedChunk(pendingQuery: PendingQuery, chunkKey: Key)
 }
+
+fun PendingQueryTracker.isPending(query: QueryRequest) =
+        pendingQueries.any { it.query == query }
 
 fun PendingQueryTracker.getPendingQueriesForChunk(chunkKey: Key) =
         pendingQueries.filter { it.query.isMatching(chunkKey) }

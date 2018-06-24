@@ -23,9 +23,8 @@ import straightway.peerspace.net.isMatching
  * DataQueryHandler for untimed queries.
  */
 class UntimedDataQueryHandler
-    : SpecializedDataQueryHandlerBase(
-        isLocalResultPreventingForwarding = true)
-{
+    : SpecializedDataQueryHandlerBase(isLocalResultPreventingForwarding = true) {
+
     override fun notifyChunkForwarded(key: Key) =
             pendingQueryTracker.removePendingQueriesIf { isMatching(key) }
 

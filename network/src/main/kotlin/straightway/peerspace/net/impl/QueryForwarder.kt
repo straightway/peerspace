@@ -31,8 +31,8 @@ import straightway.peerspace.net.TransmissionResultListener
  */
 class QueryForwarder :
         Forwarder<QueryRequest, QueryRequest>,
-        KoinModuleComponent by KoinModuleComponent()
-{
+        KoinModuleComponent by KoinModuleComponent() {
+
     override fun getKeyFor(item: QueryRequest) = item
     override fun getForwardPeerIdsFor(item: QueryRequest, state: ForwardState) =
             forwardStrategy.getQueryForwardPeerIdsFor(item, state)

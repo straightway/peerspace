@@ -51,6 +51,9 @@ abstract class SpecializedDataQueryHandlerBase(
     private val peerId: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
     private val dataChunkStore: DataChunkStore by inject()
+    private val forwardTracker: ForwardStateTracker<QueryRequest, QueryRequest>
+            by inject("queryForwardTracker")
+
     private val QueryRequest.result get() = dataChunkStore.query(this)
 
     private fun handleNewQueryRequest(query: QueryRequest) {
@@ -74,7 +77,4 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private infix fun Chunk.forwardTo(target: PushTarget) =
             target.push(PushRequest(peerId, this))
-
-    private val forwardTracker: ForwardStateTracker<QueryRequest, QueryRequest>
-            by inject("queryForwardTracker")
 }

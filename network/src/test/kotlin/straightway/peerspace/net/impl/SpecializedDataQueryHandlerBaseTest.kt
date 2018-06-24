@@ -94,7 +94,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
                     queryForwarderFactory = {
                         val queryForwarder = QueryForwarder()
                         mock {
-                            on { forwardTo(any(), any(), any())}.thenAnswer {
+                            on { forwardTo(any(), any(), any()) }.thenAnswer {
                                 val request = it.arguments[1] as QueryRequest
                                 queryForwarder.forwardTo(
                                         it.arguments[0] as Id,
@@ -132,8 +132,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
 
     private class DerivedSut(isLocalResultPreventingForwarding: Boolean) :
             SpecializedDataQueryHandlerBase(
-                    isLocalResultPreventingForwarding = isLocalResultPreventingForwarding)
-    {
+                    isLocalResultPreventingForwarding = isLocalResultPreventingForwarding) {
         override fun resultReceiverIdsForChunk(chunkKey: Key) = resultReceiverIds
 
         val resultReceiverIds = mutableListOf<Id>()
@@ -143,7 +142,6 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
         override fun notifyChunkForwarded(key: Key) {
             handledPushRequests += key
         }
-
 
         override val pendingQueryTracker: PendingQueryTracker by inject("pendingTimedQueryTracker")
 

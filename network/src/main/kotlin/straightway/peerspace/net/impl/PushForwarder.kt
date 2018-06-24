@@ -33,8 +33,7 @@ import straightway.peerspace.net.TransmissionResultListener
  */
 class PushForwarder :
         Forwarder<PushRequest, Key>,
-        KoinModuleComponent by KoinModuleComponent()
-{
+        KoinModuleComponent by KoinModuleComponent() {
 
     override fun getKeyFor(item: PushRequest) = item.chunk.key
 

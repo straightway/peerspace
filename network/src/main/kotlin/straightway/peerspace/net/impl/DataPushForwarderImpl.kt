@@ -37,5 +37,6 @@ class DataPushForwarderImpl :
     val forwardStates get() = forwardTracker.forwardStates
 
     private val dataQueryHandler: DataQueryHandler by inject()
-    private val forwardTracker: ForwardStateTracker<PushRequest, Key> by inject("pushForwardTracker")
+    private val forwardTracker: ForwardStateTracker<PushRequest, Key>
+            by inject("pushForwardTracker")
 }

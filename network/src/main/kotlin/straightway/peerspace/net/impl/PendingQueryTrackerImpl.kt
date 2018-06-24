@@ -33,8 +33,6 @@ class PendingQueryTrackerImpl(
         private val pendingTimeoutConfiguration: Configuration.() -> UnitNumber<Time>
 ) : PendingQueryTracker, KoinModuleComponent by KoinModuleComponent() {
 
-    override fun isPending(query: QueryRequest) = pendingQueries.any { it.query == query }
-
     override fun setPending(query: QueryRequest) {
         if (!isPending(query)) _pendingQueries += PendingQuery(query, timeProvider.currentTime)
     }

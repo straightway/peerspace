@@ -14,11 +14,9 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.net.impl
+package straightway.peerspace.net
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.QueryRequest
-import straightway.peerspace.net.isMatching
 
 /**
  * Track pending queries through time and while chunks come in which my satisfy

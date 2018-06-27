@@ -22,6 +22,7 @@ import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener

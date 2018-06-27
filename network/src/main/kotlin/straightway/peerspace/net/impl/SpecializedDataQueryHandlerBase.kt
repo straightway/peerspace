@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+@file:Suppress("ForbiddenComment")
+
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Chunk
@@ -23,29 +25,36 @@ import straightway.peerspace.koinutils.Bean.inject
 import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
+import straightway.peerspace.net.PendingQuery
+import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
-
-// TODO
-// * Remove pending queries for unreachable peers
+import straightway.peerspace.net.getPendingQueriesForChunk
+import straightway.peerspace.net.isPending
 
 /**
  * Base class for DataQueryHandler implementations.
  */
 abstract class SpecializedDataQueryHandlerBase(
-        private val isLocalResultPreventingForwarding: Boolean) :
+        val isLocalResultPreventingForwarding: Boolean) :
         DataQueryHandler,
         KoinModuleComponent by KoinModuleComponent() {
 
-    final override fun handle(query: QueryRequest) =
-            if (pendingQueryTracker.isPending(query)) Unit else handleNewQueryRequest(query)
+    final override fun handle(query: QueryRequest) {
+        if (!pendingQueryTracker.isPending(query)) handleNewQueryRequest(query)
+    }
 
     final override fun getForwardPeerIdsFor(chunkKey: Key) =
-            resultReceiverIdsForChunk(chunkKey).toList()
+            pendingQueryTracker.getPendingQueriesForChunk(chunkKey)
+                    .filter { !chunkKey.isAlreadyForwardedFor(it) }
+                    .map { it.query.originatorId }
 
-    protected abstract fun resultReceiverIdsForChunk(chunkKey: Key): Iterable<Id>
+    private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
+            it.forwardedChunkKeys.contains(this)
+
     protected abstract val pendingQueryTracker: PendingQueryTracker
 
     private val peerId: Id by property("peerId") { Id(it) }
@@ -77,4 +86,5 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private infix fun Chunk.forwardTo(target: PushTarget) =
             target.push(PushRequest(peerId, this))
+            // TODO: Remove pending queries for unreachable peers
 }

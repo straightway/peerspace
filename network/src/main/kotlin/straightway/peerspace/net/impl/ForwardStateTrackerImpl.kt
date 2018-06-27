@@ -18,6 +18,8 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Id
 import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.ForwardState
+import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -27,7 +29,7 @@ import straightway.peerspace.net.TransmissionResultListener
 class ForwardStateTrackerImpl<TItem, TKey>(private val forwarder: Forwarder<TItem, TKey>) :
         ForwardStateTracker<TItem, TKey>,
         KoinModuleComponent by KoinModuleComponent() {
-    
+
     override fun forward(item: TItem) {
         val forwardState = getStateFor(item.key)
         val forwardPeerIds = forwarder.getForwardPeerIdsFor(item, forwardState)

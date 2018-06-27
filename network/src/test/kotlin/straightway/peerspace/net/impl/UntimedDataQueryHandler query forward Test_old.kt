@@ -18,6 +18,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
@@ -30,16 +31,16 @@ import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
+class `UntimedDataQueryHandler query forward Test_old` : KoinTestBase() {
 
-    private companion object {
+    companion object {
         val peerId = Id("peerId")
         val queryingPeerId = Id("queryingPeerId")
         val queriedChunkId = Id("queriedChunkId")
-        val timedQueriedChunk = Chunk(Key(queriedChunkId, 1), byteArrayOf(1, 2, 3))
+        val untimedQueriedChunk = Chunk(Key(queriedChunkId), byteArrayOf(1, 2, 3))
         val knownPeersIds = ids("1", "2", "3") + queryingPeerId
-        val receivedTimedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId, 0L..83L)
-        val forwardedTimedQueryRequest = QueryRequest(peerId, queriedChunkId, 0L..83L)
+        val receivedUntimedQueryRequest = QueryRequest(queryingPeerId, queriedChunkId)
+        val forwardedUntimedQueryRequest = QueryRequest(peerId, queriedChunkId)
         val forwardedPeers = 1..2
     }
 
@@ -49,43 +50,47 @@ class `TimedDataQueryHandler query forward Test` : KoinTestBase() {
                 knownPeersIds = knownPeersIds,
                 forwardStrategyFactory = {
                     mock {
-                        on { getQueryForwardPeerIdsFor(any(), any()) }
-                                .thenReturn(knownPeersIds.slice(forwardedPeers))
+                        on {
+                            getQueryForwardPeerIdsFor(any(), any())
+                        }.thenReturn(knownPeersIds.slice(forwardedPeers))
                     }
                 },
-                dataQueryHandlerFactory = { TimedDataQueryHandler() },
+                dataQueryHandlerFactory = { UntimedDataQueryHandler() },
                 queryForwarderFactory = { QueryForwarder() },
-                queryForwardTrackerFactory = { ForwardStateTrackerImpl(get("queryForwarder")) })
+                queryForwardTrackerFactory = {
+                    ForwardStateTrackerImpl(get("queryForwarder"))
+                },
+                pushForwarderFactory = { PushForwarder() })
     }
 
     @Test
     fun `query request is forwarded according to forward strategy`() =
             test when_ {
-                get<DataQueryHandler>().handle(receivedTimedQueryRequest)
+                get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
                 verify(get<ForwardStrategy>()).getQueryForwardPeerIdsFor(
-                        receivedTimedQueryRequest, ForwardState())
+                        receivedUntimedQueryRequest, ForwardState())
             }
 
     @Test
     fun `query request is forwarded to peers returned by forward strategy`() =
             test when_ {
-                get<DataQueryHandler>().handle(receivedTimedQueryRequest)
+                get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(eq(forwardedTimedQueryRequest), any())
+                    verify(knownPeers[it]).query(eq(forwardedUntimedQueryRequest), any())
                 }
             }
 
     @Test
-    fun `query is forwarded even if local result found`() =
+    fun `query is not forwarded if local result found`() =
             test while_ {
-                get<DataChunkStore>().store(timedQueriedChunk)
+                get<DataChunkStore>().store(untimedQueriedChunk)
             } when_ {
-                get<DataQueryHandler>().handle(receivedTimedQueryRequest)
+                get<DataQueryHandler>().handle(receivedUntimedQueryRequest)
             } then {
                 forwardedPeers.forEach {
-                    verify(knownPeers[it]).query(eq(forwardedTimedQueryRequest), any())
+                    verify(knownPeers[it], never()).query(any(), any())
                 }
             }
 }

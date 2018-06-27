@@ -40,7 +40,7 @@ import straightway.units.toDuration
 import straightway.units.year
 import java.time.LocalDateTime
 
-class `UntimedDataQueryHandler forward peer ids Test` : KoinTestBase() {
+class `UntimedDataQueryHandler forward peer ids Test_old` : KoinTestBase() {
 
     private companion object {
         val peerId = Id("peerId")

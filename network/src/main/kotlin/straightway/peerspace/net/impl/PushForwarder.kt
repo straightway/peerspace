@@ -24,6 +24,7 @@ import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.TransmissionResultListener

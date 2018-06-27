@@ -29,7 +29,7 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `TimedDataQueryHandler general Test` : KoinTestBase() {
+class `TimedDataQueryHandler general Test_old` : KoinTestBase() {
 
     private companion object {
         val peerId = Id("peerId")

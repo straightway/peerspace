@@ -14,11 +14,9 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.net.impl
+package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.ForwardState
-import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Counterpart of the ForwardStateTrackerImpl to execute forwards and ask the forward strategy.

@@ -14,16 +14,14 @@
  *  limitations under the License.
  */
 
-package straightway.peerspace.net.impl
-
-import straightway.peerspace.data.Key
-import straightway.peerspace.net.QueryRequest
-import java.time.LocalDateTime
+package straightway.peerspace.net
 
 /**
- * A data record for a pending query.
+ * Track the network forwarding state of instances of the given item type, identified
+ * by the key type (which may be the same).
  */
-data class PendingQuery(
-        val query: QueryRequest,
-        val receiveTime: LocalDateTime,
-        val forwardedChunkKeys: Set<Key> = setOf())
+interface ForwardStateTracker<TItem, TKey> {
+    val forwardStates: Map<TKey, ForwardState>
+    fun forward(item: TItem)
+    fun getStateFor(itemKey: TKey): ForwardState
+}

@@ -21,7 +21,10 @@ import straightway.peerspace.koinutils.Bean.get
 import straightway.peerspace.koinutils.Bean.inject
 import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.PendingQuery
+import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.isPending
 import straightway.units.Time
 import straightway.utils.TimeProvider
 import straightway.units.UnitNumber

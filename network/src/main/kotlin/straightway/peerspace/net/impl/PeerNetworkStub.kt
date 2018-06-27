@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+@file:Suppress("ForbiddenComment")
+
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
@@ -31,7 +33,7 @@ import straightway.peerspace.net.TransmissionResultListener
  */
 class PeerNetworkStub(
         override val id: Id,
-        var channelFactory: Factory<Channel>
+        var channelFactory: Factory<Channel> // TODO: Get via Koin
 ) : Peer {
 
     override fun push(

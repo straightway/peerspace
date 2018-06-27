@@ -27,11 +27,14 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener

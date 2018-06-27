@@ -22,6 +22,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
 

@@ -20,6 +20,7 @@ import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.koinutils.Bean.inject
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PushRequest
 
 /**

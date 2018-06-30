@@ -23,7 +23,7 @@ import straightway.peerspace.data.Key
  * pending queries.
  */
 interface PendingQueryTracker {
-    val pendingQueries: List<PendingQuery>
+    val pendingQueries: Set<PendingQuery>
     fun setPending(query: QueryRequest)
     fun removePendingQueriesIf(predicate: QueryRequest.() -> Boolean)
     fun addForwardedChunk(pendingQuery: PendingQuery, chunkKey: Key)

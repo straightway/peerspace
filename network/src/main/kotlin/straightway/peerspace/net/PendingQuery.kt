@@ -25,4 +25,12 @@ import java.time.LocalDateTime
 data class PendingQuery(
         val query: QueryRequest,
         val receiveTime: LocalDateTime,
-        val forwardedChunkKeys: Set<Key> = setOf())
+        val forwardedChunkKeys: Set<Key> = setOf()) {
+
+    override fun toString() = "Pending($query@$receiveTime$forwardedChunksStringRepresentation)"
+
+    private val forwardedChunksStringRepresentation get() =
+            if (forwardedChunkKeys.any())
+                ":" + forwardedChunkKeys.sortedBy { it.toString() }.joinToString(",")
+            else ""
+}

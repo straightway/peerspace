@@ -20,13 +20,14 @@ import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
-class `PeerImpl refreshKnownPeers Test` : KoinTestBase() {
+class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("PeerId")

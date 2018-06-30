@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.QueryRequest
@@ -31,7 +32,7 @@ import straightway.testing.flow.True
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 
-class UntimedDataQueryHandlerTest : KoinTestBase() {
+class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunkId")

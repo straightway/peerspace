@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
@@ -33,7 +34,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class QueryForwarderTest : KoinTestBase() {
+class QueryForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
         val queryRequest = QueryRequest(Id("originatorId"), Id("chunkId"))

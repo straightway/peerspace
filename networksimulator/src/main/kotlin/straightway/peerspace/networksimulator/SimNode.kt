@@ -18,8 +18,7 @@ package straightway.peerspace.networksimulator
 
 import straightway.error.Panic
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Channel
-import straightway.peerspace.net.Factory
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
@@ -44,7 +43,7 @@ class SimNode(
         override val uploadStream: TransmissionStream,
         override val downloadStream: TransmissionStream,
         private val simNodes: MutableMap<Id, SimNode>
-) : Factory<Channel>, Node {
+) : Node, KoinModuleComponent by KoinModuleComponent() {
 
     override var isOnline: Boolean
         get() = uploadStream.isOnline && downloadStream.isOnline
@@ -63,7 +62,7 @@ class SimNode(
         }
     }
 
-    override fun create(id: Id) =
+    fun createChannel(id: Id) =
             SimChannel(
                     transmissionRequestHandler,
                     chunkSizeGetter,

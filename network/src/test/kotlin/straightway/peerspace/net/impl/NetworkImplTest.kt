@@ -15,17 +15,23 @@
  */
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Factory
+import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.Same
+import straightway.testing.flow.Values
+import straightway.testing.flow.as_
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 
-class NetworkImplTest {
+class NetworkImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val receiverId = Id("receiver")
@@ -34,25 +40,40 @@ class NetworkImplTest {
     private val test get() =
             Given {
                 object {
-                    val pushTargetStubFactory = mock<Factory<PushTarget>> {
-                        on { create(any()) }.thenReturn(mock())
+                    var createdIds = listOf<Id>()
+                    val pushTarget = mock<PushTarget>()
+                    val querySource = mock<QuerySource>()
+                    val environment = PeerTestEnvironment(
+                            networkFactory = { NetworkImpl() }
+                    ) {
+                        factory {
+                            createdIds += it.get<Id>("id")
+                            pushTarget
+                        }
+                        factory {
+                            createdIds += it.get<Id>("id")
+                            querySource
+                        }
                     }
-                    val querySourceStubStubFactory = mock<Factory<QuerySource>> {
-                        on { create(any()) }.thenReturn(mock())
-                    }
-                    val sut = NetworkImpl(pushTargetStubFactory, querySourceStubStubFactory)
+                    val sut = environment.get<Network>() as NetworkImpl
                 }
             }
 
     @Test
-    fun `getPushTarget callsPeerFactory`() =
-            test when_ { sut.getPushTarget(receiverId) } then {
-                verify(pushTargetStubFactory).create(receiverId)
+    fun `getPushTarget creates new instance via Koin`() =
+            test when_ {
+                sut.getPushTarget(receiverId)
+            } then {
+                expect(it.result is_ Same as_ pushTarget)
+                expect(createdIds is_ Equal to_ Values(receiverId))
             }
 
     @Test
-    fun `getQuerySource callsPeerFactory`() =
-            test when_ { sut.getQuerySource(receiverId) } then {
-                verify(querySourceStubStubFactory).create(receiverId)
+    fun `getQuerySource creates new instance via Koin`() =
+            test when_ {
+                sut.getQuerySource(receiverId)
+            } then {
+                expect(it.result is_ Same as_ querySource)
+                expect(createdIds is_ Equal to_ Values(receiverId))
             }
 }

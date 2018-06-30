@@ -37,26 +37,28 @@ class PendingQueryTrackerImpl(
 ) : PendingQueryTracker, KoinModuleComponent by KoinModuleComponent() {
 
     override fun setPending(query: QueryRequest) {
-        if (!isPending(query)) _pendingQueries += PendingQuery(query, timeProvider.currentTime)
+        if (!isPending(query))
+            _pendingQueries += PendingQuery(query, timeProvider.currentTime)
     }
 
-    override val pendingQueries: List<PendingQuery> get() {
-        _pendingQueries = _pendingQueries.filter { !it.isTooOld }
+    override val pendingQueries: Set<PendingQuery> get() {
+        _pendingQueries = _pendingQueries.filter { !isTooOld }
         return _pendingQueries
     }
 
     override fun removePendingQueriesIf(predicate: QueryRequest.() -> Boolean) {
-        _pendingQueries = _pendingQueries.filter { !it.query.predicate() }
+        _pendingQueries = _pendingQueries.filter { !query.predicate() }
     }
 
     override fun addForwardedChunk(pendingQuery: PendingQuery, chunkKey: Key) {
         val oldPendingQuery = _pendingQueries.single { it == pendingQuery }
-        setPendingQuery(oldPendingQuery.copy(
-                forwardedChunkKeys = oldPendingQuery.forwardedChunkKeys + chunkKey))
+        val newPendingQuery = oldPendingQuery.copy(
+                        forwardedChunkKeys = oldPendingQuery.forwardedChunkKeys + chunkKey)
+        setPendingQuery(newPendingQuery)
     }
 
     private fun setPendingQuery(pendingQuery: PendingQuery) {
-        _pendingQueries = _pendingQueries.filter { it.query != pendingQuery.query } + pendingQuery
+        _pendingQueries = _pendingQueries.update(pendingQuery)
     }
 
     private val PendingQuery.isTooOld get() = receiveTime < tooOldThreshold
@@ -66,5 +68,10 @@ class PendingQueryTrackerImpl(
     private val pendingTimeout by lazy { get<Configuration>().pendingTimeoutConfiguration() }
     private val tooOldThreshold get() = timeProvider.nowPlus(-pendingTimeout)
 
-    private var _pendingQueries = listOf<PendingQuery>()
+    private fun <T> Set<T>.filter(predicate: T.() -> Boolean) =
+            (this as Iterable<T>).filter(predicate).toSet()
+    private fun Set<PendingQuery>.update(toUpdate: PendingQuery) =
+            filter { query != toUpdate.query } + toUpdate
+
+    private var _pendingQueries = setOf<PendingQuery>()
 }

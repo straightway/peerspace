@@ -18,8 +18,9 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.Bean.get
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Channel
-import straightway.peerspace.net.Factory
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
@@ -31,10 +32,9 @@ import straightway.peerspace.net.TransmissionResultListener
  * This network stub cares for transmitting data to the physical
  * network node the peer runs on.
  */
-class PeerNetworkStub(
-        override val id: Id,
-        var channelFactory: Factory<Channel> // TODO: Get via Koin
-) : Peer {
+class PeerNetworkStub(override val id: Id) :
+        Peer,
+        KoinModuleComponent by KoinModuleComponent() {
 
     override fun push(
             request: PushRequest,
@@ -46,5 +46,5 @@ class PeerNetworkStub(
             resultListener: TransmissionResultListener) =
             channel.transmit(request, resultListener)
 
-    private val channel by lazy { channelFactory.create(id) }
+    private val channel by lazy { get<Channel> { mapOf("id" to id) } }
 }

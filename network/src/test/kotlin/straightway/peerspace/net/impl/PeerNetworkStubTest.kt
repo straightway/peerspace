@@ -22,20 +22,21 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Channel
-import straightway.peerspace.net.Factory
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import java.io.Serializable
 
-class PeerNetworkStubTest : KoinTestBase() {
+class PeerNetworkStubTest : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("id")
@@ -43,8 +44,14 @@ class PeerNetworkStubTest : KoinTestBase() {
 
     private val test get() = Given {
         object {
-            var transmitCallback: (Serializable, TransmissionResultListener) -> Unit =
-                    { _, _ -> }
+            var peerChannels = listOf<Id>()
+            val environment = PeerTestEnvironment {
+                factory { PeerNetworkStub(it.get("id")) }
+                factory {
+                    peerChannels += it.get<Id>("id")
+                    channel
+                }
+            }
             val channel = mock<Channel> {
                 on { transmit(any(), any()) }.thenAnswer {
                     transmitCallback(
@@ -52,10 +59,9 @@ class PeerNetworkStubTest : KoinTestBase() {
                             it.arguments[1] as TransmissionResultListener)
                 }
             }
-            val channelFactoryMock = mock<Factory<Channel>> {
-                on { create(peerId) }.thenReturn(channel)
-            }
-            val sut = PeerNetworkStub(peerId, channelFactoryMock)
+            var transmitCallback: (Serializable, TransmissionResultListener) -> Unit =
+                    { _, _ -> }
+            val sut = environment.get<PeerNetworkStub> { mapOf("id" to peerId) }
             val data = Chunk(Key(Id("Key")), byteArrayOf(1, 2, 3))
             val pushRequest = PushRequest(peerId, data)
             val queryRequest = QueryRequest(Id("originatorId"), data.key.id, untimedData)
@@ -69,7 +75,7 @@ class PeerNetworkStubTest : KoinTestBase() {
     @Test
     fun `push creates channel`() =
             test when_ { sut.push(pushRequest) } then {
-                verify(channelFactoryMock).create(peerId)
+                expect(peerChannels is_ Equal to_ Values(peerId))
             }
 
     @Test

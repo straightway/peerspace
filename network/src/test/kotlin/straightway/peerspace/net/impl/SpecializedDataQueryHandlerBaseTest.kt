@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PendingQuery
@@ -32,7 +33,7 @@ import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import java.time.LocalDateTime
 
-class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
+class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
 
     private companion object {
         val queryOriginatorId = Id("originatorId")
@@ -45,7 +46,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
             SpecializedDataQueryHandlerBase(isLocalResultPreventingForwarding) {
 
         var notifiedChunkKeys = listOf<Key>()
-        var pendingQueries = listOf<PendingQuery>()
+        var pendingQueries = setOf<PendingQuery>()
 
         public override val pendingQueryTracker by lazy {
             mock<PendingQueryTracker> {
@@ -130,7 +131,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinTestBase() {
     @Test
     fun `already pending query is not forwarded again`() =
             test() while_ {
-                sut.pendingQueries = listOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
             } when_ {
                 sut.handle(queryRequest)
             } then {

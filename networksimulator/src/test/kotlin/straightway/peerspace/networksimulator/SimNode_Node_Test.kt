@@ -24,6 +24,8 @@ import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
@@ -45,7 +47,7 @@ import straightway.units.byte
 import straightway.units.get
 import java.io.Serializable
 
-class SimNode_Node_Test {
+class SimNode_Node_Test : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("id")
@@ -73,15 +75,17 @@ class SimNode_Node_Test {
             val querySource = mock<QuerySource>()
             val querySources = mutableMapOf(Pair(peerId, querySource))
             val queryRequest = QueryRequest(Id("originId"), Id("chunkId"), untimedData)
-            val sut = SimNode(
-                    peerId,
-                    pushTargets,
-                    querySources,
-                    mock(),
-                    getChunkSize,
-                    upload,
-                    download,
-                    mutableMapOf())
+            val sut = withContext {} make {
+                        SimNode(
+                            peerId,
+                            pushTargets,
+                            querySources,
+                            mock(),
+                            getChunkSize,
+                            upload,
+                            download,
+                            mutableMapOf())
+                    }
         }
     }
 

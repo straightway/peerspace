@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Factory
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
@@ -24,10 +24,9 @@ import straightway.peerspace.net.QuerySource
 /**
  * Productive implementation of the Network interface.
  */
-class NetworkImpl(
-        private val pushTargetStubFactory: Factory<PushTarget>,
-        private val querySourceStubFactory: Factory<QuerySource>
-) : Network {
-    override fun getPushTarget(id: Id) = pushTargetStubFactory.create(id)
-    override fun getQuerySource(id: Id) = querySourceStubFactory.create(id)
+class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
+    override fun getPushTarget(id: Id) =
+            context.get<PushTarget> { mapOf("id" to id) }
+    override fun getQuerySource(id: Id) =
+            context.get<QuerySource> { mapOf("id" to id) }
 }

@@ -196,4 +196,24 @@ class QueryRequestTest {
             } then {
                 expect(it.result is_ False)
             }
+
+    @Test
+    fun `toString for untimed query`() =
+            expect(QueryRequest(Id("originator"), Id("chunk")).toString()
+                           is_ Equal to_ "QueryRequest(chunk->originator)")
+
+    @Test
+    fun `toString for timed query`() =
+            expect(QueryRequest(Id("originator"), Id("chunk"), 1L..2L).toString()
+                           is_ Equal to_ "QueryRequest(chunk[1..2]->originator)")
+
+    @Test
+    fun `toString for most recent item query without timestamp constraint`() =
+            expect(QueryRequest.onlyMostRecent(Id("originator"), Id("chunk")).toString()
+                           is_ Equal to_ "QueryRequest(chunk[]->originator)")
+
+    @Test
+    fun `toString for most recent item query with timestamp constraint`() =
+            expect(QueryRequest.onlyMostRecent(Id("originator"), Id("chunk"), 1L).toString()
+                           is_ Equal to_ "QueryRequest(chunk[1..]->originator)")
 }

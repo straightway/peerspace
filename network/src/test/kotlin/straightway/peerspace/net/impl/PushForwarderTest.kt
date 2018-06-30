@@ -24,6 +24,7 @@ import straightway.error.Panic
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
@@ -37,7 +38,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PushForwarderTest : KoinTestBase() {
+class PushForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunkId")

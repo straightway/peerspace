@@ -18,6 +18,8 @@ package straightway.peerspace.networksimulator
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.Peer
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
@@ -30,7 +32,7 @@ import straightway.testing.flow.is_
 import straightway.units.byte
 import straightway.units.get
 
-class SimNodeTest {
+class SimNodeTest : KoinLoggingDisabler() {
 
     private companion object {
         val id = Id("id")
@@ -42,13 +44,25 @@ class SimNodeTest {
             val parent = mock<Peer>()
             val peers = mapOf(Pair(id, parent))
             val existingInstances = mutableMapOf<Id, SimNode>()
+            fun createSimNode() =
+                    withContext {} make {
+                        SimNode(
+                                id,
+                                peers,
+                                peers,
+                                sender,
+                                { 16[byte] },
+                                mock(),
+                                mock(),
+                                existingInstances)
+                    }
         }
     }
 
     @Test
     fun `construction adds to existing instances`() =
             test when_ {
-                SimNode(id, peers, peers, sender, { 16[byte] }, mock(), mock(), existingInstances)
+                createSimNode()
             } then {
                 expect(existingInstances.values has References(it.result))
             }
@@ -56,7 +70,7 @@ class SimNodeTest {
     @Test
     fun `construction adds to existing instances under id`() =
             test when_ {
-                SimNode(id, peers, peers, sender, { 16[byte] }, mock(), mock(), existingInstances)
+                createSimNode()
             } then {
                 expect(existingInstances[id] is_ Same as_ it.result)
             }

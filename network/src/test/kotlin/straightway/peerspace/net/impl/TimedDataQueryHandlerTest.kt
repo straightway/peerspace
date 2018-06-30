@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PendingQuery
 import straightway.peerspace.net.PendingQueryTracker
@@ -32,7 +33,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import java.time.LocalDateTime
 
-class TimedDataQueryHandlerTest : KoinTestBase() {
+class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunkId")
@@ -46,7 +47,7 @@ class TimedDataQueryHandlerTest : KoinTestBase() {
     private val test get() =
         Given {
             object {
-                var pendingQueries = listOf<PendingQuery>()
+                var pendingQueries = setOf<PendingQuery>()
                 val environment = PeerTestEnvironment(
                         dataQueryHandlerFactory = { TimedDataQueryHandler() },
                         pendingTimedQueryTrackerFactory = {
@@ -71,7 +72,7 @@ class TimedDataQueryHandlerTest : KoinTestBase() {
     @Test
     fun `notifyChunkForwarded adds chunk id to forwarded chunk for pending query`() =
             test while_ {
-                pendingQueries = listOf(matchingQuery.pending, otherMatchingQuery.pending)
+                pendingQueries = setOf(matchingQuery.pending, otherMatchingQuery.pending)
             } when_ {
                 sut.notifyChunkForwarded(chunk1.key)
             } then {
@@ -83,7 +84,7 @@ class TimedDataQueryHandlerTest : KoinTestBase() {
     @Test
     fun `notifyChunkForwarded does not add chunk id to forwarded chunk for other query`() =
             test while_ {
-                pendingQueries = listOf(notMatchingQuery.pending)
+                pendingQueries = setOf(notMatchingQuery.pending)
             } when_ {
                 sut.notifyChunkForwarded(chunk1.key)
             } then {

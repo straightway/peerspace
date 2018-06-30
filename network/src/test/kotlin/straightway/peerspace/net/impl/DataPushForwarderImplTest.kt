@@ -20,13 +20,14 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
 
-class DataPushForwarderImplTest : KoinTestBase() {
+class DataPushForwarderImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val pushRequest = PushRequest(Id("originatorId"), Chunk(Key(Id("chunkId")), byteArrayOf()))

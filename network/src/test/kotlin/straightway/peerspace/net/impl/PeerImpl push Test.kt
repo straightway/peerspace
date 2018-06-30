@@ -24,6 +24,7 @@ import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
@@ -37,7 +38,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class `PeerImpl push Test` : KoinTestBase() {
+class `PeerImpl push Test` : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("peerId")

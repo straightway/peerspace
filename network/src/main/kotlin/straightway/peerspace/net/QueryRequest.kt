@@ -46,6 +46,26 @@ data class QueryRequest private constructor(
 
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 
+    override fun toString() = when {
+        isUntimed -> untimedStringRepresentation
+        onlyMostRecent -> mostRecentStringRepresentation
+        else -> timedStringRepresentation
+    }
+
+    private val untimedStringRepresentation get() =
+        "QueryRequest(${id.identifier}->${originatorId.identifier})"
+
+    private val mostRecentStringRepresentation get() =
+        "QueryRequest(${id.identifier}[$mostRecentStringRepresentationTimeBorder]" +
+                "->${originatorId.identifier})"
+
+    private val mostRecentStringRepresentationTimeBorder get() =
+        if (timestampsStart == 0L) "" else "$timestampsStart.."
+
+    private val timedStringRepresentation get() =
+        "QueryRequest(${id.identifier}[$timestampsStart..$timestampsEndInclusive]" +
+                "->${originatorId.identifier})"
+
     companion object {
         const val serialVersionUID = 1L
 

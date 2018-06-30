@@ -26,14 +26,16 @@ import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.QuerySource
 import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
 import straightway.peerspace.net.impl.KnownPeersProviderImpl
 import straightway.peerspace.net.impl.NetworkImpl
-import straightway.peerspace.net.impl.PeerStubFactory
 import straightway.peerspace.net.impl.PeerImpl
+import straightway.peerspace.net.impl.PeerNetworkStub
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -86,13 +88,36 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                 LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
 
+        val simNode = SimNode(
+                id,
+                peers,
+                peers,
+                simNet,
+                { CHUNK_SIZE },
+                uploadStream = AsyncSequentialTransmissionStream(
+                        UPLOAD_BANDWIDTH,
+                        simulator),
+                downloadStream = AsyncSequentialTransmissionStream(
+                        DOWNLOAD_BANDWIDTH,
+                        simulator),
+                simNodes = simPeers)
+
         peers[id] = withContext {
             bean { TransientDataChunkStore() as DataChunkStore }
             bean { DataQueryHandlerImpl(
                     UntimedDataQueryHandler(),
                     TimedDataQueryHandler()) as DataQueryHandler }
             bean { TransientPeerDirectory() as PeerDirectory }
-            bean { createPeerNetwork(id) }
+            bean { NetworkImpl() as Network }
+            factory {
+                PeerNetworkStub(it.get("id")) as PushTarget
+            }
+            factory {
+                PeerNetworkStub(it.get("id")) as QuerySource
+            }
+            factory {
+                simNode.createChannel(it.get("id"))
+            }
             bean { Configuration() }
             bean("knownPeerQueryChooser") { RandomChooser(randomSource) }
             bean("knownPeerAnswerChooser") { RandomChooser(randomSource) }
@@ -107,23 +132,12 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
         }
     }
 
-    private fun createPeerNetwork(peerId: Id): Network {
-        val channelFactory = SimNode(
-                peerId,
-                peers,
-                peers,
-                simNet,
-                { CHUNK_SIZE },
-                uploadStream = AsyncSequentialTransmissionStream(
-                        UPLOAD_BANDWIDTH,
-                        simulator),
-                downloadStream = AsyncSequentialTransmissionStream(
-                        DOWNLOAD_BANDWIDTH,
-                        simulator),
-                simNodes = simPeers)
-        val peerStubFactory = PeerStubFactory(channelFactory)
-        return NetworkImpl(peerStubFactory, peerStubFactory)
-    }
+    /*
+    @Suppress("UNUSED_PARAMETER")
+    private fun createPeerNetwork(): Network {
+        //val peerStubFactory = PeerStubFactory(channelFactory)
+        return NetworkImpl()
+    }*/
 
     init {
         for (i in 1..numberOfPeers)

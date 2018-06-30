@@ -22,6 +22,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
@@ -32,7 +33,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class ForwardStateTrackerTest : KoinTestBase() {
+class ForwardStateTrackerTest : KoinLoggingDisabler() {
 
     private data class Transmission(
             val destination: Id,

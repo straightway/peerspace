@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.mock
+import org.koin.core.parameter.Parameters
 import org.koin.dsl.context.Context
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -141,6 +142,7 @@ data class PeerTestEnvironment(
 
     inline fun <reified T> get() = koin.get<T>()
     inline fun <reified T> get(beanName: String) = koin.get<T>(beanName)
+    inline fun <reified T> get(noinline parameters: Parameters) = koin.get<T>(parameters)
 
     val knownPeers = knownPeersIds.map {
         createPeerMock(

@@ -21,7 +21,7 @@ import org.koin.log.Logger
 /**
  * Koin logger doing nothing.
  */
-class IgnoreLogger : Logger {
+object IgnoreLogger : Logger {
     override fun debug(msg: String) {}
     override fun log(msg: String) {}
     override fun err(msg: String) {}

@@ -28,7 +28,7 @@ import java.io.PrintStream
 
 class IgnoreLoggerTest {
 
-    private val test get() = Given { IgnoreLogger() }
+    private val test get() = Given { IgnoreLogger }
 
     private lateinit var outContent: ByteArrayOutputStream
 

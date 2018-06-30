@@ -16,22 +16,22 @@
 
 package straightway.peerspace.koinutils
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.koin.Koin
 import org.koin.log.Logger
 
-abstract class KoinTestBase {
+/**
+ * Temporarily disable logging in Koin.
+ */
+open class KoinLoggingDisabler : AutoCloseable {
 
-    @BeforeEach
-    fun setup() {
-        Koin.logger = IgnoreLogger()
-    }
-
-    @AfterEach
-    fun tearDown() {
+    override fun close() {
         Koin.logger = oldLogger
     }
 
-    private var oldLogger: Logger = Koin.logger
+    val oldLogger: Logger
+
+    init {
+        oldLogger = Koin.logger
+        Koin.logger = IgnoreLogger
+    }
 }

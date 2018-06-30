@@ -31,7 +31,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import java.util.Date
 
-class `KoinModuleComponent property test` : KoinTestBase() {
+class `KoinModuleComponent property test` : KoinLoggingDisabler() {
 
     private val testBinding get() = Given {
         object {

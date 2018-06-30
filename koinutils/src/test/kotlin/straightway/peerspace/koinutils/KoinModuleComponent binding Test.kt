@@ -34,7 +34,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import javax.activity.InvalidActivityException
 
-class `KoinModuleComponent binding Test` : KoinTestBase() {
+class `KoinModuleComponent binding Test` : KoinLoggingDisabler() {
 
     private class TestComponent(
             val constructorBound: String
@@ -177,7 +177,7 @@ class `KoinModuleComponent binding Test` : KoinTestBase() {
             testBinding while_ {
                 declare { bean("fun") { it.get<Int>("p") } }
             } when_ {
-                sut.get<Int>("fun", { mapOf("p" to 2) })
+                sut.get<Int>("fun") { mapOf("p" to 2) }
             } then {
                 expect(it.result is_ Equal to_ 2)
             }
@@ -271,5 +271,17 @@ class `KoinModuleComponent binding Test` : KoinTestBase() {
                 sut.get<OtherComponent>("other") { mapOf("Hello" to "World") }
             } then {
                 expect(it.result.injectionUnnamed is_ Equal to_ sut.injectionUnnamed)
+            }
+
+    @Test
+    fun `factory is called with local context`() =
+            testBinding while_ {
+                declare {
+                    factory { KoinModuleComponent() }
+                }
+            } when_ {
+                sut.get<KoinModuleComponent>()
+            } then {
+                expect({ it.result } does Not - Throw.exception)
             }
 }

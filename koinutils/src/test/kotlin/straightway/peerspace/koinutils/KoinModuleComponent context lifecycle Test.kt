@@ -32,7 +32,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import java.util.concurrent.Semaphore
 
-class `KoinModuleComponent context lifecycle Test` : KoinTestBase() {
+class `KoinModuleComponent context lifecycle Test` : KoinLoggingDisabler() {
 
     private val test get() = Given {}
 

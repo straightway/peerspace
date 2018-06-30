@@ -32,7 +32,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class WithModulesTest : KoinTestBase() {
+class WithModulesTest : KoinLoggingDisabler() {
 
     @Test
     fun `isUsingEnvironmentProperties is initially false`() =

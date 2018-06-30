@@ -13,26 +13,29 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.koinutils
 
-package straightway.peerspace.net.impl
-
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import com.nhaarman.mockito_kotlin.mock
+import org.junit.jupiter.api.Test
 import org.koin.Koin
 import org.koin.log.Logger
-import straightway.peerspace.koinutils.IgnoreLogger
+import straightway.testing.flow.Same
+import straightway.testing.flow.as_
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
 
-abstract class KoinTestBase {
+class KoinLoggingDisablerTest {
 
-    @BeforeEach
-    fun setupKoinLogger() {
-        Koin.logger = IgnoreLogger()
+    @Test
+    fun `logging is disabled until close is called`() {
+        val originalLogger = Koin.logger
+        val loggerBefore = mock<Logger>()
+        Koin.logger = loggerBefore
+        KoinLoggingDisabler().use {
+            expect(Koin.logger is_ Same as_ IgnoreLogger)
+        }
+
+        expect(Koin.logger is_ Same as_ loggerBefore)
+        Koin.logger = originalLogger
     }
-
-    @AfterEach
-    fun tearDownKoinLogger() {
-        Koin.logger = oldLogger
-    }
-
-    private var oldLogger: Logger = Koin.logger
 }

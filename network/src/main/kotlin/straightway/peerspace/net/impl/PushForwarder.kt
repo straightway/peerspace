@@ -36,6 +36,11 @@ class PushForwarder :
         Forwarder<PushRequest, Key>,
         KoinModuleComponent by KoinModuleComponent() {
 
+    private val peerId: Id by property("peerId") { Id(it) }
+    private val network: Network by inject()
+    private val dataQueryHandler: DataQueryHandler by inject()
+    private val forwardStrategy: ForwardStrategy by inject()
+
     override fun getKeyFor(item: PushRequest) = item.chunk.key
 
     override fun getForwardPeerIdsFor(item: PushRequest, state: ForwardState) =
@@ -48,11 +53,6 @@ class PushForwarder :
     ) =
             network.getPushTarget(target).push(
                     PushRequest(peerId, item.chunk), transmissionResultListener)
-
-    private val peerId: Id by property("peerId") { Id(it) }
-    private val network: Network by inject()
-    private val dataQueryHandler: DataQueryHandler by inject()
-    private val forwardStrategy: ForwardStrategy by inject()
 
     private fun PushRequest.getForwardPeersFromStrategies(forwardState: ForwardState) =
             (getPushForwardPeerIds(forwardState) + chunk.key.queryForwardPeerIds).toSet()

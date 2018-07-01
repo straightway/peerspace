@@ -36,6 +36,8 @@ class PendingQueryTrackerImpl(
         private val pendingTimeoutConfiguration: Configuration.() -> UnitNumber<Time>
 ) : PendingQueryTracker, KoinModuleComponent by KoinModuleComponent() {
 
+    private val timeProvider: TimeProvider by inject()
+
     override fun setPending(query: QueryRequest) {
         if (!isPending(query))
             _pendingQueries += PendingQuery(query, timeProvider.currentTime)
@@ -62,9 +64,6 @@ class PendingQueryTrackerImpl(
     }
 
     private val PendingQuery.isTooOld get() = receiveTime < tooOldThreshold
-
-    private val timeProvider: TimeProvider by inject()
-
     private val pendingTimeout by lazy { get<Configuration>().pendingTimeoutConfiguration() }
     private val tooOldThreshold get() = timeProvider.nowPlus(-pendingTimeout)
 

@@ -45,6 +45,14 @@ import straightway.random.Chooser
 class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
 
     override val id: Id by property("peerId") { Id(it) }
+    private val configuration: Configuration by inject()
+    private val dataChunkStore: DataChunkStore by inject()
+    private val dataQueryHandler: DataQueryHandler by inject()
+    private val network: Network by inject()
+    private val knownPeersProvider: KnownPeersProvider by inject()
+    private val dataPushForwarder: DataPushForwarder by inject()
+    private val peerDirectory: PeerDirectory by inject()
+    private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
 
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
@@ -66,15 +74,6 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
-
-    private val configuration: Configuration by inject()
-    private val dataChunkStore: DataChunkStore by inject()
-    private val dataQueryHandler: DataQueryHandler by inject()
-    private val network: Network by inject()
-    private val knownPeersProvider: KnownPeersProvider by inject()
-    private val dataPushForwarder: DataPushForwarder by inject()
-    private val peerDirectory: PeerDirectory by inject()
-    private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
 
     private val peersToQueryForOtherKnownPeers
         get() = knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers

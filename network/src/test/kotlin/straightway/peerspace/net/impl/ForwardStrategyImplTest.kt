@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHasher
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
@@ -36,7 +37,7 @@ class ForwardStrategyImplTest {
             val hasher = mock<KeyHasher> {
                 on { getHashes(any()) }.thenAnswer { hashes }
             }
-            val sut = ForwardStrategyImpl(hasher)
+            val sut = withContext { bean { hasher } } make { ForwardStrategyImpl() }
         }
     }
 

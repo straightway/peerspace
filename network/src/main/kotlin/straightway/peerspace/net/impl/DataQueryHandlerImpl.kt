@@ -16,6 +16,9 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
+import straightway.peerspace.data.isUntimed
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isUntimed
@@ -23,10 +26,10 @@ import straightway.peerspace.net.isUntimed
 /**
  * Handle timed and untimed data queries.
  */
-class DataQueryHandlerImpl(
-        private val untimedDataQueryHandler: DataQueryHandler,
-        private val timedDataQueryHandler: DataQueryHandler
-) : DataQueryHandler {
+class DataQueryHandlerImpl : DataQueryHandler, KoinModuleComponent by KoinModuleComponent() {
+
+    private val untimedDataQueryHandler by inject<DataQueryHandler>("untimedDataQueryHandler")
+    private val timedDataQueryHandler by inject<DataQueryHandler>("timedDataQueryHandler")
 
     override fun handle(query: QueryRequest) {
         if (query.isUntimed) untimedDataQueryHandler.handle(query)
@@ -41,6 +44,4 @@ class DataQueryHandlerImpl(
         if (key.isUntimed) untimedDataQueryHandler.notifyChunkForwarded(key)
         else timedDataQueryHandler.notifyChunkForwarded(key)
     }
-
-    private val Key.isUntimed get() = timestamp == 0L
 }

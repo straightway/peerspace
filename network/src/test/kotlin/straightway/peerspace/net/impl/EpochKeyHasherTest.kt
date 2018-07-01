@@ -23,6 +23,8 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
@@ -34,7 +36,7 @@ import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class EpochKeyHasherTest {
+class EpochKeyHasherTest : KoinLoggingDisabler() {
 
     private companion object {
         val originatorId = Id("originatorId")
@@ -58,7 +60,7 @@ class EpochKeyHasherTest {
     private val test
         get() = Given {
             object {
-                var timeProvider = mock<TimeProvider> {
+                val timeProvider = mock<TimeProvider> {
                     on { currentTime }.thenReturn(currentTime)
                 }
                 var hashCodes = byteArrayOf(0)
@@ -66,7 +68,12 @@ class EpochKeyHasherTest {
                     on { getHash(any()) }.thenAnswer { hashCodes }
                 }
                 val hashable = QueryRequest(originatorId, id, 83L..83L)
-                var sut = EpochKeyHasher(hasher, timeProvider, epochs)
+                var sut = withContext {
+                    bean { timeProvider }
+                    bean { hasher }
+                } make {
+                    EpochKeyHasher(epochs)
+                }
             }
         }
 
@@ -127,8 +134,12 @@ class EpochKeyHasherTest {
     @Test
     fun `when two epochs overlap and the id is in the intersection, both hashes are returned`() =
             test while_ {
-                sut = EpochKeyHasher(
-                        hasher, timeProvider, arrayOf(LongRange(1, 110), LongRange(90, 200)))
+                sut = withContext {
+                    bean { timeProvider }
+                    bean { hasher }
+                } make {
+                    EpochKeyHasher(arrayOf(LongRange(1, 110), LongRange(90, 200)))
+                }
                 hashCodes = byteArrayOf(1)
             } when_ {
                 val timestamp = currTimestamp - 100L

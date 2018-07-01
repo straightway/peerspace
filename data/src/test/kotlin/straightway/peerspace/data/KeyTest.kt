@@ -18,6 +18,8 @@ package straightway.peerspace.data
 
 import org.junit.jupiter.api.Test
 import straightway.testing.flow.Equal
+import straightway.testing.flow.False
+import straightway.testing.flow.True
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -67,6 +69,14 @@ class KeyTest {
     @Test
     fun `timestamps is a single element range`() =
             expect(Key(id, timestamp).timestamps is_ Equal to_ LongRange(timestamp, timestamp))
+
+    @Test
+    fun `isUntimed returns true if timestamp is 0` () =
+            expect(Key(id, 0).isUntimed is_ True)
+
+    @Test
+    fun `isUntimed returns false if timestamp is not 0` () =
+            expect(Key(id, 1).isUntimed is_ False)
 
     @Test
     fun `toString for untimed key returns just the id`() =

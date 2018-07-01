@@ -34,6 +34,10 @@ class QueryForwarder :
         Forwarder<QueryRequest, QueryRequest>,
         KoinModuleComponent by KoinModuleComponent() {
 
+    private val peerId: Id by property("peerId") { Id(it) }
+    private val network: Network by inject()
+    private val forwardStrategy: ForwardStrategy by inject()
+
     override fun getKeyFor(item: QueryRequest) = item
     override fun getForwardPeerIdsFor(item: QueryRequest, state: ForwardState) =
             forwardStrategy.getQueryForwardPeerIdsFor(item, state)
@@ -46,8 +50,4 @@ class QueryForwarder :
                 item.copy(originatorId = peerId),
                 transmissionResultListener)
     }
-
-    private val network: Network by inject()
-    private val forwardStrategy: ForwardStrategy by inject()
-    private val peerId: Id by property("peerId") { Id(it) }
 }

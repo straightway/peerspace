@@ -19,7 +19,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.data.KeyHasher
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.QueryRequest
@@ -27,7 +27,7 @@ import straightway.peerspace.net.QueryRequest
 /**
  * Implementation of the forward strategy for queries and pushes.
  */
-class ForwardStrategyImpl(private val hasher: KeyHasher) : ForwardStrategy {
+class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleComponent() {
     override fun getPushForwardPeerIdsFor(chunkKey: Key, state: ForwardState): Iterable<Id> {
         TODO("not implemented")
     }

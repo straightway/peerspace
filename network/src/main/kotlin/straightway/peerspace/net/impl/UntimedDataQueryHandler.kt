@@ -26,9 +26,9 @@ import straightway.peerspace.net.isMatching
 class UntimedDataQueryHandler
     : SpecializedDataQueryHandlerBase(isLocalResultPreventingForwarding = true) {
 
-    override fun notifyChunkForwarded(key: Key) =
-            pendingQueryTracker.removePendingQueriesIf { isMatching(key) }
-
     override val pendingQueryTracker: PendingQueryTracker
             by inject("pendingUntimedQueryTracker")
+
+    override fun notifyChunkForwarded(key: Key) =
+            pendingQueryTracker.removePendingQueriesIf { isMatching(key) }
 }

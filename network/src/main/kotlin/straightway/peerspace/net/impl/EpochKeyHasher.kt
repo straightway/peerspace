@@ -19,6 +19,8 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
+import straightway.peerspace.koinutils.Bean.inject
+import straightway.peerspace.koinutils.KoinModuleComponent
 import straightway.peerspace.net.untimedData
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
@@ -30,9 +32,11 @@ import java.time.temporal.ChronoUnit
  * timestamps directly for hashing).
  */
 class EpochKeyHasher(
-        private val hasher: Hasher,
-        private val timeProvider: TimeProvider,
-        private val epochs: Array<LongRange>) : KeyHasher {
+        private val epochs: Array<LongRange>
+) : KeyHasher, KoinModuleComponent by KoinModuleComponent() {
+
+    private val baseHasher by inject<Hasher>()
+    private val timeProvider by inject<TimeProvider>()
 
     override fun getHashes(hashable: KeyHashable) =
             when (hashable.timestamps) {
@@ -47,7 +51,7 @@ class EpochKeyHasher(
             listOf(getLongHash("DATA", hashable))
 
     private fun getLongHash(hashType: String, hashable: KeyHashable) =
-            foldToLong(hasher.getHash("$hashType(${hashable.id})"))
+            foldToLong(baseHasher.getHash("$hashType(${hashable.id})"))
 
     private fun getEpochs(timestamp: ClosedRange<Long>) =
             getRelativeRange(timestamp).let {

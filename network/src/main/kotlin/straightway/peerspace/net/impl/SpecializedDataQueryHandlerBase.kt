@@ -43,6 +43,12 @@ abstract class SpecializedDataQueryHandlerBase(
         DataQueryHandler,
         KoinModuleComponent by KoinModuleComponent() {
 
+    private val peerId: Id by property("peerId") { Id(it) }
+    private val network: Network by inject()
+    private val dataChunkStore: DataChunkStore by inject()
+    private val forwardTracker: ForwardStateTracker<QueryRequest, QueryRequest>
+            by inject("queryForwardTracker")
+
     final override fun handle(query: QueryRequest) {
         if (!pendingQueryTracker.isPending(query)) handleNewQueryRequest(query)
     }
@@ -56,12 +62,6 @@ abstract class SpecializedDataQueryHandlerBase(
             it.forwardedChunkKeys.contains(this)
 
     protected abstract val pendingQueryTracker: PendingQueryTracker
-
-    private val peerId: Id by property("peerId") { Id(it) }
-    private val network: Network by inject()
-    private val dataChunkStore: DataChunkStore by inject()
-    private val forwardTracker: ForwardStateTracker<QueryRequest, QueryRequest>
-            by inject("queryForwardTracker")
 
     private val QueryRequest.result get() = dataChunkStore.query(this)
 

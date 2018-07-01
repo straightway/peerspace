@@ -33,3 +33,5 @@ data class Key(override val id: Id, val timestamp: Long) : KeyHashable, Serializ
         const val serialVersionUID = 1L
     }
 }
+
+val Key.isUntimed get() = timestamp == 0L

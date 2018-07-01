@@ -17,6 +17,7 @@ package straightway.peerspace.networksimulator
 
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.KeyHasher
 import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
@@ -80,37 +81,22 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
     private fun createPeer(id: Id) {
 
-        @Suppress("MagicNumber")
-        val hasher = EpochKeyHasher(SimHasher(), simulator, arrayOf(
-                LongRange(0L, 86400000L), // epoch 0: 1 day
-                LongRange(86400001L, 604800000L), // epoch 1: 1 week
-                LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
-                LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
-                LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
-                LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
-
         peers[id] = withContext {
             bean { SimNode() }
             bean("simNodes") { simPeers }
             bean { TransientDataChunkStore() as DataChunkStore }
-            bean { DataQueryHandlerImpl(
-                    UntimedDataQueryHandler(),
-                    TimedDataQueryHandler()) as DataQueryHandler }
+            bean("timedDataQueryHandler") { TimedDataQueryHandler()as DataQueryHandler }
+            bean("untimedDataQueryHandler") { UntimedDataQueryHandler()as DataQueryHandler }
+            bean { DataQueryHandlerImpl() as DataQueryHandler }
             bean { TransientPeerDirectory() as PeerDirectory }
             bean { NetworkImpl() as Network }
-            factory {
-                PeerNetworkStub(it.get("id")) as PushTarget
-            }
-            factory {
-                PeerNetworkStub(it.get("id")) as QuerySource
-            }
-            factory {
-                get<SimNode>().createChannel(it["id"])
-            }
+            factory { PeerNetworkStub(it.get("id")) as PushTarget }
+            factory { PeerNetworkStub(it.get("id")) as QuerySource }
+            factory { get<SimNode>().createChannel(it["id"]) }
             bean { Configuration() }
             bean("knownPeerQueryChooser") { RandomChooser(randomSource) }
             bean("knownPeerAnswerChooser") { RandomChooser(randomSource) }
-            bean { ForwardStrategyImpl(hasher) as ForwardStrategy }
+            bean { ForwardStrategyImpl() as ForwardStrategy }
             bean { simulator as TimeProvider }
             bean { DataPushForwarderImpl() }
             bean { KnownPeersProviderImpl() }
@@ -123,6 +109,18 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             }
             bean("downloadStream") {
                 AsyncSequentialTransmissionStream(DOWNLOAD_BANDWIDTH, simulator)
+            }
+            bean { SimHasher() as Hasher }
+            bean {
+                @Suppress("MagicNumber")
+                EpochKeyHasher(arrayOf(
+                    LongRange(0L, 86400000L), // epoch 0: 1 day
+                    LongRange(86400001L, 604800000L), // epoch 1: 1 week
+                    LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
+                    LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
+                    LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
+                    LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
+                as KeyHasher
             }
         }.apply {
             extraProperties["peerId"] = id.identifier

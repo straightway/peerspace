@@ -30,12 +30,12 @@ class DataPushForwarderImpl :
         DataPushForwarder,
         KoinModuleComponent by KoinModuleComponent() {
 
+    private val dataQueryHandler: DataQueryHandler by inject()
+    private val forwardTracker: ForwardStateTracker<PushRequest, Key>
+            by inject("pushForwardTracker")
+
     override fun forward(push: PushRequest) {
         forwardTracker.forward(push)
         dataQueryHandler.notifyChunkForwarded(push.chunk.key)
     }
-
-    private val dataQueryHandler: DataQueryHandler by inject()
-    private val forwardTracker: ForwardStateTracker<PushRequest, Key>
-            by inject("pushForwardTracker")
 }

@@ -28,10 +28,11 @@ class TimedDataQueryHandler :
         SpecializedDataQueryHandlerBase(isLocalResultPreventingForwarding = false),
         DataQueryHandler {
 
+    override val pendingQueryTracker: PendingQueryTracker
+            by inject("pendingTimedQueryTracker")
+
     override fun notifyChunkForwarded(key: Key) =
             pendingQueryTracker.getPendingQueriesForChunk(key).forEach {
                 pendingQueryTracker.addForwardedChunk(it, key)
             }
-
-    override val pendingQueryTracker: PendingQueryTracker by inject("pendingTimedQueryTracker")
 }

@@ -35,17 +35,17 @@ import straightway.utils.serializeToByteArray
  */
 class KnownPeersProviderImpl : KnownPeersProvider, KoinModuleComponent by KoinModuleComponent() {
 
-    override fun pushKnownPeersTo(targetPeerId: Id) =
-            targetPeerId.asPushTarget.push(knownPeersAnswerRequest)
-
-    private val knownPeersAnswerRequest
-        get() = PushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
-
     private val id: Id by property("peerId") { Id(it) }
     private val configuration: Configuration by inject()
     private val peerDirectory: PeerDirectory by inject()
     private val network: Network by inject()
     private val knownPeerAnswerChooser: Chooser by inject("knownPeerAnswerChooser")
+
+    override fun pushKnownPeersTo(targetPeerId: Id) =
+            targetPeerId.asPushTarget.push(knownPeersAnswerRequest)
+
+    private val knownPeersAnswerRequest
+        get() = PushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
 
     private val serializedKnownPeersQueryAnswer
         get() = knownPeersQueryAnswer.serializeToByteArray()

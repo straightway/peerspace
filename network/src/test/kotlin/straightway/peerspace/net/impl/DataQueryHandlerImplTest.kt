@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
@@ -59,9 +60,12 @@ class DataQueryHandlerImplTest {
                     }
                     val untimedQuery = QueryRequest(Id("originator"), Id("untimedQuery"))
                     val timedQuery = QueryRequest(Id("originator"), Id("timedQuery"), 1L..2L)
-                    val sut = DataQueryHandlerImpl(
-                            untimedDataQueryHandler,
-                            timedDataQueryHandler)
+                    val sut = withContext {
+                        bean("untimedDataQueryHandler") { untimedDataQueryHandler }
+                        bean("timedDataQueryHandler") { timedDataQueryHandler }
+                    } make {
+                        DataQueryHandlerImpl()
+                    }
                 }
             }
 

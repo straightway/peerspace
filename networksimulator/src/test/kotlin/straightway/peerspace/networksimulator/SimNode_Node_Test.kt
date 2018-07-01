@@ -45,7 +45,6 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.units.byte
 import straightway.units.get
-import java.io.Serializable
 
 class SimNode_Node_Test : KoinLoggingDisabler() {
 
@@ -55,7 +54,6 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
         val chunkKey = Key(Id("chunkId"))
         val messageSize = 50[byte]
         val invalidRequest = object { override fun toString() = "Invalid Request" }
-        val getChunkSize = { _: Serializable -> 16[byte] }
     }
 
     private val test get() = Given {
@@ -75,17 +73,17 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             val querySource = mock<QuerySource>()
             val querySources = mutableMapOf(Pair(peerId, querySource))
             val queryRequest = QueryRequest(Id("originId"), Id("chunkId"), untimedData)
-            val sut = withContext {} make {
-                        SimNode(
-                            peerId,
-                            pushTargets,
-                            querySources,
-                            mock(),
-                            getChunkSize,
-                            upload,
-                            download,
-                            mutableMapOf())
-                    }
+            val sut = withContext {
+                bean { pushTargets[it["id"]]!! }
+                bean { querySources[it["id"]]!! }
+                bean("simNodes") { mutableMapOf<Id, SimNode>() }
+                bean("uploadStream") { upload }
+                bean("downloadStream") { download }
+            }.apply {
+                extraProperties["peerId"] = peerId.identifier
+            } make {
+                SimNode()
+            }
         }
     }
 

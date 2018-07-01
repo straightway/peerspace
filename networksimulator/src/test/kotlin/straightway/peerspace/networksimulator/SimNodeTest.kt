@@ -15,13 +15,10 @@
  */
 package straightway.peerspace.networksimulator
 
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.koinutils.withContext
-import straightway.peerspace.net.Peer
-import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.References
 import straightway.testing.flow.Same
@@ -29,8 +26,6 @@ import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.has
 import straightway.testing.flow.is_
-import straightway.units.byte
-import straightway.units.get
 
 class SimNodeTest : KoinLoggingDisabler() {
 
@@ -40,21 +35,14 @@ class SimNodeTest : KoinLoggingDisabler() {
 
     private val test get() = Given {
         object {
-            val sender = mock<TransmissionRequestHandler>()
-            val parent = mock<Peer>()
-            val peers = mapOf(Pair(id, parent))
             val existingInstances = mutableMapOf<Id, SimNode>()
             fun createSimNode() =
-                    withContext {} make {
-                        SimNode(
-                                id,
-                                peers,
-                                peers,
-                                sender,
-                                { 16[byte] },
-                                mock(),
-                                mock(),
-                                existingInstances)
+                    withContext {
+                        bean("simNodes") { existingInstances }
+                    }.apply {
+                        extraProperties["peerId"] = id.identifier
+                    } make {
+                        SimNode()
                     }
         }
     }

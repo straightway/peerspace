@@ -18,7 +18,9 @@ package straightway.peerspace.networksimulator
 
 import straightway.error.Panic
 import straightway.peerspace.data.Id
+import straightway.peerspace.koinutils.Bean.inject
 import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.peerspace.koinutils.Property.property
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
@@ -31,19 +33,22 @@ import straightway.units.UnitValue
 import straightway.units.AmountOfData
 import java.io.Serializable
 
+typealias ChunkSizeGetter = (Serializable) -> UnitValue<Int, AmountOfData>
+fun chunkSizeGetter(function: ChunkSizeGetter): ChunkSizeGetter = function
+
 /**
  * Infrastructure for the simulation of a network peer.
  */
-class SimNode(
-        private val id: Id,
-        private val pushTargets: Map<Id, PushTarget>,
-        private val querySources: Map<Id, QuerySource>,
-        private val transmissionRequestHandler: TransmissionRequestHandler,
-        private val chunkSizeGetter: (Serializable) -> UnitValue<Int, AmountOfData>,
-        override val uploadStream: TransmissionStream,
-        override val downloadStream: TransmissionStream,
-        private val simNodes: MutableMap<Id, SimNode>
-) : Node, KoinModuleComponent by KoinModuleComponent() {
+class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
+
+    private val id: Id by property("peerId") { Id(it) }
+    private val parentPushTarget by inject<PushTarget> { mapOf("id" to id) }
+    private val parentQuerySource by inject<QuerySource> { mapOf("id" to id) }
+    private val simNodes by inject<MutableMap<Id, SimNode>>("simNodes")
+    private val transmissionRequestHandler: TransmissionRequestHandler by inject()
+    private val chunkSizeGetter by inject<ChunkSizeGetter>()
+    override val uploadStream by inject<TransmissionStream>("uploadStream")
+    override val downloadStream by inject<TransmissionStream>("downloadStream")
 
     override var isOnline: Boolean
         get() = uploadStream.isOnline && downloadStream.isOnline
@@ -72,9 +77,6 @@ class SimNode(
     override fun notifySuccess(receiver: Node) {}
 
     override fun notifyFailure(receiver: Node) {}
-
-    private val parentPushTarget get() = pushTargets[id]!!
-    private val parentQuerySource get() = querySources[id]!!
 
     init {
         simNodes[id] = this

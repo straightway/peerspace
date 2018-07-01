@@ -57,6 +57,7 @@ import straightway.utils.toByteArray
 import java.io.Serializable
 import java.util.Random
 
+@Suppress("LargeClass") // Temporary, must be cleaned up
 private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
     private class SimHasher : Hasher {
@@ -88,21 +89,9 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                 LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
 
-        val simNode = SimNode(
-                id,
-                peers,
-                peers,
-                simNet,
-                { CHUNK_SIZE },
-                uploadStream = AsyncSequentialTransmissionStream(
-                        UPLOAD_BANDWIDTH,
-                        simulator),
-                downloadStream = AsyncSequentialTransmissionStream(
-                        DOWNLOAD_BANDWIDTH,
-                        simulator),
-                simNodes = simPeers)
-
         peers[id] = withContext {
+            bean { SimNode() }
+            bean("simNodes") { simPeers }
             bean { TransientDataChunkStore() as DataChunkStore }
             bean { DataQueryHandlerImpl(
                     UntimedDataQueryHandler(),
@@ -116,7 +105,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 PeerNetworkStub(it.get("id")) as QuerySource
             }
             factory {
-                simNode.createChannel(it.get("id"))
+                get<SimNode>().createChannel(it["id"])
             }
             bean { Configuration() }
             bean("knownPeerQueryChooser") { RandomChooser(randomSource) }
@@ -125,6 +114,16 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             bean { simulator as TimeProvider }
             bean { DataPushForwarderImpl() }
             bean { KnownPeersProviderImpl() }
+            bean { peers[it["id"]] as PushTarget }
+            bean { peers[it["id"]] as QuerySource }
+            bean { simNet }
+            bean { chunkSizeGetter { CHUNK_SIZE } }
+            bean("uploadStream") {
+                AsyncSequentialTransmissionStream(UPLOAD_BANDWIDTH, simulator)
+            }
+            bean("downloadStream") {
+                AsyncSequentialTransmissionStream(DOWNLOAD_BANDWIDTH, simulator)
+            }
         }.apply {
             extraProperties["peerId"] = id.identifier
         } make {

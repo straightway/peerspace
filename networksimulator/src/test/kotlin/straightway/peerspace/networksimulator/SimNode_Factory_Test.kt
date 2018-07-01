@@ -23,6 +23,9 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.koinutils.KoinLoggingDisabler
 import straightway.peerspace.koinutils.withContext
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PushTarget
+import straightway.peerspace.net.QuerySource
+import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Same
@@ -51,14 +54,22 @@ class SimNode_Factory_Test : KoinLoggingDisabler() {
             val from = createSimNode(fromId)
 
             private fun createSimNode(id: Id): SimNode =
-                    withContext {} make {
-                        SimNode(id, peers, peers, mock(), { 16[byte] }, mock(), mock(), nodes)
+                    withContext {
+                        bean { peers[it["id"]] as PushTarget }
+                        bean { peers[it["id"]] as QuerySource }
+                        bean("simNodes") { nodes }
+                        bean { mock<TransmissionRequestHandler>() }
+                        bean { chunkSizeGetter { 16[byte] } }
+                    }.apply {
+                        extraProperties["peerId"] = id.identifier
+                    } make {
+                        SimNode()
                     }
         }
     }
 
     @Test
-    fun `returns new instance`() =
+    fun `createChannel returns new instance`() =
             test when_ { from.createChannel(toId) } then {
                 expect(it.result.to is_ Same as_ to)
                 expect(it.result.from is_ Same as_ from)

@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource

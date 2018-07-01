@@ -19,7 +19,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.QueryRequest

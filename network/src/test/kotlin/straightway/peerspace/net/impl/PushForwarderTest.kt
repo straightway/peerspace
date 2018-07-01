@@ -24,7 +24,7 @@ import straightway.error.Panic
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy

@@ -18,7 +18,7 @@ package straightway.peerspace.networksimulator
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.KeyHasher
-import straightway.peerspace.koinutils.withContext
+import straightway.koinutils.withContext
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler

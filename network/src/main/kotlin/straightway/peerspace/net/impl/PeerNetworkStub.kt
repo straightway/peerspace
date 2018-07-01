@@ -18,9 +18,8 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.koinutils.Bean.get
-import straightway.peerspace.koinutils.Bean.inject
-import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest

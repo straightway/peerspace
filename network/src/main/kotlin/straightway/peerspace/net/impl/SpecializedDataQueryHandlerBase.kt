@@ -20,9 +20,9 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.Bean.inject
-import straightway.peerspace.koinutils.Property.property
+import straightway.koinutils.KoinModuleComponent
+import straightway.koinutils.Bean.inject
+import straightway.koinutils.Property.property
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker

@@ -24,7 +24,7 @@ import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest

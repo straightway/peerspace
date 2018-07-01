@@ -23,8 +23,8 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
-import straightway.peerspace.koinutils.KoinLoggingDisabler
-import straightway.peerspace.koinutils.withContext
+import straightway.koinutils.KoinLoggingDisabler
+import straightway.koinutils.withContext
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given

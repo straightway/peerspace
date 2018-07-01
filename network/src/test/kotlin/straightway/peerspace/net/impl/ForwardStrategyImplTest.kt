@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHasher
-import straightway.peerspace.koinutils.withContext
+import straightway.koinutils.withContext
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given

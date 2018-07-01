@@ -17,8 +17,8 @@ package straightway.peerspace.networksimulator
 
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.koinutils.KoinLoggingDisabler
-import straightway.peerspace.koinutils.withContext
+import straightway.koinutils.KoinLoggingDisabler
+import straightway.koinutils.withContext
 import straightway.testing.bdd.Given
 import straightway.testing.flow.References
 import straightway.testing.flow.Same

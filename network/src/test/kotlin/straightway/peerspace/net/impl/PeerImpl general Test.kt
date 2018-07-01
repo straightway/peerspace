@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.KnownPeersProvider

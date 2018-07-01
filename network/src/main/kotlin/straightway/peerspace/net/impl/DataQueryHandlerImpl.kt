@@ -17,8 +17,8 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.isUntimed
-import straightway.peerspace.koinutils.Bean.inject
-import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isUntimed

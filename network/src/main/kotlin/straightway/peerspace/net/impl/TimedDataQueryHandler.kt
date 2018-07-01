@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.Bean.inject
+import straightway.koinutils.Bean.inject
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.getPendingQueriesForChunk

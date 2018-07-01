@@ -19,8 +19,8 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
-import straightway.peerspace.koinutils.Bean.inject
-import straightway.peerspace.koinutils.KoinModuleComponent
+import straightway.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.untimedData
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime

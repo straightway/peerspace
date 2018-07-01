@@ -18,7 +18,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.koinutils.KoinLoggingDisabler
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource

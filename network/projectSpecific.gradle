@@ -17,7 +17,7 @@
 dependencies {
     compile project(':peerspace:data')
     compile project(':peerspace:crypto')
-    compile project(':peerspace:koinutils')
+    compile project(':koinutils')
     compile straightway('random')
     compile straightway('units')
     compile straightway('utils')

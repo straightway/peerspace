@@ -20,10 +20,11 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.withContext
+import straightway.koinutils.withContext
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
@@ -35,7 +36,7 @@ import straightway.testing.flow.has
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class DataQueryHandlerImplTest {
+class DataQueryHandlerImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkKey = Key(Id("chunkId"))

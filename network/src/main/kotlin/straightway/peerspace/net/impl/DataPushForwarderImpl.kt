@@ -16,8 +16,8 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.koinutils.KoinModuleComponent
-import straightway.peerspace.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
+import straightway.koinutils.Bean.inject
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker

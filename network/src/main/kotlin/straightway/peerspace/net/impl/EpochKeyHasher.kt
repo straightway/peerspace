@@ -67,7 +67,7 @@ class EpochKeyHasher(
             start < outer.start && outer.endInclusive < endInclusive
 
     private val currentTimeStamp get() =
-        ChronoUnit.MILLIS.between(LocalDateTime.of(0, 1, 1, 0, 0), timeProvider.currentTime)
+        ChronoUnit.MILLIS.between(LocalDateTime.of(0, 1, 1, 0, 0), timeProvider.now)
 
     companion object {
         private const val BitsPerByte = 8

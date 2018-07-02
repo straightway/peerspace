@@ -26,6 +26,7 @@ import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.isPending
 import straightway.units.Time
+import straightway.units.minus
 import straightway.utils.TimeProvider
 import straightway.units.UnitNumber
 
@@ -40,7 +41,7 @@ class PendingQueryTrackerImpl(
 
     override fun setPending(query: QueryRequest) {
         if (!isPending(query))
-            _pendingQueries += PendingQuery(query, timeProvider.currentTime)
+            _pendingQueries += PendingQuery(query, timeProvider.now)
     }
 
     override val pendingQueries: Set<PendingQuery> get() {
@@ -65,7 +66,7 @@ class PendingQueryTrackerImpl(
 
     private val PendingQuery.isTooOld get() = receiveTime < tooOldThreshold
     private val pendingTimeout by lazy { get<Configuration>().pendingTimeoutConfiguration() }
-    private val tooOldThreshold get() = timeProvider.nowPlus(-pendingTimeout)
+    private val tooOldThreshold get() = timeProvider.now - pendingTimeout
 
     private fun <T> Set<T>.filter(predicate: T.() -> Boolean) =
             (this as Iterable<T>).filter(predicate).toSet()

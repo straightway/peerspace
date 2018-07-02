@@ -61,7 +61,7 @@ data class PeerTestEnvironment(
         },
         private val timeProviderFactory: BeanFactory<TimeProvider> = {
             mock {
-                on { currentTime }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
+                on { now }.thenReturn(LocalDateTime.of(2001, 1, 1, 14, 30))
             }
         },
         private val dataQueryHandlerFactory: BeanFactory<DataQueryHandler> = {

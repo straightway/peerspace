@@ -60,7 +60,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
                     },
                     timeProviderFactory = {
                         mock {
-                            on { currentTime }.thenAnswer { currentTime }
+                            on { now }.thenAnswer { currentTime }
                         }
                     })
             val sut get() =

@@ -61,7 +61,7 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
         get() = Given {
             object {
                 val timeProvider = mock<TimeProvider> {
-                    on { currentTime }.thenReturn(currentTime)
+                    on { now }.thenReturn(currentTime)
                 }
                 var hashCodes = byteArrayOf(0)
                 val hasher = mock<Hasher> {

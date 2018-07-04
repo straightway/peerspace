@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.koinutils.Bean.inject
+import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.getPendingQueriesForChunk
@@ -31,8 +32,11 @@ class TimedDataQueryHandler :
     override val pendingQueryTracker: PendingQueryTracker
             by inject("pendingTimedQueryTracker")
 
-    override fun notifyChunkForwarded(key: Key) =
+    override fun onChunkForwarding(key: Key) =
             pendingQueryTracker.getPendingQueriesForChunk(key).forEach {
                 pendingQueryTracker.addForwardedChunk(it, key)
             }
+
+    override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) =
+        pendingQueryTracker.removePendingQueriesIf { originatorId == targetId }
 }

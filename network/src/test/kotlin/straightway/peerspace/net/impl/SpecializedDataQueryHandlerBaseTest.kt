@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -31,14 +32,20 @@ import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.Values
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 import java.time.LocalDateTime
 
 class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
 
     private companion object {
         val queryOriginatorId = Id("originatorId")
-        val queryRequest = QueryRequest(queryOriginatorId, Id("chunkID"))
-        val chunk = Chunk(Key(Id("chunkId")), byteArrayOf())
+        val queriedChunkId = Id("chunkID")
+        val queryRequest = QueryRequest(queryOriginatorId, queriedChunkId)
+        val matchingChunk = Chunk(Key(queriedChunkId), byteArrayOf())
         val otherChunk = Chunk(Key(Id("otherChunkId")), byteArrayOf())
     }
 
@@ -47,6 +54,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
 
         var notifiedChunkKeys = listOf<Key>()
         var pendingQueries = setOf<PendingQuery>()
+        var chunkForwardFailure: Pair<Key, Id>? = null
 
         public override val pendingQueryTracker by lazy {
             mock<PendingQueryTracker> {
@@ -54,15 +62,19 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             }
         }
 
-        override fun notifyChunkForwarded(key: Key) {
+        override fun onChunkForwarding(key: Key) {
             notifiedChunkKeys += key
+        }
+
+        override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) {
+            chunkForwardFailure = Pair(chunkKey, targetId)
         }
     }
 
     private fun test(isLocalResultPreventingForwarding: Boolean = false) =
         Given {
             object {
-                var queryResult = listOf<Chunk>()
+                var chunkStoreQueryResult = listOf<Chunk>()
                 val environment = PeerTestEnvironment(
                         knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = {
@@ -70,7 +82,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                         },
                         dataChunkStoreFactory = {
                             mock {
-                                on { query(any()) }.thenAnswer { queryResult }
+                                on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         })
                 val sut get() = environment.get<DataQueryHandler>() as DerivedSut
@@ -98,7 +110,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     @Test
     fun `new handled query is not forwarded if local result exists and according flag is set`() =
             test(isLocalResultPreventingForwarding = true) while_ {
-                queryResult = listOf(chunk)
+                chunkStoreQueryResult = listOf(matchingChunk)
             } when_ {
                 sut.handle(queryRequest)
             } then {
@@ -108,7 +120,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     @Test
     fun `new handled query is forwarded even if local result exists and according flag is set`() =
             test(isLocalResultPreventingForwarding = false) while_ {
-                queryResult = listOf(chunk)
+                chunkStoreQueryResult = listOf(matchingChunk)
             } when_ {
                 sut.handle(queryRequest)
             } then {
@@ -118,13 +130,13 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     @Test
     fun `local result is forwarded to query issuer`() =
             test() while_ {
-                queryResult = listOf(chunk, otherChunk)
+                chunkStoreQueryResult = listOf(matchingChunk, otherChunk)
             } when_ {
                 sut.handle(queryRequest)
             } then {
-                queryResult.forEach {
+                chunkStoreQueryResult.forEach {
                     verify(environment.getPeer(queryRequest.originatorId))
-                            .push(PushRequest(environment.peerId, it))
+                            .push(eq(PushRequest(environment.peerId, it)), any())
                 }
             }
 
@@ -136,5 +148,52 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.handle(queryRequest)
             } then {
                 verify(forwardTracker, never()).forward(queryRequest)
+            }
+
+    @Test
+    fun `notifyChunkForwarded pushes chunk to querying peer`() =
+            test() while_ {
+                chunkStoreQueryResult = listOf(matchingChunk)
+                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+            } when_ {
+                sut.notifyChunkForwarded(matchingChunk.key)
+            } then {
+                val pushRequest = PushRequest(environment.peerId, matchingChunk)
+                val queryOriginator = environment.getPeer(queryOriginatorId)
+                verify(queryOriginator).push(eq(pushRequest), any())
+            }
+
+    @Test
+    fun `notifyChunkForwarded does not push not matching chunk`() =
+            test() while_ {
+                chunkStoreQueryResult = listOf(otherChunk)
+                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+            } when_ {
+                sut.notifyChunkForwarded(otherChunk.key)
+            } then {
+                val queryOriginator = environment.getPeer(queryOriginatorId)
+                verify(queryOriginator, never()).push(any(), any())
+            }
+
+    @Test
+    fun `notifyChunkForwarded calls onChunkForwarded`() =
+            test() when_ {
+                sut.notifyChunkForwarded(matchingChunk.key)
+            } then {
+                expect(sut.notifiedChunkKeys is_ Equal to_ Values(matchingChunk.key))
+            }
+
+    @Test
+    fun `failed chunk forward is signaled`() =
+            test() while_ {
+                chunkStoreQueryResult = listOf(matchingChunk)
+                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+                sut.notifyChunkForwarded(matchingChunk.key)
+            } when_ {
+                val listenerKey = Pair(queryOriginatorId, matchingChunk.key)
+                environment.pushTransmissionResultListeners[listenerKey]!!.notifyFailure()
+            } then {
+                expect(sut.chunkForwardFailure is_ Equal to_
+                               Pair(matchingChunk.key, queryOriginatorId))
             }
 }

@@ -159,10 +159,6 @@ data class PeerTestEnvironment(
 
     val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
 
-    fun setPeerPushSuccess(id: Id, success: Boolean) {
-        peerPushSuccess[id] = success
-    }
-
     val queryTransmissionResultListeners =
             mutableMapOf<Pair<Id, QueryRequest>, TransmissionResultListener>()
 
@@ -171,6 +167,4 @@ data class PeerTestEnvironment(
 
     fun getPeer(id: Id) =
             knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!
-
-    private val peerPushSuccess = mutableMapOf<Id, Boolean>()
 }

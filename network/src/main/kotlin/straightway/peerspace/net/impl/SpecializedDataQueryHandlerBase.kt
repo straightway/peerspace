@@ -32,7 +32,9 @@ import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
+import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isPending
 
 /**
@@ -58,10 +60,26 @@ abstract class SpecializedDataQueryHandlerBase(
                     .filter { !chunkKey.isAlreadyForwardedFor(it) }
                     .map { it.query.originatorId }
 
-    private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
-            it.forwardedChunkKeys.contains(this)
+    final override fun notifyChunkForwarded(key: Key) {
+        val matchingChunks = dataChunkStore.query(QueryRequest(peerId, key))
+        val matchingQueries = pendingQueryTracker.pendingQueries.filter {
+            it.query.isMatching(key)
+        }
+        matchingQueries.forEach {
+            matchingChunks forwardTo it.query.issuer
+        }
+
+        onChunkForwarding(key)
+    }
+
+    protected open fun onChunkForwardFailed(chunkKey: Key, targetId: Id) {}
+
+    protected abstract fun onChunkForwarding(key: Key)
 
     protected abstract val pendingQueryTracker: PendingQueryTracker
+
+    private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
+            it.forwardedChunkKeys.contains(this)
 
     private val QueryRequest.result get() = dataChunkStore.query(this)
 
@@ -78,13 +96,21 @@ abstract class SpecializedDataQueryHandlerBase(
         return localResult.any()
     }
 
-    private infix fun Iterable<Chunk>.forwardTo(target: PushTarget) =
+    private infix fun Iterable<Chunk>.forwardTo(target: IdentifyablePushTarget) =
             forEach { chunk -> chunk forwardTo target }
 
     private val QueryRequest.issuer
-        get() = network.getPushTarget(originatorId)
+        get() = IdentifyablePushTarget(network.getPushTarget(originatorId), originatorId)
 
-    private infix fun Chunk.forwardTo(target: PushTarget) =
-            target.push(PushRequest(peerId, this))
-            // TODO: Remove pending queries for unreachable peers
+    private data class IdentifyablePushTarget(
+            val pushTarget: PushTarget,
+            val id: Id)
+
+    private infix fun Chunk.forwardTo(target: IdentifyablePushTarget) =
+            target.pushTarget.push(
+                    PushRequest(peerId, this),
+                    object : TransmissionResultListener {
+                        override fun notifySuccess() {}
+                        override fun notifyFailure() = onChunkForwardFailed(key, target.id)
+                    })
 }

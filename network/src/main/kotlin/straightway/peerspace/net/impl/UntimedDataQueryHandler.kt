@@ -29,6 +29,6 @@ class UntimedDataQueryHandler
     override val pendingQueryTracker: PendingQueryTracker
             by inject("pendingUntimedQueryTracker")
 
-    override fun notifyChunkForwarded(key: Key) =
+    override fun onChunkForwarding(key: Key) =
             pendingQueryTracker.removePendingQueriesIf { isMatching(key) }
 }

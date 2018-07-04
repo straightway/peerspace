@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -29,9 +30,12 @@ import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
+import straightway.testing.flow.True
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import java.time.LocalDateTime
+
+private typealias QueryRequestPredicate = QueryRequest.() -> Boolean
 
 class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
 
@@ -39,23 +43,36 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
         val chunk1 = Chunk(Key(chunkId, 1), byteArrayOf())
-        val matchingQuery = QueryRequest(Id("originatorId"), chunkId, 1L..1L)
-        val otherMatchingQuery = QueryRequest(Id("originatorId"), chunkId, 1L..2L)
-        val notMatchingQuery = QueryRequest(Id("originatorId"), otherChunkId)
+        val queryOriginatorId = Id("originatorId")
+        val matchingQuery = QueryRequest(queryOriginatorId, chunkId, 1L..1L)
+        val otherMatchingQuery = QueryRequest(queryOriginatorId, chunkId, 1L..2L)
+        val notMatchingQuery = QueryRequest(queryOriginatorId, otherChunkId)
     }
 
     private val test get() =
         Given {
             object {
+                var chunkStoreQueryResult = listOf<Chunk>()
                 var pendingQueries = setOf<PendingQuery>()
+                val pendingQueryRemoveDelegates = mutableListOf<QueryRequestPredicate>()
                 val environment = PeerTestEnvironment(
+                        knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = { TimedDataQueryHandler() },
                         pendingTimedQueryTrackerFactory = {
                             mock {
                                 on { pendingQueries }.thenAnswer { pendingQueries }
+                                on { removePendingQueriesIf(any()) }.thenAnswer {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val predicate = (it.arguments[0] as QueryRequestPredicate)
+                                    pendingQueryRemoveDelegates.add(predicate)
+                                }
                             }
-                        }
-                )
+                        },
+                        dataChunkStoreFactory = {
+                            mock {
+                                on { query(any()) }.thenAnswer { chunkStoreQueryResult }
+                            }
+                        })
                 val sut get() =
                     environment.get<DataQueryHandler>() as TimedDataQueryHandler
                 val pendingQueryTracker get() =
@@ -90,6 +107,21 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             } then {
                 verify(pendingQueryTracker, never())
                         .addForwardedChunk(notMatchingQuery.pending, chunk1.key)
+            }
+
+    @Test
+    fun `pending query is removed if matching chunk is received and originator is unreachable`() =
+            test while_ {
+                chunkStoreQueryResult = listOf(chunk1)
+                pendingQueries = setOf(PendingQuery(matchingQuery, LocalDateTime.MIN))
+                sut.notifyChunkForwarded(chunk1.key)
+            } when_ {
+                val listenerKey = Pair(queryOriginatorId, chunk1.key)
+                environment.pushTransmissionResultListeners[listenerKey]!!.notifyFailure()
+            } then {
+                val predicate = pendingQueryRemoveDelegates.single()
+                expect(predicate(matchingQuery) is_ True)
+                expect(predicate(matchingQuery.copy(originatorId = Id("otherId"))) is_ False)
             }
 
     private val QueryRequest.pending get() = PendingQuery(this, LocalDateTime.MIN)

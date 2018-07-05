@@ -21,9 +21,13 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 
@@ -44,6 +48,7 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
     }
 
     private val PeerTestEnvironment.peerImpl get() = get<Peer>() as PeerImpl
+    private val PeerTestEnvironment.peerDirectory get() = get<PeerDirectory>()
 
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
@@ -103,5 +108,21 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
                 verify(knownPeers[0]).query(knownPeersRequest)
                 verify(knownPeers[1], never()).query(knownPeersRequest)
                 verify(knownPeers[2]).query(knownPeersRequest)
+            }
+
+    @Test
+    fun `originator of push request is added to known peers`() =
+            test when_ {
+                peerImpl.push(PushRequest(knownPeerId, Chunk(Key(Id("chunkId")), byteArrayOf())))
+            } then {
+                verify(peerDirectory).add(knownPeerId)
+            }
+
+    @Test
+    fun `originator of query request is added to known peers`() =
+            test when_ {
+                peerImpl.query(QueryRequest(knownPeerId, Id("chunkId")))
+            } then {
+                verify(peerDirectory).add(knownPeerId)
             }
 }

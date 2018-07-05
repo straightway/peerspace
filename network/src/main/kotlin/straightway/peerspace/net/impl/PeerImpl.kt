@@ -37,7 +37,6 @@ import straightway.random.Chooser
 // TODO:
 // * Avoid routing loops:
 // ** Don't push the same chunk twice to the same peer (within a certain time)
-// * Collect known peers while receiving requests
 
 /**
  * Default productive implementation of a peerspace peer.
@@ -58,12 +57,14 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
     override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
+        peerDirectory.add(request.originatorId)
         dataChunkStore.store(request.chunk)
         dataPushForwarder.forward(request)
         resultListener.notifySuccess()
     }
 
     override fun query(request: QueryRequest, resultListener: TransmissionResultListener) {
+        peerDirectory.add(request.originatorId)
         when (request.id) {
             Administrative.KnownPeers.id ->
                 knownPeersProvider.pushKnownPeersTo(request.originatorId)

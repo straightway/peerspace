@@ -45,4 +45,14 @@ class TransientPeerDirectoryTest {
             test when_ { sut add id } then {
                 expect(sut.allKnownPeersIds is_ Equal to_ Values(id))
             }
+
+    @Test
+    fun `adding the same id twice ignores the second add`() =
+            test while_ {
+                sut add id
+            } when_ {
+                sut add id
+            } then {
+                expect(sut.allKnownPeersIds is_ Equal to_ Values(id))
+            }
 }

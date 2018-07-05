@@ -25,5 +25,5 @@ class TransientPeerDirectory : PeerDirectory {
     override val allKnownPeersIds: Iterable<Id> get() = ids
     override infix fun add(id: Id) { ids += id }
 
-    private val ids = mutableListOf<Id>() // TODO: set
+    private var ids = setOf<Id>()
 }

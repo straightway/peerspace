@@ -55,7 +55,7 @@ class `PeerImpl general Test` : KoinLoggingDisabler() {
     @Test
     fun `data queries are delegated to DataQueryHandler`() =
             test when_ { get<Peer>().query(dataQuery) } then {
-                verify(get<DataQueryHandler>()).handle(dataQuery)
+                verify(get<DataQueryHandler>("dataQueryHandler")).handle(dataQuery)
             }
 
     @Test

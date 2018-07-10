@@ -46,7 +46,7 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
     override val id: Id by property("peerId") { Id(it) }
     private val configuration: Configuration by inject()
     private val dataChunkStore: DataChunkStore by inject()
-    private val dataQueryHandler: DataQueryHandler by inject()
+    private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val network: Network by inject()
     private val knownPeersProvider: KnownPeersProvider by inject()
     private val dataPushForwarder: DataPushForwarder by inject()

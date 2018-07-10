@@ -72,7 +72,8 @@ class PushForwarderTest : KoinLoggingDisabler() {
                 )
                 val sut get() = environment.get<Forwarder<PushRequest, Key>>("pushForwarder")
                 val forwardStrategy get() = environment.get<ForwardStrategy>()
-                val dataQueryHandler get() = environment.get<DataQueryHandler>()
+                val dataQueryHandler get() =
+                    environment.get<DataQueryHandler>("dataQueryHandler")
             }
         }
 

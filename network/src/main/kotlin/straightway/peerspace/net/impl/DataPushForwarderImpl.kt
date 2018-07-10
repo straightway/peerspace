@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+@file:Suppress("ForbiddenComment")
+
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
@@ -30,12 +32,13 @@ class DataPushForwarderImpl :
         DataPushForwarder,
         KoinModuleComponent by KoinModuleComponent() {
 
-    private val dataQueryHandler: DataQueryHandler by inject()
+    private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val forwardTracker: ForwardStateTracker<PushRequest, Key>
             by inject("pushForwardTracker")
 
     override fun forward(push: PushRequest) {
         forwardTracker.forward(push)
         dataQueryHandler.notifyChunkForwarded(push.chunk.key)
+        // TODO: Check if queried chunk is forwarded twice
     }
 }

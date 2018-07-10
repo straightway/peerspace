@@ -85,7 +85,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         })
-                val sut get() = environment.get<DataQueryHandler>() as DerivedSut
+                val sut get() = environment.get<DataQueryHandler>("dataQueryHandler")
+                        as DerivedSut
                 val forwardTracker get() = environment
                         .get<ForwardStateTracker<QueryRequest, QueryRequest>>("queryForwardTracker")
             }

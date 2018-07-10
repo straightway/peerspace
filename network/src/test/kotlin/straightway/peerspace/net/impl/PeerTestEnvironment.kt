@@ -119,7 +119,8 @@ data class PeerTestEnvironment(
             bean { configurationFactory() }
             bean { forwardStrategyFactory() }
             bean { timeProviderFactory() }
-            bean { dataQueryHandlerFactory() }
+            bean("dataQueryHandler") { dataQueryHandlerFactory() }
+            bean("otherDataQueryHandler") { mock<DataQueryHandler>() }
             bean { dataPushForwarderFactory() }
             bean { knownPeersProviderFactory() }
             bean("knownPeerQueryChooser") { knownPeerQueryChooserFactory() }

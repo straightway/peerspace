@@ -74,7 +74,8 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             }
                         })
                 val sut get() =
-                    environment.get<DataQueryHandler>() as TimedDataQueryHandler
+                    environment.get<DataQueryHandler>("dataQueryHandler")
+                            as TimedDataQueryHandler
                 val pendingQueryTracker get() =
                     environment.get<PendingQueryTracker>("pendingTimedQueryTracker")
             }

@@ -19,6 +19,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
@@ -46,11 +47,14 @@ class NetworkImplTest : KoinLoggingDisabler() {
                     val environment = PeerTestEnvironment(
                             networkFactory = { NetworkImpl() }
                     ) {
+                        bean { KoinModuleComponent() }
                         factory {
+                            get<KoinModuleComponent>()
                             createdIds += it.get<Id>("id")
                             pushTarget
                         }
                         factory {
+                            get<KoinModuleComponent>()
                             createdIds += it.get<Id>("id")
                             querySource
                         }

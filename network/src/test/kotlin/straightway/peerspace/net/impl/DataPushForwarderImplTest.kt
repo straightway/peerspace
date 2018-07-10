@@ -40,7 +40,7 @@ class DataPushForwarderImplTest : KoinLoggingDisabler() {
             val sut =
                     environment.get<DataPushForwarder>()
             val dataQueryHandler =
-                    environment.get<DataQueryHandler>()
+                    environment.get<DataQueryHandler>("dataQueryHandler")
             val pushForwardTracker =
                     environment.get<ForwardStateTracker<PushRequest, Key>>("pushForwardTracker")
         }

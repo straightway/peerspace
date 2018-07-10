@@ -38,7 +38,7 @@ class PushForwarder :
 
     private val peerId: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
-    private val dataQueryHandler: DataQueryHandler by inject()
+    private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val forwardStrategy: ForwardStrategy by inject()
 
     override fun getKeyFor(item: PushRequest) = item.chunk.key

@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net.impl
 
+import straightway.koinutils.Bean.get
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Network
@@ -26,7 +27,7 @@ import straightway.peerspace.net.QuerySource
  */
 class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
     override fun getPushTarget(id: Id) =
-            context.get<PushTarget> { mapOf("id" to id) }
+            get<PushTarget> { mapOf("id" to id) }
     override fun getQuerySource(id: Id) =
-            context.get<QuerySource> { mapOf("id" to id) }
+            get<QuerySource> { mapOf("id" to id) }
 }

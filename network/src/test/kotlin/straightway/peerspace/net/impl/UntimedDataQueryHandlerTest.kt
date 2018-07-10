@@ -57,7 +57,8 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                         }
                 )
                 val sut get() =
-                    environment.get<DataQueryHandler>() as UntimedDataQueryHandler
+                    environment.get<DataQueryHandler>("dataQueryHandler")
+                            as UntimedDataQueryHandler
                 val pendingQueryTracker get() =
                     environment.get<PendingQueryTracker>("pendingUntimedQueryTracker")
                 val predicate get() = removePredicates.single()

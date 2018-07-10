@@ -16,8 +16,10 @@
 
 dependencies {
     compile junit5("api")
-    compile mockito()
+    compile mockitoKotlin()
     compile project(":peerspace:data")
     compile project(":peerspace:network")
+    testCompile project(":sim")
+    testCompile project(":peerspace:networksimulator")
     testCompile straightway('testing')
 }

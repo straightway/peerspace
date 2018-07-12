@@ -59,7 +59,7 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
     override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
         peerDirectory.add(request.originatorId)
         dataChunkStore.store(request.chunk)
-        dataPushForwarder.forward(request)
+        forward(request)
         resultListener.notifySuccess()
     }
 
@@ -71,10 +71,16 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
             else ->
                 dataQueryHandler.handle(request)
         }
+        network.executePendingRequests()
         resultListener.notifySuccess()
     }
 
     override fun toString() = "PeerImpl(${id.identifier})"
+
+    private fun forward(request: PushRequest) {
+        dataPushForwarder.forward(request)
+        network.executePendingRequests()
+    }
 
     private val peersToQueryForOtherKnownPeers
         get() = knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers

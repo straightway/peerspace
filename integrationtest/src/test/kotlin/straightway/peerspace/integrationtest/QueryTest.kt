@@ -20,7 +20,6 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
@@ -29,7 +28,6 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
-import straightway.sim.core.Simulator
 import straightway.testing.bdd.Given
 
 class QueryTest : KoinLoggingDisabler() {
@@ -39,8 +37,6 @@ class QueryTest : KoinLoggingDisabler() {
                     var queryForwardPeerIds = listOf<Id>()
                     var pushForwardPeerIds = listOf<Id>()
                     val environment = SinglePeerEnvironment(
-                        peerId = Id("peerId"),
-                        simulator = Simulator(),
                         forwardStrategyFactory =
                         {
                             mock {
@@ -53,7 +49,7 @@ class QueryTest : KoinLoggingDisabler() {
                 }
             }
 
-    @Test @Disabled
+    @Test
     fun `chunk is not forwarded twice due to query and forward strategy`() {
         val queryer = mock<Peer> {
             on { id }.thenReturn(Id("queryerId"))

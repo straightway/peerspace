@@ -18,16 +18,58 @@ package straightway.peerspace.net.impl
 import straightway.koinutils.Bean.get
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
+import straightway.peerspace.data.Key
 import straightway.peerspace.net.Network
+import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Productive implementation of the Network interface.
  */
 class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
-    override fun getPushTarget(id: Id) =
-            get<PushTarget> { mapOf("id" to id) }
-    override fun getQuerySource(id: Id) =
-            get<QuerySource> { mapOf("id" to id) }
+
+    private data class PendingPush(
+            val receiver: PushTarget,
+            val request: PushRequest
+    ) {
+        val transmissionResultListeners = mutableListOf<TransmissionResultListener>()
+        fun execute() {
+            val listeners = transmissionResultListeners.toList()
+            receiver.push(request, object : TransmissionResultListener {
+                override fun notifySuccess() = listeners.forEach { it.notifySuccess() }
+                override fun notifyFailure() = listeners.forEach { it.notifyFailure() }
+            })
+        }
+    }
+
+    private val pendingPushes = mutableMapOf<Pair<Id, Key>, PendingPush>()
+
+    private inner class DelayedPushTarget(
+            val id: Id,
+            val wrapped: PushTarget
+    ) : PushTarget {
+        override fun push(
+                request: PushRequest,
+                resultListener: TransmissionResultListener
+        ) {
+            val pendingPush = pendingPushes.getOrPut(Pair(id, request.chunk.key)) {
+                PendingPush(wrapped, request)
+            }
+            pendingPush.transmissionResultListeners.add(resultListener)
+        }
+    }
+
+    override fun getPushTarget(id: Id): PushTarget =
+            DelayedPushTarget(id, get { mapOf("id" to id) })
+
+    override fun getQuerySource(id: Id): QuerySource =
+            get { mapOf("id" to id) }
+
+    override fun executePendingRequests() {
+        val actionsToExecute = pendingPushes.values.toList()
+        pendingPushes.clear()
+        actionsToExecute.forEach { it.execute() }
+    }
 }

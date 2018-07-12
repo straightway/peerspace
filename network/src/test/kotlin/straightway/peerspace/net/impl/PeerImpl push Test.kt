@@ -26,6 +26,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.TransmissionResultListener
@@ -75,4 +76,12 @@ class `PeerImpl push Test` : KoinLoggingDisabler() {
             verify(resultListener, never()).notifyFailure()
         }
     }
+
+    @Test
+    fun `push executes pending network requests`() =
+            test when_ {
+                get<Peer>().push(PushRequest(peerId, chunk))
+            } then {
+                verify(get<Network>()).executePendingRequests()
+            }
 }

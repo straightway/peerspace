@@ -25,6 +25,7 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
@@ -73,5 +74,13 @@ class `PeerImpl general Test` : KoinLoggingDisabler() {
                 get<Peer>().query(knownPeersRequest)
             } then {
                 verify(get<KnownPeersProvider>()).pushKnownPeersTo(knownPeersRequest.originatorId)
+            }
+
+    @Test
+    fun `query executes pending network requests`() =
+            test when_ {
+                get<Peer>().query(dataQuery)
+            } then {
+                verify(get<Network>()).executePendingRequests()
             }
 }

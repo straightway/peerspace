@@ -75,9 +75,9 @@ import java.io.Serializable
 import java.util.Random
 
 class SinglePeerEnvironment(
-        randomSeed: Long = 1234L,
-        val simulator: Simulator,
-        peerId: Id,
+        private val randomSource: RandomSource = RandomSource(Random(1234L)),
+        val simulator: Simulator = Simulator(),
+        peerId: Id = Id("peerId"),
         forwardStrategyFactory: () -> ForwardStrategy = { ForwardStrategyImpl() }
 ) {
     private companion object {
@@ -91,8 +91,6 @@ class SinglePeerEnvironment(
 
     private val simNetwork =
             SimNetwork(simulator, simulator, latency, offlineDetectionTime)
-
-    private var randomSource = RandomSource(Random(randomSeed))
 
     private val chunkSizeGetter: ChunkSizeGetter = { _: Serializable -> 64[ki(byte)] }
 

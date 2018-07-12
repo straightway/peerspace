@@ -23,4 +23,5 @@ import straightway.peerspace.data.Id
 interface Network {
     fun getPushTarget(id: Id): PushTarget
     fun getQuerySource(id: Id): QuerySource
+    fun executePendingRequests()
 }

@@ -39,6 +39,5 @@ class DataPushForwarderImpl :
     override fun forward(push: PushRequest) {
         forwardTracker.forward(push)
         dataQueryHandler.notifyChunkForwarded(push.chunk.key)
-        // TODO: Check if queried chunk is forwarded twice
     }
 }

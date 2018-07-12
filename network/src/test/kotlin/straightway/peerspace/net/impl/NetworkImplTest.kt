@@ -46,10 +46,6 @@ class NetworkImplTest : KoinLoggingDisabler() {
         val pushRequest = PushRequest(
                 peerId,
                 Chunk(Key(Id("ChunkKey")), byteArrayOf()))
-        val transmissionResultListener = object : TransmissionResultListener {
-            override fun notifySuccess() {}
-            override fun notifyFailure() {}
-        }
     }
 
     private val test get() =

@@ -13,14 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-package straightway.peerspace.data
+package straightway.peerspace.net
 
 /**
- * An object which can be hashed according to its ID and its
- * timestamps.
+ * Determine which time epochs are covered by a given
+ * range of timestamps.
  */
-interface KeyHashable : Identifyable {
-    val timestamps: ClosedRange<Long>
-    val epoch: Int?
+interface EpochAnalyzer {
+    fun getEpochs(timestamp: ClosedRange<Long>): List<Int>
 }

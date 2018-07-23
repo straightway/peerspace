@@ -20,14 +20,37 @@ import java.io.Serializable
 /**
  * A key for a network data chunk.
  */
-data class Key(override val id: Id, val timestamp: Long) : KeyHashable, Serializable {
+class Key(
+    id: Id,
+    timestamp: Long = 0L,
+    epoch: Int? = null
+) : KeyHashable, Serializable {
 
-    constructor(id: Id) : this(id, 0)
+    override val id = id
+    override val epoch = if (timestamp == 0L) null else epoch
+    val timestamp = timestamp
+
+    @Suppress("LongParameterList")
+    fun copy(id: Id = this.id, timestamp: Long = this.timestamp, epoch: Int? = this.epoch) =
+            Key(id, timestamp, epoch)
 
     override val timestamps get() = LongRange(timestamp, timestamp)
 
+    override fun equals(other: Any?) =
+            other is Key &&
+            id == other.id &&
+            timestamp == other.timestamp &&
+            epoch == other.epoch
+
+    override fun hashCode() =
+            id.hashCode() xor timestamp.hashCode() xor (epoch?.hashCode() ?: 0)
+
     override fun toString() =
-            if (timestamp == 0L) "Key(${id.identifier})" else "Key(${id.identifier}@$timestamp)"
+            when {
+                isUntimed -> "Key(${id.identifier})"
+                epoch === null -> "Key(${id.identifier}@$timestamp)"
+                else -> "Key(${id.identifier}@$timestamp[$epoch])"
+            }
 
     companion object {
         const val serialVersionUID = 1L

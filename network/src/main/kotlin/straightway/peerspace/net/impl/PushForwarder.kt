@@ -58,7 +58,7 @@ class PushForwarder :
             (getPushForwardPeerIds(forwardState) + chunk.key.queryForwardPeerIds).toSet()
 
     private fun PushRequest.getPushForwardPeerIds(forwardState: ForwardState) =
-            forwardStrategy.getPushForwardPeerIdsFor(chunk.key, forwardState)
+            forwardStrategy.getForwardPeerIdsFor(chunk.key, forwardState)
 
     private val Key.queryForwardPeerIds: Iterable<Id>
         get() = dataQueryHandler.getForwardPeerIdsFor(this)

@@ -32,16 +32,16 @@ import straightway.testing.flow.to_
 
 class PushRequestTest {
 
-    private val test get() = Given {
+    private fun test(timestamp: Long = 0L, epoch: Int? = null) = Given {
         object {
-            val chunk = Chunk(Key(Id("4711")), "Hello".toByteArray())
+            val chunk = Chunk(Key(Id("4711"), timestamp, epoch), "Hello".toByteArray())
             val sut = PushRequest(Id("originatorId"), chunk)
         }
     }
 
     @Test
     fun `chunk is accessible`() =
-            test when_ { sut } then { expect(it.result.chunk is_ Same as_ chunk) }
+            test() when_ { sut } then { expect(it.result.chunk is_ Same as_ chunk) }
 
     @Test
     fun `has serialVersionUID`() =
@@ -49,11 +49,51 @@ class PushRequestTest {
 
     @Test
     fun `is serializable`() =
-            test when_
+            test() when_
             {
                 val serialized = sut.serializeToByteArray()
                 serialized.deserializeTo<PushRequest>()
             } then {
                 expect(it.result is_ Equal to_ sut)
+            }
+
+    @Test
+    fun `withEpoch yields copy of push request with given epoch`() =
+            test(timestamp = 83L) when_ {
+                sut.withEpoch(2)
+            } then {
+                expect(it.result.chunk.key.epoch is_ Equal to_ 2)
+            }
+
+    @Test
+    fun `withEpoch yields copy of push request with same chunk id`() =
+            test(timestamp = 83L) when_ {
+                sut.withEpoch(2)
+            } then {
+                expect(it.result.chunk.key.id is_ Equal to_ sut.chunk.key.id)
+            }
+
+    @Test
+    fun `withEpoch yields copy of push request with same timestamp`() =
+            test(timestamp = 83L) when_ {
+                sut.withEpoch(2)
+            } then {
+                expect(it.result.chunk.key.timestamp is_ Equal to_ sut.chunk.key.timestamp)
+            }
+
+    @Test
+    fun `withEpoch yields copy of push request with identical data`() =
+            test(timestamp = 83L) when_ {
+                sut.withEpoch(2)
+            } then {
+                expect(it.result.chunk.data is_ Same as_ sut.chunk.data)
+            }
+
+    @Test
+    fun `withEpoch yields copy of push request with same originator id`() =
+            test(timestamp = 83L) when_ {
+                sut.withEpoch(2)
+            } then {
+                expect(it.result.originatorId is_ Equal to_ sut.originatorId)
             }
 }

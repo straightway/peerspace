@@ -22,7 +22,7 @@ import straightway.peerspace.net.PeerDirectory
  * PeerDirectory implementation holding the given peer IDs transiently.
  */
 class TransientPeerDirectory : PeerDirectory {
-    override val allKnownPeersIds: Iterable<Id> get() = ids
+    override val allKnownPeersIds: Set<Id> get() = ids
     override infix fun add(id: Id) { ids += id }
 
     private var ids = setOf<Id>()

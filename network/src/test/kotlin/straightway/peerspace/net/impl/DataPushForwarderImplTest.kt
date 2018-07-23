@@ -15,6 +15,10 @@
  */
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Chunk
@@ -23,6 +27,7 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PushRequest
 import straightway.testing.bdd.Given
@@ -30,13 +35,23 @@ import straightway.testing.bdd.Given
 class DataPushForwarderImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val pushRequest = PushRequest(Id("originatorId"), Chunk(Key(Id("chunkId")), byteArrayOf()))
+        val originatorId = Id("originatorId")
+        val chunkId = Id("chunkId")
     }
 
     private val test get() = Given {
         object {
+            var epochs = listOf(0)
+            var chunkKey = Key(chunkId)
+            val pushRequest by lazy { PushRequest(originatorId, Chunk(chunkKey, byteArrayOf())) }
             val environment =
-                    PeerTestEnvironment(dataPushForwarderFactory = { DataPushForwarderImpl() })
+                    PeerTestEnvironment(dataPushForwarderFactory = { DataPushForwarderImpl() }) {
+                        bean {
+                            mock<EpochAnalyzer> {
+                                on { getEpochs(any()) }.thenAnswer { epochs }
+                            }
+                        }
+                    }
             val sut =
                     environment.get<DataPushForwarder>()
             val dataQueryHandler =
@@ -60,5 +75,19 @@ class DataPushForwarderImplTest : KoinLoggingDisabler() {
                 sut.forward(pushRequest)
             } then {
                 verify(dataQueryHandler).notifyChunkForwarded(pushRequest.chunk.key)
+            }
+
+    @Test
+    fun `data chunks belonging to multiple epochs are split`() =
+            test while_ {
+                epochs = listOf(0, 1)
+                chunkKey = chunkKey.copy(timestamp = 83L)
+            } when_ {
+                sut.forward(pushRequest)
+            } then {
+                inOrder(pushForwardTracker) {
+                    verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(0)))
+                    verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(1)))
+                }
             }
 }

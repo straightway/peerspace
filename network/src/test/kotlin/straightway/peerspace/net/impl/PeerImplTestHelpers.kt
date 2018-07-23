@@ -73,7 +73,7 @@ fun createNetworkMock(peers: () -> Collection<Peer> = { listOf() }) = mock<Netwo
 
 fun createPeerDirectory(peers: () -> Collection<Peer> = { listOf() }) = mock<PeerDirectory> {
     on { allKnownPeersIds }.thenAnswer {
-        peers().map { it.id }
+        peers().map { it.id }.toSet()
     }
 }
 

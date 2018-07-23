@@ -13,15 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-@file:Suppress("ForbiddenComment")
-
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.inject
+import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PushRequest
 
@@ -35,9 +35,24 @@ class DataPushForwarderImpl :
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val forwardTracker: ForwardStateTracker<PushRequest, Key>
             by inject("pushForwardTracker")
+    private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun forward(push: PushRequest) {
-        forwardTracker.forward(push)
-        dataQueryHandler.notifyChunkForwarded(push.chunk.key)
+
+        if (push.chunk.key.isUntimed) {
+            forwardTracker.forward(push)
+        } else {
+            push.epochs.forEach { forwardTracker.forward(push.withEpoch(it)) }
+        }
+
+        notifyForwarded(push)
+    }
+
+    private val PushRequest.epochs get() =
+            epochAnalyzer.getEpochs(chunk.key.timestamps)
+
+    private fun notifyForwarded(push: PushRequest) {
+        val chunkKey = push.chunk.key
+        dataQueryHandler.notifyChunkForwarded(chunkKey)
     }
 }

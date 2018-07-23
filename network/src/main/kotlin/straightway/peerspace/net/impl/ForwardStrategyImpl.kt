@@ -13,26 +13,64 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-@file:Suppress("MatchingDeclarationName")
+@file:Suppress("MatchingDeclarationName", "ForbiddenComment")
 
 package straightway.peerspace.net.impl
 
+import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
+import straightway.koinutils.Property.property
+import straightway.peerspace.data.KeyHashable
+import straightway.peerspace.data.KeyHasher
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PeerDirectory
+import straightway.random.Chooser
+import java.lang.Math.abs
+
+// TODO:
+// * Avoid routing loops:
+// ** Don't push the same chunk twice to the same peer (within a certain time)
 
 /**
  * Implementation of the forward strategy for queries and pushes.
  */
 class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleComponent() {
-    override fun getPushForwardPeerIdsFor(chunkKey: Key, state: ForwardState): Iterable<Id> {
-        TODO("not implemented")
+
+    private val id: Id by property("peerId") { Id(it) }
+    private val peerDirectory: PeerDirectory by inject()
+    private val hasher: KeyHasher by inject()
+    private val forwardPeerChooser: Chooser by inject("forwardPeerChooser")
+    private val configuration: Configuration by inject()
+
+    override fun getForwardPeerIdsFor(item: KeyHashable, state: ForwardState): Set<Id> {
+        val itemsToFillUp = state.itemsToFillUp
+        if (itemsToFillUp <= 0) return setOf()
+        val forwardCandidates = peersNearerTo(item.hashes.single()).notCoveredBy(state)
+        return forwardPeerChooser.chooseFrom(forwardCandidates, itemsToFillUp).toSet()
     }
 
-    override fun getQueryForwardPeerIdsFor(query: QueryRequest, state: ForwardState): Iterable<Id> {
-        TODO("not implemented")
+    private val ForwardState.itemsToFillUp get() =
+            configuration.numberOfForwardPeers - nonFailed.size
+
+    private fun List<Id>.notCoveredBy(state: ForwardState) =
+            filter { it !in state.allPeerIds }
+
+    private fun peersNearerTo(itemHash: Long): List<Id> {
+        val ownDistance = abs(itemHash - ownHash)
+        return peerDirectory.allKnownPeersIds.filter { otherPeer ->
+            otherPeer distanceTo itemHash < ownDistance
+        }
     }
+
+    private infix fun Id.distanceTo(chunkHash: Long) = abs(chunkHash - hash)
+    private val Id.hash get() = Key(this).hashes.single()
+    private val KeyHashable.hashes get() = hasher.getHashes(this)
+    private val ForwardState.allPeerIds get() = pending + successful + failed
+    private val ForwardState.nonFailed get() = pending + successful
+
+    private val ownHash by lazy { id.hash }
 }

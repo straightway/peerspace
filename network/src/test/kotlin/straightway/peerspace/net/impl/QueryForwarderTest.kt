@@ -43,13 +43,13 @@ class QueryForwarderTest : KoinLoggingDisabler() {
     private val test get() =
         Given {
             object {
-                var forwardPeerIds = listOf<Id>()
+                var forwardPeerIds = setOf<Id>()
                 val environment = PeerTestEnvironment(
                     knownPeersIds = ids("targetId"),
                     queryForwarderFactory = { QueryForwarder() },
                     forwardStrategyFactory = {
                         mock {
-                            on { getQueryForwardPeerIdsFor(any(), any()) }.thenAnswer {
+                            on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
                                 forwardPeerIds
                             }
                         }
@@ -72,7 +72,7 @@ class QueryForwarderTest : KoinLoggingDisabler() {
     @Test
     fun `getForwardPeerIdsFor returns query forward peer ids from strategy` () =
             test while_ {
-                forwardPeerIds = listOf(environment.knownPeersIds.first())
+                forwardPeerIds = setOf(environment.knownPeersIds.first())
             } when_ {
                 sut.getForwardPeerIdsFor(queryRequest, ForwardState())
             } then {
@@ -85,7 +85,7 @@ class QueryForwarderTest : KoinLoggingDisabler() {
         test when_ {
             sut.getForwardPeerIdsFor(queryRequest, forwardState)
         } then {
-            verify(forwardStrategy).getQueryForwardPeerIdsFor(queryRequest, forwardState)
+            verify(forwardStrategy).getForwardPeerIdsFor(queryRequest, forwardState)
         }
     }
 

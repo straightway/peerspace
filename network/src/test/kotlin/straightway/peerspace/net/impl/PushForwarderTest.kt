@@ -57,8 +57,8 @@ class PushForwarderTest : KoinLoggingDisabler() {
                         pushForwarderFactory = { PushForwarder() },
                         forwardStrategyFactory = {
                             mock {
-                                on { getPushForwardPeerIdsFor(any(), any()) }.thenAnswer {
-                                    forwardPeerIds
+                                on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
+                                    forwardPeerIds.toSet()
                                 }
                             }
                         },
@@ -92,7 +92,7 @@ class PushForwarderTest : KoinLoggingDisabler() {
             } when_ {
                 sut.getForwardPeerIdsFor(pushRequest, ForwardState())
             } then {
-                verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key, ForwardState())
+                verify(forwardStrategy).getForwardPeerIdsFor(chunk.key, ForwardState())
                 expect(it.result is_ Equal to_ forwardPeerIds.toSet())
             }
 
@@ -137,7 +137,7 @@ class PushForwarderTest : KoinLoggingDisabler() {
             } when_ {
                 sut.getForwardPeerIdsFor(pushRequest, ForwardState())
             } then {
-                verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key, ForwardState())
+                verify(forwardStrategy).getForwardPeerIdsFor(chunk.key, ForwardState())
                 expect(it.result is_ Equal to_ environment.knownPeersIds.slice(0..1).toSet())
             }
 
@@ -149,7 +149,7 @@ class PushForwarderTest : KoinLoggingDisabler() {
             } when_ {
                 sut.getForwardPeerIdsFor(pushRequest, ForwardState())
             } then {
-                verify(forwardStrategy).getPushForwardPeerIdsFor(chunk.key, ForwardState())
+                verify(forwardStrategy).getForwardPeerIdsFor(chunk.key, ForwardState())
                 expect(it.result is_ Equal to_ setOf(environment.knownPeersIds[0]))
             }
 

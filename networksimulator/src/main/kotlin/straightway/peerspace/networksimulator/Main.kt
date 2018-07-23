@@ -22,6 +22,7 @@ import straightway.koinutils.withContext
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Network
 import straightway.sim.net.Network as SimNetwork
@@ -31,6 +32,7 @@ import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
 import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
+import straightway.peerspace.net.impl.EpochAnalyzerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
 import straightway.peerspace.net.impl.KnownPeersProviderImpl
@@ -113,14 +115,18 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             bean { SimHasher() as Hasher }
             bean {
                 @Suppress("MagicNumber")
-                EpochKeyHasher(arrayOf(
-                    LongRange(0L, 86400000L), // epoch 0: 1 day
-                    LongRange(86400001L, 604800000L), // epoch 1: 1 week
-                    LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
-                    LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
-                    LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
-                    LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
-                as KeyHasher
+                EpochKeyHasher() as KeyHasher
+            }
+            bean {
+                @Suppress("MagicNumber")
+                EpochAnalyzerImpl(arrayOf(
+                        LongRange(0L, 86400000L), // epoch 0: 1 day
+                        LongRange(86400001L, 604800000L), // epoch 1: 1 week
+                        LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
+                        LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
+                        LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
+                        LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
+                        as EpochAnalyzer
             }
         }.apply {
             extraProperties["peerId"] = id.identifier

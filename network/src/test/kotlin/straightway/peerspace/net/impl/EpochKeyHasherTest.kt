@@ -19,12 +19,14 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
@@ -32,53 +34,37 @@ import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.utils.TimeProvider
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 class EpochKeyHasherTest : KoinLoggingDisabler() {
 
     private companion object {
         val originatorId = Id("originatorId")
         val id = Id("id")
-        val currentTime = LocalDateTime.of(2000, 1, 2, 3, 4, 5, 123456)!!
-        val currTimestamp = ChronoUnit.MILLIS.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime)
-        val epochs = arrayOf(
-            LongRange(0L, 86400000L), // epoch 0: 1 day
-            LongRange(86400001L, 604800000L), // epoch 1: 1 week
-            LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
-            LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
-            LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
-            LongRange(540216000001L, Long.MAX_VALUE) // epoch 5: more than 10 years
-        )
-
-        fun getEpochBorders(epochIndex: Int) = epochs[epochIndex].let {
-            LongRange(currTimestamp - it.first, currTimestamp - it.endInclusive)
-        }
     }
 
     private val test
         get() = Given {
             object {
-                val timeProvider = mock<TimeProvider> {
-                    on { now }.thenReturn(currentTime)
-                }
                 var hashCodes = byteArrayOf(0)
                 val hasher = mock<Hasher> {
                     on { getHash(any()) }.thenAnswer { hashCodes }
                 }
+                var epochs = listOf(0)
+                val epochAnalyzer = mock<EpochAnalyzer> {
+                    on { getEpochs(any()) }.thenAnswer { epochs }
+                }
                 val hashable = QueryRequest(originatorId, id, 83L..83L)
                 var sut = withContext {
-                    bean { timeProvider }
                     bean { hasher }
+                    bean { epochAnalyzer }
                 } make {
-                    EpochKeyHasher(epochs)
+                    EpochKeyHasher()
                 }
             }
         }
 
     @Test
-    fun `hashing for a single timestamp yields a single hash code`() =
+    fun `hashing for a single epoch yields a single hash code`() =
             test when_ {
                 sut.getHashes(hashable)
             } then {
@@ -94,14 +80,6 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
             } then {
                 verify(hasher).getHash(any())
                 expect(it.result.toList() is_ Equal to_ listOf(1L))
-            }
-
-    @Test
-    fun `the hashcode of an id with zero timestamp yields single hash code`() =
-            test when_ {
-                sut.getHashes(QueryRequest(originatorId, id, untimedData))
-            } then {
-                expect(it.result is_ Equal to_ listOf(0L))
             }
 
     @Test
@@ -129,37 +107,15 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
 
     @Test
     fun `the hashcode with given epoch timestamp calls hasher with EPOCH?id)`() =
-            epochs.indices.forEach { testEpoch(it) }
+            listOf(0, 1, 2).forEach { testEpoch(it) }
 
     @Test
-    fun `when two epochs overlap and the id is in the intersection, both hashes are returned`() =
-            test while_ {
-                sut = withContext {
-                    bean { timeProvider }
-                    bean { hasher }
-                } make {
-                    EpochKeyHasher(arrayOf(LongRange(1, 110), LongRange(90, 200)))
-                }
-                hashCodes = byteArrayOf(1)
-            } when_ {
-                val timestamp = currTimestamp - 100L
-                sut.getHashes(QueryRequest(originatorId, id, timestamp..timestamp))
-            } then {
-                expect(it.result is_ Equal to_ listOf(1L, 1L))
-                inOrder(hasher) {
-                    verify(hasher).getHash("EPOCH0($id)")
-                    verify(hasher).getHash("EPOCH1($id)")
-                }
-            }
-
-    @Test
-    fun `when the timestamp range overlaps two epochs, both are returned`() =
+    fun `when the timestamp range overlaps multiple epochs, all of them are returned`() =
             test while_ {
                 hashCodes = byteArrayOf(1)
+                epochs = listOf(1, 2)
             } when_ {
-                val epoch1 = getEpochBorders(1)
-                val epoch2 = getEpochBorders(2)
-                sut.getHashes(QueryRequest(originatorId, id, epoch2.first..epoch1.endInclusive))
+                sut.getHashes(hashable)
             } then {
                 expect(it.result is_ Equal to_ listOf(1L, 1L))
                 inOrder(hasher) {
@@ -169,20 +125,15 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `when the timestamp range overlaps three epochs, all are returned`() =
-            test while_ {
-                hashCodes = byteArrayOf(1)
-            } when_ {
-                val epoch1 = getEpochBorders(1)
-                val epoch3 = getEpochBorders(3)
-                sut.getHashes(QueryRequest(originatorId, id, epoch3.first..epoch1.endInclusive))
+    fun `when epoch is specified, use it and ignore time range`() =
+            test when_ {
+                sut.getHashes(hashable.copy(
+                        timestampsStart = Long.MIN_VALUE,
+                        timestampsEndInclusive = Long.MAX_VALUE,
+                        epoch = 12345))
             } then {
-                expect(it.result is_ Equal to_ listOf(1L, 1L, 1L))
-                inOrder(hasher) {
-                    verify(hasher).getHash("EPOCH1($id)")
-                    verify(hasher).getHash("EPOCH2($id)")
-                    verify(hasher).getHash("EPOCH3($id)")
-                }
+                verify(epochAnalyzer, never()).getEpochs(any())
+                verify(hasher).getHash("EPOCH12345($id)")
             }
 
     @Test
@@ -245,21 +196,14 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
                 expect(it.result is_ Equal to_ listOf(0x0807060504030211L))
             }
 
-    private fun testEpoch(epochIndex: Int) {
-        val epochBorders = epochs[epochIndex]
-        val expectedHash = "EPOCH$epochIndex($id)"
-        testEpochTimestamp(epochBorders.first, expectedHash)
-        testEpochTimestamp(epochBorders.endInclusive, expectedHash)
-    }
-
-    private fun testEpochTimestamp(epochStart: Long, expectedHash: String) {
-        test when_ {
-            val timestamp = currTimestamp - epochStart
-            sut.getHashes(QueryRequest(originatorId, id, timestamp..timestamp))
+    private fun testEpoch(epochIndex: Int) =
+        test while_ {
+            epochs = listOf(epochIndex)
+        } when_ {
+            sut.getHashes(hashable)
         } then {
-            verify(hasher).getHash(expectedHash)
+            verify(hasher).getHash("EPOCH$epochIndex($id)")
         }
-    }
 
     private fun givenHashCodeFromBytes(vararg bytes: Byte) =
             test while_ {

@@ -28,6 +28,9 @@ data class Chunk(val key: Key, val data: ByteArray) : Serializable {
         private const val KeyHashFactor = 31
     }
 
+    fun withEpoch(epoch: Int) =
+            Chunk(key.copy(epoch = epoch), data)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -40,7 +40,7 @@ class QueryForwarder :
 
     override fun getKeyFor(item: QueryRequest) = item
     override fun getForwardPeerIdsFor(item: QueryRequest, state: ForwardState) =
-            forwardStrategy.getQueryForwardPeerIdsFor(item, state)
+            forwardStrategy.getForwardPeerIdsFor(item, state)
     override fun forwardTo(
             target: Id,
             item: QueryRequest,

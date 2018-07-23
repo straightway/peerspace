@@ -34,16 +34,18 @@ class QueryTest : KoinLoggingDisabler() {
     private val test get() =
             Given {
                 object {
-                    var queryForwardPeerIds = listOf<Id>()
-                    var pushForwardPeerIds = listOf<Id>()
+                    var queryForwardPeerIds = setOf<Id>()
+                    var pushForwardPeerIds = setOf<Id>()
                     val environment = SinglePeerEnvironment(
                         forwardStrategyFactory =
                         {
                             mock {
-                                on { getQueryForwardPeerIdsFor(any(), any()) }
-                                        .thenAnswer { queryForwardPeerIds }
-                                on { getPushForwardPeerIdsFor(any(), any()) }
-                                        .thenAnswer { pushForwardPeerIds }
+                                on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
+                                    when (it.arguments[0]) {
+                                        is QueryRequest -> queryForwardPeerIds
+                                        else -> pushForwardPeerIds
+                                    }
+                                }
                             }
                         })
                 }
@@ -64,7 +66,7 @@ class QueryTest : KoinLoggingDisabler() {
         test while_ {
             environment.addRemotePeer(queryer)
             environment.addRemotePeer(pusher)
-            pushForwardPeerIds = listOf(queryer.id)
+            pushForwardPeerIds = setOf(queryer.id)
         } when_ {
             environment.peer.query(QueryRequest(queryer.id, chunk.key.id))
             environment.peer.push(PushRequest(pusher.id, chunk))

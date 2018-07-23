@@ -21,6 +21,6 @@ import straightway.peerspace.data.Id
  * Collection of the IDs of all know other peers.
  */
 interface PeerDirectory {
-    val allKnownPeersIds: Iterable<Id>
+    val allKnownPeersIds: Set<Id>
     infix fun add(id: Id)
 }

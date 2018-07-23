@@ -21,53 +21,36 @@ import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.untimedData
-import straightway.utils.TimeProvider
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 /**
  * Hasher computing hash codes for KeyHashable objects, respecting the timestamp
  * range of these objects and assigning them to time epochs (instead of using the
  * timestamps directly for hashing).
  */
-class EpochKeyHasher(
-        private val epochs: Array<LongRange>
-) : KeyHasher, KoinModuleComponent by KoinModuleComponent() {
+class EpochKeyHasher : KeyHasher, KoinModuleComponent by KoinModuleComponent() {
 
-    private val baseHasher by inject<Hasher>()
-    private val timeProvider by inject<TimeProvider>()
+    private val baseHasher: Hasher by inject()
+    private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun getHashes(hashable: KeyHashable) =
             when (hashable.timestamps) {
-                untimedData -> getDataHashes(hashable)
-                else -> getEpochHashes(hashable)
+                untimedData -> hashable.dataHashes
+                else -> hashable.epochHashes
             }
 
-    private fun getEpochHashes(hashable: KeyHashable) =
-            getEpochs(hashable.timestamps).map { getLongHash("EPOCH$it", hashable) }
+    private val KeyHashable.epochHashes get() =
+            epochs.map { getLongHash("EPOCH$it") }
 
-    private fun getDataHashes(hashable: KeyHashable) =
-            listOf(getLongHash("DATA", hashable))
+    private val KeyHashable.epochs get() =
+            if (epoch == null) epochAnalyzer.getEpochs(timestamps) else listOf(epoch)
 
-    private fun getLongHash(hashType: String, hashable: KeyHashable) =
-            foldToLong(baseHasher.getHash("$hashType(${hashable.id})"))
+    private val KeyHashable.dataHashes get() =
+            listOf(getLongHash("DATA"))
 
-    private fun getEpochs(timestamp: ClosedRange<Long>) =
-            getRelativeRange(timestamp).let {
-                ageRange -> epochs.indices.filter { ageRange overlapsWith epochs[it] }
-            }
-
-    private fun getRelativeRange(timestamp: ClosedRange<Long>) =
-            (currentTimeStamp - timestamp.endInclusive)..(currentTimeStamp - timestamp.start)
-
-    private infix fun ClosedRange<Long>.overlapsWith(outer: ClosedRange<Long>) =
-            start in outer ||
-            endInclusive in outer ||
-            start < outer.start && outer.endInclusive < endInclusive
-
-    private val currentTimeStamp get() =
-        ChronoUnit.MILLIS.between(LocalDateTime.of(0, 1, 1, 0, 0), timeProvider.now)
+    private fun KeyHashable.getLongHash(hashType: String) =
+            foldToLong(baseHasher.getHash("$hashType($id)"))
 
     companion object {
         private const val BitsPerByte = 8

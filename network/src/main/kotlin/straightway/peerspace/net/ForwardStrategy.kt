@@ -16,12 +16,11 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
+import straightway.peerspace.data.KeyHashable
 
 /**
  * Forward strategy for queries and pushes.
  */
 interface ForwardStrategy {
-    fun getPushForwardPeerIdsFor(chunkKey: Key, state: ForwardState): Iterable<Id>
-    fun getQueryForwardPeerIdsFor(query: QueryRequest, state: ForwardState): Iterable<Id>
+    fun getForwardPeerIdsFor(item: KeyHashable, state: ForwardState): Set<Id>
 }

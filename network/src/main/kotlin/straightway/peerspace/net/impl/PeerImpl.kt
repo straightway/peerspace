@@ -34,10 +34,6 @@ import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 
-// TODO:
-// * Avoid routing loops:
-// ** Don't push the same chunk twice to the same peer (within a certain time)
-
 /**
  * Default productive implementation of a peerspace peer.
  */

@@ -32,11 +32,15 @@ data class QueryRequest private constructor(
         override val id: Id,
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
-        val onlyMostRecent: Boolean = false
+        val onlyMostRecent: Boolean = false,
+        override val epoch: Int? = null
 ) : KeyHashable, Serializable {
 
     constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>)
             : this(originatorId, id, timestamps.start, timestamps.endInclusive)
+
+    constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>, epoch: Int)
+            : this(originatorId, id, timestamps.start, timestamps.endInclusive, false, epoch)
 
     constructor(originatorId: Id, id: Id)
             : this(originatorId, id, LongRange(0, 0))

@@ -91,21 +91,6 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `the hash codes of a most recent query are identical to those of a timestamp query`() =
-            test while_ {
-                hashCodes = byteArrayOf(1)
-            } when_ {
-                sut.getHashes(QueryRequest.onlyMostRecent(originatorId, id))
-            } then {
-                expect(it.result is_ Equal to_ List(epochs.size) { 1L })
-                inOrder(hasher) {
-                    epochs.indices.forEach {
-                        verify(hasher).getHash("EPOCH$it($id)")
-                    }
-                }
-            }
-
-    @Test
     fun `the hashcode with given epoch timestamp calls hasher with EPOCH?id)`() =
             listOf(0, 1, 2).forEach { testEpoch(it) }
 

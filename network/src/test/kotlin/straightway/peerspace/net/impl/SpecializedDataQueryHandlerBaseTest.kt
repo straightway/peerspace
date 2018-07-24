@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -33,7 +34,10 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Null
+import straightway.testing.flow.Same
 import straightway.testing.flow.Values
+import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -44,7 +48,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     private companion object {
         val queryOriginatorId = Id("originatorId")
         val queriedChunkId = Id("chunkID")
-        val queryRequest = QueryRequest(queryOriginatorId, queriedChunkId)
+        val untimedQueryRequest = QueryRequest(queryOriginatorId, queriedChunkId)
+        val timedQueryRequest = QueryRequest(queryOriginatorId, queriedChunkId, 2L..7L)
         val matchingChunk = Chunk(Key(queriedChunkId), byteArrayOf())
         val otherChunk = Chunk(Key(Id("otherChunkId")), byteArrayOf())
     }
@@ -55,6 +60,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
         var notifiedChunkKeys = listOf<Key>()
         var pendingQueries = setOf<PendingQuery>()
         var chunkForwardFailure: Pair<Key, Id>? = null
+        var splitRequests: List<QueryRequest>? = null
+        var splitSource: QueryRequest? = null
 
         public override val pendingQueryTracker by lazy {
             mock<PendingQueryTracker> {
@@ -68,6 +75,11 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
 
         override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) {
             chunkForwardFailure = Pair(chunkKey, targetId)
+        }
+
+        override fun splitToEpochs(query: QueryRequest): List<QueryRequest> {
+            splitSource = query
+            return splitRequests ?: listOf(query)
         }
     }
 
@@ -95,17 +107,17 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     @Test
     fun `new handled query is set pending`() =
             test() when_ {
-                sut.handle(queryRequest)
+                sut.handle(untimedQueryRequest)
             } then {
-                verify(sut.pendingQueryTracker).setPending(queryRequest)
+                verify(sut.pendingQueryTracker).setPending(untimedQueryRequest)
             }
 
     @Test
     fun `new handled query is forwarded`() =
             test() when_ {
-                sut.handle(queryRequest)
+                sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker).forward(queryRequest)
+                verify(forwardTracker).forward(untimedQueryRequest)
             }
 
     @Test
@@ -113,9 +125,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             test(isLocalResultPreventingForwarding = true) while_ {
                 chunkStoreQueryResult = listOf(matchingChunk)
             } when_ {
-                sut.handle(queryRequest)
+                sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker, never()).forward(queryRequest)
+                verify(forwardTracker, never()).forward(untimedQueryRequest)
             }
 
     @Test
@@ -123,9 +135,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             test(isLocalResultPreventingForwarding = false) while_ {
                 chunkStoreQueryResult = listOf(matchingChunk)
             } when_ {
-                sut.handle(queryRequest)
+                sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker).forward(queryRequest)
+                verify(forwardTracker).forward(untimedQueryRequest)
             }
 
     @Test
@@ -133,10 +145,10 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             test() while_ {
                 chunkStoreQueryResult = listOf(matchingChunk, otherChunk)
             } when_ {
-                sut.handle(queryRequest)
+                sut.handle(untimedQueryRequest)
             } then {
                 chunkStoreQueryResult.forEach {
-                    verify(environment.getPeer(queryRequest.originatorId))
+                    verify(environment.getPeer(untimedQueryRequest.originatorId))
                             .push(eq(PushRequest(environment.peerId, it)), any())
                 }
             }
@@ -144,18 +156,18 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     @Test
     fun `already pending query is not forwarded again`() =
             test() while_ {
-                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+                sut.pendingQueries = setOf(PendingQuery(untimedQueryRequest, LocalDateTime.MIN))
             } when_ {
-                sut.handle(queryRequest)
+                sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker, never()).forward(queryRequest)
+                verify(forwardTracker, never()).forward(untimedQueryRequest)
             }
 
     @Test
     fun `notifyChunkForwarded pushes chunk to querying peer`() =
             test() while_ {
                 chunkStoreQueryResult = listOf(matchingChunk)
-                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+                sut.pendingQueries = setOf(PendingQuery(untimedQueryRequest, LocalDateTime.MIN))
             } when_ {
                 sut.notifyChunkForwarded(matchingChunk.key)
             } then {
@@ -168,7 +180,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     fun `notifyChunkForwarded does not push not matching chunk`() =
             test() while_ {
                 chunkStoreQueryResult = listOf(otherChunk)
-                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+                sut.pendingQueries = setOf(PendingQuery(untimedQueryRequest, LocalDateTime.MIN))
             } when_ {
                 sut.notifyChunkForwarded(otherChunk.key)
             } then {
@@ -188,7 +200,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     fun `failed chunk forward is signaled`() =
             test() while_ {
                 chunkStoreQueryResult = listOf(matchingChunk)
-                sut.pendingQueries = setOf(PendingQuery(queryRequest, LocalDateTime.MIN))
+                sut.pendingQueries = setOf(PendingQuery(untimedQueryRequest, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(matchingChunk.key)
             } when_ {
                 val listenerKey = Pair(queryOriginatorId, matchingChunk.key)
@@ -196,5 +208,37 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } then {
                 expect(sut.chunkForwardFailure is_ Equal to_
                                Pair(matchingChunk.key, queryOriginatorId))
+            }
+
+    @Test
+    fun `timed query is split`() =
+            test() when_ {
+                sut.handle(timedQueryRequest)
+            } then {
+                expect(sut.splitSource is_ Same as_ timedQueryRequest)
+            }
+
+    @Test
+    fun `split epoch results of timed query are forwarded`() =
+            test() while_ {
+                sut.splitRequests = listOf(
+                        timedQueryRequest.copy(epoch = 1),
+                        timedQueryRequest.copy(epoch = 2))
+            } when_ {
+                sut.handle(timedQueryRequest)
+            } then {
+                inOrder(forwardTracker) {
+                    sut.splitRequests!!.forEach {
+                        verify(forwardTracker).forward(it)
+                    }
+                }
+            }
+
+    @Test
+    fun `untimed queries are not split`() =
+            test() when_ {
+                sut.handle(untimedQueryRequest)
+            } then {
+                expect(sut.splitSource is_ Null)
             }
 }

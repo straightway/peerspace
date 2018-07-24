@@ -32,15 +32,18 @@ data class QueryRequest private constructor(
         override val id: Id,
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
-        val onlyMostRecent: Boolean = false,
         override val epoch: Int? = null
 ) : KeyHashable, Serializable {
 
     constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>)
             : this(originatorId, id, timestamps.start, timestamps.endInclusive)
 
-    constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>, epoch: Int)
-            : this(originatorId, id, timestamps.start, timestamps.endInclusive, false, epoch)
+    constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>, epoch: Int) : this(
+            originatorId,
+            id,
+            timestamps.start,
+            timestamps.endInclusive,
+            if (timestamps == untimedData) null else epoch)
 
     constructor(originatorId: Id, id: Id)
             : this(originatorId, id, LongRange(0, 0))
@@ -52,35 +55,24 @@ data class QueryRequest private constructor(
 
     override fun toString() = when {
         isUntimed -> untimedStringRepresentation
-        onlyMostRecent -> mostRecentStringRepresentation
         else -> timedStringRepresentation
     }
 
     private val untimedStringRepresentation get() =
         "QueryRequest(${id.identifier}->${originatorId.identifier})"
 
-    private val mostRecentStringRepresentation get() =
-        "QueryRequest(${id.identifier}[$mostRecentStringRepresentationTimeBorder]" +
-                "->${originatorId.identifier})"
-
-    private val mostRecentStringRepresentationTimeBorder get() =
-        if (timestampsStart == 0L) "" else "$timestampsStart.."
-
     private val timedStringRepresentation get() =
-        "QueryRequest(${id.identifier}[$timestampsStart..$timestampsEndInclusive]" +
+        "QueryRequest(${id.identifier}[$rangeStringRepresentation]" +
                 "->${originatorId.identifier})"
+
+    private val rangeStringRepresentation get() =
+        "$timestampsStart..$timestampsEndInclusive$epochStringRepresentation"
+
+    private val epochStringRepresentation get() =
+        if (epoch === null) "" else "|$epoch"
 
     companion object {
         const val serialVersionUID = 1L
-
-        @Suppress("LongParameterList")
-        fun onlyMostRecent(originatorId: Id, id: Id, startTimestamp: Long = 0) =
-                QueryRequest(
-                        originatorId,
-                        id,
-                        startTimestamp,
-                        timestampsEndInclusive = Long.MAX_VALUE,
-                        onlyMostRecent = true)
     }
 }
 

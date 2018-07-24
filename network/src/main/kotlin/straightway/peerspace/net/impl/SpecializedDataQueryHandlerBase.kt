@@ -34,6 +34,7 @@ import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
 import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isPending
+import straightway.peerspace.net.isUntimed
 
 /**
  * Base class for DataQueryHandler implementations.
@@ -76,6 +77,8 @@ abstract class SpecializedDataQueryHandlerBase(
 
     protected abstract val pendingQueryTracker: PendingQueryTracker
 
+    protected open fun splitToEpochs(query: QueryRequest) = listOf(query)
+
     private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
             it.forwardedChunkKeys.contains(this)
 
@@ -85,8 +88,15 @@ abstract class SpecializedDataQueryHandlerBase(
         pendingQueryTracker.setPending(query)
         val hasLocalResult = returnLocalResult(query)
         if (hasLocalResult && isLocalResultPreventingForwarding) return
-        forwardTracker.forward(query)
+        forward(query)
     }
+
+    private fun forward(query: QueryRequest) =
+            if (query.isUntimed)
+                forwardTracker.forward(query)
+            else splitToEpochs(query).forEach {
+                forwardTracker.forward(it)
+            }
 
     private fun returnLocalResult(query: QueryRequest): Boolean {
         val localResult = query.result.toList()

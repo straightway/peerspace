@@ -34,7 +34,6 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
-import straightway.testing.flow.Null
 import straightway.testing.flow.Same
 import straightway.testing.flow.Values
 import straightway.testing.flow.as_
@@ -232,13 +231,5 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                         verify(forwardTracker).forward(it)
                     }
                 }
-            }
-
-    @Test
-    fun `untimed queries are not split`() =
-            test() when_ {
-                sut.handle(untimedQueryRequest)
-            } then {
-                expect(sut.splitSource is_ Null)
             }
 }

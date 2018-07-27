@@ -34,7 +34,6 @@ import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
 import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isPending
-import straightway.peerspace.net.isUntimed
 
 /**
  * Base class for DataQueryHandler implementations.
@@ -65,7 +64,7 @@ abstract class SpecializedDataQueryHandlerBase(
             it.query.isMatching(key)
         }
         matchingQueries.forEach {
-            matchingChunks forwardTo it.query.issuer
+            matchingChunks forwardTo { it.query.issuer }
         }
 
         onChunkForwarding(key)
@@ -77,7 +76,7 @@ abstract class SpecializedDataQueryHandlerBase(
 
     protected abstract val pendingQueryTracker: PendingQueryTracker
 
-    protected open fun splitToEpochs(query: QueryRequest) = listOf(query)
+    protected abstract fun splitToEpochs(query: QueryRequest): Iterable<QueryRequest>
 
     private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
             it.forwardedChunkKeys.contains(this)
@@ -92,20 +91,20 @@ abstract class SpecializedDataQueryHandlerBase(
     }
 
     private fun forward(query: QueryRequest) =
-            if (query.isUntimed)
-                forwardTracker.forward(query)
-            else splitToEpochs(query).forEach {
+            splitToEpochs(query).forEach {
                 forwardTracker.forward(it)
             }
 
     private fun returnLocalResult(query: QueryRequest): Boolean {
         val localResult = query.result.toList()
-        localResult forwardTo query.issuer
+        localResult forwardTo { query.issuer }
         return localResult.any()
     }
 
-    private infix fun Iterable<Chunk>.forwardTo(target: IdentifyablePushTarget) =
-            forEach { chunk -> chunk forwardTo target }
+    private infix fun Iterable<Chunk>.forwardTo(targetGetter: () -> IdentifyablePushTarget) {
+        val target by lazy(targetGetter)
+        forEach { chunk -> chunk forwardTo target }
+    }
 
     private val QueryRequest.issuer
         get() = IdentifyablePushTarget(network.getPushTarget(originatorId), originatorId)

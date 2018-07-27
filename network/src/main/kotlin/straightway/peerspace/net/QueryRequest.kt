@@ -51,6 +51,9 @@ data class QueryRequest private constructor(
     constructor(originatorId: Id, identifyable: Identifyable)
             : this(originatorId, identifyable.id)
 
+    @Suppress("UNUSED_PARAMETER")
+    fun withEpoch(epoch: Int) = QueryRequest(originatorId, id, timestamps, epoch)
+
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 
     override fun toString() = when {

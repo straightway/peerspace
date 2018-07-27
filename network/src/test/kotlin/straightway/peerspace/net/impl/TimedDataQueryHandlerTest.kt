@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -25,6 +26,8 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.EpochAnalyzer
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PendingQuery
 import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.QueryRequest
@@ -52,9 +55,13 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
     private val test get() =
         Given {
             object {
+                var epochs = listOf(0)
                 var chunkStoreQueryResult = listOf<Chunk>()
                 var pendingQueries = setOf<PendingQuery>()
                 val pendingQueryRemoveDelegates = mutableListOf<QueryRequestPredicate>()
+                val epochAnalyzer: EpochAnalyzer = mock {
+                    on { getEpochs(any()) }.thenAnswer { epochs }
+                }
                 val environment = PeerTestEnvironment(
                         knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = { TimedDataQueryHandler() },
@@ -72,12 +79,18 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             mock {
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
-                        })
+                        }
+                ) {
+                    bean { epochAnalyzer }
+                }
                 val sut get() =
                     environment.get<DataQueryHandler>("dataQueryHandler")
                             as TimedDataQueryHandler
                 val pendingQueryTracker get() =
                     environment.get<PendingQueryTracker>("pendingTimedQueryTracker")
+                val forwardTracker get() =
+                    environment.get<ForwardStateTracker<QueryRequest, QueryRequest>>(
+                            "queryForwardTracker")
             }
         }
 
@@ -123,6 +136,20 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 val predicate = pendingQueryRemoveDelegates.single()
                 expect(predicate(matchingQuery) is_ True)
                 expect(predicate(matchingQuery.copy(originatorId = Id("otherId"))) is_ False)
+            }
+
+    @Test
+    fun `query is split by epochs`() =
+            test while_ {
+                epochs = listOf(0, 1)
+            } when_ {
+                sut.handle(matchingQuery)
+            } then {
+                verify(epochAnalyzer).getEpochs(matchingQuery.timestamps)
+                inOrder(forwardTracker) {
+                    verify(forwardTracker).forward(matchingQuery.withEpoch(0))
+                    verify(forwardTracker).forward(matchingQuery.withEpoch(1))
+                }
             }
 
     private val QueryRequest.pending get() = PendingQuery(this, LocalDateTime.MIN)

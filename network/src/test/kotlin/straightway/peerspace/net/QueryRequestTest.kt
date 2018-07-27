@@ -185,6 +185,46 @@ class QueryRequestTest {
             }
 
     @Test
+    fun `withEpoch returns queryRequest with given epoch set`() =
+            Given { QueryRequest(originatorId, matchedId, 1L..1L) } when_ {
+                withEpoch(1)
+            } then {
+                expect(it.result.epoch is_ Equal to_ 1)
+            }
+
+    @Test
+    fun `withEpoch returns queryRequest with same originator`() =
+            Given { QueryRequest(originatorId, matchedId, 1L..1L) } when_ {
+                withEpoch(1)
+            } then {
+                expect(it.result.originatorId is_ Equal to_ originatorId)
+            }
+
+    @Test
+    fun `withEpoch returns queryRequest with same matching chunk id`() =
+            Given { QueryRequest(originatorId, matchedId, 1L..1L) } when_ {
+                withEpoch(1)
+            } then {
+                expect(it.result.id is_ Equal to_ matchedId)
+            }
+
+    @Test
+    fun `withEpoch returns queryRequest with same timestamps range`() =
+            Given { QueryRequest(originatorId, matchedId, 1L..1L) } when_ {
+                withEpoch(1)
+            } then {
+                expect(it.result.timestamps is_ Equal to_ 1L..1L)
+            }
+
+    @Test
+    fun `withEpoch returns same queryRequest for untimed query requests`() =
+            Given { QueryRequest(originatorId, matchedId) } when_ {
+                withEpoch(1)
+            } then {
+                expect(it.result is_ Equal to_ QueryRequest(Companion.originatorId, matchedId))
+            }
+
+    @Test
     fun `toString for untimed query`() =
             expect(QueryRequest(Id("originator"), Id("chunk")).toString()
                            is_ Equal to_ "QueryRequest(chunk->originator)")

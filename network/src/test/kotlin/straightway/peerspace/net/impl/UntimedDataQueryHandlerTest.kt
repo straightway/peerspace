@@ -24,6 +24,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PendingQueryTracker
 import straightway.peerspace.net.QueryRequest
 import straightway.testing.bdd.Given
@@ -61,6 +62,9 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             as UntimedDataQueryHandler
                 val pendingQueryTracker get() =
                     environment.get<PendingQueryTracker>("pendingUntimedQueryTracker")
+                val forwardTracker get() =
+                        environment.get<ForwardStateTracker<QueryRequest, QueryRequest>>(
+                                "queryForwardTracker")
                 val predicate get() = removePredicates.single()
             }
         }
@@ -94,4 +98,14 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             } then {
                 expect(QueryRequest(Id("originatorId"), otherChunkId).predicate() is_ False)
             }
+
+    @Test
+    fun `splitToEpochs returns list with argument as single element`() {
+        val query = QueryRequest(Id("originatorId"), Id("ChunkId"))
+        test when_ {
+            sut.handle(query)
+        } then {
+            verify(forwardTracker).forward(query)
+        }
+    }
 }

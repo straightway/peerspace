@@ -26,7 +26,8 @@ import straightway.peerspace.data.KeyHasher
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.PeerDirectory
-import straightway.random.Chooser
+import straightway.utils.TimeProvider
+import java.time.LocalDateTime
 
 class ForwardStrategyTestEnvironment {
     companion object {
@@ -36,7 +37,9 @@ class ForwardStrategyTestEnvironment {
         val otherPeerIds = mapOf(
                 Id("otherId+250") to 250L,
                 Id("otherId+200") to 200L,
+                Id("otherId+180") to 180L,
                 Id("otherId+150") to 150L,
+                Id("otherId+130") to 130L,
                 Id("otherId+100") to 100L,
                 Id("otherId+50") to 50L,
                 Id("otherId-100") to -100L)
@@ -48,14 +51,12 @@ class ForwardStrategyTestEnvironment {
             Key(peerId) to listOf(0L),
             chunkKey to listOf(chunkKeyHash))
     val knownPeerIds = mutableSetOf<Id>()
-    var chosenForwardPeers: List<Id>? = null
-    val forwardPeerChooser = mock<Chooser> {
-        on { chooseFrom<Id>(any(), any()) }.thenAnswer {
-            chosenForwardPeers ?: it.arguments[0]
-        }
-    }
     val configuration = Configuration(numberOfForwardPeers = 2)
     var forwardState = ForwardState()
+    var currentTime = LocalDateTime.of(2000, 1, 1, 0, 0)
+    val timeProvider: TimeProvider = mock {
+        on { now }.thenAnswer { currentTime }
+    }
     val sut = withContext {
         bean {
             mock<PeerDirectory> {
@@ -70,7 +71,7 @@ class ForwardStrategyTestEnvironment {
             }
         }
         bean { configuration }
-        bean("forwardPeerChooser") { forwardPeerChooser }
+        bean { timeProvider }
     }.apply {
         extraProperties["peerId"] = peerId.identifier
     } make {

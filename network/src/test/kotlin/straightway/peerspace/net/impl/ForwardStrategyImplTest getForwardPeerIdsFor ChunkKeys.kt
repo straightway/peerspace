@@ -15,10 +15,6 @@
  */
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
@@ -32,16 +28,19 @@ import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Values
- import straightway.testing.flow.expect
+import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.units.get
+import straightway.units.plus
+import straightway.units.second
 
 class `ForwardStrategyImplTest getForwardPeerIdsFor ChunkKeys` : KoinLoggingDisabler() {
 
     private val test get() = Given { ForwardStrategyTestEnvironment() }
 
     @Test
-    fun `no forward peers empty result if no peer is known`() =
+    fun `empty result if no peer is known`() =
             test while_ {
                 knownPeerIds.clear()
             } when_ {
@@ -92,42 +91,16 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor ChunkKeys` : KoinLoggingDisa
             }
 
     @Test
-    fun `use chooser to choose peers`() =
+    fun `take top peers sorted by distance to the chunk`() =
             test while_ {
                 addKnownPeerForHash(50)
                 addKnownPeerForHash(100)
-                addKnownPeerForHash(150)
-                chosenForwardPeers = listOf(idForHash[100]!!, idForHash[150]!!)
+                addKnownPeerForHash(130)
+                addKnownPeerForHash(180)
             } when_ {
                 sut.getForwardPeerIdsFor(chunkKey, ForwardState())
             } then {
-                expect(it.result is_ Equal to_ chosenForwardPeers!!.toSet())
-            }
-
-    @Test
-    fun `configured number of peers is passed to chooser`() =
-            test when_ {
-                sut.getForwardPeerIdsFor(chunkKey, ForwardState())
-            } then {
-                verify(forwardPeerChooser).chooseFrom(
-                        any<List<Id>>(),
-                        eq(configuration.numberOfForwardPeers))
-            }
-
-    @Test
-    fun `all nearer peers are passed to chooser`() =
-            test while_ {
-                addKnownPeerForHash(-100)
-                addKnownPeerForHash(50)
-                addKnownPeerForHash(100)
-                addKnownPeerForHash(150)
-                chosenForwardPeers = listOf(idForHash[100]!!, idForHash[150]!!)
-            } when_ {
-                sut.getForwardPeerIdsFor(chunkKey, ForwardState())
-            } then {
-                verify(forwardPeerChooser).chooseFrom(
-                        eq(listOf(idForHash[50]!!, idForHash[100]!!, idForHash[150]!!)),
-                        any())
+                expect(it.result is_ Equal to_ setOf(idForHash[130]!!, idForHash[100]!!))
             }
 
     @Test
@@ -142,7 +115,7 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor ChunkKeys` : KoinLoggingDisa
             } when_ {
                 sut.getForwardPeerIdsFor(chunkKey, forwardState)
             } then {
-                verify(forwardPeerChooser).chooseFrom(listOf(idForHash[150]!!), 1)
+                expect(it.result is_ Equal to_ Values(idForHash[150]!!))
             }
 
     @Test
@@ -157,7 +130,8 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor ChunkKeys` : KoinLoggingDisa
             } when_ {
                 sut.getForwardPeerIdsFor(chunkKey, forwardState)
             } then {
-                verify(forwardPeerChooser).chooseFrom(listOf(idForHash[150]!!), 1)
+                //verify(forwardPeerChooser).chooseFrom(listOf(idForHash[150]!!), 1)
+                expect(it.result is_ Equal to_ Values(idForHash[150]!!))
             }
 
     @Test
@@ -173,6 +147,28 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor ChunkKeys` : KoinLoggingDisa
                 sut.getForwardPeerIdsFor(chunkKey, forwardState)
             } then {
                 expect(it.result is_ Empty)
-                verify(forwardPeerChooser, never()).chooseFrom<Id>(any(), any())
+            }
+
+    @Test
+    fun `don't push a chunk to the same peer again within a specified time frame`() =
+            test while_ {
+                addKnownPeerForHash(50)
+                sut.getForwardPeerIdsFor(chunkKey, forwardState.setFailed(idForHash[50]!!))
+            } when_ {
+                sut.getForwardPeerIdsFor(chunkKey, forwardState)
+            } then {
+                expect(it.result is_ Empty)
+            }
+
+    @Test
+    fun `push a chunk to the same peer again after a specified time frame`() =
+            test while_ {
+                addKnownPeerForHash(50)
+                sut.getForwardPeerIdsFor(chunkKey, forwardState.setFailed(idForHash[50]!!))
+                currentTime += configuration.failedPeerIgnoreTimeout + 1[second]
+            } when_ {
+                sut.getForwardPeerIdsFor(chunkKey, forwardState)
+            } then {
+                expect(it.result is_ Equal to_ setOf(idForHash[50]!!))
             }
 }

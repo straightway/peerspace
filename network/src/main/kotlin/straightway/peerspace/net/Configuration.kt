@@ -30,4 +30,5 @@ data class Configuration(
         val maxKnownPeersAnswers: Int = 20,
         val untimedDataQueryTimeout: UnitNumber<Time> = 30[second],
         val timedDataQueryTimeout: UnitNumber<Time> = 5[minute],
-        val numberOfForwardPeers: Int = 2)
+        val numberOfForwardPeers: Int = 2,
+        val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute])

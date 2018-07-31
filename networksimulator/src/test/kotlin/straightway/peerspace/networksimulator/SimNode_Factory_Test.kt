@@ -25,6 +25,7 @@ import straightway.koinutils.withContext
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.chunkSizeGetter
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not

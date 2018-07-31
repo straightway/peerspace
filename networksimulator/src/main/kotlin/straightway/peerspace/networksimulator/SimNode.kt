@@ -13,7 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.networksimulator
 
 import straightway.error.Panic
@@ -21,6 +20,7 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
+import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
@@ -29,12 +29,6 @@ import straightway.sim.net.Message
 import straightway.sim.net.Node
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
-import straightway.units.UnitValue
-import straightway.units.AmountOfData
-import java.io.Serializable
-
-typealias ChunkSizeGetter = (Serializable) -> UnitValue<Int, AmountOfData>
-fun chunkSizeGetter(function: ChunkSizeGetter): ChunkSizeGetter = function
 
 /**
  * Infrastructure for the simulation of a network peer.

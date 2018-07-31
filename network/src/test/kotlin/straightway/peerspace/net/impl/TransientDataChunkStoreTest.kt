@@ -16,48 +16,69 @@
 package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.Test
+import straightway.expr.minus
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Not
+import straightway.testing.flow.Null
+import straightway.testing.flow.Same
 import straightway.testing.flow.Values
+import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.units.AmountOfData
+import straightway.units.UnitNumber
+import straightway.units.byte
+import straightway.units.get
+import straightway.units.me
 
-class TransientDataChunkStoreTest {
+class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("peerId")
         val receiverId = Id("receiverId")
         val chunkId = Id("chunkId")
         val chunkData = "ChunkData".toByteArray()
+        val otherChunkId = Id("otherId")
         const val chunkTimeStamp = 83L
     }
 
-    private val test get() = Given {
+    private fun test(storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)]) = Given {
         object {
-            val sut = TransientDataChunkStore()
+            val environment = PeerTestEnvironment(
+                    dataChunkStoreFactory = { TransientDataChunkStore() },
+                    configurationFactory = { Configuration(storageCapacity = storageCapacity) }
+            ) {
+                bean { chunkSizeGetter { _ -> 1[byte] } }
+            }
+            val sut = environment.get<DataChunkStore>() as TransientDataChunkStore
             val untimedChunk = Chunk(Key(chunkId), chunkData)
             val timedChunk = Chunk(Key(chunkId, chunkTimeStamp), chunkData)
         }
     } while_ {
-        sut.store(Chunk(Key(Id("otherId")), chunkData))
+        sut.store(Chunk(Key(otherChunkId), chunkData))
     }
 
     @Test
     fun `chunk can be stored`() =
-            test when_ { sut.store(untimedChunk) } then {
+            test() when_ { sut.store(untimedChunk) } then {
                 expect(sut[untimedChunk.key] is_ Equal to_ untimedChunk)
             }
 
     @Test
     fun `query for not existing data is empty`() =
-            test when_ {
+            test() when_ {
                 sut.query(QueryRequest(peerId, chunkId, untimedData))
             } then {
                 expect(it.result is_ Empty)
@@ -65,7 +86,7 @@ class TransientDataChunkStoreTest {
 
     @Test
     fun `query hit with untimed key`() =
-            test while_ {
+            test() while_ {
                 sut.store(untimedChunk)
             } when_ {
                 sut.query(QueryRequest(receiverId, chunkId, untimedData))
@@ -75,7 +96,7 @@ class TransientDataChunkStoreTest {
 
     @Test
     fun `no query hit with wanted key but other timestamp`() =
-            test while_ {
+            test() while_ {
                 sut.store(timedChunk)
             } when_ {
                 sut.query(QueryRequest(receiverId, chunkId, 0L..(chunkTimeStamp - 1)))
@@ -85,11 +106,67 @@ class TransientDataChunkStoreTest {
 
     @Test
     fun `query hit with wanted key and timestamp in range`() =
-            test while_ {
+            test() while_ {
                 sut.store(timedChunk)
             } when_ {
                 sut.query(QueryRequest(receiverId, chunkId, chunkTimeStamp..chunkTimeStamp))
             } then {
                 expect(it.result is_ Equal to_ Values(timedChunk))
+            }
+
+    @Test
+    fun `if capacity is exceeded, older chunk is removed an new chunk is stored`() =
+            test(storageCapacity = 1[byte]) when_ {
+                sut.store(untimedChunk)
+            } then {
+                expect(sut[untimedChunk.key] is_ Same as_ untimedChunk)
+                expect(sut[Key(otherChunkId)] is_ Null)
+            }
+
+    @Test
+    fun `if capacity is not exceeded, new chunk is stored in addition`() =
+            test(storageCapacity = 2[byte]) when_ {
+                sut.store(untimedChunk)
+            } then {
+                expect(sut[Key(otherChunkId)] is_ Not - Null)
+                expect(sut[untimedChunk.key] is_ Same as_ untimedChunk)
+            }
+
+    @Test
+    fun `if capacity is exceeded, only one chunk is removed`() =
+            test(storageCapacity = 2[byte]) while_ {
+                sut.store(timedChunk)
+            } when_ {
+                sut.store(untimedChunk)
+            } then {
+                expect(sut[timedChunk.key] is_ Same as_ timedChunk)
+                expect(sut[untimedChunk.key] is_ Same as_ untimedChunk)
+                expect(sut[Key(otherChunkId)] is_ Null)
+            }
+
+    @Test
+    fun `if capacity is exceeded, last queried chunks are considered new`() =
+            test(storageCapacity = 2[byte]) while_ {
+                sut.store(timedChunk)
+                sut.query(QueryRequest(Id("originator"), otherChunkId))
+            } when_ {
+                sut.store(untimedChunk)
+            } then {
+                expect(sut[timedChunk.key] is_ Null)
+                expect(sut[untimedChunk.key] is_ Same as_ untimedChunk)
+                expect(sut[Key(otherChunkId)] is_ Not - Null)
+            }
+
+    @Test
+    fun `adding the same chunk again changes removal order`() =
+            test(storageCapacity = 2[byte]) while_ {
+                sut.store(timedChunk)
+                sut.store(Chunk(Key(otherChunkId), chunkData))
+            } when_ {
+                sut.store(untimedChunk)
+            } then {
+                expect(sut[timedChunk.key] is_ Null)
+                expect(sut[untimedChunk.key] is_ Same as_ untimedChunk)
+                expect(sut[Key(otherChunkId)] is_ Not - Null)
             }
 }

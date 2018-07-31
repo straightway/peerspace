@@ -15,9 +15,12 @@
  */
 package straightway.peerspace.net
 
+import straightway.units.AmountOfData
 import straightway.units.Time
 import straightway.units.UnitNumber
+import straightway.units.byte
 import straightway.units.get
+import straightway.units.me
 import straightway.units.minute
 import straightway.units.second
 
@@ -31,4 +34,5 @@ data class Configuration(
         val untimedDataQueryTimeout: UnitNumber<Time> = 30[second],
         val timedDataQueryTimeout: UnitNumber<Time> = 5[minute],
         val numberOfForwardPeers: Int = 2,
-        val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute])
+        val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute],
+        val storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)])

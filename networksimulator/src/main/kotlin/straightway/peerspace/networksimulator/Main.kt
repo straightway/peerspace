@@ -30,6 +30,7 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochAnalyzerImpl

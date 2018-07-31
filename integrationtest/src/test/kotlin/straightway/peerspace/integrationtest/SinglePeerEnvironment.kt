@@ -21,6 +21,7 @@ import straightway.koinutils.Bean.get
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
+import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushForwarder
@@ -36,6 +37,7 @@ import straightway.peerspace.net.PushRequest
 import straightway.peerspace.net.PushTarget
 import straightway.peerspace.net.QueryRequest
 import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.ForwardStateTrackerImpl
@@ -51,7 +53,6 @@ import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
 import straightway.peerspace.net.impl.UntimedDataQueryHandler
-import straightway.peerspace.networksimulator.ChunkSizeGetter
 import straightway.peerspace.networksimulator.SimChannel
 import straightway.peerspace.networksimulator.SimNode
 import straightway.random.Chooser
@@ -166,6 +167,9 @@ class SinglePeerEnvironment(
         bean("pushForwardTracker") {
             ForwardStateTrackerImpl<PushRequest, Key>(get("pushForwarder"))
                     as ForwardStateTracker<PushRequest, Key>
+        }
+        bean {
+            chunkSizeGetter { _ -> 64[ki(byte)] }
         }
         factory {
             PeerNetworkStub(it["id"]) as PushTarget

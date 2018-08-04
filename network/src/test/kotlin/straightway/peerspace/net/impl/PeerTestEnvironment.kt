@@ -35,9 +35,9 @@ import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
@@ -91,24 +91,25 @@ data class PeerTestEnvironment(
         private val peerFactory: BeanFactory<Peer> = {
             mock()
         },
-        private val queryForwarderFactory: BeanFactory<Forwarder<QueryRequest, QueryRequest>> = {
+        private val queryForwarderFactory:
+        BeanFactory<Forwarder<DataQueryRequest, DataQueryRequest>> = {
             mock()
         },
-        private val pushForwarderFactory: BeanFactory<Forwarder<PushRequest, Key>> = {
+        private val pushForwarderFactory: BeanFactory<Forwarder<DataPushRequest, Key>> = {
             mock()
         },
-        private val pendingTimedQueryTrackerFactory: BeanFactory<PendingQueryTracker> = {
+        private val pendingTimedDataQueryTrackerFactory: BeanFactory<PendingDataQueryTracker> = {
             mock()
         },
-        private val pendingUntimedQueryTrackerFactory: BeanFactory<PendingQueryTracker> = {
+        private val pendingUntimedDataQueryTrackerFactory: BeanFactory<PendingDataQueryTracker> = {
             mock()
         },
         private val queryForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<QueryRequest, QueryRequest>> = {
+        BeanFactory<ForwardStateTracker<DataQueryRequest, DataQueryRequest>> = {
             mock()
         },
         private val pushForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<PushRequest, Key>> = {
+        BeanFactory<ForwardStateTracker<DataPushRequest, Key>> = {
             mock()
         },
         private val additionalInit: Context.() -> Unit = {}
@@ -130,8 +131,8 @@ data class PeerTestEnvironment(
             bean { dataChunkStoreFactory() }
             bean { peerFactory() }
             bean("queryForwarder") { queryForwarderFactory() }
-            bean("pendingTimedQueryTracker") { pendingTimedQueryTrackerFactory() }
-            bean("pendingUntimedQueryTracker") { pendingUntimedQueryTrackerFactory() }
+            bean("pendingTimedQueryTracker") { pendingTimedDataQueryTrackerFactory() }
+            bean("pendingUntimedQueryTracker") { pendingUntimedDataQueryTrackerFactory() }
             bean("queryForwardTracker") { queryForwardTrackerFactory() }
             bean("pushForwarder") { pushForwarderFactory() }
             bean("pushForwardTracker") { pushForwardTrackerFactory() }
@@ -161,7 +162,7 @@ data class PeerTestEnvironment(
     val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
 
     val queryTransmissionResultListeners =
-            mutableMapOf<Pair<Id, QueryRequest>, TransmissionResultListener>()
+            mutableMapOf<Pair<Id, DataQueryRequest>, TransmissionResultListener>()
 
     val pushTransmissionResultListeners =
             mutableMapOf<Pair<Id, Key>, TransmissionResultListener>()

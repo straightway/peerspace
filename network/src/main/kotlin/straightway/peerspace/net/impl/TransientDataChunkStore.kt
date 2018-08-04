@@ -22,7 +22,7 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.units.AmountOfData
 import straightway.units.UnitNumber
 import straightway.units.bit
@@ -43,7 +43,7 @@ class TransientDataChunkStore : DataChunkStore, KoinModuleComponent by KoinModul
         storeNew(chunk)
     }
 
-    override fun query(queryRequest: QueryRequest) =
+    override fun query(queryRequest: DataQueryRequest) =
             storedData.values.filter {
                 it satisfies queryRequest
             }.apply {
@@ -76,7 +76,7 @@ class TransientDataChunkStore : DataChunkStore, KoinModuleComponent by KoinModul
                 acc + chunkSizeGetter(chunk)
             }
 
-    private infix fun Chunk.satisfies(queryRequest: QueryRequest) =
+    private infix fun Chunk.satisfies(queryRequest: DataQueryRequest) =
             key.id == queryRequest.id && key.timestamp in queryRequest.timestamps
 
     private val storedData = mutableMapOf<Key, Chunk>()

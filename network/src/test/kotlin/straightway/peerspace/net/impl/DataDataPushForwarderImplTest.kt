@@ -29,10 +29,10 @@ import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.DataPushRequest
 import straightway.testing.bdd.Given
 
-class DataPushForwarderImplTest : KoinLoggingDisabler() {
+class DataDataPushForwarderImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val originatorId = Id("originatorId")
@@ -43,7 +43,9 @@ class DataPushForwarderImplTest : KoinLoggingDisabler() {
         object {
             var epochs = listOf(0)
             var chunkKey = Key(chunkId)
-            val pushRequest by lazy { PushRequest(originatorId, Chunk(chunkKey, byteArrayOf())) }
+            val pushRequest by lazy {
+                DataPushRequest(originatorId, Chunk(chunkKey, byteArrayOf()))
+            }
             val environment =
                     PeerTestEnvironment(dataPushForwarderFactory = { DataPushForwarderImpl() }) {
                         bean {
@@ -57,7 +59,7 @@ class DataPushForwarderImplTest : KoinLoggingDisabler() {
             val dataQueryHandler =
                     environment.get<DataQueryHandler>("dataQueryHandler")
             val pushForwardTracker =
-                    environment.get<ForwardStateTracker<PushRequest, Key>>("pushForwardTracker")
+                    environment.get<ForwardStateTracker<DataPushRequest, Key>>("pushForwardTracker")
         }
     }
 

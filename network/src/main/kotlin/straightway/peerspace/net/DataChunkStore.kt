@@ -23,5 +23,5 @@ import straightway.peerspace.data.Chunk
  */
 interface DataChunkStore {
     fun store(chunk: Chunk)
-    fun query(queryRequest: QueryRequest): Iterable<Chunk>
+    fun query(queryRequest: DataQueryRequest): Iterable<Chunk>
 }

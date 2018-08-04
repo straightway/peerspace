@@ -25,11 +25,11 @@ import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.PendingQuery
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQuery
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
 import straightway.peerspace.net.isMatching
@@ -46,21 +46,21 @@ abstract class SpecializedDataQueryHandlerBase(
     private val peerId: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
     private val dataChunkStore: DataChunkStore by inject()
-    private val forwardTracker: ForwardStateTracker<QueryRequest, QueryRequest>
+    private val forwardTracker: ForwardStateTracker<DataQueryRequest, DataQueryRequest>
             by inject("queryForwardTracker")
 
-    final override fun handle(query: QueryRequest) {
-        if (!pendingQueryTracker.isPending(query)) handleNewQueryRequest(query)
+    final override fun handle(query: DataQueryRequest) {
+        if (!pendingDataQueryTracker.isPending(query)) handleNewQueryRequest(query)
     }
 
     final override fun getForwardPeerIdsFor(chunkKey: Key) =
-            pendingQueryTracker.getPendingQueriesForChunk(chunkKey)
+            pendingDataQueryTracker.getPendingQueriesForChunk(chunkKey)
                     .filter { !chunkKey.isAlreadyForwardedFor(it) }
                     .map { it.query.originatorId }
 
     final override fun notifyChunkForwarded(key: Key) {
-        val matchingChunks = dataChunkStore.query(QueryRequest(peerId, key))
-        val matchingQueries = pendingQueryTracker.pendingQueries.filter {
+        val matchingChunks = dataChunkStore.query(DataQueryRequest(peerId, key))
+        val matchingQueries = pendingDataQueryTracker.pendingDataQueries.filter {
             it.query.isMatching(key)
         }
         matchingQueries.forEach {
@@ -74,28 +74,28 @@ abstract class SpecializedDataQueryHandlerBase(
 
     protected abstract fun onChunkForwarding(key: Key)
 
-    protected abstract val pendingQueryTracker: PendingQueryTracker
+    protected abstract val pendingDataQueryTracker: PendingDataQueryTracker
 
-    protected abstract fun splitToEpochs(query: QueryRequest): Iterable<QueryRequest>
+    protected abstract fun splitToEpochs(query: DataQueryRequest): Iterable<DataQueryRequest>
 
-    private fun Key.isAlreadyForwardedFor(it: PendingQuery) =
+    private fun Key.isAlreadyForwardedFor(it: PendingDataQuery) =
             it.forwardedChunkKeys.contains(this)
 
-    private val QueryRequest.result get() = dataChunkStore.query(this)
+    private val DataQueryRequest.result get() = dataChunkStore.query(this)
 
-    private fun handleNewQueryRequest(query: QueryRequest) {
-        pendingQueryTracker.setPending(query)
+    private fun handleNewQueryRequest(query: DataQueryRequest) {
+        pendingDataQueryTracker.setPending(query)
         val hasLocalResult = returnLocalResult(query)
         if (hasLocalResult && isLocalResultPreventingForwarding) return
         forward(query)
     }
 
-    private fun forward(query: QueryRequest) =
+    private fun forward(query: DataQueryRequest) =
             splitToEpochs(query).forEach {
                 forwardTracker.forward(it)
             }
 
-    private fun returnLocalResult(query: QueryRequest): Boolean {
+    private fun returnLocalResult(query: DataQueryRequest): Boolean {
         val localResult = query.result.toList()
         localResult forwardTo { query.issuer }
         return localResult.any()
@@ -106,16 +106,16 @@ abstract class SpecializedDataQueryHandlerBase(
         forEach { chunk -> chunk forwardTo target }
     }
 
-    private val QueryRequest.issuer
+    private val DataQueryRequest.issuer
         get() = IdentifyablePushTarget(network.getPushTarget(originatorId), originatorId)
 
     private data class IdentifyablePushTarget(
-            val pushTarget: PushTarget,
+            val pushTarget: DataPushTarget,
             val id: Id)
 
     private infix fun Chunk.forwardTo(target: IdentifyablePushTarget) =
             target.pushTarget.push(
-                    PushRequest(peerId, this),
+                    DataPushRequest(peerId, this),
                     object : TransmissionResultListener {
                         override fun notifySuccess() {}
                         override fun notifyFailure() = onChunkForwardFailed(key, target.id)

@@ -27,8 +27,8 @@ import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.testing.bdd.Given
 
 class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
@@ -36,7 +36,7 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
     private companion object {
         val peerId = Id("PeerId")
         val knownPeerId = Id("knownPeerId")
-        val knownPeersRequest = QueryRequest(peerId, Administrative.KnownPeers)
+        val knownPeersRequest = DataQueryRequest(peerId, Administrative.KnownPeers)
     }
 
     private val test get() = Given {
@@ -113,7 +113,10 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
     @Test
     fun `originator of push request is added to known peers`() =
             test when_ {
-                peerImpl.push(PushRequest(knownPeerId, Chunk(Key(Id("chunkId")), byteArrayOf())))
+                peerImpl.push(
+                        DataPushRequest(
+                                knownPeerId,
+                                Chunk(Key(Id("chunkId")), byteArrayOf())))
             } then {
                 verify(peerDirectory).add(knownPeerId)
             }
@@ -121,7 +124,7 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
     @Test
     fun `originator of query request is added to known peers`() =
             test when_ {
-                peerImpl.query(QueryRequest(knownPeerId, Id("chunkId")))
+                peerImpl.query(DataQueryRequest(knownPeerId, Id("chunkId")))
             } then {
                 verify(peerDirectory).add(knownPeerId)
             }

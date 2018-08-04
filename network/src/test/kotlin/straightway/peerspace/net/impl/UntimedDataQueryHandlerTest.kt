@@ -25,8 +25,8 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataQueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
 import straightway.testing.flow.True
@@ -44,15 +44,15 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
     private val test get() =
         Given {
             object {
-                val removePredicates = mutableListOf<QueryRequest.() -> Boolean>()
+                val removePredicates = mutableListOf<DataQueryRequest.() -> Boolean>()
                 val environment = PeerTestEnvironment(
                         dataQueryHandlerFactory = { UntimedDataQueryHandler() },
-                        pendingUntimedQueryTrackerFactory = {
+                        pendingUntimedDataQueryTrackerFactory = {
                             mock {
                                 on { removePendingQueriesIf(any()) }.thenAnswer {
                                     @Suppress("UNCHECKED_CAST")
                                     removePredicates.add(
-                                            it.arguments[0] as QueryRequest.() -> Boolean)
+                                            it.arguments[0] as DataQueryRequest.() -> Boolean)
                                 }
                             }
                         }
@@ -61,9 +61,9 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                     environment.get<DataQueryHandler>("dataQueryHandler")
                             as UntimedDataQueryHandler
                 val pendingQueryTracker get() =
-                    environment.get<PendingQueryTracker>("pendingUntimedQueryTracker")
+                    environment.get<PendingDataQueryTracker>("pendingUntimedQueryTracker")
                 val forwardTracker get() =
-                        environment.get<ForwardStateTracker<QueryRequest, QueryRequest>>(
+                        environment.get<ForwardStateTracker<DataQueryRequest, DataQueryRequest>>(
                                 "queryForwardTracker")
                 val predicate get() = removePredicates.single()
             }
@@ -88,7 +88,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                expect(QueryRequest(Id("originatorId"), chunkId).predicate() is_ True)
+                expect(DataQueryRequest(Id("originatorId"), chunkId).predicate() is_ True)
             }
 
     @Test
@@ -96,12 +96,12 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                expect(QueryRequest(Id("originatorId"), otherChunkId).predicate() is_ False)
+                expect(DataQueryRequest(Id("originatorId"), otherChunkId).predicate() is_ False)
             }
 
     @Test
     fun `splitToEpochs returns list with argument as single element`() {
-        val query = QueryRequest(Id("originatorId"), Id("ChunkId"))
+        val query = DataQueryRequest(Id("originatorId"), Id("ChunkId"))
         test when_ {
             sut.handle(query)
         } then {

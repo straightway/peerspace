@@ -13,24 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Key
-
 /**
- * Track pending queries through time and while chunks come in which my satisfy
- * pending queries.
+ * An entity which can be queried for data.
  */
-interface PendingQueryTracker {
-    val pendingQueries: Set<PendingQuery>
-    fun setPending(query: QueryRequest)
-    fun removePendingQueriesIf(predicate: QueryRequest.() -> Boolean)
-    fun addForwardedChunk(pendingQuery: PendingQuery, chunkKey: Key)
+interface DataQuerySource {
+    fun query(
+            request: DataQueryRequest,
+            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
 }
-
-fun PendingQueryTracker.isPending(query: QueryRequest) =
-        pendingQueries.any { it.query == query }
-
-fun PendingQueryTracker.getPendingQueriesForChunk(chunkKey: Key) =
-        pendingQueries.filter { it.query.isMatching(chunkKey) }

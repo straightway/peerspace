@@ -29,7 +29,7 @@ import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
@@ -38,13 +38,13 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PushForwarderTest : KoinLoggingDisabler() {
+class DataPushForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunkId")
         val chunk = Chunk(Key(chunkId), byteArrayOf())
         val originatorId = Id("originatorId")
-        val pushRequest = PushRequest(originatorId, chunk)
+        val pushRequest = DataPushRequest(originatorId, chunk)
     }
 
     private val test get() =
@@ -54,7 +54,7 @@ class PushForwarderTest : KoinLoggingDisabler() {
                 var queryForwardPeerIds = listOf<Id>()
                 val environment = PeerTestEnvironment(
                         knownPeersIds = ids("peer0", "peer1", "peer2"),
-                        pushForwarderFactory = { PushForwarder() },
+                        pushForwarderFactory = { DataPushForwarder() },
                         forwardStrategyFactory = {
                             mock {
                                 on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
@@ -70,7 +70,7 @@ class PushForwarderTest : KoinLoggingDisabler() {
                             }
                         }
                 )
-                val sut get() = environment.get<Forwarder<PushRequest, Key>>("pushForwarder")
+                val sut get() = environment.get<Forwarder<DataPushRequest, Key>>("pushForwarder")
                 val forwardStrategy get() = environment.get<ForwardStrategy>()
                 val dataQueryHandler get() =
                     environment.get<DataQueryHandler>("dataQueryHandler")
@@ -80,7 +80,7 @@ class PushForwarderTest : KoinLoggingDisabler() {
     @Test
     fun `getKeyFor yields key for chunk`() =
             test when_ {
-                sut.getKeyFor(PushRequest(Id("originatorId"), chunk))
+                sut.getKeyFor(DataPushRequest(Id("originatorId"), chunk))
             } then {
                 expect(it.result is_ Equal to_ chunk.key)
             }

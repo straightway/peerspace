@@ -21,7 +21,7 @@ import straightway.peerspace.data.Id
  * A network consisting of network peers.
  */
 interface Network {
-    fun getPushTarget(id: Id): PushTarget
-    fun getQuerySource(id: Id): QuerySource
+    fun getPushTarget(id: Id): DataPushTarget
+    fun getQuerySource(id: Id): DataQuerySource
     fun executePendingRequests()
 }

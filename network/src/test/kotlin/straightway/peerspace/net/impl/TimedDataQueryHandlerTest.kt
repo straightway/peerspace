@@ -28,9 +28,9 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
-import straightway.peerspace.net.PendingQuery
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQuery
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataQueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
 import straightway.testing.flow.True
@@ -38,7 +38,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import java.time.LocalDateTime
 
-private typealias QueryRequestPredicate = QueryRequest.() -> Boolean
+private typealias QueryRequestPredicate = DataQueryRequest.() -> Boolean
 
 class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
 
@@ -47,9 +47,9 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         val otherChunkId = Id("otherChunkId")
         val chunk1 = Chunk(Key(chunkId, 1), byteArrayOf())
         val queryOriginatorId = Id("originatorId")
-        val matchingQuery = QueryRequest(queryOriginatorId, chunkId, 1L..1L)
-        val otherMatchingQuery = QueryRequest(queryOriginatorId, chunkId, 1L..2L)
-        val notMatchingQuery = QueryRequest(queryOriginatorId, otherChunkId)
+        val matchingQuery = DataQueryRequest(queryOriginatorId, chunkId, 1L..1L)
+        val otherMatchingQuery = DataQueryRequest(queryOriginatorId, chunkId, 1L..2L)
+        val notMatchingQuery = DataQueryRequest(queryOriginatorId, otherChunkId)
     }
 
     private val test get() =
@@ -57,7 +57,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             object {
                 var epochs = listOf(0)
                 var chunkStoreQueryResult = listOf<Chunk>()
-                var pendingQueries = setOf<PendingQuery>()
+                var pendingQueries = setOf<PendingDataQuery>()
                 val pendingQueryRemoveDelegates = mutableListOf<QueryRequestPredicate>()
                 val epochAnalyzer: EpochAnalyzer = mock {
                     on { getEpochs(any()) }.thenAnswer { epochs }
@@ -65,9 +65,9 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 val environment = PeerTestEnvironment(
                         knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = { TimedDataQueryHandler() },
-                        pendingTimedQueryTrackerFactory = {
+                        pendingTimedDataQueryTrackerFactory = {
                             mock {
-                                on { pendingQueries }.thenAnswer { pendingQueries }
+                                on { pendingDataQueries }.thenAnswer { pendingQueries }
                                 on { removePendingQueriesIf(any()) }.thenAnswer {
                                     @Suppress("UNCHECKED_CAST")
                                     val predicate = (it.arguments[0] as QueryRequestPredicate)
@@ -87,9 +87,9 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                     environment.get<DataQueryHandler>("dataQueryHandler")
                             as TimedDataQueryHandler
                 val pendingQueryTracker get() =
-                    environment.get<PendingQueryTracker>("pendingTimedQueryTracker")
+                    environment.get<PendingDataQueryTracker>("pendingTimedQueryTracker")
                 val forwardTracker get() =
-                    environment.get<ForwardStateTracker<QueryRequest, QueryRequest>>(
+                    environment.get<ForwardStateTracker<DataQueryRequest, DataQueryRequest>>(
                             "queryForwardTracker")
             }
         }
@@ -127,7 +127,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
     fun `pending query is removed if matching chunk is received and originator is unreachable`() =
             test while_ {
                 chunkStoreQueryResult = listOf(chunk1)
-                pendingQueries = setOf(PendingQuery(matchingQuery, LocalDateTime.MIN))
+                pendingQueries = setOf(PendingDataQuery(matchingQuery, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(chunk1.key)
             } when_ {
                 val listenerKey = Pair(queryOriginatorId, chunk1.key)
@@ -152,5 +152,5 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 }
             }
 
-    private val QueryRequest.pending get() = PendingQuery(this, LocalDateTime.MIN)
+    private val DataQueryRequest.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
 }

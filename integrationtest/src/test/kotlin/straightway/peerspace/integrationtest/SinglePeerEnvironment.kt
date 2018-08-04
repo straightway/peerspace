@@ -32,11 +32,11 @@ import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QueryRequest
-import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
@@ -46,9 +46,8 @@ import straightway.peerspace.net.impl.KnownPeersProviderImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.PeerNetworkStub
-import straightway.peerspace.net.impl.PendingQueryTrackerImpl
-import straightway.peerspace.net.impl.PushForwarder
-import straightway.peerspace.net.impl.QueryForwarder
+import straightway.peerspace.net.impl.PendingDataQueryTrackerImpl
+import straightway.peerspace.net.impl.DataQueryForwarder
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -149,33 +148,33 @@ class SinglePeerEnvironment(
             TransientDataChunkStore() as DataChunkStore
         }
         bean("queryForwarder") {
-            QueryForwarder() as Forwarder<QueryRequest, QueryRequest>
+            DataQueryForwarder() as Forwarder<DataQueryRequest, DataQueryRequest>
         }
         bean("pendingTimedQueryTracker") {
-            PendingQueryTrackerImpl { timedDataQueryTimeout } as PendingQueryTracker
+            PendingDataQueryTrackerImpl { timedDataQueryTimeout } as PendingDataQueryTracker
         }
         bean("pendingUntimedQueryTracker") {
-            PendingQueryTrackerImpl { untimedDataQueryTimeout } as PendingQueryTracker
+            PendingDataQueryTrackerImpl { untimedDataQueryTimeout } as PendingDataQueryTracker
         }
         bean("queryForwardTracker") {
-            ForwardStateTrackerImpl<QueryRequest, QueryRequest>(get("queryForwarder"))
-                    as ForwardStateTracker<QueryRequest, QueryRequest>
+            ForwardStateTrackerImpl<DataQueryRequest, DataQueryRequest>(get("queryForwarder"))
+                    as ForwardStateTracker<DataQueryRequest, DataQueryRequest>
         }
         bean("pushForwarder") {
-            PushForwarder() as Forwarder<PushRequest, Key>
+            straightway.peerspace.net.impl.DataPushForwarder() as Forwarder<DataPushRequest, Key>
         }
         bean("pushForwardTracker") {
-            ForwardStateTrackerImpl<PushRequest, Key>(get("pushForwarder"))
-                    as ForwardStateTracker<PushRequest, Key>
+            ForwardStateTrackerImpl<DataPushRequest, Key>(get("pushForwarder"))
+                    as ForwardStateTracker<DataPushRequest, Key>
         }
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }
         }
         factory {
-            PeerNetworkStub(it["id"]) as PushTarget
+            PeerNetworkStub(it["id"]) as DataPushTarget
         }
         factory {
-            PeerNetworkStub(it["id"]) as QuerySource
+            PeerNetworkStub(it["id"]) as DataQuerySource
         }
         factory {
             val from = _simNodes[peerId]!!
@@ -190,8 +189,8 @@ class SinglePeerEnvironment(
 
     fun createSimNode(parentPeer: Peer) =
             withContext {
-                bean { parentPeer as PushTarget }
-                bean { parentPeer as QuerySource }
+                bean { parentPeer as DataPushTarget }
+                bean { parentPeer as DataQuerySource }
                 bean("simNodes") { _simNodes }
                 bean { simNetwork as TransmissionRequestHandler }
                 bean { chunkSizeGetter }

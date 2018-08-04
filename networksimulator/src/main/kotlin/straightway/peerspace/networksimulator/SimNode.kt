@@ -21,10 +21,10 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
 import straightway.peerspace.net.ChunkSizeGetter
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QueryRequest
-import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.DataQuerySource
 import straightway.sim.net.Message
 import straightway.sim.net.Node
 import straightway.sim.net.TransmissionRequestHandler
@@ -36,8 +36,8 @@ import straightway.sim.net.TransmissionStream
 class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
 
     private val id: Id by property("peerId") { Id(it) }
-    private val parentPushTarget by inject<PushTarget> { mapOf("id" to id) }
-    private val parentQuerySource by inject<QuerySource> { mapOf("id" to id) }
+    private val parentPushTarget by inject<DataPushTarget> { mapOf("id" to id) }
+    private val parentQuerySource by inject<DataQuerySource> { mapOf("id" to id) }
     private val simNodes by inject<MutableMap<Id, SimNode>>("simNodes")
     private val transmissionRequestHandler: TransmissionRequestHandler by inject()
     private val chunkSizeGetter by inject<ChunkSizeGetter>()
@@ -54,8 +54,8 @@ class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
     override fun notifyReceive(sender: Node, message: Message) {
         message.content.let {
             when (it) {
-                is PushRequest -> parentPushTarget.push(it)
-                is QueryRequest -> parentQuerySource.query(it)
+                is DataPushRequest -> parentPushTarget.push(it)
+                is DataQueryRequest -> parentQuerySource.query(it)
                 else -> throw Panic("Invalid request: $it")
             }
         }

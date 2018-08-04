@@ -30,12 +30,12 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class PushRequestTest {
+class DataPushRequestTest {
 
     private fun test(timestamp: Long = 0L, epoch: Int? = null) = Given {
         object {
             val chunk = Chunk(Key(Id("4711"), timestamp, epoch), "Hello".toByteArray())
-            val sut = PushRequest(Id("originatorId"), chunk)
+            val sut = DataPushRequest(Id("originatorId"), chunk)
         }
     }
 
@@ -45,14 +45,14 @@ class PushRequestTest {
 
     @Test
     fun `has serialVersionUID`() =
-        expect(PushRequest.serialVersionUID is_ Equal to_ 1L)
+        expect(DataPushRequest.serialVersionUID is_ Equal to_ 1L)
 
     @Test
     fun `is serializable`() =
             test() when_
             {
                 val serialized = sut.serializeToByteArray()
-                serialized.deserializeTo<PushRequest>()
+                serialized.deserializeTo<DataPushRequest>()
             } then {
                 expect(it.result is_ Equal to_ sut)
             }

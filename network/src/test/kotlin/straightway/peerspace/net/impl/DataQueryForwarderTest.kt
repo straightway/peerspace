@@ -26,7 +26,7 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -34,10 +34,10 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class QueryForwarderTest : KoinLoggingDisabler() {
+class DataQueryForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest = QueryRequest(Id("originatorId"), Id("chunkId"))
+        val queryRequest = DataQueryRequest(Id("originatorId"), Id("chunkId"))
     }
 
     private val test get() =
@@ -45,9 +45,9 @@ class QueryForwarderTest : KoinLoggingDisabler() {
             object {
                 var forwardPeerIds = setOf<Id>()
                 val environment = PeerTestEnvironment(
-                    knownPeersIds = ids("targetId"),
-                    queryForwarderFactory = { QueryForwarder() },
-                    forwardStrategyFactory = {
+                        knownPeersIds = ids("targetId"),
+                        queryForwarderFactory = { DataQueryForwarder() },
+                        forwardStrategyFactory = {
                         mock {
                             on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
                                 forwardPeerIds
@@ -55,7 +55,7 @@ class QueryForwarderTest : KoinLoggingDisabler() {
                         }
                     })
                 val sut get() =
-                    environment.get<Forwarder<QueryRequest, QueryRequest>>("queryForwarder")
+                    environment.get<Forwarder<DataQueryRequest, DataQueryRequest>>("queryForwarder")
                 val forwardStrategy get() =
                     environment.get<ForwardStrategy>()
             }

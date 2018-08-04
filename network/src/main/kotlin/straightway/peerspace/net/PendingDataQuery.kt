@@ -22,8 +22,8 @@ import java.time.LocalDateTime
 /**
  * A data record for a pending query.
  */
-data class PendingQuery(
-        val query: QueryRequest,
+data class PendingDataQuery(
+        val query: DataQueryRequest,
         val receiveTime: LocalDateTime,
         val forwardedChunkKeys: Set<Key> = setOf()) {
 

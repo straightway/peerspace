@@ -21,9 +21,9 @@ import straightway.koinutils.Bean.get
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.PendingQuery
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQuery
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.isPending
 import straightway.units.Time
 import straightway.units.minus
@@ -31,47 +31,47 @@ import straightway.utils.TimeProvider
 import straightway.units.UnitNumber
 
 /**
- * Default implementation of the PendingQueryTracker interface.
+ * Default implementation of the PendingDataQueryTracker interface.
  */
-class PendingQueryTrackerImpl(
+class PendingDataQueryTrackerImpl(
         private val pendingTimeoutConfiguration: Configuration.() -> UnitNumber<Time>
-) : PendingQueryTracker, KoinModuleComponent by KoinModuleComponent() {
+) : PendingDataQueryTracker, KoinModuleComponent by KoinModuleComponent() {
 
     private val timeProvider: TimeProvider by inject()
 
-    override fun setPending(query: QueryRequest) {
+    override fun setPending(query: DataQueryRequest) {
         if (!isPending(query))
-            _pendingQueries += PendingQuery(query, timeProvider.now)
+            _pendingQueries += PendingDataQuery(query, timeProvider.now)
     }
 
-    override val pendingQueries: Set<PendingQuery> get() {
+    override val pendingDataQueries: Set<PendingDataQuery> get() {
         _pendingQueries = _pendingQueries.filter { !isTooOld }
         return _pendingQueries
     }
 
-    override fun removePendingQueriesIf(predicate: QueryRequest.() -> Boolean) {
+    override fun removePendingQueriesIf(predicate: DataQueryRequest.() -> Boolean) {
         _pendingQueries = _pendingQueries.filter { !query.predicate() }
     }
 
-    override fun addForwardedChunk(pendingQuery: PendingQuery, chunkKey: Key) {
+    override fun addForwardedChunk(pendingQuery: PendingDataQuery, chunkKey: Key) {
         val oldPendingQuery = _pendingQueries.single { it == pendingQuery }
         val newPendingQuery = oldPendingQuery.copy(
                         forwardedChunkKeys = oldPendingQuery.forwardedChunkKeys + chunkKey)
         setPendingQuery(newPendingQuery)
     }
 
-    private fun setPendingQuery(pendingQuery: PendingQuery) {
+    private fun setPendingQuery(pendingQuery: PendingDataQuery) {
         _pendingQueries = _pendingQueries.update(pendingQuery)
     }
 
-    private val PendingQuery.isTooOld get() = receiveTime < tooOldThreshold
+    private val PendingDataQuery.isTooOld get() = receiveTime < tooOldThreshold
     private val pendingTimeout by lazy { get<Configuration>().pendingTimeoutConfiguration() }
     private val tooOldThreshold get() = timeProvider.now - pendingTimeout
 
     private fun <T> Set<T>.filter(predicate: T.() -> Boolean) =
             (this as Iterable<T>).filter(predicate).toSet()
-    private fun Set<PendingQuery>.update(toUpdate: PendingQuery) =
+    private fun Set<PendingDataQuery>.update(toUpdate: PendingDataQuery) =
             filter { query != toUpdate.query } + toUpdate
 
-    private var _pendingQueries = setOf<PendingQuery>()
+    private var _pendingQueries = setOf<PendingDataQuery>()
 }

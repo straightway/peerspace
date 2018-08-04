@@ -26,7 +26,7 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.DataPushRequest
 import straightway.random.Chooser
 import straightway.utils.serializeToByteArray
 
@@ -45,7 +45,7 @@ class KnownPeersProviderImpl : KnownPeersProvider, KoinModuleComponent by KoinMo
             targetPeerId.asPushTarget.push(knownPeersAnswerRequest)
 
     private val knownPeersAnswerRequest
-        get() = PushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
+        get() = DataPushRequest(id, Chunk(knownPeersChunkKey, serializedKnownPeersQueryAnswer))
 
     private val serializedKnownPeersQueryAnswer
         get() = knownPeersQueryAnswer.serializeToByteArray()

@@ -27,7 +27,7 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -53,7 +53,7 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
                 val epochAnalyzer = mock<EpochAnalyzer> {
                     on { getEpochs(any()) }.thenAnswer { epochs }
                 }
-                val hashable = QueryRequest(originatorId, id, 83L..83L)
+                val hashable = DataQueryRequest(originatorId, id, 83L..83L)
                 var sut = withContext {
                     bean { hasher }
                     bean { epochAnalyzer }
@@ -85,7 +85,7 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
     @Test
     fun `the hashcode of an id with zero timestamp calls hasher with DATA(id)`() =
             test when_ {
-                sut.getHashes(QueryRequest(originatorId, id, untimedData))
+                sut.getHashes(DataQueryRequest(originatorId, id, untimedData))
             } then {
                 verify(hasher).getHash("DATA($id)")
             }
@@ -194,6 +194,6 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
             test while_ {
                 hashCodes = bytes
             } when_ {
-                sut.getHashes(QueryRequest(originatorId, id, untimedData))
+                sut.getHashes(DataQueryRequest(originatorId, id, untimedData))
             }
 }

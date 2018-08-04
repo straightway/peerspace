@@ -27,9 +27,9 @@ import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -43,7 +43,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     private companion object {
         val peerId = Id("peerId")
         val receiverId = Id("receiver")
-        val pushRequest = PushRequest(
+        val pushRequest = DataPushRequest(
                 peerId,
                 Chunk(Key(Id("ChunkKey")), byteArrayOf()))
     }
@@ -52,9 +52,9 @@ class NetworkImplTest : KoinLoggingDisabler() {
             Given {
                 object {
                     var createdIds = listOf<Id>()
-                    val pushTargets = mutableMapOf<Id, PushTarget>()
+                    val pushTargets = mutableMapOf<Id, DataPushTarget>()
                     val transmissionResultListeners = mutableListOf<TransmissionResultListener>()
-                    val querySource = mock<QuerySource>()
+                    val querySource = mock<DataQuerySource>()
                     val environment = PeerTestEnvironment(
                             peerId = peerId,
                             networkFactory = { NetworkImpl() }
@@ -103,7 +103,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     fun `pushTarget does not execute push immediately`() =
             test when_ {
                 val pushTarget = sut.getPushTarget(receiverId)
-                val pushRequest = PushRequest(
+                val pushRequest = DataPushRequest(
                         environment.peerId,
                         Chunk(Key(Id("ChunkKey")), byteArrayOf()))
                 pushTarget.push(pushRequest)

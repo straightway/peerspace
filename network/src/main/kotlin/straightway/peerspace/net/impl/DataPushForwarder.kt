@@ -17,37 +17,49 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
+import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
- * Forwarder implementation for query requests.
+ * Forwarder implementation for push requests.
  */
-class QueryForwarder :
-        Forwarder<QueryRequest, QueryRequest>,
+class DataPushForwarder :
+        Forwarder<DataPushRequest, Key>,
         KoinModuleComponent by KoinModuleComponent() {
 
     private val peerId: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
+    private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val forwardStrategy: ForwardStrategy by inject()
 
-    override fun getKeyFor(item: QueryRequest) = item
-    override fun getForwardPeerIdsFor(item: QueryRequest, state: ForwardState) =
-            forwardStrategy.getForwardPeerIdsFor(item, state)
+    override fun getKeyFor(item: DataPushRequest) = item.chunk.key
+
+    override fun getForwardPeerIdsFor(item: DataPushRequest, state: ForwardState) =
+            item.getForwardPeersFromStrategies(state) - item.originatorId
+
     override fun forwardTo(
             target: Id,
-            item: QueryRequest,
+            item: DataPushRequest,
             transmissionResultListener: TransmissionResultListener
-    ) {
-        network.getQuerySource(target).query(
-                item.copy(originatorId = peerId),
-                transmissionResultListener)
-    }
+    ) =
+            network.getPushTarget(target).push(
+                    DataPushRequest(peerId, item.chunk), transmissionResultListener)
+
+    private fun DataPushRequest.getForwardPeersFromStrategies(forwardState: ForwardState) =
+            (getPushForwardPeerIds(forwardState) + chunk.key.queryForwardPeerIds).toSet()
+
+    private fun DataPushRequest.getPushForwardPeerIds(forwardState: ForwardState) =
+            forwardStrategy.getForwardPeerIdsFor(chunk.key, forwardState)
+
+    private val Key.queryForwardPeerIds: Iterable<Id>
+        get() = dataQueryHandler.getForwardPeerIdsFor(this)
 }

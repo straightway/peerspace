@@ -23,10 +23,10 @@ import java.io.Serializable
 /**
  * A request to push data to another peer.
  */
-data class PushRequest(val originatorId: Id, val chunk: Chunk) : Serializable {
+data class DataPushRequest(val originatorId: Id, val chunk: Chunk) : Serializable {
 
     fun withEpoch(epoch: Int) =
-            PushRequest(originatorId, chunk.withEpoch(epoch))
+            DataPushRequest(originatorId, chunk.withEpoch(epoch))
 
     companion object {
         const val serialVersionUID = 1L

@@ -23,8 +23,8 @@ import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
@@ -32,19 +32,19 @@ import straightway.random.Chooser
 @Suppress("LongParameterList")
 fun createPeerMock(
         id: Id,
-        pushCallback: (PushRequest, TransmissionResultListener) -> Unit = { _, _ -> },
-        queryCallback: (QueryRequest, TransmissionResultListener) -> Unit = { _, _ -> }
+        pushCallback: (DataPushRequest, TransmissionResultListener) -> Unit = { _, _ -> },
+        queryCallback: (DataQueryRequest, TransmissionResultListener) -> Unit = { _, _ -> }
 ) =
         mock<Peer> {
             on { this.id }.thenReturn(id)
             on { push(any(), any()) }.thenAnswer {
                 pushCallback(
-                        it.arguments[0] as PushRequest,
+                        it.arguments[0] as DataPushRequest,
                         it.arguments[1] as TransmissionResultListener)
             }
             on { query(any(), any()) }.thenAnswer {
                 queryCallback(
-                        it.arguments[0] as QueryRequest,
+                        it.arguments[0] as DataQueryRequest,
                         it.arguments[1] as TransmissionResultListener)
             }
         }
@@ -56,7 +56,7 @@ fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataC
     return mock {
         on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as Chunk) }
         on { query(any()) }.thenAnswer {
-            val query = it.arguments[0] as QueryRequest
+            val query = it.arguments[0] as DataQueryRequest
             chunks.filter { query.isMatching(it.key) }
         }
     }

@@ -24,8 +24,8 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Channel
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
@@ -63,8 +63,8 @@ class PeerNetworkStubTest : KoinLoggingDisabler() {
                     { _, _ -> }
             val sut = environment.get<PeerNetworkStub> { mapOf("id" to peerId) }
             val data = Chunk(Key(Id("Key")), byteArrayOf(1, 2, 3))
-            val pushRequest = PushRequest(peerId, data)
-            val queryRequest = QueryRequest(Id("originatorId"), data.key.id, untimedData)
+            val pushRequest = DataPushRequest(peerId, data)
+            val queryRequest = DataQueryRequest(Id("originatorId"), data.key.id, untimedData)
         }
     }
 

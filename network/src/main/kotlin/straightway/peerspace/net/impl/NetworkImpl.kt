@@ -20,9 +20,9 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -31,8 +31,8 @@ import straightway.peerspace.net.TransmissionResultListener
 class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
 
     private data class PendingPush(
-            val receiver: PushTarget,
-            val request: PushRequest
+            val receiver: DataPushTarget,
+            val request: DataPushRequest
     ) {
         val transmissionResultListeners = mutableListOf<TransmissionResultListener>()
         fun execute() {
@@ -48,10 +48,10 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
 
     private inner class DelayedPushTarget(
             val id: Id,
-            val wrapped: PushTarget
-    ) : PushTarget {
+            val wrapped: DataPushTarget
+    ) : DataPushTarget {
         override fun push(
-                request: PushRequest,
+                request: DataPushRequest,
                 resultListener: TransmissionResultListener
         ) {
             val pendingPush = pendingPushes.getOrPut(Pair(id, request.chunk.key)) {
@@ -61,10 +61,10 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
         }
     }
 
-    override fun getPushTarget(id: Id): PushTarget =
+    override fun getPushTarget(id: Id): DataPushTarget =
             DelayedPushTarget(id, get { mapOf("id" to id) })
 
-    override fun getQuerySource(id: Id): QuerySource =
+    override fun getQuerySource(id: Id): DataQuerySource =
             get { mapOf("id" to id) }
 
     override fun executePendingRequests() {

@@ -21,9 +21,9 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.PendingQuery
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQuery
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataQueryRequest
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -39,11 +39,11 @@ import straightway.units.plus
 import straightway.units.second
 import java.time.LocalDateTime
 
-class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
+class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest1 = QueryRequest(Id("originatorId"), Id("chunkId"))
-        val queryRequest2 = QueryRequest(Id("originatorId"), Id("otherChunkId"))
+        val queryRequest1 = DataQueryRequest(Id("originatorId"), Id("chunkId"))
+        val queryRequest2 = DataQueryRequest(Id("originatorId"), Id("otherChunkId"))
         val chunkKey1 = Key(Id("chunkKey1"))
         val chunkKey2 = Key(Id("chunkKey2"))
     }
@@ -55,8 +55,8 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
                     configurationFactory = {
                         Configuration(timedDataQueryTimeout = timeout)
                     },
-                    pendingUntimedQueryTrackerFactory = {
-                        PendingQueryTrackerImpl { timedDataQueryTimeout }
+                    pendingUntimedDataQueryTrackerFactory = {
+                        PendingDataQueryTrackerImpl { timedDataQueryTimeout }
                     },
                     timeProviderFactory = {
                         mock {
@@ -64,7 +64,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
                         }
                     })
             val sut get() =
-                    environment.get<PendingQueryTracker>("pendingUntimedQueryTracker")
+                    environment.get<PendingDataQueryTracker>("pendingUntimedQueryTracker")
             var currentTime: LocalDateTime = LocalDateTime.of(2000, 1, 1, 0, 0)
         }
     }
@@ -72,7 +72,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
     @Test
     fun `pendingQueries is initially empty`() =
             test when_ {
-                sut.pendingQueries
+                sut.pendingDataQueries
             } then {
                 expect(it.result is_ Empty)
             }
@@ -82,7 +82,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.setPending(queryRequest1)
             } then {
-                expect(sut.pendingQueries.single().query is_ Same as_ queryRequest1)
+                expect(sut.pendingDataQueries.single().query is_ Same as_ queryRequest1)
             }
 
     @Test
@@ -90,7 +90,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.setPending(queryRequest1)
             } then {
-                expect(sut.pendingQueries.single().receiveTime is_ Equal to_ currentTime)
+                expect(sut.pendingDataQueries.single().receiveTime is_ Equal to_ currentTime)
             }
 
     @Test
@@ -100,7 +100,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.setPending(queryRequest1)
             } then {
-                expect(sut.pendingQueries.size is_ Equal to_ 1)
+                expect(sut.pendingDataQueries.size is_ Equal to_ 1)
             }
 
     @Test
@@ -110,7 +110,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.removePendingQueriesIf { true }
             } then {
-                expect(sut.pendingQueries is_ Empty)
+                expect(sut.pendingDataQueries is_ Empty)
             }
 
     @Test
@@ -120,7 +120,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.removePendingQueriesIf { false }
             } then {
-                expect(sut.pendingQueries.map { it.query } is_ Equal to_ Values(queryRequest1))
+                expect(sut.pendingDataQueries.map { it.query } is_ Equal to_ Values(queryRequest1))
             }
 
     @Test
@@ -131,7 +131,7 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.removePendingQueriesIf { id != queryRequest1.id }
             } then {
-                expect(sut.pendingQueries.map { it.query } is_ Equal to_ Values(queryRequest1))
+                expect(sut.pendingDataQueries.map { it.query } is_ Equal to_ Values(queryRequest1))
             }
 
     @Test
@@ -140,9 +140,9 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
                 sut.setPending(queryRequest1)
                 currentTime += timeout + 1[second]
             } when_ {
-                sut.pendingQueries
+                sut.pendingDataQueries
             } then {
-                expect(sut.pendingQueries is_ Empty)
+                expect(sut.pendingDataQueries is_ Empty)
             }
 
     @Test
@@ -150,9 +150,9 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
             test while_ {
                 sut.setPending(queryRequest1)
             } when_ {
-                sut.addForwardedChunk(sut.pendingQueries.single(), chunkKey1)
+                sut.addForwardedChunk(sut.pendingDataQueries.single(), chunkKey1)
             } then {
-                expect(sut.pendingQueries.single().forwardedChunkKeys
+                expect(sut.pendingDataQueries.single().forwardedChunkKeys
                                is_ Equal to_ setOf(chunkKey1))
             }
 
@@ -160,11 +160,11 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
     fun `addForwardedChunk adds new chunk key to forwardedChunkKeys`() =
             test while_ {
                 sut.setPending(queryRequest1)
-                sut.addForwardedChunk(sut.pendingQueries.single(), chunkKey1)
+                sut.addForwardedChunk(sut.pendingDataQueries.single(), chunkKey1)
             } when_ {
-                sut.addForwardedChunk(sut.pendingQueries.single(), chunkKey2)
+                sut.addForwardedChunk(sut.pendingDataQueries.single(), chunkKey2)
             } then {
-                expect(sut.pendingQueries.single().forwardedChunkKeys
+                expect(sut.pendingDataQueries.single().forwardedChunkKeys
                                is_ Equal to_ setOf(chunkKey1, chunkKey2))
             }
 
@@ -174,10 +174,10 @@ class PendingQueryTrackerImplTest : KoinLoggingDisabler() {
                 sut.setPending(queryRequest1)
                 sut.setPending(queryRequest2)
             } when_ {
-                sut.addForwardedChunk(sut.pendingQueries.first(), chunkKey1)
+                sut.addForwardedChunk(sut.pendingDataQueries.first(), chunkKey1)
             } then {
-                expect(sut.pendingQueries is_ Equal to_ Values(
-                        PendingQuery(queryRequest2, currentTime),
-                        PendingQuery(queryRequest1, currentTime, setOf(chunkKey1))))
+                expect(sut.pendingDataQueries is_ Equal to_ Values(
+                        PendingDataQuery(queryRequest2, currentTime),
+                        PendingDataQuery(queryRequest1, currentTime, setOf(chunkKey1))))
             }
 }

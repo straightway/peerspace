@@ -26,10 +26,10 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QueryRequest
-import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.untimedData
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
@@ -66,13 +66,13 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             val download = mock<TransmissionStream> {
                 on { isOnline }.thenAnswer { isDownloadOnline }
             }
-            val pushTarget = mock<PushTarget>()
+            val pushTarget = mock<DataPushTarget>()
             val pushTargets = mutableMapOf(Pair(peerId, pushTarget))
             val chunk = Chunk(chunkKey, chunkData)
-            val pushRequest = PushRequest(Id("senderId"), chunk)
-            val querySource = mock<QuerySource>()
+            val pushRequest = DataPushRequest(Id("senderId"), chunk)
+            val querySource = mock<DataQuerySource>()
             val querySources = mutableMapOf(Pair(peerId, querySource))
-            val queryRequest = QueryRequest(Id("originId"), Id("chunkId"), untimedData)
+            val queryRequest = DataQueryRequest(Id("originId"), Id("chunkId"), untimedData)
             val sut = withContext {
                 bean { pushTargets[it["id"]]!! }
                 bean { querySources[it["id"]]!! }

@@ -23,7 +23,7 @@ import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.DataPushRequest
 
 /**
  * Push data to a target peer.
@@ -33,11 +33,11 @@ class DataPushForwarderImpl :
         KoinModuleComponent by KoinModuleComponent() {
 
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
-    private val forwardTracker: ForwardStateTracker<PushRequest, Key>
+    private val forwardTracker: ForwardStateTracker<DataPushRequest, Key>
             by inject("pushForwardTracker")
     private val epochAnalyzer: EpochAnalyzer by inject()
 
-    override fun forward(push: PushRequest) {
+    override fun forward(push: DataPushRequest) {
 
         if (push.chunk.key.isUntimed) {
             forwardTracker.forward(push)
@@ -48,10 +48,10 @@ class DataPushForwarderImpl :
         notifyForwarded(push)
     }
 
-    private val PushRequest.epochs get() =
+    private val DataPushRequest.epochs get() =
             epochAnalyzer.getEpochs(chunk.key.timestamps)
 
-    private fun notifyForwarded(push: PushRequest) {
+    private fun notifyForwarded(push: DataPushRequest) {
         val chunkKey = push.chunk.key
         dataQueryHandler.notifyChunkForwarded(chunkKey)
     }

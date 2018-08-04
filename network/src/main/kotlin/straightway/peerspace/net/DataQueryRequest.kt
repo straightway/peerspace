@@ -27,7 +27,7 @@ val untimedData = LongRange(0L, 0L)
  * A request for querying data in the peerspace network.
  */
 @Suppress("DataClassPrivateConstructor")
-data class QueryRequest private constructor(
+data class DataQueryRequest private constructor(
         val originatorId: Id,
         override val id: Id,
         private val timestampsStart: Long,
@@ -52,7 +52,7 @@ data class QueryRequest private constructor(
             : this(originatorId, identifyable.id)
 
     @Suppress("UNUSED_PARAMETER")
-    fun withEpoch(epoch: Int) = QueryRequest(originatorId, id, timestamps, epoch)
+    fun withEpoch(epoch: Int) = DataQueryRequest(originatorId, id, timestamps, epoch)
 
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 
@@ -62,10 +62,10 @@ data class QueryRequest private constructor(
     }
 
     private val untimedStringRepresentation get() =
-        "QueryRequest(${id.identifier}->${originatorId.identifier})"
+        "DataQueryRequest(${id.identifier}->${originatorId.identifier})"
 
     private val timedStringRepresentation get() =
-        "QueryRequest(${id.identifier}[$rangeStringRepresentation]" +
+        "DataQueryRequest(${id.identifier}[$rangeStringRepresentation]" +
                 "->${originatorId.identifier})"
 
     private val rangeStringRepresentation get() =
@@ -79,7 +79,7 @@ data class QueryRequest private constructor(
     }
 }
 
-fun QueryRequest.isMatching(key: Key) =
+fun DataQueryRequest.isMatching(key: Key) =
         key.timestamp in timestamps && key.id == id
 
-val QueryRequest.isUntimed get() = timestamps == untimedData
+val DataQueryRequest.isUntimed get() = timestamps == untimedData

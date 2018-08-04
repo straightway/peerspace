@@ -23,8 +23,8 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PushTarget
-import straightway.peerspace.net.QuerySource
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
@@ -56,8 +56,8 @@ class SimNode_Factory_Test : KoinLoggingDisabler() {
 
             private fun createSimNode(id: Id): SimNode =
                     withContext {
-                        bean { peers[it["id"]] as PushTarget }
-                        bean { peers[it["id"]] as QuerySource }
+                        bean { peers[it["id"]] as DataPushTarget }
+                        bean { peers[it["id"]] as DataQuerySource }
                         bean("simNodes") { nodes }
                         bean { mock<TransmissionRequestHandler>() }
                         bean { chunkSizeGetter { 16[byte] } }

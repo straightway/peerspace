@@ -13,17 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
-/**
- * A target for pushing data.
- */
-interface PushTarget {
+import straightway.peerspace.data.Key
 
-    /**
-     * Receive a chunk of data.
-     */
-    fun push(
-            request: PushRequest,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
+/**
+ * Track pending queries through time and while chunks come in which my satisfy
+ * pending queries.
+ */
+interface PendingDataQueryTracker {
+    val pendingDataQueries: Set<PendingDataQuery>
+    fun setPending(query: DataQueryRequest)
+    fun removePendingQueriesIf(predicate: DataQueryRequest.() -> Boolean)
+    fun addForwardedChunk(pendingQuery: PendingDataQuery, chunkKey: Key)
 }
+
+fun PendingDataQueryTracker.isPending(query: DataQueryRequest) =
+        pendingDataQueries.any { it.query == query }
+
+fun PendingDataQueryTracker.getPendingQueriesForChunk(chunkKey: Key) =
+        pendingDataQueries.filter { it.query.isMatching(chunkKey) }

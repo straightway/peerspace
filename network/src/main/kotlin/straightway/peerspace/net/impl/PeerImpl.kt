@@ -28,8 +28,8 @@ import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 
@@ -51,14 +51,14 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
     fun refreshKnownPeers() =
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
-    override fun push(request: PushRequest, resultListener: TransmissionResultListener) {
+    override fun push(request: DataPushRequest, resultListener: TransmissionResultListener) {
         peerDirectory.add(request.originatorId)
         dataChunkStore.store(request.chunk)
         forward(request)
         resultListener.notifySuccess()
     }
 
-    override fun query(request: QueryRequest, resultListener: TransmissionResultListener) {
+    override fun query(request: DataQueryRequest, resultListener: TransmissionResultListener) {
         peerDirectory.add(request.originatorId)
         when (request.id) {
             Administrative.KnownPeers.id ->
@@ -72,7 +72,7 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
 
     override fun toString() = "PeerImpl(${id.identifier})"
 
-    private fun forward(request: PushRequest) {
+    private fun forward(request: DataPushRequest) {
         dataPushForwarder.forward(request)
         network.executePendingRequests()
     }
@@ -84,7 +84,7 @@ class PeerImpl : Peer, KoinModuleComponent by KoinModuleComponent() {
             chooseFrom(peerDirectory.allKnownPeersIds.toList(), number)
 
     private fun queryForKnownPeers(peerId: Id) =
-        peerId.asQuerySource.query(QueryRequest(id, Administrative.KnownPeers))
+        peerId.asQuerySource.query(DataQueryRequest(id, Administrative.KnownPeers))
 
     private val Id.asQuerySource
         get() = network.getQuerySource(this)

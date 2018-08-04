@@ -20,8 +20,8 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PushRequest
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -37,12 +37,12 @@ class PeerNetworkStub(override val id: Id) :
     private val channel by inject<Channel> { mapOf("id" to id) }
 
     override fun push(
-            request: PushRequest,
+            request: DataPushRequest,
             resultListener: TransmissionResultListener) =
             channel.transmit(request, resultListener)
 
     override fun query(
-            request: QueryRequest,
+            request: DataQueryRequest,
             resultListener: TransmissionResultListener) =
             channel.transmit(request, resultListener)
 }

@@ -20,7 +20,7 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.ForwardState
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.impl.ForwardStrategyTestEnvironment.Companion.chunkId
 import straightway.peerspace.net.impl.ForwardStrategyTestEnvironment.Companion.idForHash
 import straightway.testing.bdd.Given
@@ -34,7 +34,7 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor QueryRequest` : KoinLoggingD
 
     private companion object {
         val originatorId = Id("originatorId")
-        val queryRequest = QueryRequest(originatorId, chunkId)
+        val queryRequest = DataQueryRequest(originatorId, chunkId)
     }
 
     private val test get() = Given {

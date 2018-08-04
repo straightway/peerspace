@@ -16,10 +16,14 @@
 package straightway.peerspace.net
 
 /**
- * An entity which can be queried for data.
+ * A target for pushing data.
  */
-interface QuerySource {
-    fun query(
-            request: QueryRequest,
+interface DataPushTarget {
+
+    /**
+     * Receive a chunk of data.
+     */
+    fun push(
+            request: DataPushRequest,
             resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
 }

@@ -20,8 +20,8 @@ import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.PendingQueryTracker
-import straightway.peerspace.net.QueryRequest
+import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.getPendingQueriesForChunk
 
 /**
@@ -32,17 +32,17 @@ class TimedDataQueryHandler :
         DataQueryHandler {
 
     private val epochAnalyzer: EpochAnalyzer by inject()
-    override val pendingQueryTracker: PendingQueryTracker
+    override val pendingDataQueryTracker: PendingDataQueryTracker
             by inject("pendingTimedQueryTracker")
 
     override fun onChunkForwarding(key: Key) =
-            pendingQueryTracker.getPendingQueriesForChunk(key).forEach {
-                pendingQueryTracker.addForwardedChunk(it, key)
+            pendingDataQueryTracker.getPendingQueriesForChunk(key).forEach {
+                pendingDataQueryTracker.addForwardedChunk(it, key)
             }
 
     override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) =
-        pendingQueryTracker.removePendingQueriesIf { originatorId == targetId }
+        pendingDataQueryTracker.removePendingQueriesIf { originatorId == targetId }
 
-    override fun splitToEpochs(query: QueryRequest) =
+    override fun splitToEpochs(query: DataQueryRequest) =
             epochAnalyzer.getEpochs(query.timestamps).map { query.withEpoch(it) }
 }

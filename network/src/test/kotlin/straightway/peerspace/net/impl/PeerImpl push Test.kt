@@ -28,7 +28,7 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PushRequest
+import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -58,20 +58,20 @@ class `PeerImpl push Test` : KoinLoggingDisabler() {
 
     @Test
     fun `push does not throw`() =
-            test when_ { get<Peer>().push(PushRequest(peerId, chunk)) } then {
+            test when_ { get<Peer>().push(DataPushRequest(peerId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { get<Peer>().push(PushRequest(peerId, chunk)) } then {
+            test when_ { get<Peer>().push(DataPushRequest(peerId, chunk)) } then {
                 verify(get<DataChunkStore>()).store(chunk)
             }
 
     @Test
     fun `push notifies resultListener of success`() {
         val resultListener = mock<TransmissionResultListener>()
-        test when_ { get<Peer>().push(PushRequest(peerId, chunk), resultListener) } then {
+        test when_ { get<Peer>().push(DataPushRequest(peerId, chunk), resultListener) } then {
             verify(resultListener).notifySuccess()
             verify(resultListener, never()).notifyFailure()
         }
@@ -80,7 +80,7 @@ class `PeerImpl push Test` : KoinLoggingDisabler() {
     @Test
     fun `push executes pending network requests`() =
             test when_ {
-                get<Peer>().push(PushRequest(peerId, chunk))
+                get<Peer>().push(DataPushRequest(peerId, chunk))
             } then {
                 verify(get<Network>()).executePendingRequests()
             }

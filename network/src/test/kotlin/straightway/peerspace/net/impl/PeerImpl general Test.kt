@@ -52,6 +52,10 @@ class `PeerImpl general Test` : KoinLoggingDisabler() {
     }
 
     @Test
+    fun `id is accessible`() =
+            test when_ { get<Peer>().id } then { expect(it.result is_ Equal to_ peerId) }
+
+    @Test
     fun `toString contains peer id`() =
             test when_ { get<Peer>().toString() } then {
                 expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")

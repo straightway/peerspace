@@ -33,7 +33,6 @@ class `PeerImpl knownPeers push test` : KoinLoggingDisabler() {
             object {
                 val environment = PeerTestEnvironment(
                         peerFactory = { PeerImpl() },
-                        dataPushTargetFactory = { DataPushTargetImpl() },
                         knownPeersPushTargetFactory = { KnownPeersPushTargetImpl() })
                 val sut get() = environment.get<Peer>()
                 val peerDirectory = environment.get<PeerDirectory>()

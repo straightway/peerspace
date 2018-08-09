@@ -13,7 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.mock
@@ -21,25 +20,23 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.Peer
 import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
-import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
 import straightway.testing.flow.Throw
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
-import straightway.testing.flow.is_
-import straightway.testing.flow.to_
 
-class `PeerImpl data push Test` : KoinLoggingDisabler() {
+class DataPushTargetImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("peerId")
@@ -49,32 +46,29 @@ class `PeerImpl data push Test` : KoinLoggingDisabler() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironment(
-                peerId,
-                peerFactory = { PeerImpl() },
+        object {
+            val environment = PeerTestEnvironment(
                 dataPushTargetFactory = { DataPushTargetImpl() })
+            val sut: DataPushTarget = environment.get()
+        }
     }
 
     @Test
-    fun `id passed on construction is accessible`() =
-            test when_ { get<Peer>().id } then { expect(it.result is_ Equal to_ peerId) }
-
-    @Test
     fun `push does not throw`() =
-            test when_ { get<Peer>().push(DataPushRequest(peerId, chunk)) } then {
+            test when_ { sut.push(DataPushRequest(peerId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { get<Peer>().push(DataPushRequest(peerId, chunk)) } then {
-                verify(get<DataChunkStore>()).store(chunk)
+            test when_ { sut.push(DataPushRequest(peerId, chunk)) } then {
+                verify(environment.get<DataChunkStore>()).store(chunk)
             }
 
     @Test
     fun `push notifies resultListener of success`() {
         val resultListener = mock<TransmissionResultListener>()
-        test when_ { get<Peer>().push(DataPushRequest(peerId, chunk), resultListener) } then {
+        test when_ { sut.push(DataPushRequest(peerId, chunk), resultListener) } then {
             verify(resultListener).notifySuccess()
             verify(resultListener, never()).notifyFailure()
         }
@@ -83,8 +77,16 @@ class `PeerImpl data push Test` : KoinLoggingDisabler() {
     @Test
     fun `push executes pending network requests`() =
             test when_ {
-                get<Peer>().push(DataPushRequest(peerId, chunk))
+                sut.push(DataPushRequest(peerId, chunk))
             } then {
-                verify(get<Network>()).executePendingRequests()
+                verify(environment.get<Network>()).executePendingRequests()
+            }
+
+    @Test
+    fun `originator of push request is added to known peers`() =
+            test when_ {
+                sut.push(DataPushRequest(peerId, chunk))
+            } then {
+                verify(environment.get<PeerDirectory>()).add(peerId)
             }
 }

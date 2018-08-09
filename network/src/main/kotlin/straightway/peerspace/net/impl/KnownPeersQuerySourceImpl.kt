@@ -37,5 +37,6 @@ class KnownPeersQuerySourceImpl :
             resultListener: TransmissionResultListener
     ) {
         knownPeersProvider.pushKnownPeersTo(request.originatorId)
+        resultListener.notifySuccess()
     }
 }

@@ -16,19 +16,11 @@
 
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.KnownPeersProvider
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.KnownPeersQueryRequest
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -39,16 +31,13 @@ class `PeerImpl general Test` : KoinLoggingDisabler() {
 
     private companion object {
         val id = Id("thePeerId")
-        val dataQuery = DataQueryRequest(Id("queryingPeer"), Id("chunkId"))
         val knownPeersRequest = KnownPeersQueryRequest(Id("queryingPeerId"))
     }
 
     private val test get() = Given {
         PeerTestEnvironment(
                 id,
-                peerFactory = { PeerImpl() },
-                dataQuerySourceFactory = { DataQuerySourceImpl() },
-                knownPeersQuerySourceFactory = { KnownPeersQuerySourceImpl() })
+                peerFactory = { PeerImpl() })
     }
 
     @Test
@@ -59,36 +48,5 @@ class `PeerImpl general Test` : KoinLoggingDisabler() {
     fun `toString contains peer id`() =
             test when_ { get<Peer>().toString() } then {
                 expect(it.result is_ Equal to_ "PeerImpl(${id.identifier})")
-            }
-
-    @Test
-    fun `data queries are delegated to DataQueryHandler`() =
-            test when_ { get<Peer>().query(dataQuery) } then {
-                verify(get<DataQueryHandler>("dataQueryHandler")).handle(dataQuery)
-            }
-
-    @Test
-    fun `query notifies resultListener of success`() {
-        val resultListener = mock<TransmissionResultListener>()
-        test when_ { get<Peer>().query(dataQuery, resultListener) } then {
-            verify(resultListener).notifySuccess()
-            verify(resultListener, never()).notifyFailure()
-        }
-    }
-
-    @Test
-    fun `a query for known peers is delegated to the known peers provider`() =
-            test when_ {
-                get<Peer>().query(knownPeersRequest)
-            } then {
-                verify(get<KnownPeersProvider>()).pushKnownPeersTo(knownPeersRequest.originatorId)
-            }
-
-    @Test
-    fun `query executes pending network requests`() =
-            test when_ {
-                get<Peer>().query(dataQuery)
-            } then {
-                verify(get<Network>()).executePendingRequests()
             }
 }

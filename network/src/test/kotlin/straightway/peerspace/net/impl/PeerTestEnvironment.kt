@@ -121,7 +121,7 @@ data class PeerTestEnvironment(
         private val dataQuerySourceFactory: BeanFactory<DataQuerySource> = { mock() },
         private val knownPeersPushTargetFactory: BeanFactory<KnownPeersPushTarget> = { mock() },
         private val knownPeersQuerySourceFactory: BeanFactory<KnownPeersQuerySource> = { mock() },
-        private val knownPeersManagerFactory: BeanFactory<KnownPeersGetter> = { mock() },
+        private val knownPeersGetterFactory: BeanFactory<KnownPeersGetter> = { mock() },
         private val additionalInit: Context.() -> Unit = {}
 ) {
 
@@ -150,7 +150,7 @@ data class PeerTestEnvironment(
             bean("localDataQuerySource") { dataQuerySourceFactory() }
             bean("localKnownPeersPushTarget") { knownPeersPushTargetFactory() }
             bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
-            bean { knownPeersManagerFactory() }
+            bean { knownPeersGetterFactory() }
             additionalInit()
         }.apply {
             extraProperties["peerId"] = peerId.identifier

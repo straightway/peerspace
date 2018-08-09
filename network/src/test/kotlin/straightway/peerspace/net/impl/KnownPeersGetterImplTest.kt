@@ -22,13 +22,11 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.testing.bdd.Given
 
-class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
+class KnownPeersGetterImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("PeerId")
@@ -39,28 +37,25 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
     private val test get() = Given {
         PeerTestEnvironment(
                 peerId,
-                peerFactory = { PeerImpl() },
-                dataQuerySourceFactory = { DataQuerySourceImpl() },
-                knownPeersManagerFactory = { KnownPeersGetterImpl() },
+                knownPeersGetterFactory = { KnownPeersGetterImpl() },
                 knownPeersIds = listOf(knownPeerId),
                 configurationFactory = { Configuration(maxPeersToQueryForKnownPeers = 2) })
     }
 
-    private val PeerTestEnvironment.peerImpl get() = get<Peer>() as PeerImpl
-    private val PeerTestEnvironment.peerDirectory get() = get<PeerDirectory>()
+    private val PeerTestEnvironment.sut get() = get<KnownPeersGetter>()
 
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
-            test when_ { peerImpl.refreshKnownPeers() } then {
+            test when_ { sut.refreshKnownPeers() } then {
                 verify(knownPeers.single()).query(knownPeersRequest)
             }
 
     @Test
     fun `a second call to refreshKnownPeers is effective`() =
             test while_ {
-                peerImpl.refreshKnownPeers()
+                sut.refreshKnownPeers()
             } when_ {
-                peerImpl.refreshKnownPeers()
+                sut.refreshKnownPeers()
             } then {
                 verify(knownPeers.single(), times(2)).query(knownPeersRequest)
             }
@@ -70,14 +65,13 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
             Given {
                 PeerTestEnvironment(
                         peerId,
-                        peerFactory = { PeerImpl() },
-                        knownPeersManagerFactory = { KnownPeersGetterImpl() },
+                        knownPeersGetterFactory = { KnownPeersGetterImpl() },
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
                         configurationFactory = {
                             Configuration(maxPeersToQueryForKnownPeers = 2)
                         })
             } when_ {
-                peerImpl.refreshKnownPeers()
+                sut.refreshKnownPeers()
             } then {
                 knownPeers.take(get<Configuration>().maxPeersToQueryForKnownPeers)
                         .forEach { peer ->
@@ -94,8 +88,7 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
             Given {
                 PeerTestEnvironment(
                         peerId,
-                        peerFactory = { PeerImpl() },
-                        knownPeersManagerFactory = { KnownPeersGetterImpl() },
+                        knownPeersGetterFactory = { KnownPeersGetterImpl() },
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
                         configurationFactory = {
                             Configuration(maxPeersToQueryForKnownPeers = 2)
@@ -106,18 +99,10 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
                             }
                         })
             } when_ {
-                peerImpl.refreshKnownPeers()
+                sut.refreshKnownPeers()
             } then {
                 verify(knownPeers[0]).query(knownPeersRequest)
                 verify(knownPeers[1], never()).query(knownPeersRequest)
                 verify(knownPeers[2]).query(knownPeersRequest)
-            }
-
-    @Test
-    fun `originator of query request is added to known peers`() =
-            test when_ {
-                peerImpl.query(DataQueryRequest(knownPeerId, Id("chunkId")))
-            } then {
-                verify(peerDirectory).add(knownPeerId)
             }
 }

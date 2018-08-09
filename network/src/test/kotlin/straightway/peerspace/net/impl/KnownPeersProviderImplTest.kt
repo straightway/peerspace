@@ -17,13 +17,16 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argThat
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 
 class KnownPeersProviderImplTest : KoinLoggingDisabler() {
@@ -32,20 +35,21 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
         val peerId = Id("PeerId")
         val knownPeerId = Id("knownPeerId")
         val queryingPeerId = Id("QueryingPeerId")
+        val query = KnownPeersQueryRequest(queryingPeerId)
     }
 
     private val test get() = Given {
         PeerTestEnvironment(
                 peerId,
                 knownPeersIds = listOf(knownPeerId, queryingPeerId),
-                knownPeersProviderFactory = { KnownPeersProviderImpl() }
+                knownPeersQuerySourceFactory = { KnownPeersQuerySourceImpl() }
         )
     }
 
     @Test
     fun `a query for known peers is answered immediately`() =
             test when_ {
-                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
+                get<KnownPeersQuerySource>().query(query)
             } then {
                 verify(queryingPeer).push(any<KnownPeersPushRequest>(), any())
             }
@@ -53,7 +57,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
     @Test
     fun `a query for known peers is answered with the list of known peers`() =
             test when_ {
-                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
+                get<KnownPeersQuerySource>().query(query)
             } then {
                 val expectedKnownPeerIds = knownPeersIds
                 verify(queryingPeer).push(
@@ -74,7 +78,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
                             createChooser { knownPeersIds.slice(0..0) }
                         })
             } when_ {
-                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
+                get<KnownPeersQuerySource>().query(query)
             } then {
                 val expectedPeerIds = knownPeersIds.slice(0..0)
                 verify(queryingPeer).push(
@@ -82,6 +86,16 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
                             knownPeersIds == expectedPeerIds },
                         any())
             }
+
+    @Test
+    fun `query signals success`() {
+        val listener: TransmissionResultListener = mock()
+        test when_ {
+            get<KnownPeersQuerySource>().query(query, listener)
+        } then {
+            verify(listener).notifySuccess()
+        }
+    }
 
     private val PeerTestEnvironment.queryingPeer get() = getPeer(queryingPeerId)
 }

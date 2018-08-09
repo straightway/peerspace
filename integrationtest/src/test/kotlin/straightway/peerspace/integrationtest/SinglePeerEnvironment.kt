@@ -46,7 +46,6 @@ import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.ForwardStateTrackerImpl
 import straightway.peerspace.net.impl.ForwardStrategyImpl
-import straightway.peerspace.net.impl.KnownPeersProviderImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.PeerNetworkStub
@@ -151,9 +150,6 @@ class SinglePeerEnvironment(
         }
         bean {
             DataPushForwarderImpl() as DataPushForwarder
-        }
-        bean {
-            KnownPeersProviderImpl()
         }
         bean("knownPeerQueryChooser") {
             RandomChooser(randomSource) as Chooser

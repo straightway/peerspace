@@ -36,7 +36,6 @@ import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochAnalyzerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
-import straightway.peerspace.net.impl.KnownPeersProviderImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.PeerNetworkStub
@@ -102,7 +101,6 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             bean { ForwardStrategyImpl() as ForwardStrategy }
             bean { simulator as TimeProvider }
             bean { DataPushForwarderImpl() }
-            bean { KnownPeersProviderImpl() }
             bean { peers[it["id"]] as DataPushTarget }
             bean { peers[it["id"]] as DataQuerySource }
             bean { simNet }

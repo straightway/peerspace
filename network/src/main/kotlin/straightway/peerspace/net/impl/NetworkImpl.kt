@@ -23,6 +23,8 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.KnownPeersPushTarget
+import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -62,10 +64,18 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
     }
 
     override fun getPushTarget(id: Id): DataPushTarget =
-            DelayedPushTarget(id, get { mapOf("id" to id) })
+            DelayedPushTarget(id, get("networkDataPushTarget") { mapOf("id" to id) })
 
     override fun getQuerySource(id: Id): DataQuerySource =
-            get { mapOf("id" to id) }
+            get("networkDataQuerySource") { mapOf("id" to id) }
+
+    override fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget {
+        TODO("not implemented")
+    }
+
+    override fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource {
+        TODO("not implemented")
+    }
 
     override fun executePendingRequests() {
         val actionsToExecute = pendingPushes.values.toList()

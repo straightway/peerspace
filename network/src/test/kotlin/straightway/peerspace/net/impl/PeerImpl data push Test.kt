@@ -39,7 +39,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class `PeerImpl push Test` : KoinLoggingDisabler() {
+class `PeerImpl data push Test` : KoinLoggingDisabler() {
 
     private companion object {
         val peerId = Id("peerId")
@@ -49,7 +49,10 @@ class `PeerImpl push Test` : KoinLoggingDisabler() {
     }
 
     private val test get() = Given {
-        PeerTestEnvironment(peerId, peerFactory = { PeerImpl() })
+        PeerTestEnvironment(
+                peerId,
+                peerFactory = { PeerImpl() },
+                dataPushTargetFactory = { DataPushTargetImpl() })
     }
 
     @Test

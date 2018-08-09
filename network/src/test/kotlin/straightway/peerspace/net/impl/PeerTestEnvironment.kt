@@ -37,7 +37,12 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.KnownPeersGetter
+import straightway.peerspace.net.KnownPeersPushTarget
+import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
@@ -112,6 +117,11 @@ data class PeerTestEnvironment(
         BeanFactory<ForwardStateTracker<DataPushRequest, Key>> = {
             mock()
         },
+        private val dataPushTargetFactory: BeanFactory<DataPushTarget> = { mock() },
+        private val dataQuerySourceFactory: BeanFactory<DataQuerySource> = { mock() },
+        private val knownPeersPushTargetFactory: BeanFactory<KnownPeersPushTarget> = { mock() },
+        private val knownPeersQuerySourceFactory: BeanFactory<KnownPeersQuerySource> = { mock() },
+        private val knownPeersManagerFactory: BeanFactory<KnownPeersGetter> = { mock() },
         private val additionalInit: Context.() -> Unit = {}
 ) {
 
@@ -136,6 +146,11 @@ data class PeerTestEnvironment(
             bean("queryForwardTracker") { queryForwardTrackerFactory() }
             bean("pushForwarder") { pushForwarderFactory() }
             bean("pushForwardTracker") { pushForwardTrackerFactory() }
+            bean("localDataPushTarget") { dataPushTargetFactory() }
+            bean("localDataQuerySource") { dataQuerySourceFactory() }
+            bean("localKnownPeersPushTarget") { knownPeersPushTargetFactory() }
+            bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
+            bean { knownPeersManagerFactory() }
             additionalInit()
         }.apply {
             extraProperties["peerId"] = peerId.identifier

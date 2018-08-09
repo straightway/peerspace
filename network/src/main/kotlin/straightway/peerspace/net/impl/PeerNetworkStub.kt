@@ -22,6 +22,8 @@ import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -29,6 +31,8 @@ import straightway.peerspace.net.TransmissionResultListener
  *
  * This network stub cares for transmitting data to the physical
  * network node the peer runs on.
+ *
+ * TODO: Check if this can be simplified, as all functions look the same.
  */
 class PeerNetworkStub(override val id: Id) :
         Peer,
@@ -43,6 +47,16 @@ class PeerNetworkStub(override val id: Id) :
 
     override fun query(
             request: DataQueryRequest,
+            resultListener: TransmissionResultListener) =
+            channel.transmit(request, resultListener)
+
+    override fun push(
+            request: KnownPeersPushRequest,
+            resultListener: TransmissionResultListener) =
+            channel.transmit(request, resultListener)
+
+    override fun query(
+            request: KnownPeersQueryRequest,
             resultListener: TransmissionResultListener) =
             channel.transmit(request, resultListener)
 }

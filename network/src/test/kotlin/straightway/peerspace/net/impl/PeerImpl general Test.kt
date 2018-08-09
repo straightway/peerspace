@@ -22,12 +22,12 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.KnownPeersProvider
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -40,11 +40,15 @@ class `PeerImpl general Test` : KoinLoggingDisabler() {
     private companion object {
         val id = Id("thePeerId")
         val dataQuery = DataQueryRequest(Id("queryingPeer"), Id("chunkId"))
-        val knownPeersRequest = DataQueryRequest(Id("queryingPeerId"), Administrative.KnownPeers)
+        val knownPeersRequest = KnownPeersQueryRequest(Id("queryingPeerId"))
     }
 
     private val test get() = Given {
-        PeerTestEnvironment(id, peerFactory = { PeerImpl() })
+        PeerTestEnvironment(
+                id,
+                peerFactory = { PeerImpl() },
+                dataQuerySourceFactory = { DataQuerySourceImpl() },
+                knownPeersQuerySourceFactory = { KnownPeersQuerySourceImpl() })
     }
 
     @Test

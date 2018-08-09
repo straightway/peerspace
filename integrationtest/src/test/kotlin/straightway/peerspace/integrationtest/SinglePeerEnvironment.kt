@@ -37,8 +37,12 @@ import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.KnownPeersGetter
+import straightway.peerspace.net.KnownPeersPushTarget
+import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwarderImpl
+import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.ForwardStateTrackerImpl
 import straightway.peerspace.net.impl.ForwardStrategyImpl
@@ -48,6 +52,10 @@ import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.PeerNetworkStub
 import straightway.peerspace.net.impl.PendingDataQueryTrackerImpl
 import straightway.peerspace.net.impl.DataQueryForwarder
+import straightway.peerspace.net.impl.DataQuerySourceImpl
+import straightway.peerspace.net.impl.KnownPeersGetterImpl
+import straightway.peerspace.net.impl.KnownPeersPushTargetImpl
+import straightway.peerspace.net.impl.KnownPeersQuerySourceImpl
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -107,6 +115,21 @@ class SinglePeerEnvironment(
             PeerImpl().apply {
                 addRemotePeer(this)
             } as Peer
+        }
+        bean("localDataPushTarget") {
+            DataPushTargetImpl() as DataPushTarget
+        }
+        bean("localDataQuerySource") {
+            DataQuerySourceImpl() as DataQuerySource
+        }
+        bean("localKnownPeersPushTarget") {
+            KnownPeersPushTargetImpl() as KnownPeersPushTarget
+        }
+        bean("localKnownPeersQuerySource") {
+            KnownPeersQuerySourceImpl() as KnownPeersQuerySource
+        }
+        bean {
+            KnownPeersGetterImpl() as KnownPeersGetter
         }
         bean {
             Configuration()
@@ -170,10 +193,10 @@ class SinglePeerEnvironment(
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }
         }
-        factory {
+        factory("networkDataPushTarget") {
             PeerNetworkStub(it["id"]) as DataPushTarget
         }
-        factory {
+        factory("networkDataQuerySource") {
             PeerNetworkStub(it["id"]) as DataQuerySource
         }
         factory {

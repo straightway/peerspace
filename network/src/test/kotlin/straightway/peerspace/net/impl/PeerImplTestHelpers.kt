@@ -37,12 +37,12 @@ fun createPeerMock(
 ) =
         mock<Peer> {
             on { this.id }.thenReturn(id)
-            on { push(any(), any()) }.thenAnswer {
+            on { push(any<DataPushRequest>(), any()) }.thenAnswer {
                 pushCallback(
                         it.arguments[0] as DataPushRequest,
                         it.arguments[1] as TransmissionResultListener)
             }
-            on { query(any(), any()) }.thenAnswer {
+            on { query(any<DataQueryRequest>(), any()) }.thenAnswer {
                 queryCallback(
                         it.arguments[0] as DataQueryRequest,
                         it.arguments[1] as TransmissionResultListener)
@@ -67,6 +67,12 @@ fun createNetworkMock(peers: () -> Collection<Peer> = { listOf() }) = mock<Netwo
         peers().find { it.id == args.arguments[0] }!!
     }
     on { getPushTarget(any()) }.thenAnswer { args ->
+        peers().find { it.id == args.arguments[0] }!!
+    }
+    on { getKnownPeersQuerySource(any()) }.thenAnswer { args ->
+        peers().find { it.id == args.arguments[0] }!!
+    }
+    on { getKnownPeersPushTarget(any()) }.thenAnswer { args ->
         peers().find { it.id == args.arguments[0] }!!
     }
 }

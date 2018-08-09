@@ -13,45 +13,44 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Id
-import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
+import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.KnownPeersGetter
+import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.KnownPeersPushRequest
 import straightway.random.Chooser
 
 /**
- * Push known peers to a target peer.
+ * Default implementation of the KnownPeersGetter interface.
  */
-class KnownPeersProviderImpl : KnownPeersProvider, KoinModuleComponent by KoinModuleComponent() {
+class KnownPeersGetterImpl :
+        KnownPeersGetter,
+        KoinModuleComponent by KoinModuleComponent() {
 
     private val id: Id by property("peerId") { Id(it) }
-    private val configuration: Configuration by inject()
-    private val peerDirectory: PeerDirectory by inject()
     private val network: Network by inject()
-    private val knownPeerAnswerChooser: Chooser by inject("knownPeerAnswerChooser")
+    private val configuration: Configuration by inject()
+    private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
+    private val peerDirectory: PeerDirectory by inject()
 
-    override fun pushKnownPeersTo(targetPeerId: Id) =
-            targetPeerId.asKnownPeersPushTarget.push(knownPeersAnswerRequest)
+    override fun refreshKnownPeers() =
+            peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
 
-    private val knownPeersAnswerRequest
-        get() = KnownPeersPushRequest(id, knownPeersQueryAnswer)
+    private fun queryForKnownPeers(peerId: Id) =
+            peerId.asKnownPeersQuerySource.query(KnownPeersQueryRequest(id))
 
-    private val knownPeersQueryAnswer
-        get() = knownPeerAnswerChooser choosePeers configuration.maxKnownPeersAnswers
+    private val peersToQueryForOtherKnownPeers get() =
+        knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers
 
     private infix fun Chooser.choosePeers(number: Int) =
-            chooseFrom(allKnownPeersIds, number)
+            chooseFrom(peerDirectory.allKnownPeersIds.toList(), number)
 
-    private val allKnownPeersIds
-        get() = peerDirectory.allKnownPeersIds.toList()
-
-    private val Id.asKnownPeersPushTarget
-        get() = network.getKnownPeersPushTarget(this)
+    private val Id.asKnownPeersQuerySource get() = network.getKnownPeersQuerySource(this)
 }

@@ -20,13 +20,11 @@ import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.KnownPeersPushRequest
 import straightway.testing.bdd.Given
-import straightway.utils.deserializeTo
 
 class KnownPeersProviderImplTest : KoinLoggingDisabler() {
 
@@ -49,17 +47,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             test when_ {
                 get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
-                verify(queryingPeer).push(any(), any())
-            }
-
-    @Test
-    fun `a query for known peers is answered with Administrative_KnownPeers_id`() =
-            test when_ {
-                get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
-            } then {
-                verify(queryingPeer).push(
-                        argThat { chunk.key == Key(Administrative.KnownPeers.id) },
-                        any())
+                verify(queryingPeer).push(any<KnownPeersPushRequest>(), any())
             }
 
     @Test
@@ -67,8 +55,11 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             test when_ {
                 get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
+                val expectedKnownPeerIds = knownPeersIds
                 verify(queryingPeer).push(
-                        argThat { chunk.data.deserializeTo<List<Id>>() == knownPeersIds },
+                        argThat<KnownPeersPushRequest> {
+                            knownPeersIds == expectedKnownPeerIds
+                        },
                         any())
             }
 
@@ -85,10 +76,10 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             } when_ {
                 get<KnownPeersProvider>().pushKnownPeersTo(queryingPeerId)
             } then {
+                val expectedPeerIds = knownPeersIds.slice(0..0)
                 verify(queryingPeer).push(
-                        argThat {
-                            val receivedIds = chunk.data.deserializeTo<List<Id>>()
-                            receivedIds == knownPeersIds.slice(0..0) },
+                        argThat<KnownPeersPushRequest> {
+                            knownPeersIds == expectedPeerIds },
                         any())
             }
 

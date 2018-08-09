@@ -26,6 +26,8 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
@@ -46,13 +48,13 @@ class PeerNetworkStubTest : KoinLoggingDisabler() {
         object {
             var peerChannels = listOf<Id>()
             val environment = PeerTestEnvironment {
-                factory { PeerNetworkStub(it.get("id")) }
+                factory { PeerNetworkStub(it["id"]) }
                 factory {
                     peerChannels += it.get<Id>("id")
                     channel
                 }
             }
-            val channel = mock<Channel> {
+            val channel = mock<Channel> { _ ->
                 on { transmit(any(), any()) }.thenAnswer {
                     transmitCallback(
                             it.arguments[0] as Serializable,
@@ -61,10 +63,18 @@ class PeerNetworkStubTest : KoinLoggingDisabler() {
             }
             var transmitCallback: (Serializable, TransmissionResultListener) -> Unit =
                     { _, _ -> }
-            val sut = environment.get<PeerNetworkStub> { mapOf("id" to peerId) }
-            val data = Chunk(Key(Id("Key")), byteArrayOf(1, 2, 3))
-            val pushRequest = DataPushRequest(peerId, data)
-            val queryRequest = DataQueryRequest(Id("originatorId"), data.key.id, untimedData)
+            val sut =
+                    environment.get<PeerNetworkStub> { mapOf("id" to peerId) }
+            val data =
+                    Chunk(Key(Id("Key")), byteArrayOf(1, 2, 3))
+            val dataPushRequest =
+                    DataPushRequest(peerId, data)
+            val knownPeersPushRequest =
+                    KnownPeersPushRequest(Id("OriginatorId"), listOf(Id("Peer1")))
+            val dataQueryRequest =
+                    DataQueryRequest(Id("originatorId"), data.key.id, untimedData)
+            val knownPeersQueryRequest =
+                    KnownPeersQueryRequest(Id("originatorId"))
         }
     }
 
@@ -74,41 +84,77 @@ class PeerNetworkStubTest : KoinLoggingDisabler() {
 
     @Test
     fun `push creates channel`() =
-            test when_ { sut.push(pushRequest) } then {
+            test when_ { sut.push(dataPushRequest) } then {
                 expect(peerChannels is_ Equal to_ Values(peerId))
             }
 
     @Test
-    fun `push transmits request on channel`() =
-            test when_ { sut.push(pushRequest) } then {
-                verify(channel).transmit(pushRequest)
+    fun `push transmits data request on channel`() =
+            test when_ { sut.push(dataPushRequest) } then {
+                verify(channel).transmit(dataPushRequest)
             }
 
     @Test
-    fun `query transmits request on channel`() =
-            test when_ { sut.query(queryRequest) } then {
-                verify(channel).transmit(queryRequest)
+    fun `push transmits knownPeers request on channel`() =
+            test when_ { sut.push(knownPeersPushRequest) } then {
+                verify(channel).transmit(knownPeersPushRequest)
             }
 
     @Test
-    fun `push forwards notifications to resultListener`() {
+    fun `query transmits data request on channel`() =
+            test when_ { sut.query(dataQueryRequest) } then {
+                verify(channel).transmit(dataQueryRequest)
+            }
+
+    @Test
+    fun `query transmits knownPeers request on channel`() =
+            test when_ { sut.query(knownPeersQueryRequest) } then {
+                verify(channel).transmit(knownPeersQueryRequest)
+            }
+
+    @Test
+    fun `data push forwards notifications to resultListener`() {
         val resultListener = mock<TransmissionResultListener>()
         test while_ {
             transmitCallback = { _, listener -> listener.notifySuccess() }
         } when_ {
-            sut.push(pushRequest, resultListener)
+            sut.push(dataPushRequest, resultListener)
         } then {
             verify(resultListener).notifySuccess()
         }
     }
 
     @Test
-    fun `query forwards notifications to resultListener`() {
+    fun `data query forwards notifications to resultListener`() {
         val resultListener = mock<TransmissionResultListener>()
         test while_ {
             transmitCallback = { _, listener -> listener.notifySuccess() }
         } when_ {
-            sut.query(queryRequest, resultListener)
+            sut.query(dataQueryRequest, resultListener)
+        } then {
+            verify(resultListener).notifySuccess()
+        }
+    }
+
+    @Test
+    fun `knownPeers push forwards notifications to resultListener`() {
+        val resultListener = mock<TransmissionResultListener>()
+        test while_ {
+            transmitCallback = { _, listener -> listener.notifySuccess() }
+        } when_ {
+            sut.push(knownPeersPushRequest, resultListener)
+        } then {
+            verify(resultListener).notifySuccess()
+        }
+    }
+
+    @Test
+    fun `knownPeers query forwards notifications to resultListener`() {
+        val resultListener = mock<TransmissionResultListener>()
+        test while_ {
+            transmitCallback = { _, listener -> listener.notifySuccess() }
+        } when_ {
+            sut.query(knownPeersQueryRequest, resultListener)
         } then {
             verify(resultListener).notifySuccess()
         }

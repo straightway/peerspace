@@ -60,7 +60,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
                             networkFactory = { NetworkImpl() }
                     ) {
                         bean { KoinModuleComponent() }
-                        factory {
+                        factory("networkDataPushTarget") {
                             get<KoinModuleComponent>()
                             val id = it.get<Id>("id")
                             createdIds += id
@@ -73,7 +73,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
                                 }
                             }
                         }
-                        factory {
+                        factory("networkDataQuerySource") {
                             get<KoinModuleComponent>()
                             createdIds += it.get<Id>("id")
                             querySource

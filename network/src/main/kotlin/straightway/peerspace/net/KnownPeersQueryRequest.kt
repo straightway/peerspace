@@ -16,16 +16,13 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import java.io.Serializable
 
 /**
- * A network consisting of network peers.
- * TODO: Generalize access to nodes of different types by id.
+ * Query request to get known peers from another peer.
  */
-@Suppress("ComplexInterface", "TooManyFunctions")
-interface Network {
-    fun getPushTarget(id: Id): DataPushTarget
-    fun getQuerySource(id: Id): DataQuerySource
-    fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget
-    fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource
-    fun executePendingRequests()
+data class KnownPeersQueryRequest(val originatorId: Id) : Serializable {
+    companion object {
+        const val serialVersionUID = 1L
+    }
 }

@@ -23,12 +23,12 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.Administrative
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.testing.bdd.Given
 
 class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
@@ -36,15 +36,18 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
     private companion object {
         val peerId = Id("PeerId")
         val knownPeerId = Id("knownPeerId")
-        val knownPeersRequest = DataQueryRequest(peerId, Administrative.KnownPeers)
+        val knownPeersRequest = KnownPeersQueryRequest(peerId)
     }
 
     private val test get() = Given {
         PeerTestEnvironment(
-            peerId,
-            peerFactory = { PeerImpl() },
-            knownPeersIds = listOf(knownPeerId),
-            configurationFactory = { Configuration(maxPeersToQueryForKnownPeers = 2) })
+                peerId,
+                peerFactory = { PeerImpl() },
+                dataPushTargetFactory = { DataPushTargetImpl() },
+                dataQuerySourceFactory = { DataQuerySourceImpl() },
+                knownPeersManagerFactory = { KnownPeersGetterImpl() },
+                knownPeersIds = listOf(knownPeerId),
+                configurationFactory = { Configuration(maxPeersToQueryForKnownPeers = 2) })
     }
 
     private val PeerTestEnvironment.peerImpl get() = get<Peer>() as PeerImpl
@@ -72,6 +75,7 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
                 PeerTestEnvironment(
                         peerId,
                         peerFactory = { PeerImpl() },
+                        knownPeersManagerFactory = { KnownPeersGetterImpl() },
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
                         configurationFactory = {
                             Configuration(maxPeersToQueryForKnownPeers = 2)
@@ -79,12 +83,14 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
             } when_ {
                 peerImpl.refreshKnownPeers()
             } then {
-                knownPeers.take(get<Configuration>().maxPeersToQueryForKnownPeers).forEach {
-                    verify(it).query(knownPeersRequest)
-                }
-                knownPeers.drop(get<Configuration>().maxPeersToQueryForKnownPeers).forEach {
-                    verify(it, never()).query(knownPeersRequest)
-                }
+                knownPeers.take(get<Configuration>().maxPeersToQueryForKnownPeers)
+                        .forEach { peer ->
+                            verify(peer).query(knownPeersRequest)
+                        }
+                knownPeers.drop(get<Configuration>().maxPeersToQueryForKnownPeers)
+                        .forEach { peer ->
+                            verify(peer, never()).query(knownPeersRequest)
+                        }
             }
 
     @Test
@@ -93,6 +99,7 @@ class `PeerImpl refreshKnownPeers Test` : KoinLoggingDisabler() {
                 PeerTestEnvironment(
                         peerId,
                         peerFactory = { PeerImpl() },
+                        knownPeersManagerFactory = { KnownPeersGetterImpl() },
                         knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
                         configurationFactory = {
                             Configuration(maxPeersToQueryForKnownPeers = 2)

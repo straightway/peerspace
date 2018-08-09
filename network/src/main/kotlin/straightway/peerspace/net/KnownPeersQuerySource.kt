@@ -15,20 +15,11 @@
  */
 package straightway.peerspace.net
 
-import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.IdType
-import straightway.testing.bdd.Given
-import straightway.testing.flow.Equal
-import straightway.testing.flow.expect
-import straightway.testing.flow.is_
-import straightway.testing.flow.to_
-
-class AdministrativeTest {
-
-    @Test
-    fun `id of KnownPeers`() =
-            Given { Administrative.KnownPeers } when_ { id } then {
-                expect(it.result is_ Equal to_ Id(IdType.Administrative, "KnownPeers"))
-            }
+/**
+ * An entity which can be queried for known peers.
+ */
+interface KnownPeersQuerySource {
+    fun query(
+            request: KnownPeersQueryRequest,
+            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
 }

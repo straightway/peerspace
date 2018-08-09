@@ -13,19 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import java.io.Serializable
 
 /**
- * A network consisting of network peers.
- * TODO: Generalize access to nodes of different types by id.
+ * Request to push known peer ids to another peer.
  */
-@Suppress("ComplexInterface", "TooManyFunctions")
-interface Network {
-    fun getPushTarget(id: Id): DataPushTarget
-    fun getQuerySource(id: Id): DataQuerySource
-    fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget
-    fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource
-    fun executePendingRequests()
+data class KnownPeersPushRequest(
+        val originatorId: Id,
+        val knownPeersIds: List<Id>
+) : Serializable {
+    companion object {
+        const val serialVersionUID = 1L
+    }
 }

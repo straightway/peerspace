@@ -20,4 +20,9 @@ import straightway.peerspace.data.Identifyable
 /**
  * A peer node in the peerspace network.
  */
-interface Peer : Identifyable, DataPushTarget, DataQuerySource
+interface Peer :
+        Identifyable,
+        DataPushTarget,
+        DataQuerySource,
+        KnownPeersPushTarget,
+        KnownPeersQuerySource

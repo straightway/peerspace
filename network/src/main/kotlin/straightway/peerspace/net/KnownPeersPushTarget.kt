@@ -15,19 +15,11 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.IdType
-import straightway.peerspace.data.Identifyable
-
 /**
- * Enumeration of special fixed IDs, used for administrative purposes.
+ * A push target to notify about known peers.
  */
-enum class Administrative(override val id: Id) : Identifyable {
-
-    /**
-     * Data ID to push or query a collection of known peers between two peers.
-     */
-    KnownPeers("KnownPeers");
-
-    constructor(id: String) : this(Id(IdType.Administrative, id))
+interface KnownPeersPushTarget {
+    fun push(
+            request: KnownPeersPushRequest,
+            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
 }

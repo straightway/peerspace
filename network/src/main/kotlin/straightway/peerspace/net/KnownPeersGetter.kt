@@ -13,19 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Id
-
 /**
- * A network consisting of network peers.
- * TODO: Generalize access to nodes of different types by id.
+ * Refresh the peer directory with known peers received
+ * fro other peers.
  */
-@Suppress("ComplexInterface", "TooManyFunctions")
-interface Network {
-    fun getPushTarget(id: Id): DataPushTarget
-    fun getQuerySource(id: Id): DataQuerySource
-    fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget
-    fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource
-    fun executePendingRequests()
+interface KnownPeersGetter {
+    fun refreshKnownPeers()
 }

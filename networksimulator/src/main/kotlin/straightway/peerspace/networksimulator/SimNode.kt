@@ -20,6 +20,7 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
+import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
@@ -61,7 +62,7 @@ class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
         }
     }
 
-    fun createChannel(id: Id) =
+    fun createChannel(id: Id): Channel =
             SimChannel(
                     transmissionRequestHandler,
                     chunkSizeGetter,

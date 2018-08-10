@@ -71,7 +71,7 @@ class SimNode_Factory_Test : KoinLoggingDisabler() {
 
     @Test
     fun `createChannel returns new instance`() =
-            test when_ { from.createChannel(toId) } then {
+            test when_ { from.createChannel(toId) as SimChannel } then {
                 expect(it.result.to is_ Same as_ to)
                 expect(it.result.from is_ Same as_ from)
             }

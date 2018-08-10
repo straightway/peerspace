@@ -25,6 +25,7 @@ import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.KnownPeersPushRequest
 import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.TransmissionResultListener
+import java.io.Serializable
 
 /**
  * Implementation of a network stub for a peer.
@@ -43,20 +44,25 @@ class PeerNetworkStub(override val id: Id) :
     override fun push(
             request: DataPushRequest,
             resultListener: TransmissionResultListener) =
-            channel.transmit(request, resultListener)
+            transmit(request, resultListener)
 
     override fun query(
             request: DataQueryRequest,
             resultListener: TransmissionResultListener) =
-            channel.transmit(request, resultListener)
+            transmit(request, resultListener)
 
     override fun push(
             request: KnownPeersPushRequest,
             resultListener: TransmissionResultListener) =
-            channel.transmit(request, resultListener)
+            transmit(request, resultListener)
 
     override fun query(
             request: KnownPeersQueryRequest,
+            resultListener: TransmissionResultListener) =
+            transmit(request, resultListener)
+
+    private fun transmit(
+            request: Serializable,
             resultListener: TransmissionResultListener) =
             channel.transmit(request, resultListener)
 }

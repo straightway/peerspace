@@ -16,12 +16,14 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
-import java.io.Serializable
 
 /**
  * Query request to get known peers from another peer.
  */
-data class KnownPeersQueryRequest(val originatorId: Id) : Serializable {
+data class KnownPeersQueryRequest(val originatorId: Id) : Transmittable {
+
+    override val identification get() = Companion
+
     companion object {
         const val serialVersionUID = 1L
     }

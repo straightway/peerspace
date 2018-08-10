@@ -96,4 +96,12 @@ class DataPushRequestTest {
             } then {
                 expect(it.result.originatorId is_ Equal to_ sut.originatorId)
             }
+
+    @Test
+    fun `identification is same as key`() =
+            test() when_ {
+                sut.identification
+            } then {
+                expect(it.result is_ Equal to_ sut.chunk.key)
+            }
 }

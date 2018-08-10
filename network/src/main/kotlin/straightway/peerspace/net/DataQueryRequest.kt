@@ -19,7 +19,6 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHashable
-import java.io.Serializable
 
 val untimedData = LongRange(0L, 0L)
 
@@ -33,7 +32,7 @@ data class DataQueryRequest private constructor(
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
         override val epoch: Int? = null
-) : KeyHashable, Serializable {
+) : KeyHashable, Transmittable {
 
     constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>)
             : this(originatorId, id, timestamps.start, timestamps.endInclusive)
@@ -53,6 +52,8 @@ data class DataQueryRequest private constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun withEpoch(epoch: Int) = DataQueryRequest(originatorId, id, timestamps, epoch)
+
+    override val identification get() = copy(originatorId = Id(""))
 
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 

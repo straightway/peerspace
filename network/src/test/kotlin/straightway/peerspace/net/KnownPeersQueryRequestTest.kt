@@ -22,6 +22,8 @@ import straightway.utils.deserializeTo
 import straightway.utils.serializeToByteArray
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Same
+import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -48,11 +50,18 @@ class KnownPeersQueryRequestTest {
 
     @Test
     fun `is serializable`() =
-            test when_
-            {
+            test when_ {
                 val serialized = sut.serializeToByteArray()
                 serialized.deserializeTo<KnownPeersQueryRequest>()
             } then {
                 expect(it.result is_ Equal to_ sut)
+            }
+
+    @Test
+    fun `identification is constant`() =
+            test when_ {
+                sut.identification
+            } then {
+                expect(sut.identification is_ Same as_ KnownPeersQueryRequest.Companion)
             }
 }

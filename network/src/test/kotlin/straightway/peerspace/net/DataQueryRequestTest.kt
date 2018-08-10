@@ -221,7 +221,17 @@ class DataQueryRequestTest {
             Given { DataQueryRequest(originatorId, matchedId) } when_ {
                 withEpoch(1)
             } then {
-                expect(it.result is_ Equal to_ DataQueryRequest(Companion.originatorId, matchedId))
+                expect(it.result is_ Equal to_ DataQueryRequest(originatorId, matchedId))
+            }
+
+    @Test
+    fun `identification is same as the query without originator id`() =
+            Given {
+                DataQueryRequest(originatorId, matchedId, 1L..1L)
+            } when_ {
+                identification
+            } then {
+                expect(it.result is_ Equal to_ this.copy(originatorId = Id("")))
             }
 
     @Test

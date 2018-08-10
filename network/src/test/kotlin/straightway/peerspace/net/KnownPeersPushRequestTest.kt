@@ -63,11 +63,26 @@ class KnownPeersPushRequestTest {
 
     @Test
     fun `is serializable`() =
-            test when_
-            {
+            test when_ {
                 val serialized = sut.serializeToByteArray()
                 serialized.deserializeTo<KnownPeersPushRequest>()
             } then {
                 expect(it.result is_ Equal to_ sut)
+            }
+
+    @Test
+    fun `identification is same as the query itself`() =
+            test when_ {
+                sut.identification
+            } then {
+                expect(it.result is_ Equal to_ sut.knownPeersIds)
+            }
+
+    @Test
+    fun `identifications with same known peers are equal`() =
+            test when_ {
+                sut.copy(originatorId = Id("otherOriginator")).identification
+            } then {
+                expect(it.result == sut.identification)
             }
 }

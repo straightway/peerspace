@@ -17,7 +17,6 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
-import java.io.Serializable
 
 /**
  * Request to push known peer ids to another peer.
@@ -25,7 +24,10 @@ import java.io.Serializable
 data class KnownPeersPushRequest(
         val originatorId: Id,
         val knownPeersIds: List<Id>
-) : Serializable {
+) : Transmittable {
+
+    override val identification get() = knownPeersIds
+
     companion object {
         const val serialVersionUID = 1L
     }

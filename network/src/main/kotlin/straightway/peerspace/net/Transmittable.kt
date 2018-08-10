@@ -13,23 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Chunk
-import straightway.peerspace.data.Id
+import java.io.Serializable
 
 /**
- * A request to push data to another peer.
+ * Interface for objects which can be transmitted via a network channel.
  */
-data class DataPushRequest(val originatorId: Id, val chunk: Chunk) : Transmittable {
-
-    override val identification: Any get() = chunk.key
-
-    fun withEpoch(epoch: Int) =
-            DataPushRequest(originatorId, chunk.withEpoch(epoch))
-
-    companion object {
-        const val serialVersionUID = 1L
-    }
+interface Transmittable : Serializable {
+    val identification: Any
 }

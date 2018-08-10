@@ -18,10 +18,14 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
+import straightway.peerspace.data.Key
+import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.EpochAnalyzer
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.TransmissionResultListener
@@ -33,8 +37,11 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
 
     private val peerDirectory: PeerDirectory by inject()
     private val dataChunkStore: DataChunkStore by inject()
-    private val dataPushForwarder: DataPushForwarder by inject()
     private val network: Network by inject()
+    private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
+    private val forwardTracker: ForwardStateTracker<DataPushRequest, Key>
+            by inject("pushForwardTracker")
+    private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun push(
             request: DataPushRequest,
@@ -46,8 +53,22 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
         resultListener.notifySuccess()
     }
 
-    private fun forward(request: DataPushRequest) {
-        dataPushForwarder.forward(request)
+    private fun forward(push: DataPushRequest) {
+        if (push.chunk.key.isUntimed) {
+            forwardTracker.forward(push)
+        } else {
+            push.epochs.forEach { forwardTracker.forward(push.withEpoch(it)) }
+        }
+
+        notifyForwarded(push)
         network.executePendingRequests()
+    }
+
+    private val DataPushRequest.epochs get() =
+        epochAnalyzer.getEpochs(chunk.key.timestamps)
+
+    private fun notifyForwarded(push: DataPushRequest) {
+        val chunkKey = push.chunk.key
+        dataQueryHandler.notifyChunkForwarded(chunkKey)
     }
 }

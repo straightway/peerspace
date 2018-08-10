@@ -26,7 +26,6 @@ import straightway.koinutils.Bean.get
 import straightway.koinutils.withContext
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardStrategy
@@ -70,9 +69,6 @@ data class PeerTestEnvironment(
             }
         },
         private val dataQueryHandlerFactory: BeanFactory<DataQueryHandler> = {
-            mock()
-        },
-        private val dataPushForwarderFactory: BeanFactory<DataPushForwarder> = {
             mock()
         },
         private val knownPeersProviderFactory: BeanFactory<KnownPeersProvider> = {
@@ -132,7 +128,6 @@ data class PeerTestEnvironment(
             bean { timeProviderFactory() }
             bean("dataQueryHandler") { dataQueryHandlerFactory() }
             bean("otherDataQueryHandler") { mock<DataQueryHandler>() }
-            bean { dataPushForwarderFactory() }
             bean { knownPeersProviderFactory() }
             bean("knownPeerQueryChooser") { knownPeerQueryChooserFactory() }
             bean("knownPeerAnswerChooser") { knownPeerAnswerChooserFactory() }

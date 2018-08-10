@@ -24,7 +24,6 @@ import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushForwarder
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardStrategy
@@ -41,7 +40,6 @@ import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.chunkSizeGetter
-import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.ForwardStateTrackerImpl
@@ -147,9 +145,6 @@ class SinglePeerEnvironment(
         }
         bean("untimedDataQueryHandler") {
             UntimedDataQueryHandler() as DataQueryHandler
-        }
-        bean {
-            DataPushForwarderImpl() as DataPushForwarder
         }
         bean("knownPeerQueryChooser") {
             RandomChooser(randomSource) as Chooser

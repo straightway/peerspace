@@ -31,7 +31,6 @@ import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.chunkSizeGetter
-import straightway.peerspace.net.impl.DataPushForwarderImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochAnalyzerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
@@ -92,19 +91,18 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             bean { DataQueryHandlerImpl() as DataQueryHandler }
             bean { TransientPeerDirectory() as PeerDirectory }
             bean { NetworkImpl() as Network }
-            factory { PeerNetworkStub(it.get("id")) as DataPushTarget }
-            factory { PeerNetworkStub(it.get("id")) as DataQuerySource }
+            factory { PeerNetworkStub(it["id"]) as DataPushTarget }
+            factory { PeerNetworkStub(it["id"]) as DataQuerySource }
             factory { get<SimNode>().createChannel(it["id"]) }
             bean { Configuration() }
             bean("knownPeerQueryChooser") { RandomChooser(randomSource) }
             bean("knownPeerAnswerChooser") { RandomChooser(randomSource) }
             bean { ForwardStrategyImpl() as ForwardStrategy }
             bean { simulator as TimeProvider }
-            bean { DataPushForwarderImpl() }
             bean { peers[it["id"]] as DataPushTarget }
             bean { peers[it["id"]] as DataQuerySource }
             bean { simNet }
-            bean { chunkSizeGetter { CHUNK_SIZE } }
+            bean { chunkSizeGetter { _ -> CHUNK_SIZE } }
             bean("uploadStream") {
                 AsyncSequentialTransmissionStream(UPLOAD_BANDWIDTH, simulator)
             }

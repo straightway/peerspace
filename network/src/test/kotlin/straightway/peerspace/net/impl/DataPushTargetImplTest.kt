@@ -15,6 +15,9 @@
  */
 package straightway.peerspace.net.impl
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -27,6 +30,9 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.EpochAnalyzer
+import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.TransmissionResultListener
@@ -39,7 +45,7 @@ import straightway.testing.flow.expect
 class DataPushTargetImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val peerId = Id("peerId")
+        val originatorId = Id("originator")
         val chunkId = Id("chunkId")
         val data = "Data".toByteArray()
         val chunk = Chunk(Key(chunkId), data)
@@ -47,28 +53,43 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
 
     private val test get() = Given {
         object {
+            var epochs = listOf(0)
+            var chunkKey = Key(chunkId)
+            val pushRequest by lazy {
+                DataPushRequest(originatorId, Chunk(chunkKey, byteArrayOf()))
+            }
             val environment = PeerTestEnvironment(
-                dataPushTargetFactory = { DataPushTargetImpl() })
+                dataPushTargetFactory = { DataPushTargetImpl() }) {
+                bean { _ ->
+                    mock<EpochAnalyzer> { _ ->
+                        on { getEpochs(any()) }.thenAnswer { epochs }
+                    }
+                }
+            }
             val sut: DataPushTarget = environment.get()
+            val dataQueryHandler =
+                    environment.get<DataQueryHandler>("dataQueryHandler")
+            val pushForwardTracker =
+                    environment.get<ForwardStateTracker<DataPushRequest, Key>>("pushForwardTracker")
         }
     }
 
     @Test
     fun `push does not throw`() =
-            test when_ { sut.push(DataPushRequest(peerId, chunk)) } then {
+            test when_ { sut.push(DataPushRequest(originatorId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { sut.push(DataPushRequest(peerId, chunk)) } then {
+            test when_ { sut.push(DataPushRequest(originatorId, chunk)) } then {
                 verify(environment.get<DataChunkStore>()).store(chunk)
             }
 
     @Test
     fun `push notifies resultListener of success`() {
         val resultListener = mock<TransmissionResultListener>()
-        test when_ { sut.push(DataPushRequest(peerId, chunk), resultListener) } then {
+        test when_ { sut.push(DataPushRequest(originatorId, chunk), resultListener) } then {
             verify(resultListener).notifySuccess()
             verify(resultListener, never()).notifyFailure()
         }
@@ -77,7 +98,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `push executes pending network requests`() =
             test when_ {
-                sut.push(DataPushRequest(peerId, chunk))
+                sut.push(DataPushRequest(originatorId, chunk))
             } then {
                 verify(environment.get<Network>()).executePendingRequests()
             }
@@ -85,8 +106,38 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `originator of push request is added to known peers`() =
             test when_ {
-                sut.push(DataPushRequest(peerId, chunk))
+                sut.push(DataPushRequest(originatorId, chunk))
             } then {
-                verify(environment.get<PeerDirectory>()).add(peerId)
+                verify(environment.get<PeerDirectory>()).add(originatorId)
+            }
+
+    @Test
+    fun `forwarding is handled by pushForwardTracker`() =
+            test when_ {
+                sut.push(pushRequest)
+            } then {
+                verify(pushForwardTracker).forward(pushRequest)
+            }
+
+    @Test
+    fun `forwarding notifies dataQueryHandler`() =
+            test when_ {
+                sut.push(pushRequest)
+            } then {
+                verify(dataQueryHandler).notifyChunkForwarded(pushRequest.chunk.key)
+            }
+
+    @Test
+    fun `data chunks belonging to multiple epochs are split`() =
+            test while_ {
+                epochs = listOf(0, 1)
+                chunkKey = chunkKey.copy(timestamp = 83L)
+            } when_ {
+                sut.push(pushRequest)
+            } then {
+                inOrder(pushForwardTracker) {
+                    verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(0)))
+                    verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(1)))
+                }
             }
 }

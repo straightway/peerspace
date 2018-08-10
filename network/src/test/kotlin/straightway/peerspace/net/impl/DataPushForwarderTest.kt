@@ -56,14 +56,14 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
                         knownPeersIds = ids("peer0", "peer1", "peer2"),
                         pushForwarderFactory = { DataPushForwarder() },
                         forwardStrategyFactory = {
-                            mock {
+                            mock { _ ->
                                 on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
                                     forwardPeerIds.toSet()
                                 }
                             }
                         },
                         dataQueryHandlerFactory = {
-                            mock {
+                            mock { _ ->
                                 on { getForwardPeerIdsFor(any()) }.thenAnswer {
                                     queryForwardPeerIds
                                 }

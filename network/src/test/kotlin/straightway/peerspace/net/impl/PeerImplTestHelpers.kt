@@ -69,9 +69,6 @@ fun createNetworkMock(
         peers: () -> Collection<Peer> = { listOf() }
 ) = mock<Network> { _ ->
     val pendingTransmissions = mutableListOf<() -> Unit>()
-    on { getQuerySource(any()) }.thenAnswer { args ->
-        peers().find { it.id == args.arguments[0] }!!
-    }
     on { scheduleTransmission(any(), any()) }.thenAnswer { args ->
         val transmission = args.arguments[0] as Transmission
         val listener = args.arguments[1] as TransmissionResultListener
@@ -80,7 +77,12 @@ fun createNetworkMock(
         when (request) {
             is DataPushRequest -> pendingTransmissions.add {
                 val peer = peers().find { it.id == transmission.receiverId }!!
-                peer.push(request, listener) }
+                peer.push(request, listener)
+            }
+            is DataQueryRequest -> pendingTransmissions.add {
+                val peer = peers().find { it.id == transmission.receiverId }!!
+                peer.query(request, listener)
+            }
             else -> throw Panic("Invalid request type")
         }
     }

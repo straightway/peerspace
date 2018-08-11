@@ -41,9 +41,6 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
         pendingTransmission.transmissionResultListeners += resultListener
     }
 
-    override fun getQuerySource(id: Id): DataQuerySource =
-            get("networkDataQuerySource") { mapOf("id" to id) }
-
     override fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget {
         TODO("not implemented")
     }

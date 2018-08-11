@@ -25,6 +25,7 @@ import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -46,8 +47,8 @@ class DataQueryForwarder :
             item: DataQueryRequest,
             transmissionResultListener: TransmissionResultListener
     ) {
-        network.getQuerySource(target).query(
-                item.copy(originatorId = peerId),
+        network.scheduleTransmission(
+                Transmission(target, item.copy(originatorId = peerId)),
                 transmissionResultListener)
     }
 }

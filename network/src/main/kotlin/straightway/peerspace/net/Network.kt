@@ -25,8 +25,8 @@ import straightway.peerspace.data.Id
 interface Network {
     fun scheduleTransmission(
             transmission: Transmission,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
-    fun getQuerySource(id: Id): DataQuerySource
+            resultListener: TransmissionResultListener =
+                    TransmissionResultListener.Ignore)
     fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget
     fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource
     fun executePendingRequests()

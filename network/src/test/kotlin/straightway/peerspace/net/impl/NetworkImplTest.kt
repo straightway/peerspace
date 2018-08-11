@@ -93,14 +93,6 @@ class NetworkImplTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `getQuerySource creates new instance via Koin`() =
-            test when_ {
-                sut.getQuerySource(receiverId)
-            } then {
-                expect(createdIds is_ Equal to_ Values(receiverId))
-            }
-
-    @Test
     fun `scheduleTransmission does not transmit immediately`() =
             test when_ {
                 sut.scheduleTransmission(Transmission(receiverId, pushRequest))

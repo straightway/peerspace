@@ -37,7 +37,7 @@ fun createPeerMock(
         pushCallback: (DataPushRequest, TransmissionResultListener) -> Unit = { _, _ -> },
         queryCallback: (DataQueryRequest, TransmissionResultListener) -> Unit = { _, _ -> }
 ) =
-        mock<Peer> {
+        mock<Peer> { _ ->
             on { this.id }.thenReturn(id)
             on { push(any<DataPushRequest>(), any()) }.thenAnswer {
                 pushCallback(
@@ -55,10 +55,10 @@ fun ids(vararg ids: String) = ids.map { Id(it) }
 
 fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataChunkStore {
     val chunks: MutableList<Chunk> = mutableListOf(*initialChunks().toTypedArray())
-    return mock {
+    return mock { _ ->
         on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as Chunk) }
-        on { query(any()) }.thenAnswer {
-            val query = it.arguments[0] as DataQueryRequest
+        on { query(any()) }.thenAnswer { args ->
+            val query = args.arguments[0] as DataQueryRequest
             chunks.filter { query.isMatching(it.key) }
         }
     }
@@ -95,13 +95,13 @@ fun createNetworkMock(
     }
 }
 
-fun createPeerDirectory(peers: () -> Collection<Peer> = { listOf() }) = mock<PeerDirectory> {
-    on { allKnownPeersIds }.thenAnswer {
+fun createPeerDirectory(peers: () -> Collection<Peer> = { listOf() }) = mock<PeerDirectory> { _ ->
+    on { allKnownPeersIds }.thenAnswer { _ ->
         peers().map { it.id }.toSet()
     }
 }
 
-fun createChooser(chosenIds: () -> List<Id> = { listOf() }) = mock<Chooser> {
+fun createChooser(chosenIds: () -> List<Id> = { listOf() }) = mock<Chooser> { _ ->
     on { chooseFrom(any<List<Id>>(), any()) }.thenAnswer {
         chosenIds().take(it.arguments[1] as Int)
     }

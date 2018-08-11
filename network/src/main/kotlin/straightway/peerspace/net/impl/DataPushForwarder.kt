@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
+@file:Suppress("ForbiddenComment")
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
@@ -27,6 +27,7 @@ import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -46,13 +47,14 @@ class DataPushForwarder :
     override fun getForwardPeerIdsFor(item: DataPushRequest, state: ForwardState) =
             item.getForwardPeersFromStrategies(state) - item.originatorId
 
+    // TODO: Check if this can be moved to the base class
     override fun forwardTo(
             target: Id,
             item: DataPushRequest,
             transmissionResultListener: TransmissionResultListener
-    ) =
-            network.getPushTarget(target).push(
-                    DataPushRequest(peerId, item.chunk), transmissionResultListener)
+    ) = network.scheduleTransmission(
+            Transmission(target, item.copy(originatorId = peerId)),
+            transmissionResultListener)
 
     private fun DataPushRequest.getForwardPeersFromStrategies(forwardState: ForwardState) =
             (getPushForwardPeerIds(forwardState) + chunk.key.queryForwardPeerIds).toSet()

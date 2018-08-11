@@ -30,6 +30,7 @@ import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
@@ -173,6 +174,7 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
 
         test when_ {
             sut.forwardTo(environment.knownPeersIds[0], pushRequest, resultListener)
+            environment.get<Network>().executePendingRequests()
         } then {
             val forwardedPush = pushRequest.copy(originatorId = environment.peerId)
             verify(environment.knownPeers[0]).push(forwardedPush, resultListener)

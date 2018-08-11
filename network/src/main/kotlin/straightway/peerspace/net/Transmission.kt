@@ -13,21 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 
 /**
- * A network consisting of network peers.
- * TODO: Generalize access to nodes of different types by id.
+ * A transmission specification of a given transmittable content to a receiver.
  */
-@Suppress("ComplexInterface", "TooManyFunctions")
-interface Network {
-    fun scheduleTransmission(
-            transmission: Transmission,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
-    fun getQuerySource(id: Id): DataQuerySource
-    fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget
-    fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource
-    fun executePendingRequests()
+data class Transmission(val receiverId: Id, val content: Transmittable) {
+    val key get() = Pair(receiverId, content.identification)
 }

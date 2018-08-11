@@ -28,8 +28,8 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
 import straightway.peerspace.net.isMatching
@@ -63,10 +63,7 @@ abstract class SpecializedDataQueryHandlerBase(
         val matchingQueries = pendingDataQueryTracker.pendingDataQueries.filter {
             it.query.isMatching(key)
         }
-        matchingQueries.forEach {
-            matchingChunks forwardTo { it.query.issuer }
-        }
-
+        matchingQueries.forEach { matchingChunks forwardTo it.query.originatorId }
         onChunkForwarding(key)
     }
 
@@ -97,27 +94,18 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private fun returnLocalResult(query: DataQueryRequest): Boolean {
         val localResult = query.result.toList()
-        localResult forwardTo { query.issuer }
+        localResult forwardTo query.originatorId
         return localResult.any()
     }
 
-    private infix fun Iterable<Chunk>.forwardTo(targetGetter: () -> IdentifyablePushTarget) {
-        val target by lazy(targetGetter)
-        forEach { chunk -> chunk forwardTo target }
-    }
+    private infix fun Iterable<Chunk>.forwardTo(targetId: Id) =
+        forEach { chunk -> chunk forwardTo targetId }
 
-    private val DataQueryRequest.issuer
-        get() = IdentifyablePushTarget(network.getPushTarget(originatorId), originatorId)
-
-    private data class IdentifyablePushTarget(
-            val pushTarget: DataPushTarget,
-            val id: Id)
-
-    private infix fun Chunk.forwardTo(target: IdentifyablePushTarget) =
-            target.pushTarget.push(
-                    DataPushRequest(peerId, this),
+    private infix fun Chunk.forwardTo(targetId: Id) =
+            network.scheduleTransmission(
+                    Transmission(targetId, DataPushRequest(peerId, this)),
                     object : TransmissionResultListener {
                         override fun notifySuccess() {}
-                        override fun notifyFailure() = onChunkForwardFailed(key, target.id)
+                        override fun notifyFailure() = onChunkForwardFailed(key, targetId)
                     })
 }

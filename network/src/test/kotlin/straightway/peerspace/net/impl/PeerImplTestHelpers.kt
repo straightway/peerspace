@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
+import straightway.error.Panic
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataChunkStore
@@ -25,6 +26,7 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
@@ -62,18 +64,34 @@ fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataC
     }
 }
 
-fun createNetworkMock(peers: () -> Collection<Peer> = { listOf() }) = mock<Network> {
+fun createNetworkMock(
+        transmissionResultListeners: MutableList<TransmissionRecord>,
+        peers: () -> Collection<Peer> = { listOf() }
+) = mock<Network> { _ ->
+    val pendingTransmissions = mutableListOf<() -> Unit>()
     on { getQuerySource(any()) }.thenAnswer { args ->
         peers().find { it.id == args.arguments[0] }!!
     }
-    on { getPushTarget(any()) }.thenAnswer { args ->
-        peers().find { it.id == args.arguments[0] }!!
+    on { scheduleTransmission(any(), any()) }.thenAnswer { args ->
+        val transmission = args.arguments[0] as Transmission
+        val listener = args.arguments[1] as TransmissionResultListener
+        val request = transmission.content
+        transmissionResultListeners.add(TransmissionRecord(request, listener))
+        when (request) {
+            is DataPushRequest -> pendingTransmissions.add {
+                val peer = peers().find { it.id == transmission.receiverId }!!
+                peer.push(request, listener) }
+            else -> throw Panic("Invalid request type")
+        }
     }
     on { getKnownPeersQuerySource(any()) }.thenAnswer { args ->
         peers().find { it.id == args.arguments[0] }!!
     }
     on { getKnownPeersPushTarget(any()) }.thenAnswer { args ->
         peers().find { it.id == args.arguments[0] }!!
+    }
+    on { executePendingRequests() }.thenAnswer { _ ->
+        pendingTransmissions.forEach { it() }
     }
 }
 

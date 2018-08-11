@@ -84,7 +84,7 @@ data class PeerTestEnvironment(
             createPeerDirectory { knownPeers }
         },
         private val networkFactory: BeanFactory<Network> = {
-            createNetworkMock { knownPeers + unknownPeers }
+            createNetworkMock(transmissionResultListeners) { knownPeers + unknownPeers }
         },
         private val dataChunkStoreFactory: BeanFactory<DataChunkStore> = {
             createChunkDataStore { localChunks }
@@ -176,6 +176,8 @@ data class PeerTestEnvironment(
 
     val pushTransmissionResultListeners =
             mutableMapOf<Pair<Id, Key>, TransmissionResultListener>()
+
+    val transmissionResultListeners = mutableListOf<TransmissionRecord>()
 
     fun getPeer(id: Id) =
             knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!

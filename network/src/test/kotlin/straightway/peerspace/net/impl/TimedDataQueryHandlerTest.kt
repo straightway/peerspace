@@ -130,8 +130,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 pendingQueries = setOf(PendingDataQuery(matchingQuery, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(chunk1.key)
             } when_ {
-                val listenerKey = Pair(queryOriginatorId, chunk1.key)
-                environment.pushTransmissionResultListeners[listenerKey]!!.notifyFailure()
+                environment.transmissionResultListeners.single().listener.notifyFailure()
             } then {
                 val predicate = pendingQueryRemoveDelegates.single()
                 expect(predicate(matchingQuery) is_ True)

@@ -18,13 +18,12 @@ package straightway.peerspace.net.impl
 import straightway.koinutils.Bean.get
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
-import straightway.peerspace.data.Key
+import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -32,39 +31,15 @@ import straightway.peerspace.net.TransmissionResultListener
  */
 class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
 
-    private data class PendingPush(
-            val receiver: DataPushTarget,
-            val request: DataPushRequest
+    override fun scheduleTransmission(
+            transmission: Transmission,
+            resultListener: TransmissionResultListener
     ) {
-        val transmissionResultListeners = mutableListOf<TransmissionResultListener>()
-        fun execute() {
-            val listeners = transmissionResultListeners.toList()
-            receiver.push(request, object : TransmissionResultListener {
-                override fun notifySuccess() = listeners.forEach { it.notifySuccess() }
-                override fun notifyFailure() = listeners.forEach { it.notifyFailure() }
-            })
+        val pendingTransmission = pendingTransmissions.getOrPut(transmission.key) {
+            PendingTransmission(transmission)
         }
+        pendingTransmission.transmissionResultListeners += resultListener
     }
-
-    private val pendingPushes = mutableMapOf<Pair<Id, Key>, PendingPush>()
-
-    private inner class DelayedPushTarget(
-            val id: Id,
-            val wrapped: DataPushTarget
-    ) : DataPushTarget {
-        override fun push(
-                request: DataPushRequest,
-                resultListener: TransmissionResultListener
-        ) {
-            val pendingPush = pendingPushes.getOrPut(Pair(id, request.chunk.key)) {
-                PendingPush(wrapped, request)
-            }
-            pendingPush.transmissionResultListeners.add(resultListener)
-        }
-    }
-
-    override fun getPushTarget(id: Id): DataPushTarget =
-            DelayedPushTarget(id, get("networkDataPushTarget") { mapOf("id" to id) })
 
     override fun getQuerySource(id: Id): DataQuerySource =
             get("networkDataQuerySource") { mapOf("id" to id) }
@@ -78,8 +53,23 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
     }
 
     override fun executePendingRequests() {
-        val actionsToExecute = pendingPushes.values.toList()
-        pendingPushes.clear()
+        val actionsToExecute = pendingTransmissions.values.toList()
+        pendingTransmissions.clear()
         actionsToExecute.forEach { it.execute() }
     }
+
+    private inner class PendingTransmission(val transmission: Transmission) {
+        var transmissionResultListeners = listOf<TransmissionResultListener>()
+        fun execute() = transmission.channel.transmit(transmission.content, distributingListener)
+        private fun forAllListeners(action: TransmissionResultListener.() -> Unit) =
+                transmissionResultListeners.forEach { it.action() }
+        private val distributingListener = object : TransmissionResultListener {
+            override fun notifySuccess() = forAllListeners { notifySuccess() }
+            override fun notifyFailure() = forAllListeners { notifyFailure() }
+        }
+    }
+
+    private val pendingTransmissions = mutableMapOf<Pair<Id, Any>, PendingTransmission>()
+
+    private val Transmission.channel get() = get<Channel> { mapOf("id" to receiverId) }
 }

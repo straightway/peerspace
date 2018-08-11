@@ -32,6 +32,8 @@ import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.Transmission
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Same
@@ -63,7 +65,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
         var splitSource: DataQueryRequest? = null
 
         public override val pendingDataQueryTracker by lazy {
-            mock<PendingDataQueryTracker> {
+            mock<PendingDataQueryTracker> { _ ->
                 on { pendingDataQueries }.thenAnswer { pendingQueries }
             }
         }
@@ -92,7 +94,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                             DerivedSut(isLocalResultPreventingForwarding)
                         },
                         dataChunkStoreFactory = {
-                            mock {
+                            mock { _ ->
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         })
@@ -147,10 +149,13 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 chunkStoreQueryResult = listOf(matchingChunk, otherChunk)
             } when_ {
                 sut.handle(untimedQueryRequest)
-            } then {
+            } then { _ ->
                 chunkStoreQueryResult.forEach {
-                    verify(environment.getPeer(untimedQueryRequest.originatorId))
-                            .push(eq(DataPushRequest(environment.peerId, it)), any())
+                    verify(environment.get<Network>()).scheduleTransmission(
+                            eq(Transmission(
+                                    untimedQueryRequest.originatorId,
+                                    DataPushRequest(environment.peerId, it))),
+                            any())
                 }
             }
 
@@ -171,6 +176,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.pendingQueries = setOf(PendingDataQuery(untimedQueryRequest, LocalDateTime.MIN))
             } when_ {
                 sut.notifyChunkForwarded(matchingChunk.key)
+                environment.get<Network>().executePendingRequests()
             } then {
                 val pushRequest = DataPushRequest(environment.peerId, matchingChunk)
                 val queryOriginator = environment.getPeer(queryOriginatorId)
@@ -204,8 +210,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.pendingQueries = setOf(PendingDataQuery(untimedQueryRequest, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(matchingChunk.key)
             } when_ {
-                val listenerKey = Pair(queryOriginatorId, matchingChunk.key)
-                environment.pushTransmissionResultListeners[listenerKey]!!.notifyFailure()
+                environment.transmissionResultListeners.single().listener.notifyFailure()
             } then {
                 expect(sut.chunkForwardFailure is_ Equal to_
                                Pair(matchingChunk.key, queryOriginatorId))
@@ -227,7 +232,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                         timedQueryRequest.copy(epoch = 2))
             } when_ {
                 sut.handle(timedQueryRequest)
-            } then {
+            } then { _ ->
                 inOrder(forwardTracker) {
                     sut.splitRequests!!.forEach {
                         verify(forwardTracker).forward(it)

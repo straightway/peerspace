@@ -66,6 +66,7 @@ fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataC
     }
 }
 
+@Suppress("ComplexMethod")
 fun createNetworkMock(
         transmissionResultListeners: MutableList<TransmissionRecord>,
         peers: () -> Collection<Peer> = { listOf() }
@@ -85,7 +86,7 @@ fun createNetworkMock(
                 val peer = peers().find { it.id == transmission.receiverId }!!
                 peer.query(request, listener)
             }
-            is KnownPeersPushRequest ->  pendingTransmissions.add {
+            is KnownPeersPushRequest -> pendingTransmissions.add {
                 val peer = peers().find { it.id == transmission.receiverId }!!
                 peer.push(request, listener)
             }

@@ -37,7 +37,6 @@ import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.ForwardStrategyImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerImpl
-import straightway.peerspace.net.impl.PeerNetworkStub
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -91,8 +90,6 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             bean { DataQueryHandlerImpl() as DataQueryHandler }
             bean { TransientPeerDirectory() as PeerDirectory }
             bean { NetworkImpl() as Network }
-            factory { PeerNetworkStub(it["id"]) as DataPushTarget }
-            factory { PeerNetworkStub(it["id"]) as DataQuerySource }
             factory { get<SimNode>().createChannel(it["id"]) }
             bean { Configuration() }
             bean("knownPeerQueryChooser") { RandomChooser(randomSource) }

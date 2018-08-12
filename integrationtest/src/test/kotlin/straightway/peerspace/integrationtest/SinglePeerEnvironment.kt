@@ -46,7 +46,6 @@ import straightway.peerspace.net.impl.ForwardStateTrackerImpl
 import straightway.peerspace.net.impl.ForwardStrategyImpl
 import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerImpl
-import straightway.peerspace.net.impl.PeerNetworkStub
 import straightway.peerspace.net.impl.PendingDataQueryTrackerImpl
 import straightway.peerspace.net.impl.DataQueryForwarder
 import straightway.peerspace.net.impl.DataQuerySourceImpl
@@ -183,12 +182,6 @@ class SinglePeerEnvironment(
         }
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }
-        }
-        factory("networkDataPushTarget") {
-            PeerNetworkStub(it["id"]) as DataPushTarget
-        }
-        factory("networkDataQuerySource") {
-            PeerNetworkStub(it["id"]) as DataQuerySource
         }
         factory {
             val from = _simNodes[peerId]!!

@@ -20,9 +20,6 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Network
-import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.KnownPeersPushTarget
-import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 

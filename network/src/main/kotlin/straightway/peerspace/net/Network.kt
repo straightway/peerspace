@@ -15,19 +15,13 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Id
-
 /**
  * A network consisting of network peers.
- * TODO: Generalize access to nodes of different types by id.
  */
-@Suppress("ComplexInterface", "TooManyFunctions")
 interface Network {
     fun scheduleTransmission(
             transmission: Transmission,
             resultListener: TransmissionResultListener =
                     TransmissionResultListener.Ignore)
-    fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget
-    fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource
     fun executePendingRequests()
 }

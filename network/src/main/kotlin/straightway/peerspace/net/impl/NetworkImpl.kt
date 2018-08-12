@@ -41,14 +41,6 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
         pendingTransmission.transmissionResultListeners += resultListener
     }
 
-    override fun getKnownPeersPushTarget(id: Id): KnownPeersPushTarget {
-        TODO("not implemented")
-    }
-
-    override fun getKnownPeersQuerySource(id: Id): KnownPeersQuerySource {
-        TODO("not implemented")
-    }
-
     override fun executePendingRequests() {
         val actionsToExecute = pendingTransmissions.values.toList()
         pendingTransmissions.clear()

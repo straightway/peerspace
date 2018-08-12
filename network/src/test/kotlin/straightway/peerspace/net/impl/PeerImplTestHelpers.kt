@@ -26,6 +26,8 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
@@ -83,17 +85,20 @@ fun createNetworkMock(
                 val peer = peers().find { it.id == transmission.receiverId }!!
                 peer.query(request, listener)
             }
+            is KnownPeersPushRequest ->  pendingTransmissions.add {
+                val peer = peers().find { it.id == transmission.receiverId }!!
+                peer.push(request, listener)
+            }
+            is KnownPeersQueryRequest -> pendingTransmissions.add {
+                val peer = peers().find { it.id == transmission.receiverId }!!
+                peer.query(request, listener)
+            }
             else -> throw Panic("Invalid request type")
         }
     }
-    on { getKnownPeersQuerySource(any()) }.thenAnswer { args ->
-        peers().find { it.id == args.arguments[0] }!!
-    }
-    on { getKnownPeersPushTarget(any()) }.thenAnswer { args ->
-        peers().find { it.id == args.arguments[0] }!!
-    }
     on { executePendingRequests() }.thenAnswer { _ ->
         pendingTransmissions.forEach { it() }
+        pendingTransmissions.clear()
     }
 }
 

@@ -25,6 +25,7 @@ import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Transmission
 import straightway.random.Chooser
 
 /**
@@ -40,17 +41,18 @@ class KnownPeersGetterImpl :
     private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
     private val peerDirectory: PeerDirectory by inject()
 
-    override fun refreshKnownPeers() =
-            peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
+    override fun refreshKnownPeers() {
+        peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
+        network.executePendingRequests()
+    }
 
     private fun queryForKnownPeers(peerId: Id) =
-            peerId.asKnownPeersQuerySource.query(KnownPeersQueryRequest(id))
+            network.scheduleTransmission(
+                    Transmission(peerId, KnownPeersQueryRequest(id)))
 
     private val peersToQueryForOtherKnownPeers get() =
         knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers
 
     private infix fun Chooser.choosePeers(number: Int) =
             chooseFrom(peerDirectory.allKnownPeersIds.toList(), number)
-
-    private val Id.asKnownPeersQuerySource get() = network.getKnownPeersQuerySource(this)
 }

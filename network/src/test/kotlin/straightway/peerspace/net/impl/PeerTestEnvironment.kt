@@ -93,10 +93,10 @@ data class PeerTestEnvironment(
             mock()
         },
         private val queryForwarderFactory:
-        BeanFactory<Forwarder<DataQueryRequest, DataQueryRequest>> = {
+        BeanFactory<Forwarder<DataQueryRequest>> = {
             mock()
         },
-        private val pushForwarderFactory: BeanFactory<Forwarder<DataPushRequest, Key>> = {
+        private val pushForwarderFactory: BeanFactory<Forwarder<DataPushRequest>> = {
             mock()
         },
         private val pendingTimedDataQueryTrackerFactory: BeanFactory<PendingDataQueryTracker> = {
@@ -106,11 +106,11 @@ data class PeerTestEnvironment(
             mock()
         },
         private val queryForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<DataQueryRequest, DataQueryRequest>> = {
+        BeanFactory<ForwardStateTracker<DataQueryRequest>> = {
             mock()
         },
         private val pushForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<DataPushRequest, Key>> = {
+        BeanFactory<ForwardStateTracker<DataPushRequest>> = {
             mock()
         },
         private val dataPushTargetFactory: BeanFactory<DataPushTarget> = { mock() },

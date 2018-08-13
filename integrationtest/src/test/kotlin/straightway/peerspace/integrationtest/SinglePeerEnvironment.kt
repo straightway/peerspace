@@ -19,7 +19,6 @@ import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.koinutils.Bean.get
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
@@ -161,7 +160,7 @@ class SinglePeerEnvironment(
             TransientDataChunkStore() as DataChunkStore
         }
         bean("queryForwarder") {
-            DataQueryForwarder() as Forwarder<DataQueryRequest, DataQueryRequest>
+            DataQueryForwarder() as Forwarder<DataQueryRequest>
         }
         bean("pendingTimedQueryTracker") {
             PendingDataQueryTrackerImpl { timedDataQueryTimeout } as PendingDataQueryTracker
@@ -170,15 +169,15 @@ class SinglePeerEnvironment(
             PendingDataQueryTrackerImpl { untimedDataQueryTimeout } as PendingDataQueryTracker
         }
         bean("queryForwardTracker") {
-            ForwardStateTrackerImpl<DataQueryRequest, DataQueryRequest>(get("queryForwarder"))
-                    as ForwardStateTracker<DataQueryRequest, DataQueryRequest>
+            ForwardStateTrackerImpl<DataQueryRequest>(get("queryForwarder"))
+                    as ForwardStateTracker<DataQueryRequest>
         }
         bean("pushForwarder") {
-            straightway.peerspace.net.impl.DataPushForwarder() as Forwarder<DataPushRequest, Key>
+            straightway.peerspace.net.impl.DataPushForwarder() as Forwarder<DataPushRequest>
         }
         bean("pushForwardTracker") {
-            ForwardStateTrackerImpl<DataPushRequest, Key>(get("pushForwarder"))
-                    as ForwardStateTracker<DataPushRequest, Key>
+            ForwardStateTrackerImpl<DataPushRequest>(get("pushForwarder"))
+                    as ForwardStateTracker<DataPushRequest>
         }
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }

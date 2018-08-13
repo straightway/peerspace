@@ -20,27 +20,21 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
-import straightway.koinutils.Property.property
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.DataPushRequest
 
 /**
  * Forwarder implementation for push requests.
  */
 class DataPushForwarder :
-        Forwarder<DataPushRequest, Key>,
+        Forwarder<DataPushRequest>,
         KoinModuleComponent by KoinModuleComponent() {
 
-    private val peerId: Id by property("peerId") { Id(it) }
-    private val network: Network by inject()
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val forwardStrategy: ForwardStrategy by inject()
-
-    override fun getKeyFor(item: DataPushRequest) = item.chunk.key
 
     override fun getForwardPeerIdsFor(item: DataPushRequest, state: ForwardState) =
             item.getForwardPeersFromStrategies(state) - item.originatorId

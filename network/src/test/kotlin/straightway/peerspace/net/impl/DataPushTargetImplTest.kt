@@ -70,7 +70,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             val dataQueryHandler =
                     environment.get<DataQueryHandler>("dataQueryHandler")
             val pushForwardTracker =
-                    environment.get<ForwardStateTracker<DataPushRequest, Key>>("pushForwardTracker")
+                    environment.get<ForwardStateTracker<DataPushRequest>>("pushForwardTracker")
         }
     }
 

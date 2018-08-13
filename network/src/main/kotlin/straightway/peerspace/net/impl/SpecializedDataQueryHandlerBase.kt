@@ -46,7 +46,7 @@ abstract class SpecializedDataQueryHandlerBase(
     private val peerId: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
     private val dataChunkStore: DataChunkStore by inject()
-    private val forwardTracker: ForwardStateTracker<DataQueryRequest, DataQueryRequest>
+    private val forwardTracker: ForwardStateTracker<DataQueryRequest>
             by inject("queryForwardTracker")
 
     final override fun handle(query: DataQueryRequest) {

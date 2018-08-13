@@ -18,7 +18,6 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
-import straightway.peerspace.data.Key
 import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushRequest
@@ -39,7 +38,7 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
     private val dataChunkStore: DataChunkStore by inject()
     private val network: Network by inject()
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
-    private val forwardTracker: ForwardStateTracker<DataPushRequest, Key>
+    private val forwardTracker: ForwardStateTracker<DataPushRequest>
             by inject("pushForwardTracker")
     private val epochAnalyzer: EpochAnalyzer by inject()
 

@@ -52,19 +52,11 @@ class DataQueryForwarderTest : KoinLoggingDisabler() {
                         }
                     })
                 val sut get() =
-                    environment.get<Forwarder<DataQueryRequest, DataQueryRequest>>("queryForwarder")
+                    environment.get<Forwarder<DataQueryRequest>>("queryForwarder")
                 val forwardStrategy get() =
                     environment.get<ForwardStrategy>()
             }
         }
-
-    @Test
-    fun `getKeyFor returns query request also as key`() =
-            test when_ {
-                sut.getKeyFor(queryRequest)
-            } then {
-                expect(it.result is_ Equal to_ queryRequest)
-            }
 
     @Test
     fun `getForwardPeerIdsFor returns query forward peer ids from strategy` () =

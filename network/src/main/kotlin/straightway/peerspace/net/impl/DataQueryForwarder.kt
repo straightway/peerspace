@@ -27,12 +27,11 @@ import straightway.peerspace.net.DataQueryRequest
  * Forwarder implementation for query requests.
  */
 class DataQueryForwarder :
-        Forwarder<DataQueryRequest, DataQueryRequest>,
+        Forwarder<DataQueryRequest>,
         KoinModuleComponent by KoinModuleComponent() {
 
     private val forwardStrategy: ForwardStrategy by inject()
 
-    override fun getKeyFor(item: DataQueryRequest) = item
     override fun getForwardPeerIdsFor(item: DataQueryRequest, state: ForwardState) =
             forwardStrategy.getForwardPeerIdsFor(item, state)
 }

@@ -67,20 +67,12 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
                             }
                         }
                 )
-                val sut get() = environment.get<Forwarder<DataPushRequest, Key>>("pushForwarder")
+                val sut get() = environment.get<Forwarder<DataPushRequest>>("pushForwarder")
                 val forwardStrategy get() = environment.get<ForwardStrategy>()
                 val dataQueryHandler get() =
                     environment.get<DataQueryHandler>("dataQueryHandler")
             }
         }
-
-    @Test
-    fun `getKeyFor yields key for chunk`() =
-            test when_ {
-                sut.getKeyFor(DataPushRequest(Id("originatorId"), chunk))
-            } then {
-                expect(it.result is_ Equal to_ chunk.key)
-            }
 
     @Test
     fun `getForwardPeerIdsFor gets forward peer ids from forward strategy`() =

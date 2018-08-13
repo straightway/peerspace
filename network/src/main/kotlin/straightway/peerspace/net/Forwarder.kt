@@ -19,9 +19,8 @@ package straightway.peerspace.net
 import straightway.peerspace.data.Id
 
 /**
- * Counterpart of the ForwardStateTrackerImpl to ask the forward strategy.
+ * Get forwarded peer ids for a given transmittable object from the forward strategy.
  */
-interface Forwarder<TItem : Transmittable, TKey> {
-    fun getKeyFor(item: TItem): TKey
+interface Forwarder<TItem : Transmittable> {
     fun getForwardPeerIdsFor(item: TItem, state: ForwardState): Iterable<Id>
 }

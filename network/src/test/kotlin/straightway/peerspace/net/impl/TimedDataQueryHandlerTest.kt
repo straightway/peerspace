@@ -59,14 +59,14 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 var chunkStoreQueryResult = listOf<Chunk>()
                 var pendingQueries = setOf<PendingDataQuery>()
                 val pendingQueryRemoveDelegates = mutableListOf<QueryRequestPredicate>()
-                val epochAnalyzer: EpochAnalyzer = mock {
+                val epochAnalyzer: EpochAnalyzer = mock { _ ->
                     on { getEpochs(any()) }.thenAnswer { epochs }
                 }
                 val environment = PeerTestEnvironment(
                         knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = { TimedDataQueryHandler() },
                         pendingTimedDataQueryTrackerFactory = {
-                            mock {
+                            mock { _ ->
                                 on { pendingDataQueries }.thenAnswer { pendingQueries }
                                 on { removePendingQueriesIf(any()) }.thenAnswer {
                                     @Suppress("UNCHECKED_CAST")
@@ -76,7 +76,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             }
                         },
                         dataChunkStoreFactory = {
-                            mock {
+                            mock { _ ->
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         }
@@ -89,7 +89,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 val pendingQueryTracker get() =
                     environment.get<PendingDataQueryTracker>("pendingTimedQueryTracker")
                 val forwardTracker get() =
-                    environment.get<ForwardStateTracker<DataQueryRequest, DataQueryRequest>>(
+                    environment.get<ForwardStateTracker<DataQueryRequest>>(
                             "queryForwardTracker")
             }
         }
@@ -106,7 +106,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 pendingQueries = setOf(matchingQuery.pending, otherMatchingQuery.pending)
             } when_ {
                 sut.notifyChunkForwarded(chunk1.key)
-            } then {
+            } then { _ ->
                 pendingQueries.forEach {
                     verify(pendingQueryTracker).addForwardedChunk(it, chunk1.key)
                 }

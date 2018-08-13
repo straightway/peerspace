@@ -42,13 +42,13 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             override val originatorId: Id,
             override val identification: Any
     ) : Transmittable {
-        override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
-        override fun toString() = identification.toString()
+        override fun withOriginator(newOriginatorId: Id) =
+                copy(originatorId = newOriginatorId)
     }
 
     private companion object {
-        val request83 = Request(Id("originator"), 83)
-        val request2 = Request(Id("originator"), 2)
+        val request83 = Request(Id("originator"), "83")
+        val request2 = Request(Id("originator"), "2")
     }
 
     private data class TransmissionRecord(
@@ -77,21 +77,20 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                     }
             ) {
                 bean("testForwarder") { _ ->
-                    mock<Forwarder<Transmittable, String>> { _ ->
-                        on { getKeyFor(any()) }.thenAnswer { it.arguments[0].toString() }
+                    mock<Forwarder<Transmittable>> { _ ->
                         on { getForwardPeerIdsFor(any(), any()) }.thenAnswer { forwardIds }
                     }
                 }
                 bean("testTracker") {
-                    ForwardStateTrackerImpl(get<Forwarder<Transmittable, String>>("testForwarder"))
-                            as ForwardStateTracker<Transmittable, String>
+                    ForwardStateTrackerImpl(get<Forwarder<Transmittable>>("testForwarder"))
+                            as ForwardStateTracker<Transmittable>
                 }
             }
 
             @Suppress("UNCHECKED_CAST")
-            val sut = environment.get<ForwardStateTracker<Int, String>>("testTracker")
-                    as ForwardStateTrackerImpl<Transmittable, String>
-            val forwarder = environment.get<Forwarder<Transmittable, String>>("testForwarder")
+            val sut = environment.get<ForwardStateTracker<Int>>("testTracker")
+                    as ForwardStateTrackerImpl<Transmittable>
+            val forwarder = environment.get<Forwarder<Transmittable>>("testForwarder")
         }
     }
 
@@ -101,14 +100,6 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                 sut.getStateFor("la")
             } then {
                 expect(it.result is_ Equal to_ ForwardState())
-            }
-
-    @Test
-    fun `forward asks forwarder for item key`() =
-            test when_ {
-                sut.forward(request83)
-            } then {
-                verify(forwarder).getKeyFor(request83)
             }
 
     @Test

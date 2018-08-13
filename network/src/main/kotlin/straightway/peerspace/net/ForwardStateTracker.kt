@@ -20,8 +20,8 @@ package straightway.peerspace.net
  * Track the network forwarding state of instances of the given item type, identified
  * by the key type (which may be the same).
  */
-interface ForwardStateTracker<TItem, TKey> {
-    val forwardStates: Map<TKey, ForwardState>
+interface ForwardStateTracker<TItem> {
+    val forwardStates: Map<Any, ForwardState>
     fun forward(item: TItem)
-    fun getStateFor(itemKey: TKey): ForwardState
+    fun getStateFor(itemKey: Any): ForwardState
 }

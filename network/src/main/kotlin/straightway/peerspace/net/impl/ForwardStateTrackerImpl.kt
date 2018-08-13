@@ -31,28 +31,28 @@ import straightway.peerspace.net.Transmittable
  * Forward data items keeping track of transmission success or failure and re-asking
  * the strategy on failure.
  */
-class ForwardStateTrackerImpl<TItem : Transmittable, TKey>(
-        private val forwarder: Forwarder<TItem, TKey>) :
-        ForwardStateTracker<TItem, TKey>,
+class ForwardStateTrackerImpl<TItem : Transmittable>(
+        private val forwarder: Forwarder<TItem>) :
+        ForwardStateTracker<TItem>,
         KoinModuleComponent by KoinModuleComponent() {
 
     private val peerId: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
 
     override fun forward(item: TItem) {
-        val forwardState = getStateFor(item.key)
+        val forwardState = getStateFor(item.identification)
         val forwardPeerIds = forwarder.getForwardPeerIdsFor(item, forwardState)
         forwardPeerIds.forEach { peerId -> item forwardToPeer peerId }
     }
 
-    override fun getStateFor(itemKey: TKey) = states.getOrDefault(itemKey, ForwardState())
+    override fun getStateFor(itemKey: Any) = states.getOrDefault(itemKey, ForwardState())
 
     override val forwardStates get() = states
 
     private infix fun TItem.forwardToPeer(peerId: Id) {
-        setPending(key, peerId)
+        setPending(identification, peerId)
         forwardTo(peerId, object : TransmissionResultListener {
-            override fun notifySuccess() { setSuccess(key, peerId) }
+            override fun notifySuccess() { setSuccess(identification, peerId) }
             override fun notifyFailure() { setFailed(this@forwardToPeer, peerId) }
         })
     }
@@ -64,31 +64,29 @@ class ForwardStateTrackerImpl<TItem : Transmittable, TKey>(
             Transmission(target, withOriginator(peerId)),
             transmissionResultListener)
 
-    private fun setPending(itemKey: TKey, targetPeerId: Id) {
+    private fun setPending(itemKey: Any, targetPeerId: Id) {
         val newState = getStateFor(itemKey).setPending(targetPeerId)
         states += Pair(itemKey, newState)
     }
 
-    private fun setSuccess(itemKey: TKey, targetPeerId: Id) {
+    private fun setSuccess(itemKey: Any, targetPeerId: Id) {
         val newState = getStateFor(itemKey).setSuccess(targetPeerId)
         states += Pair(itemKey, newState)
         clearFinishedTransmissionFor(itemKey)
     }
 
     private fun setFailed(item: TItem, targetPeerId: Id) {
-        val newState = getStateFor(item.key).setFailed(targetPeerId)
-        states += Pair(item.key, newState)
+        val newState = getStateFor(item.identification).setFailed(targetPeerId)
+        states += Pair(item.identification, newState)
         forward(item)
-        clearFinishedTransmissionFor(item.key)
+        clearFinishedTransmissionFor(item.identification)
     }
 
-    private val TItem.key get() = forwarder.getKeyFor(this)
-
-    private fun clearFinishedTransmissionFor(itemKey: TKey) {
+    private fun clearFinishedTransmissionFor(itemKey: Any) {
         val pendingTransmissions = getStateFor(itemKey).pending
         if (pendingTransmissions.isEmpty())
             states -= itemKey
     }
 
-    private var states = mapOf<TKey, ForwardState>()
+    private var states = mapOf<Any, ForwardState>()
 }

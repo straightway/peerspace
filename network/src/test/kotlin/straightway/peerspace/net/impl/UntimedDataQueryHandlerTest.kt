@@ -48,7 +48,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 val environment = PeerTestEnvironment(
                         dataQueryHandlerFactory = { UntimedDataQueryHandler() },
                         pendingUntimedDataQueryTrackerFactory = {
-                            mock {
+                            mock { _ ->
                                 on { removePendingQueriesIf(any()) }.thenAnswer {
                                     @Suppress("UNCHECKED_CAST")
                                     removePredicates.add(
@@ -63,7 +63,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 val pendingQueryTracker get() =
                     environment.get<PendingDataQueryTracker>("pendingUntimedQueryTracker")
                 val forwardTracker get() =
-                        environment.get<ForwardStateTracker<DataQueryRequest, DataQueryRequest>>(
+                        environment.get<ForwardStateTracker<DataQueryRequest>>(
                                 "queryForwardTracker")
                 val predicate get() = removePredicates.single()
             }

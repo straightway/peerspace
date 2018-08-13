@@ -20,9 +20,10 @@ import straightway.peerspace.data.Id
 /**
  * Query request to get known peers from another peer.
  */
-data class KnownPeersQueryRequest(val originatorId: Id) : Transmittable {
+data class KnownPeersQueryRequest(override val originatorId: Id) : Transmittable {
 
     override val identification get() = Companion
+    override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
 
     companion object {
         const val serialVersionUID = 1L

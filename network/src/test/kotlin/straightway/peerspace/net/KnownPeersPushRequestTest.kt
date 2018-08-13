@@ -85,4 +85,12 @@ class KnownPeersPushRequestTest {
             } then {
                 expect(it.result == sut.identification)
             }
+
+    @Test
+    fun `withOriginator returns object equal in all aspects expect originator id`() =
+            test when_ {
+                sut.withOriginator(Id("newOriginator"))
+            } then {
+                expect(it.result is_ Equal to_ sut.copy(originatorId = Id("newOriginator")))
+            }
 }

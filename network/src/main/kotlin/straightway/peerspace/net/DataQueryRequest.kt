@@ -27,7 +27,7 @@ val untimedData = LongRange(0L, 0L)
  */
 @Suppress("DataClassPrivateConstructor")
 data class DataQueryRequest private constructor(
-        val originatorId: Id,
+        override val originatorId: Id,
         override val id: Id,
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
@@ -54,6 +54,8 @@ data class DataQueryRequest private constructor(
     fun withEpoch(epoch: Int) = DataQueryRequest(originatorId, id, timestamps, epoch)
 
     override val identification get() = copy(originatorId = Id(""))
+
+    override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
 
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 

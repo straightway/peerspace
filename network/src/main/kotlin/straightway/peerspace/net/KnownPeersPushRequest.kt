@@ -22,11 +22,12 @@ import straightway.peerspace.data.Id
  * Request to push known peer ids to another peer.
  */
 data class KnownPeersPushRequest(
-        val originatorId: Id,
+        override val originatorId: Id,
         val knownPeersIds: List<Id>
 ) : Transmittable {
 
     override val identification get() = knownPeersIds
+    override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
 
     companion object {
         const val serialVersionUID = 1L

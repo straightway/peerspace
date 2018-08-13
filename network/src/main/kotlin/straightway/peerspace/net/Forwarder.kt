@@ -19,15 +19,9 @@ package straightway.peerspace.net
 import straightway.peerspace.data.Id
 
 /**
- * Counterpart of the ForwardStateTrackerImpl to execute forwards and ask the forward strategy.
+ * Counterpart of the ForwardStateTrackerImpl to ask the forward strategy.
  */
-interface Forwarder<TItem, TKey> {
+interface Forwarder<TItem : Transmittable, TKey> {
     fun getKeyFor(item: TItem): TKey
     fun getForwardPeerIdsFor(item: TItem, state: ForwardState): Iterable<Id>
-
-    @Suppress("LongParameterList")
-    fun forwardTo(
-            target: Id,
-            item: TItem,
-            transmissionResultListener: TransmissionResultListener)
 }

@@ -18,17 +18,13 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import straightway.error.Panic
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.DataQueryRequest
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -49,7 +45,7 @@ class DataQueryForwarderTest : KoinLoggingDisabler() {
                         knownPeersIds = ids("targetId"),
                         queryForwarderFactory = { DataQueryForwarder() },
                         forwardStrategyFactory = {
-                        mock {
+                        mock { _ ->
                             on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
                                 forwardPeerIds
                             }
@@ -87,22 +83,6 @@ class DataQueryForwarderTest : KoinLoggingDisabler() {
             sut.getForwardPeerIdsFor(queryRequest, forwardState)
         } then {
             verify(forwardStrategy).getForwardPeerIdsFor(queryRequest, forwardState)
-        }
-    }
-
-    @Test
-    fun `forwardTo pushes to specified peer`() {
-        val resultListener = object : TransmissionResultListener {
-            override fun notifySuccess() { Assertions.fail<Panic>("Must not be called") }
-            override fun notifyFailure() { Assertions.fail<Panic>("Must not be called") }
-        }
-
-        test when_ {
-            sut.forwardTo(environment.knownPeersIds[0], queryRequest, resultListener)
-            environment.get<Network>().executePendingRequests()
-        } then {
-            val forwardedQuery = queryRequest.copy(originatorId = environment.peerId)
-            verify(environment.knownPeers[0]).query(forwardedQuery, resultListener)
         }
     }
 }

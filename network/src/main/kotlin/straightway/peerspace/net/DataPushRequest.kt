@@ -22,9 +22,10 @@ import straightway.peerspace.data.Id
 /**
  * A request to push data to another peer.
  */
-data class DataPushRequest(val originatorId: Id, val chunk: Chunk) : Transmittable {
+data class DataPushRequest(override val originatorId: Id, val chunk: Chunk) : Transmittable {
 
     override val identification: Any get() = chunk.key
+    override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
 
     fun withEpoch(epoch: Int) =
             DataPushRequest(originatorId, chunk.withEpoch(epoch))

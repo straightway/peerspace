@@ -17,7 +17,6 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
-import straightway.error.Panic
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataChunkStore
@@ -94,7 +93,7 @@ fun createNetworkMock(
                 val peer = peers().find { it.id == transmission.receiverId }!!
                 peer.query(request, listener)
             }
-            else -> throw Panic("Invalid request type")
+            else -> Unit
         }
     }
     on { executePendingRequests() }.thenAnswer { _ ->

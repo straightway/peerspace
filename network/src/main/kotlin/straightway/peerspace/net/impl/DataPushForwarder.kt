@@ -27,8 +27,6 @@ import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.Transmission
-import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Forwarder implementation for push requests.
@@ -46,15 +44,6 @@ class DataPushForwarder :
 
     override fun getForwardPeerIdsFor(item: DataPushRequest, state: ForwardState) =
             item.getForwardPeersFromStrategies(state) - item.originatorId
-
-    // TODO: Check if this can be moved to the base class
-    override fun forwardTo(
-            target: Id,
-            item: DataPushRequest,
-            transmissionResultListener: TransmissionResultListener
-    ) = network.scheduleTransmission(
-            Transmission(target, item.copy(originatorId = peerId)),
-            transmissionResultListener)
 
     private fun DataPushRequest.getForwardPeersFromStrategies(forwardState: ForwardState) =
             (getPushForwardPeerIds(forwardState) + chunk.key.queryForwardPeerIds).toSet()

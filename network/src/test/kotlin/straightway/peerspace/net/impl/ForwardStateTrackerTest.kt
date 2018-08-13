@@ -26,7 +26,10 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.peerspace.net.Transmittable
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -35,38 +38,60 @@ import straightway.testing.flow.to_
 
 class ForwardStateTrackerTest : KoinLoggingDisabler() {
 
-    private data class Transmission(
+    private data class Request(
+            override val originatorId: Id,
+            override val identification: Any
+    ) : Transmittable {
+        override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
+        override fun toString() = identification.toString()
+    }
+
+    private companion object {
+        val request83 = Request(Id("originator"), 83)
+        val request2 = Request(Id("originator"), 2)
+    }
+
+    private data class TransmissionRecord(
             val destination: Id,
-            val item: Int,
+            val item: Request,
             val listener: TransmissionResultListener)
+
     private val test get() = Given {
         object {
             val forwardIds = mutableListOf<Id>()
-            val transmissions = mutableListOf<Transmission>()
-            val environment = PeerTestEnvironment {
-                bean("testForwarder") {
-                    mock<Forwarder<Int, String>> {
+            val transmissions = mutableListOf<TransmissionRecord>()
+            val environment = PeerTestEnvironment(
+                    networkFactory = {
+                        mock { _ ->
+                            on { scheduleTransmission(any(), any()) }.thenAnswer {
+                                val transmission = it.arguments[0] as Transmission
+                                val listener = it.arguments[1] as TransmissionResultListener
+                                transmissions.add(
+                                        TransmissionRecord(
+                                        transmission.receiverId,
+                                        transmission.content as Request,
+                                        listener
+                                ))
+                            }
+                        }
+                    }
+            ) {
+                bean("testForwarder") { _ ->
+                    mock<Forwarder<Transmittable, String>> { _ ->
                         on { getKeyFor(any()) }.thenAnswer { it.arguments[0].toString() }
                         on { getForwardPeerIdsFor(any(), any()) }.thenAnswer { forwardIds }
-                        on { forwardTo(any(), any(), any()) }.thenAnswer {
-                            val destinationId = it.arguments[0] as Id
-                            val item = it.arguments[1] as Int
-                            val listener = it.arguments[2] as TransmissionResultListener
-                            val transmission = Transmission(destinationId, item, listener)
-                            transmissions.add(transmission)
-                        }
                     }
                 }
                 bean("testTracker") {
-                    ForwardStateTrackerImpl(get<Forwarder<Int, String>>("testForwarder"))
-                            as ForwardStateTracker<Int, String>
+                    ForwardStateTrackerImpl(get<Forwarder<Transmittable, String>>("testForwarder"))
+                            as ForwardStateTracker<Transmittable, String>
                 }
             }
 
             @Suppress("UNCHECKED_CAST")
             val sut = environment.get<ForwardStateTracker<Int, String>>("testTracker")
-                    as ForwardStateTrackerImpl<Int, String>
-            val forwarder = environment.get<Forwarder<Int, String>>("testForwarder")
+                    as ForwardStateTrackerImpl<Transmittable, String>
+            val forwarder = environment.get<Forwarder<Transmittable, String>>("testForwarder")
         }
     }
 
@@ -81,9 +106,9 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
     @Test
     fun `forward asks forwarder for item key`() =
             test when_ {
-                sut.forward(83)
+                sut.forward(request83)
             } then {
-                verify(forwarder).getKeyFor(83)
+                verify(forwarder).getKeyFor(request83)
             }
 
     @Test
@@ -91,7 +116,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             test while_ {
                 forwardIds.add(Id("forward"))
             } when_ {
-                sut.forward(83)
+                sut.forward(request83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_
                                ForwardState(pending = forwardIds.toSet()))
@@ -100,21 +125,21 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
     @Test
     fun `forward asks for peers to forward`() =
             test when_ {
-                sut.forward(83)
+                sut.forward(request83)
             } then {
-                verify(forwarder).getForwardPeerIdsFor(83, ForwardState())
+                verify(forwarder).getForwardPeerIdsFor(request83, ForwardState())
             }
 
     @Test
     fun `forward passes old forwardState when asking for peers to forward`() =
             test while_ {
                 forwardIds.add(Id("forward"))
-                sut.forward(83)
+                sut.forward(request83)
                 clearInvocations(forwarder)
             } when_ {
-                sut.forward(83)
+                sut.forward(request83)
             } then {
-                verify(forwarder).getForwardPeerIdsFor(83, ForwardState(
+                verify(forwarder).getForwardPeerIdsFor(request83, ForwardState(
                         pending = setOf(Id("forward"))))
             }
 
@@ -123,8 +148,8 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             test while_ {
                 forwardIds.add(Id("forward"))
             } when_ {
-                sut.forward(83)
-                sut.forward(2)
+                sut.forward(request83)
+                sut.forward(request2)
             } then {
                 expect(sut.getStateFor("2") is_ Equal to_
                                ForwardState(pending = forwardIds.toSet()))
@@ -138,7 +163,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                 forwardIds.add(Id("forward1"))
                 forwardIds.add(Id("forward2"))
             } when_ {
-                sut.forward(83)
+                sut.forward(request83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_
                                ForwardState(pending = forwardIds.toSet()))
@@ -149,8 +174,8 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             test while_ {
                 forwardIds.add(Id("forward"))
             } when_ {
-                sut.forward(83)
-                sut.forward(83)
+                sut.forward(request83)
+                sut.forward(request83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_
                                ForwardState(pending = forwardIds.toSet()))
@@ -160,25 +185,28 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
     fun `forward the same item but other destinations again sets new destinations as pending`() =
             test while_ {
                 forwardIds.add(Id("forward1"))
-                sut.forward(83)
+                sut.forward(request83)
             } when_ {
                 forwardIds.clear()
                 forwardIds.add(Id("forward2"))
-                sut.forward(83)
+                sut.forward(request83)
             } then {
                 expect(sut.getStateFor("83") is_ Equal to_ ForwardState(
                         pending = setOf(Id("forward1"), Id("forward2"))))
             }
 
     @Test
-    fun `forward passes item to forwarder`() =
+    fun `forward passes item to network`() =
             test while_ {
                 forwardIds.add(Id("forward"))
             } when_ {
-                sut.forward(83)
+                sut.forward(request83)
             } then {
-                verify(forwarder).forwardTo(
-                        Id("forward"), 83, transmissions.single().listener)
+                verify(environment.get<Network>()).scheduleTransmission(
+                        Transmission(
+                                Id("forward"),
+                                request83.withOriginator(environment.peerId)),
+                        transmissions.single().listener)
             }
 
     @Test
@@ -186,7 +214,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             test while_ {
                 forwardIds.add(Id("forward1"))
                 forwardIds.add(Id("forward2"))
-                sut.forward(83)
+                sut.forward(request83)
             } when_ {
                 transmissions.first().listener.notifySuccess()
             } then {
@@ -199,7 +227,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
     fun `if last transmission was successful, the state is deleted`() =
             test while_ {
                 forwardIds.add(Id("forward"))
-                sut.forward(83)
+                sut.forward(request83)
             } when_ {
                 transmissions.first().listener.notifySuccess()
             } then {
@@ -211,7 +239,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             test while_ {
                 forwardIds.add(Id("forward1"))
                 forwardIds.add(Id("forward2"))
-                sut.forward(83)
+                sut.forward(request83)
                 forwardIds.clear()
             } when_ {
                 transmissions.first().listener.notifyFailure()
@@ -225,7 +253,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
     fun `if last transmission failed, the state is deleted`() =
             test while_ {
                 forwardIds.add(Id("forward"))
-                sut.forward(83)
+                sut.forward(request83)
                 forwardIds.clear()
             } when_ {
                 transmissions.first().listener.notifyFailure()
@@ -237,15 +265,23 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
     fun `item is re-forwarded on failure`() =
         test while_ {
             forwardIds.add(Id("forward1"))
-            sut.forward(83)
+            sut.forward(request83)
         } when_ {
             forwardIds.clear()
             forwardIds.add(Id("forward2"))
             transmissions.first().listener.notifyFailure()
         } then {
-            inOrder(forwarder) {
-                verify(forwarder).forwardTo(Id("forward1"), 83, transmissions[0].listener)
-                verify(forwarder).forwardTo(Id("forward2"), 83, transmissions[1].listener)
+            val network = environment.get<Network>()
+            val transmission = Transmission(
+                    Id("forward1"),
+                    request83.withOriginator(environment.peerId))
+            inOrder(network) {
+                verify(network).scheduleTransmission(
+                        transmission,
+                        transmissions[0].listener)
+                verify(network).scheduleTransmission(
+                        transmission.copy(receiverId = Id("forward2")),
+                        transmissions[1].listener)
             }
 
             expect(sut.getStateFor("83") is_ Equal to_ ForwardState(

@@ -15,18 +15,29 @@
  */
 package straightway.peerspace.net.impl
 
+import straightway.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
+import straightway.koinutils.Property.property
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.Network
+import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.peerspace.net.Transmittable
 
 /**
  * Forward data items keeping track of transmission success or failure and re-asking
  * the strategy on failure.
  */
-class ForwardStateTrackerImpl<TItem, TKey>(private val forwarder: Forwarder<TItem, TKey>) :
-        ForwardStateTracker<TItem, TKey> {
+class ForwardStateTrackerImpl<TItem : Transmittable, TKey>(
+        private val forwarder: Forwarder<TItem, TKey>) :
+        ForwardStateTracker<TItem, TKey>,
+        KoinModuleComponent by KoinModuleComponent() {
+
+    private val peerId: Id by property("peerId") { Id(it) }
+    private val network: Network by inject()
 
     override fun forward(item: TItem) {
         val forwardState = getStateFor(item.key)
@@ -40,11 +51,18 @@ class ForwardStateTrackerImpl<TItem, TKey>(private val forwarder: Forwarder<TIte
 
     private infix fun TItem.forwardToPeer(peerId: Id) {
         setPending(key, peerId)
-        forwarder.forwardTo(peerId, this, object : TransmissionResultListener {
+        forwardTo(peerId, object : TransmissionResultListener {
             override fun notifySuccess() { setSuccess(key, peerId) }
             override fun notifyFailure() { setFailed(this@forwardToPeer, peerId) }
         })
     }
+
+    private fun TItem.forwardTo(
+            target: Id,
+            transmissionResultListener: TransmissionResultListener
+    ) = network.scheduleTransmission(
+            Transmission(target, withOriginator(peerId)),
+            transmissionResultListener)
 
     private fun setPending(itemKey: TKey, targetPeerId: Id) {
         val newState = getStateFor(itemKey).setPending(targetPeerId)

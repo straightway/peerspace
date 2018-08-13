@@ -235,6 +235,16 @@ class DataQueryRequestTest {
             }
 
     @Test
+    fun `withOriginator returns object equal in all aspects expect originator id`() =
+            Given {
+                DataQueryRequest(originatorId, matchedId, 1L..1L)
+            } when_ {
+                withOriginator(Id("newOriginator"))
+            } then {
+                expect(it.result is_ Equal to_ this.copy(originatorId = Id("newOriginator")))
+            }
+
+    @Test
     fun `toString for untimed query`() =
             expect(DataQueryRequest(Id("originator"), Id("chunk")).toString()
                            is_ Equal to_ "DataQueryRequest(chunk->originator)")

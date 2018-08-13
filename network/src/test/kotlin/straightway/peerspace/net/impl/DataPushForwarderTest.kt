@@ -18,9 +18,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import straightway.error.Panic
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -30,8 +28,6 @@ import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -164,20 +160,4 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
             } then {
                 expect(it.result is_ Empty)
             }
-
-    @Test
-    fun `forwardTo pushes to specified peer`() {
-        val resultListener = object : TransmissionResultListener {
-            override fun notifySuccess() { fail<Panic>("Must not be called") }
-            override fun notifyFailure() { fail<Panic>("Must not be called") }
-        }
-
-        test when_ {
-            sut.forwardTo(environment.knownPeersIds[0], pushRequest, resultListener)
-            environment.get<Network>().executePendingRequests()
-        } then {
-            val forwardedPush = pushRequest.copy(originatorId = environment.peerId)
-            verify(environment.knownPeers[0]).push(forwardedPush, resultListener)
-        }
-    }
 }

@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.Id
 import java.io.Serializable
 
 /**
@@ -22,4 +23,6 @@ import java.io.Serializable
  */
 interface Transmittable : Serializable {
     val identification: Any
+    val originatorId: Id
+    fun withOriginator(newOriginatorId: Id): Transmittable
 }

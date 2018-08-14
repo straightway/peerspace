@@ -23,7 +23,6 @@ import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Default implementation of the DataQuerySource interface.
@@ -34,13 +33,9 @@ class DataQuerySourceImpl : DataQuerySource, KoinModuleComponent by KoinModuleCo
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val network: Network by inject()
 
-    override fun query(
-            request: DataQueryRequest,
-            resultListener: TransmissionResultListener
-    ) {
+    override fun query(request: DataQueryRequest) {
         peerDirectory.add(request.originatorId)
         dataQueryHandler.handle(request)
         network.executePendingRequests()
-        resultListener.notifySuccess()
     }
 }

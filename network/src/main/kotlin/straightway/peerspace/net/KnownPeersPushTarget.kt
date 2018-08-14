@@ -19,7 +19,5 @@ package straightway.peerspace.net
  * A push target to notify about known peers.
  */
 interface KnownPeersPushTarget {
-    fun push(
-            request: KnownPeersPushRequest,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
+    fun push(request: KnownPeersPushRequest)
 }

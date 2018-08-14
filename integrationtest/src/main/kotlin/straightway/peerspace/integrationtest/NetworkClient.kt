@@ -27,7 +27,7 @@ import straightway.peerspace.net.TransmissionResultListener
  */
 class NetworkClient(override val id: Id) : Identifyable, DataPushTarget {
 
-    override fun push(request: DataPushRequest, resultListener: TransmissionResultListener) {
+    override fun push(request: DataPushRequest) {
         _receivedData += request.chunk
     }
 

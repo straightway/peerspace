@@ -20,7 +20,6 @@ import org.koin.core.parameter.Parameters
 import org.koin.dsl.context.Context
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.get
 import straightway.koinutils.withContext
@@ -42,7 +41,6 @@ import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
@@ -156,29 +154,11 @@ data class PeerTestEnvironment(
     inline fun <reified T> get(beanName: String) = koin.get<T>(beanName)
     inline fun <reified T> get(noinline parameters: Parameters) = koin.get<T>(parameters)
 
-    val knownPeers = knownPeersIds.map {
-        createPeerMock(
-                it,
-                pushCallback = { pushRequest, resultForwarder ->
-                    pushTransmissionResultListeners[Pair(it, pushRequest.chunk.key)] =
-                            resultForwarder
-                },
-                queryCallback = { queryRequest, resultForwarder ->
-                    queryTransmissionResultListeners[Pair(it, queryRequest)] =
-                            resultForwarder
-                })
-    }.toMutableList()
-
-    val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
-
-    val queryTransmissionResultListeners =
-            mutableMapOf<Pair<Id, DataQueryRequest>, TransmissionResultListener>()
-
-    val pushTransmissionResultListeners =
-            mutableMapOf<Pair<Id, Key>, TransmissionResultListener>()
-
+    val knownPeers = knownPeersIds.map { createPeerMock(it) }.toMutableList()
     val transmissionResultListeners = mutableListOf<TransmissionRecord>()
 
     fun getPeer(id: Id) =
             knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!
+
+    private val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
 }

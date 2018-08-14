@@ -27,7 +27,6 @@ import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * Default implementation of the DataPushTarget interface.
@@ -42,14 +41,10 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
             by inject("pushForwardTracker")
     private val epochAnalyzer: EpochAnalyzer by inject()
 
-    override fun push(
-            request: DataPushRequest,
-            resultListener: TransmissionResultListener
-    ) {
+    override fun push(request: DataPushRequest) {
         peerDirectory.add(request.originatorId)
         dataChunkStore.store(request.chunk)
         forward(request)
-        resultListener.notifySuccess()
     }
 
     private fun forward(push: DataPushRequest) {

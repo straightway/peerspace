@@ -19,7 +19,6 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
@@ -35,7 +34,6 @@ import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Throw
@@ -85,15 +83,6 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             test when_ { sut.push(DataPushRequest(originatorId, chunk)) } then {
                 verify(environment.get<DataChunkStore>()).store(chunk)
             }
-
-    @Test
-    fun `push notifies resultListener of success`() {
-        val resultListener = mock<TransmissionResultListener>()
-        test when_ { sut.push(DataPushRequest(originatorId, chunk), resultListener) } then {
-            verify(resultListener).notifySuccess()
-            verify(resultListener, never()).notifyFailure()
-        }
-    }
 
     @Test
     fun `push executes pending network requests`() =

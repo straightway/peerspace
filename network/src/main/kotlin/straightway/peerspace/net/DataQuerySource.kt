@@ -19,7 +19,5 @@ package straightway.peerspace.net
  * An entity which can be queried for data.
  */
 interface DataQuerySource {
-    fun query(
-            request: DataQueryRequest,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
+    fun query(request: DataQueryRequest)
 }

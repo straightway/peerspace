@@ -19,7 +19,5 @@ package straightway.peerspace.net
  * An entity which can be queried for known peers.
  */
 interface KnownPeersQuerySource {
-    fun query(
-            request: KnownPeersQueryRequest,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
+    fun query(request: KnownPeersQueryRequest)
 }

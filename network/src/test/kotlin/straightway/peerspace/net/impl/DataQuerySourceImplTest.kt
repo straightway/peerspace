@@ -15,8 +15,6 @@
  */
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
@@ -25,7 +23,6 @@ import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 
 class DataQuerySourceImplTest {
@@ -51,17 +48,6 @@ class DataQuerySourceImplTest {
             } then {
                 verify(environment.get<DataQueryHandler>("dataQueryHandler")).handle(dataQuery)
             }
-
-    @Test
-    fun `query notifies resultListener of success`() {
-        val resultListener = mock<TransmissionResultListener>()
-        test when_ {
-            sut.query(dataQuery, resultListener)
-        } then {
-            verify(resultListener).notifySuccess()
-            verify(resultListener, never()).notifyFailure()
-        }
-    }
 
     @Test
     fun `query executes pending network requests`() =

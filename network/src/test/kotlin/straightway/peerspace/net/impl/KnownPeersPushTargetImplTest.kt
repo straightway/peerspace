@@ -15,7 +15,6 @@
  */
 package straightway.peerspace.net.impl
 
-import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
@@ -23,7 +22,6 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.net.KnownPeersPushRequest
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 
 class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
@@ -59,14 +57,4 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
             } then {
                 knownPeerIds.forEach { peerId -> verify(peerDirectory).add(peerId) }
             }
-
-    @Test
-    fun `push notifies success`() {
-        val listener: TransmissionResultListener = mock()
-        test when_ {
-            sut.push(pushRequest, listener)
-        } then {
-            verify(listener).notifySuccess()
-        }
-    }
 }

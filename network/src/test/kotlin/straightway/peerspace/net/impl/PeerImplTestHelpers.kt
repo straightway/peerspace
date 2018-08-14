@@ -35,20 +35,16 @@ import straightway.random.Chooser
 @Suppress("LongParameterList")
 fun createPeerMock(
         id: Id,
-        pushCallback: (DataPushRequest, TransmissionResultListener) -> Unit = { _, _ -> },
-        queryCallback: (DataQueryRequest, TransmissionResultListener) -> Unit = { _, _ -> }
+        pushCallback: (DataPushRequest) -> Unit = { _ -> },
+        queryCallback: (DataQueryRequest) -> Unit = { _ -> }
 ) =
         mock<Peer> { _ ->
             on { this.id }.thenReturn(id)
-            on { push(any<DataPushRequest>(), any()) }.thenAnswer {
-                pushCallback(
-                        it.arguments[0] as DataPushRequest,
-                        it.arguments[1] as TransmissionResultListener)
+            on { push(any<DataPushRequest>()) }.thenAnswer {
+                pushCallback(it.arguments[0] as DataPushRequest)
             }
-            on { query(any<DataQueryRequest>(), any()) }.thenAnswer {
-                queryCallback(
-                        it.arguments[0] as DataQueryRequest,
-                        it.arguments[1] as TransmissionResultListener)
+            on { query(any<DataQueryRequest>()) }.thenAnswer {
+                queryCallback(it.arguments[0] as DataQueryRequest)
             }
         }
 
@@ -76,24 +72,29 @@ fun createNetworkMock(
         val listener = args.arguments[1] as TransmissionResultListener
         val request = transmission.content
         transmissionResultListeners.add(TransmissionRecord(request, listener))
+        // TODO: Switch to tagged methods
         when (request) {
             is DataPushRequest -> pendingTransmissions.add {
                 val peer = peers().find { it.id == transmission.receiverId }!!
-                peer.push(request, listener)
+                listener.notifySuccess()
+                peer.push(request)
             }
             is DataQueryRequest -> pendingTransmissions.add {
                 val peer = peers().find { it.id == transmission.receiverId }!!
-                peer.query(request, listener)
+                listener.notifySuccess()
+                peer.query(request)
             }
             is KnownPeersPushRequest -> pendingTransmissions.add {
                 val peer = peers().find { it.id == transmission.receiverId }!!
-                peer.push(request, listener)
+                listener.notifySuccess()
+                peer.push(request)
             }
             is KnownPeersQueryRequest -> pendingTransmissions.add {
                 val peer = peers().find { it.id == transmission.receiverId }!!
-                peer.query(request, listener)
+                listener.notifySuccess()
+                peer.query(request)
             }
-            else -> Unit
+            else -> listener.notifySuccess()
         }
     }
     on { executePendingRequests() }.thenAnswer { _ ->

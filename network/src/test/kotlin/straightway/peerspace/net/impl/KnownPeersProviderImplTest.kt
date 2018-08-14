@@ -17,7 +17,6 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argThat
-import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
@@ -26,7 +25,6 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersPushRequest
 import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.KnownPeersQuerySource
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 
 class KnownPeersProviderImplTest : KoinLoggingDisabler() {
@@ -51,7 +49,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             test when_ {
                 get<KnownPeersQuerySource>().query(query)
             } then {
-                verify(queryingPeer).push(any<KnownPeersPushRequest>(), any())
+                verify(queryingPeer).push(any<KnownPeersPushRequest>())
             }
 
     @Test
@@ -63,8 +61,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
                 verify(queryingPeer).push(
                         argThat<KnownPeersPushRequest> {
                             knownPeersIds == expectedKnownPeerIds
-                        },
-                        any())
+                        })
             }
 
     @Test
@@ -83,19 +80,8 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
                 val expectedPeerIds = knownPeersIds.slice(0..0)
                 verify(queryingPeer).push(
                         argThat<KnownPeersPushRequest> {
-                            knownPeersIds == expectedPeerIds },
-                        any())
+                            knownPeersIds == expectedPeerIds })
             }
-
-    @Test
-    fun `query signals success`() {
-        val listener: TransmissionResultListener = mock()
-        test when_ {
-            get<KnownPeersQuerySource>().query(query, listener)
-        } then {
-            verify(listener).notifySuccess()
-        }
-    }
 
     private val PeerTestEnvironment.queryingPeer get() = getPeer(queryingPeerId)
 }

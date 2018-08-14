@@ -73,7 +73,7 @@ class QueryTest : KoinLoggingDisabler() {
             environment.simulator.run()
         } then {
             verify(queryer, times(1))
-                    .push(eq(DataPushRequest(environment.peer.id, chunk)), any())
+                    .push(eq(DataPushRequest(environment.peer.id, chunk)))
         }
     }
 }

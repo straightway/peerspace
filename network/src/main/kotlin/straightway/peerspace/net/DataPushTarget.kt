@@ -23,7 +23,5 @@ interface DataPushTarget {
     /**
      * Receive a chunk of data.
      */
-    fun push(
-            request: DataPushRequest,
-            resultListener: TransmissionResultListener = TransmissionResultListener.Ignore)
+    fun push(request: DataPushRequest)
 }

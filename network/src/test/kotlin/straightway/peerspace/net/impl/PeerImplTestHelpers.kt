@@ -25,8 +25,6 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
-import straightway.peerspace.net.KnownPeersPushRequest
-import straightway.peerspace.net.KnownPeersQueryRequest
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.isMatching
@@ -61,7 +59,6 @@ fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataC
     }
 }
 
-@Suppress("ComplexMethod")
 fun createNetworkMock(
         transmissionResultListeners: MutableList<TransmissionRecord>,
         peers: () -> Collection<Peer> = { listOf() }
@@ -72,30 +69,9 @@ fun createNetworkMock(
         val listener = args.arguments[1] as TransmissionResultListener
         val request = transmission.content
         transmissionResultListeners.add(TransmissionRecord(request, listener))
-        // TODO: Switch to tagged methods
-        when (request) {
-            is DataPushRequest -> pendingTransmissions.add {
-                val peer = peers().find { it.id == transmission.receiverId }!!
-                listener.notifySuccess()
-                peer.push(request)
-            }
-            is DataQueryRequest -> pendingTransmissions.add {
-                val peer = peers().find { it.id == transmission.receiverId }!!
-                listener.notifySuccess()
-                peer.query(request)
-            }
-            is KnownPeersPushRequest -> pendingTransmissions.add {
-                val peer = peers().find { it.id == transmission.receiverId }!!
-                listener.notifySuccess()
-                peer.push(request)
-            }
-            is KnownPeersQueryRequest -> pendingTransmissions.add {
-                val peer = peers().find { it.id == transmission.receiverId }!!
-                listener.notifySuccess()
-                peer.query(request)
-            }
-            else -> listener.notifySuccess()
-        }
+        val peer = peers().find { it.id == transmission.receiverId }!!
+        peer.handle(request)
+        listener.notifySuccess()
     }
     on { executePendingRequests() }.thenAnswer { _ ->
         pendingTransmissions.forEach { it() }

@@ -195,8 +195,7 @@ class SinglePeerEnvironment(
 
     fun createSimNode(parentPeer: Peer) =
             withContext {
-                bean { parentPeer as DataPushTarget }
-                bean { parentPeer as DataQuerySource }
+                bean { parentPeer }
                 bean("simNodes") { _simNodes }
                 bean { simNetwork as TransmissionRequestHandler }
                 bean { chunkSizeGetter }

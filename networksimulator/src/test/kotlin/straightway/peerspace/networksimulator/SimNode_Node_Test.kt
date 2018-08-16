@@ -16,10 +16,11 @@
 
 package straightway.peerspace.networksimulator
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.error.Panic
 import straightway.expr.minus
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
@@ -27,9 +28,11 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
 import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryRequest
-import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.Peer
+import straightway.peerspace.net.Transmittable
 import straightway.peerspace.net.untimedData
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
@@ -53,35 +56,30 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
         val chunkData = "Hello".toByteArray()
         val chunkKey = Key(Id("chunkId"))
         val messageSize = 50[byte]
-        val invalidRequest = object { override fun toString() = "Invalid Request" }
     }
 
     private val test get() = Given {
         object {
             var isUploadOnline = true
-            val upload = mock<TransmissionStream> {
+            val upload = mock<TransmissionStream> { _ ->
                 on { isOnline }.thenAnswer { isUploadOnline }
             }
             var isDownloadOnline = true
-            val download = mock<TransmissionStream> {
+            val download = mock<TransmissionStream> { _ ->
                 on { isOnline }.thenAnswer { isDownloadOnline }
             }
-            val pushTarget = mock<DataPushTarget>()
-            val pushTargets = mutableMapOf(Pair(peerId, pushTarget))
             val chunk = Chunk(chunkKey, chunkData)
             val pushRequest = DataPushRequest(Id("senderId"), chunk)
-            val querySource = mock<DataQuerySource>()
-            val querySources = mutableMapOf(Pair(peerId, querySource))
             val queryRequest = DataQueryRequest(Id("originId"), Id("chunkId"), untimedData)
+            val peer = mock<Peer>()
             val sut = withContext {
-                bean { pushTargets[it["id"]]!! }
-                bean { querySources[it["id"]]!! }
+                bean { peer }
                 bean("simNodes") { mutableMapOf<Id, SimNode>() }
                 bean("uploadStream") { upload }
                 bean("downloadStream") { download }
             }.apply {
                 extraProperties["peerId"] = peerId.identifier
-            } make {
+            }.make {
                 SimNode()
             }
         }
@@ -100,7 +98,7 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(pushRequest, messageSize))
             } then {
-                verify(pushTarget).push(pushRequest)
+                verify(peer).push(pushRequest)
             }
 
     @Test
@@ -108,15 +106,31 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(queryRequest, messageSize))
             } then {
-                verify(querySource).query(queryRequest)
+                verify(peer).query(queryRequest)
             }
 
     @Test
-    fun `receiving message with invalid request panics`() =
+    fun `receiving message with invalid request does nothing`() =
             test when_ {
-                sut.notifyReceive(mock(), Message(invalidRequest, messageSize))
+                sut.notifyReceive(mock(), Message(mock<Transmittable>(), messageSize))
             } then {
-                expect({ it.result } does Throw.type<Panic>())
+                verify(peer, never()).push(any<DataPushRequest>())
+                verify(peer, never()).push(any<KnownPeersPushRequest>())
+                verify(peer, never()).query(any<DataQueryRequest>())
+                verify(peer, never()).query(any<KnownPeersQueryRequest>())
+                expect({ it.result } does Not - Throw.exception)
+            }
+
+    @Test
+    fun `receiving message with not transmittable content does nothing`() =
+            test when_ {
+                sut.notifyReceive(mock(), Message(Any(), messageSize))
+            } then {
+                verify(peer, never()).push(any<DataPushRequest>())
+                verify(peer, never()).push(any<KnownPeersPushRequest>())
+                verify(peer, never()).query(any<DataQueryRequest>())
+                verify(peer, never()).query(any<KnownPeersQueryRequest>())
+                expect({ it.result } does Not - Throw.exception)
             }
 
     @Test

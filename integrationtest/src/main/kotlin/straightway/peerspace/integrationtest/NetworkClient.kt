@@ -20,7 +20,6 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.TransmissionResultListener
 
 /**
  * A simulated client of the peerspace network.

@@ -16,10 +16,9 @@
 package straightway.peerspace.net
 
 /**
- * A push target to notify about known peers.
+ * Methods which handle requests (i.e. Transmittable instances) can be marked
+ * using this annotation. The methods must take a single parameter of a class
+ * implementing the Transmittable interface.
  */
-interface KnownPeersPushTarget {
-
-    @RequestHandler
-    fun push(request: KnownPeersPushRequest)
-}
+@Target(AnnotationTarget.FUNCTION)
+annotation class RequestHandler

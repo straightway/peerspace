@@ -19,5 +19,7 @@ package straightway.peerspace.net
  * An entity which can be queried for data.
  */
 interface DataQuerySource {
+
+    @RequestHandler
     fun query(request: DataQueryRequest)
 }

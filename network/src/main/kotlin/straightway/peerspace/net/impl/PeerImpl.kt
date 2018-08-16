@@ -25,6 +25,9 @@ import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.RequestHandler
+import straightway.peerspace.net.Transmittable
+import straightway.utils.getHandlers
 
 /**
  * Default productive implementation of a peerspace peer.
@@ -42,3 +45,6 @@ class PeerImpl :
 
     override fun toString() = "PeerImpl(${id.identifier})"
 }
+
+fun Peer.handle(request: Transmittable) =
+        getHandlers<RequestHandler>(request::class).forEach { it(request) }

@@ -20,8 +20,6 @@ package straightway.peerspace.net
  */
 interface DataPushTarget {
 
-    /**
-     * Receive a chunk of data.
-     */
+    @RequestHandler
     fun push(request: DataPushRequest)
 }

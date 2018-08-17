@@ -20,14 +20,9 @@ import java.io.Serializable
 /**
  * Identification of an object.
  */
-data class Id(val type: IdType, val identifier: String) : Serializable {
+data class Id(val identifier: String) : Serializable {
 
-    constructor(identifier: String) : this(IdType.General, identifier)
-
-    override fun toString() = when (type) {
-        IdType.General -> "Id($identifier)"
-        else -> "Id($type::$identifier)"
-    }
+    override fun toString() = "Id($identifier)"
 
     companion object {
         const val serialVersionUID = 1L

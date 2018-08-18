@@ -21,6 +21,8 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.Property.property
+import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
@@ -32,7 +34,6 @@ import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
-import straightway.peerspace.net.isMatching
 import straightway.peerspace.net.isPending
 
 /**
@@ -59,9 +60,9 @@ abstract class SpecializedDataQueryHandlerBase(
                     .map { it.query.originatorId }
 
     final override fun notifyChunkForwarded(key: Key) {
-        val matchingChunks = dataChunkStore.query(DataQueryRequest(peerId, key))
+        val matchingChunks = dataChunkStore.query(DataQueryRequest(peerId, DataQuery(key)))
         val matchingQueries = pendingDataQueryTracker.pendingDataQueries.filter {
-            it.query.isMatching(key)
+            it.query.query.isMatching(key)
         }
         matchingQueries.forEach { matchingChunks forwardTo it.query.originatorId }
         onChunkForwarding(key)
@@ -73,7 +74,7 @@ abstract class SpecializedDataQueryHandlerBase(
 
     protected abstract val pendingDataQueryTracker: PendingDataQueryTracker
 
-    protected abstract fun splitToEpochs(query: DataQueryRequest): Iterable<DataQueryRequest>
+    protected abstract fun splitToEpochs(request: DataQueryRequest): Iterable<DataQueryRequest>
 
     private fun Key.isAlreadyForwardedFor(it: PendingDataQuery) =
             it.forwardedChunkKeys.contains(this)

@@ -19,6 +19,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
@@ -27,7 +28,6 @@ import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
-import straightway.peerspace.net.isMatching
 import straightway.random.Chooser
 
 @Suppress("LongParameterList")
@@ -54,7 +54,7 @@ fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataC
         on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as Chunk) }
         on { query(any()) }.thenAnswer { args ->
             val query = args.arguments[0] as DataQueryRequest
-            chunks.filter { query.isMatching(it.key) }
+            chunks.filter { query.query.isMatching(it.key) }
         }
     }
 }

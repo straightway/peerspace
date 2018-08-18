@@ -23,12 +23,12 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.untimedData
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
-import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.DataQueryRequest
-import straightway.peerspace.net.untimedData
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -38,7 +38,6 @@ import straightway.testing.flow.to_
 class EpochKeyHasherTest : KoinLoggingDisabler() {
 
     private companion object {
-        val originatorId = Id("originatorId")
         val id = Id("id")
     }
 
@@ -46,14 +45,14 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
         get() = Given {
             object {
                 var hashCodes = byteArrayOf(0)
-                val hasher = mock<Hasher> {
+                val hasher = mock<Hasher> { _ ->
                     on { getHash(any()) }.thenAnswer { hashCodes }
                 }
                 var epochs = listOf(0)
-                val epochAnalyzer = mock<EpochAnalyzer> {
+                val epochAnalyzer = mock<EpochAnalyzer> { _ ->
                     on { getEpochs(any()) }.thenAnswer { epochs }
                 }
-                val hashable = DataQueryRequest(originatorId, id, 83L..83L)
+                val hashable = DataQuery(id, 83L..83L)
                 var sut = withContext {
                     bean { hasher }
                     bean { epochAnalyzer }
@@ -85,7 +84,7 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
     @Test
     fun `the hashcode of an id with zero timestamp calls hasher with DATA(id)`() =
             test when_ {
-                sut.getHashes(DataQueryRequest(originatorId, id, untimedData))
+                sut.getHashes(DataQuery(id, untimedData))
             } then {
                 verify(hasher).getHash("DATA($id)")
             }
@@ -112,10 +111,11 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
     @Test
     fun `when epoch is specified, use it and ignore time range`() =
             test when_ {
-                sut.getHashes(hashable.copy(
-                        timestampsStart = Long.MIN_VALUE,
-                        timestampsEndInclusive = Long.MAX_VALUE,
-                        epoch = 12345))
+                sut.getHashes(
+                        hashable.copy(
+                            timestampsStart = Long.MIN_VALUE,
+                            timestampsEndInclusive = Long.MAX_VALUE,
+                            epoch = 12345))
             } then {
                 verify(epochAnalyzer, never()).getEpochs(any())
                 verify(hasher).getHash("EPOCH12345($id)")
@@ -194,6 +194,6 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
             test while_ {
                 hashCodes = bytes
             } when_ {
-                sut.getHashes(DataQueryRequest(originatorId, id, untimedData))
+                sut.getHashes(DataQuery(id, untimedData))
             }
 }

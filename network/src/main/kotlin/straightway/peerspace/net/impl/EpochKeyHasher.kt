@@ -22,7 +22,7 @@ import straightway.peerspace.data.KeyHasher
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.untimedData
+import straightway.peerspace.data.untimedData
 
 /**
  * Hasher computing hash codes for KeyHashable objects, respecting the timestamp

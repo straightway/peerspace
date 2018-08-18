@@ -25,6 +25,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
@@ -47,9 +48,9 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         val otherChunkId = Id("otherChunkId")
         val chunk1 = Chunk(Key(chunkId, 1), byteArrayOf())
         val queryOriginatorId = Id("originatorId")
-        val matchingQuery = DataQueryRequest(queryOriginatorId, chunkId, 1L..1L)
-        val otherMatchingQuery = DataQueryRequest(queryOriginatorId, chunkId, 1L..2L)
-        val notMatchingQuery = DataQueryRequest(queryOriginatorId, otherChunkId)
+        val matchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(chunkId, 1L..1L))
+        val otherMatchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(chunkId, 1L..2L))
+        val notMatchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(otherChunkId))
     }
 
     private val test get() =
@@ -146,8 +147,10 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             } then {
                 verify(epochAnalyzer).getEpochs(matchingQuery.timestamps)
                 inOrder(forwardTracker) {
-                    verify(forwardTracker).forward(matchingQuery.withEpoch(0))
-                    verify(forwardTracker).forward(matchingQuery.withEpoch(1))
+                    verify(forwardTracker)
+                            .forward(matchingQuery.copy(query = matchingQuery.query.withEpoch(0)))
+                    verify(forwardTracker)
+                            .forward(matchingQuery.copy(query = matchingQuery.query.withEpoch(1)))
                 }
             }
 

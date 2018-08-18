@@ -17,6 +17,7 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Key
+import straightway.peerspace.data.isMatching
 
 /**
  * Track pending queries through time and while chunks come in which my satisfy
@@ -33,4 +34,4 @@ fun PendingDataQueryTracker.isPending(query: DataQueryRequest) =
         pendingDataQueries.any { it.query == query }
 
 fun PendingDataQueryTracker.getPendingQueriesForChunk(chunkKey: Key) =
-        pendingDataQueries.filter { it.query.isMatching(chunkKey) }
+        pendingDataQueries.filter { it.query.query.isMatching(chunkKey) }

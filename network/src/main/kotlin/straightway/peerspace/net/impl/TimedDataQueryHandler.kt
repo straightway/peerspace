@@ -43,6 +43,8 @@ class TimedDataQueryHandler :
     override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) =
         pendingDataQueryTracker.removePendingQueriesIf { originatorId == targetId }
 
-    override fun splitToEpochs(query: DataQueryRequest) =
-            epochAnalyzer.getEpochs(query.timestamps).map { query.withEpoch(it) }
+    override fun splitToEpochs(request: DataQueryRequest) =
+            epochAnalyzer.getEpochs(request.timestamps).map {
+                request.copy(query = request.query.withEpoch(it))
+            }
 }

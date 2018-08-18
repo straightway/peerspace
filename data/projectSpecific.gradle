@@ -17,4 +17,5 @@
 dependencies {
     testCompile straightway('utils')
     testCompile straightway('testing')
+    testCompile mockitoKotlin()
 }

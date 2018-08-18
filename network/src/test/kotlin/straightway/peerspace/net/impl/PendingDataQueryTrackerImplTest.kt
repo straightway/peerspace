@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
@@ -42,8 +43,8 @@ import java.time.LocalDateTime
 class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest1 = DataQueryRequest(Id("originatorId"), Id("chunkId"))
-        val queryRequest2 = DataQueryRequest(Id("originatorId"), Id("otherChunkId"))
+        val queryRequest1 = DataQueryRequest(Id("originatorId"), DataQuery(Id("chunkId")))
+        val queryRequest2 = DataQueryRequest(Id("originatorId"), DataQuery(Id("otherChunkId")))
         val chunkKey1 = Key(Id("chunkKey1"))
         val chunkKey2 = Key(Id("chunkKey2"))
     }
@@ -59,7 +60,7 @@ class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
                         PendingDataQueryTrackerImpl { timedDataQueryTimeout }
                     },
                     timeProviderFactory = {
-                        mock {
+                        mock { _ ->
                             on { now }.thenAnswer { currentTime }
                         }
                     })
@@ -119,7 +120,7 @@ class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
                 sut.setPending(queryRequest1)
             } when_ {
                 sut.removePendingQueriesIf { false }
-            } then {
+            } then { _ ->
                 expect(sut.pendingDataQueries.map { it.query } is_ Equal to_ Values(queryRequest1))
             }
 
@@ -127,10 +128,12 @@ class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
     fun `removePendingQueriesIf with condition removes matching queries`() =
             test while_ {
                 sut.setPending(queryRequest1)
-                sut.setPending(queryRequest1.copy(id = Id("otherChunk")))
+                sut.setPending(
+                        queryRequest1.copy(
+                                query = queryRequest1.query.copy(id = Id("otherChunk"))))
             } when_ {
                 sut.removePendingQueriesIf { id != queryRequest1.id }
-            } then {
+            } then { _ ->
                 expect(sut.pendingDataQueries.map { it.query } is_ Equal to_ Values(queryRequest1))
             }
 

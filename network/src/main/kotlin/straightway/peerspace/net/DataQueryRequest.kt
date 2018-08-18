@@ -15,74 +15,25 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.Identifyable
-import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHashable
-
-val untimedData = LongRange(0L, 0L)
 
 /**
  * A request for querying data in the peerspace network.
  */
-@Suppress("DataClassPrivateConstructor")
-data class DataQueryRequest private constructor(
+data class DataQueryRequest constructor(
         override val originatorId: Id,
-        override val id: Id,
-        private val timestampsStart: Long,
-        private val timestampsEndInclusive: Long,
-        override val epoch: Int? = null
-) : KeyHashable, Transmittable {
+        val query: DataQuery
+) : KeyHashable by query, Transmittable {
 
-    constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>)
-            : this(originatorId, id, timestamps.start, timestamps.endInclusive)
-
-    constructor(originatorId: Id, id: Id, timestamps: ClosedRange<Long>, epoch: Int) : this(
-            originatorId,
-            id,
-            timestamps.start,
-            timestamps.endInclusive,
-            if (timestamps == untimedData) null else epoch)
-
-    constructor(originatorId: Id, id: Id)
-            : this(originatorId, id, LongRange(0, 0))
-
-    constructor(originatorId: Id, identifyable: Identifyable)
-            : this(originatorId, identifyable.id)
-
-    @Suppress("UNUSED_PARAMETER")
-    fun withEpoch(epoch: Int) = DataQueryRequest(originatorId, id, timestamps, epoch)
-
-    override val identification get() = copy(originatorId = Id(""))
+    override val identification get() = query
 
     override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
 
-    override val timestamps get() = timestampsStart..timestampsEndInclusive
-
-    override fun toString() = when {
-        isUntimed -> untimedStringRepresentation
-        else -> timedStringRepresentation
-    }
-
-    private val untimedStringRepresentation get() =
-        "DataQueryRequest(${id.identifier}->${originatorId.identifier})"
-
-    private val timedStringRepresentation get() =
-        "DataQueryRequest(${id.identifier}[$rangeStringRepresentation]" +
-                "->${originatorId.identifier})"
-
-    private val rangeStringRepresentation get() =
-        "$timestampsStart..$timestampsEndInclusive$epochStringRepresentation"
-
-    private val epochStringRepresentation get() =
-        if (epoch === null) "" else "|$epoch"
+    override fun toString() = "Request ${originatorId.identifier}: $query"
 
     companion object {
         const val serialVersionUID = 1L
     }
 }
-
-fun DataQueryRequest.isMatching(key: Key) =
-        key.timestamp in timestamps && key.id == id
-
-val DataQueryRequest.isUntimed get() = timestamps == untimedData

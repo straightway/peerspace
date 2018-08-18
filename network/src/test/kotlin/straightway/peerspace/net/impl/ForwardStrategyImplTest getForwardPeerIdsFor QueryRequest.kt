@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.ForwardState
@@ -34,7 +35,7 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor QueryRequest` : KoinLoggingD
 
     private companion object {
         val originatorId = Id("originatorId")
-        val queryRequest = DataQueryRequest(originatorId, chunkId)
+        val queryRequest = DataQueryRequest(originatorId, DataQuery(chunkId))
     }
 
     private val test get() = Given {

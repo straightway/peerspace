@@ -16,6 +16,7 @@
 package straightway.peerspace.net
 
 import org.junit.jupiter.api.Test
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.testing.flow.Equal
@@ -64,6 +65,6 @@ class PendingDataQueryTest {
                        sut.copy(forwardedChunkKeys = setOf(key2, key1)).toString())
     }
 
-    private val query = DataQueryRequest(Id("originatorId"), Id("chunkId"))
+    private val query = DataQueryRequest(Id("originatorId"), DataQuery(Id("chunkId")))
     private val sut = PendingDataQuery(query, LocalDateTime.MIN)
 }

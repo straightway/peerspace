@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
@@ -34,7 +35,7 @@ import straightway.testing.flow.to_
 class DataQueryForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest = DataQueryRequest(Id("originatorId"), Id("chunkId"))
+        val queryRequest = DataQueryRequest(Id("originatorId"), DataQuery(Id("chunkId")))
     }
 
     private val test get() =

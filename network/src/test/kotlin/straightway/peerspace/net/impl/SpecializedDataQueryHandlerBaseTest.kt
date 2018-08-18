@@ -26,6 +26,7 @@ import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PendingDataQuery
@@ -49,8 +50,10 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     private companion object {
         val queryOriginatorId = Id("originatorId")
         val queriedChunkId = Id("chunkID")
-        val untimedQueryRequest = DataQueryRequest(queryOriginatorId, queriedChunkId)
-        val timedQueryRequest = DataQueryRequest(queryOriginatorId, queriedChunkId, 2L..7L)
+        val untimedQueryRequest =
+                DataQueryRequest(queryOriginatorId, DataQuery(queriedChunkId))
+        val timedQueryRequest =
+                DataQueryRequest(queryOriginatorId, DataQuery(queriedChunkId, 2L..7L))
         val matchingChunk = Chunk(Key(queriedChunkId), byteArrayOf())
         val otherChunk = Chunk(Key(Id("otherChunkId")), byteArrayOf())
     }
@@ -78,9 +81,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             chunkForwardFailure = Pair(chunkKey, targetId)
         }
 
-        override fun splitToEpochs(query: DataQueryRequest): List<DataQueryRequest> {
-            splitSource = query
-            return splitRequests ?: listOf(query)
+        override fun splitToEpochs(request: DataQueryRequest): List<DataQueryRequest> {
+            splitSource = request
+            return splitRequests ?: listOf(request)
         }
     }
 
@@ -226,8 +229,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     fun `split epoch results of timed query are forwarded`() =
             test() while_ {
                 sut.splitRequests = listOf(
-                        timedQueryRequest.copy(epoch = 1),
-                        timedQueryRequest.copy(epoch = 2))
+                        timedQueryRequest.copy(query = timedQueryRequest.query.copy(epoch = 1)),
+                        timedQueryRequest.copy(query = timedQueryRequest.query.copy(epoch = 2)))
             } when_ {
                 sut.handle(timedQueryRequest)
             } then { _ ->

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
@@ -73,7 +74,7 @@ class PeerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `handle with DataQueryRequest calls according implementation`() {
-        val request = DataQueryRequest(Id("originator"), Id("chunk"))
+        val request = DataQueryRequest(Id("originator"), DataQuery(Id("chunk")))
         test when_ {
             sut.handle(request)
         } then {

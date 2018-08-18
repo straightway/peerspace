@@ -23,6 +23,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Peer
@@ -39,7 +40,7 @@ class QueryTest : KoinLoggingDisabler() {
                     val environment = SinglePeerEnvironment(
                         forwardStrategyFactory =
                         {
-                            mock {
+                            mock { _ ->
                                 on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
                                     when (it.arguments[0]) {
                                         is DataQueryRequest -> queryForwardPeerIds
@@ -68,7 +69,7 @@ class QueryTest : KoinLoggingDisabler() {
             environment.addRemotePeer(pusher)
             pushForwardPeerIds = setOf(queryer.id)
         } when_ {
-            environment.peer.query(DataQueryRequest(queryer.id, chunk.key.id))
+            environment.peer.query(DataQueryRequest(queryer.id, DataQuery(chunk.key.id)))
             environment.peer.push(DataPushRequest(pusher.id, chunk))
             environment.simulator.run()
         } then {

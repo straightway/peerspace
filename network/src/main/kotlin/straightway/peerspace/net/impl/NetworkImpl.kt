@@ -46,6 +46,7 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
 
     private inner class PendingTransmission(val transmission: Transmission) {
         var transmissionResultListeners = listOf<TransmissionResultListener>()
+        // TODO: Let channel determine originator ID
         fun execute() = transmission.channel.transmit(transmission.content, distributingListener)
         private fun forAllListeners(action: TransmissionResultListener.() -> Unit) =
                 transmissionResultListeners.forEach { it.action() }

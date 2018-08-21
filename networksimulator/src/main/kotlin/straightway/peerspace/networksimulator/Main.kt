@@ -19,6 +19,7 @@ import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.KeyHasher
 import straightway.koinutils.withContext
+import straightway.peerspace.data.Chunk
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
@@ -53,6 +54,7 @@ import straightway.units.kilo
 import straightway.units.mega
 import straightway.units.milli
 import straightway.units.second
+import straightway.utils.Event
 import straightway.utils.TimeProvider
 import straightway.utils.toByteArray
 import java.io.Serializable
@@ -121,6 +123,9 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                         LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                         LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
                         as EpochAnalyzer
+            }
+            bean("localQueryResultEvent") {
+                Event<Chunk>()
             }
         }.apply {
             extraProperties["peerId"] = id.identifier

@@ -18,6 +18,7 @@ package straightway.peerspace.integrationtest
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.koinutils.Bean.get
+import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
@@ -72,6 +73,7 @@ import straightway.units.ki
 import straightway.units.me
 import straightway.units.milli
 import straightway.units.second
+import straightway.utils.Event
 import straightway.sim.net.Network as SimNetwork
 import straightway.utils.TimeProvider
 import java.io.Serializable
@@ -181,6 +183,9 @@ class SinglePeerEnvironment(
         }
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }
+        }
+        bean("localQueryResultEvent") {
+            Event<Chunk>()
         }
         factory {
             val from = _simNodes[peerId]!!

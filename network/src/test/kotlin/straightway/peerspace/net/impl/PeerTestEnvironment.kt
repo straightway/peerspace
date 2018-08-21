@@ -41,6 +41,7 @@ import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.Transmittable
 import straightway.random.Chooser
 import straightway.utils.Event
 import straightway.utils.TimeProvider
@@ -145,7 +146,7 @@ data class PeerTestEnvironment(
             bean("localKnownPeersPushTarget") { knownPeersPushTargetFactory() }
             bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
             bean { knownPeersGetterFactory() }
-            bean("localQueryResultEvent") { Event<Chunk>() }
+            bean("localDeliveryEvent") { Event<Transmittable>() }
             additionalInit()
         }.apply {
             extraProperties["peerId"] = peerId.identifier

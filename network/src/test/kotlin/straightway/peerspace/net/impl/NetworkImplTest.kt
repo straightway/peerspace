@@ -31,12 +31,14 @@ import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.peerspace.net.Transmittable
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.Event
 
 class NetworkImplTest : KoinLoggingDisabler() {
 
@@ -79,7 +81,9 @@ class NetworkImplTest : KoinLoggingDisabler() {
                             querySource
                         }
                     }
-                    val sut = environment.get<Network>() as NetworkImpl
+                    val sut get() = environment.get<Network>() as NetworkImpl
+                    val localChunkDeliveryEvent: Event<Transmittable> get() =
+                        environment.get("localDeliveryEvent")
                 }
             }
 
@@ -181,6 +185,30 @@ class NetworkImplTest : KoinLoggingDisabler() {
         } then {
             verify(listener1).notifySuccess()
             verify(listener2).notifySuccess()
+        }
+    }
+
+    @Test
+    fun `transmission to local peer is sent via localChunkDeliveryEvent` () {
+        var transmitted = listOf<Transmittable>()
+        test while_ {
+            localChunkDeliveryEvent.attach { transmitted += it }
+        } when_ {
+            sut.scheduleTransmission(Transmission(environment.peerId, pushRequest))
+            sut.executePendingRequests()
+        } then {
+            expect(transmitted is_ Equal to_ Values(pushRequest))
+        }
+    }
+
+    @Test
+    fun `transmission to local peer signals success` () {
+        val listener = mock<TransmissionResultListener>()
+        test when_ {
+            sut.scheduleTransmission(Transmission(environment.peerId, pushRequest), listener)
+            sut.executePendingRequests()
+        } then {
+            verify(listener).notifySuccess()
         }
     }
 }

@@ -30,8 +30,10 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.Transmittable
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -72,7 +74,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
 
                 val sut get() = environment.get<PeerClientImpl>()
                 val configuration = environment.get<Configuration>()
-                val chunkArrivedEvent: Event<Chunk> = environment.get("localQueryResultEvent")
+                val chunkArrivedEvent: Event<Transmittable> =
+                        environment.get("localDeliveryEvent")
+                val peerId = environment.peerId
             }
         }
 
@@ -110,7 +114,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test while_ {
             sut.query(untimedQuery) { result = it }
         } when_ {
-            chunkArrivedEvent(untimedMatchingChunk)
+            chunkArrivedEvent(untimedMatchingChunk.request(peerId))
         } then {
             expect(result is_ Equal to_ untimedMatchingChunk)
         }
@@ -121,9 +125,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test while_ {
             sut.query(untimedQuery) { fail { "do not call" } }
         } when_ {
-            chunkArrivedEvent(notMatchingChunk)
+            chunkArrivedEvent(notMatchingChunk.request(peerId))
         } then {
-            expect({ it.result } does  Not - Throw.exception)
+            expect({ it.result } does Not - Throw.exception)
         }
 
     @Test
@@ -132,9 +136,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test while_ {
             sut.query(timedQuery) { result = it; stopReceiving() }
         } when_ {
-            chunkArrivedEvent(timedMatchingChunk)
+            chunkArrivedEvent(timedMatchingChunk.request(peerId))
             result = null
-            chunkArrivedEvent(timedMatchingChunk)
+            chunkArrivedEvent(timedMatchingChunk.request(peerId))
         } then {
             expect(result is_ Null)
         }
@@ -145,7 +149,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test while_ {
             sut.query(timedQuery) { stopReceiving() }
         } when_ {
-            chunkArrivedEvent(timedMatchingChunk)
+            chunkArrivedEvent(timedMatchingChunk.request(peerId))
         } then {
             expect(sut.numberOfPendingQueries is_ Equal to_ 0)
         }
@@ -157,9 +161,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test while_ {
             sut.query(untimedQuery) { result = it }
         } when_ {
-            chunkArrivedEvent(untimedMatchingChunk)
+            chunkArrivedEvent(untimedMatchingChunk.request(peerId))
             result = null
-            chunkArrivedEvent(untimedMatchingChunk)
+            chunkArrivedEvent(untimedMatchingChunk.request(peerId))
         } then {
             expect(result is_ Null)
         }
@@ -171,9 +175,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test while_ {
             sut.query(timedQuery) { result = it }
         } when_ {
-            chunkArrivedEvent(timedMatchingChunk)
+            chunkArrivedEvent(timedMatchingChunk.request(peerId))
             result = null
-            chunkArrivedEvent(timedMatchingChunk)
+            chunkArrivedEvent(timedMatchingChunk.request(peerId))
         } then {
             expect(result is_ Equal to_ timedMatchingChunk)
         }
@@ -185,9 +189,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
                 sut.query(timedQuery) { fail { "do not call" } }
                 now += configuration.timedDataQueryTimeout.toDuration()
             } when_ {
-                chunkArrivedEvent(timedMatchingChunk)
+                chunkArrivedEvent(timedMatchingChunk.request(peerId))
             } then {
-                expect({ it.result } does  Not - Throw.exception)
+                expect({ it.result } does Not - Throw.exception)
             }
 
     @Test
@@ -196,7 +200,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
                 sut.query(timedQuery) { fail { "do not call" } }
                 now += configuration.timedDataQueryTimeout.toDuration()
             } when_ {
-                chunkArrivedEvent(notMatchingChunk)
+                chunkArrivedEvent(notMatchingChunk.request(peerId))
             } then {
                 expect(sut.numberOfPendingQueries is_ Equal to_ 0)
             }
@@ -241,7 +245,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         } when_ {
             sut.store(notMatchingChunk)
         } then {
-            expect({ it.result } does  Not - Throw.exception)
+            expect({ it.result } does Not - Throw.exception)
         }
 
     @Test
@@ -284,7 +288,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         } when_ {
             sut.store(notMatchingChunk)
         } then {
-            expect({ it.result } does  Not - Throw.exception)
+            expect({ it.result } does Not - Throw.exception)
         }
 
     @Test
@@ -316,4 +320,6 @@ class PeerClientImplTest : KoinLoggingDisabler() {
                     originatorId == environment.peerId
                 })
             }
+
+    private fun Chunk.request(originatorId: Id) = DataPushRequest(originatorId, this)
 }

@@ -30,6 +30,7 @@ import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.QueryControl
+import straightway.peerspace.net.Transmittable
 import straightway.units.toDuration
 import straightway.utils.Event
 import straightway.utils.EventHandlerToken
@@ -44,7 +45,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
     private val peerId: Id by property("peerId") { Id(it) }
     private val querySource: DataQuerySource by inject()
     private val pushTarget: DataPushTarget by inject()
-    private val localQueryResultArrived: Event<Chunk> by inject("localQueryResultEvent")
+    private val localDeliveryEvent: Event<Transmittable> by inject("localDeliveryEvent")
     private val timeProvider: TimeProvider by inject()
     private val configuration: Configuration by inject()
 
@@ -79,14 +80,14 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
 
         init {
             keepAlive()
-            eventHandlerToken = localQueryResultArrived.attach { chunk ->
+            eventHandlerToken = localDeliveryEvent.attach { transmittable ->
                 removeExpiredPendingQueries()
-                handleChunkArrival(chunk)
+                handleDataArrival(transmittable)
             }
         }
 
         override fun stopReceiving() {
-            localQueryResultArrived.detach(eventHandlerToken)
+            localDeliveryEvent.detach(eventHandlerToken)
             pendingQueries -= this
         }
 
@@ -114,23 +115,23 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
         private fun notifyExpiration() =
                 expirationCallbacks.forEach { it(query) }
 
-        private val handleChunkArrival: (Chunk) -> Unit =
-                if (query.isUntimed) { it -> handleChunkArrivalForUntimedQuery(it) }
-                else { it -> handleChunkArrivalForTimedQuery(it) }
+        private val handleDataArrival: (Transmittable) -> Unit =
+                if (query.isUntimed) { it -> handleDataArrivalForUntimedQuery(it) }
+                else { it -> handleDataArrivalForTimedQuery(it) }
 
-        private fun handleChunkArrivalForUntimedQuery(chunk: Chunk) {
-            localQueryResultArrived.detach(eventHandlerToken)
-            forwardNotificationAboutArrived(chunk)
+        private fun handleDataArrivalForUntimedQuery(data: Transmittable) {
+            localDeliveryEvent.detach(eventHandlerToken)
+            forwardNotificationAboutArrived(data)
         }
 
-        private fun handleChunkArrivalForTimedQuery(chunk: Chunk) {
+        private fun handleDataArrivalForTimedQuery(data: Transmittable) {
             if (timeProvider.now < expirationTime)
-                forwardNotificationAboutArrived(chunk)
+                forwardNotificationAboutArrived(data)
         }
 
-        private fun forwardNotificationAboutArrived(chunk: Chunk) {
-            if (query.isMatching(chunk.key))
-                receiveCallback(chunk)
+        private fun forwardNotificationAboutArrived(data: Transmittable) {
+            if (data is DataPushRequest && query.isMatching(data.chunk.key))
+                receiveCallback(data.chunk)
         }
     }
 }

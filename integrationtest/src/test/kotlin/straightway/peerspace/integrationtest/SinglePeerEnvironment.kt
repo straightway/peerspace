@@ -18,7 +18,6 @@ package straightway.peerspace.integrationtest
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.koinutils.Bean.get
-import straightway.peerspace.data.Chunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
@@ -39,6 +38,7 @@ import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.Transmittable
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
@@ -184,8 +184,8 @@ class SinglePeerEnvironment(
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }
         }
-        bean("localQueryResultEvent") {
-            Event<Chunk>()
+        bean("localDeliveryEvent") {
+            Event<Transmittable>()
         }
         factory {
             val from = _simNodes[peerId]!!

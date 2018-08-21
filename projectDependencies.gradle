@@ -16,7 +16,6 @@
 include 'peerspace'
 include 'peerspace:crypto'
 include 'peerspace:data'
-include 'peerspace:koinutils'
 include 'peerspace:network'
 include 'peerspace:main'
 include 'peerspace:networksimulator'

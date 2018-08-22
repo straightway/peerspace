@@ -61,15 +61,21 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
         var transmissionResultListeners = listOf<TransmissionResultListener>()
         // TODO: Let channel determine originator ID
 
-        fun execute() = if (transmission.receiverId == peerId)
-            deliverLocally()
-            else transmission.channel.transmit(transmission.content, distributingListener)
+        fun execute() =
+                if (transmission.isLocal) deliverLocally()
+                else deliverViaNetwork()
 
-        fun deliverLocally() {
+        private val Transmission.isLocal get() = receiverId == peerId
+
+        private fun deliverLocally() {
             distributingListener.notifySuccess()
             localDeliveryEvent(transmission.content)
         }
 
+        private fun deliverViaNetwork() {
+            transmission.channel.transmit(transmission.content, distributingListener)
+        }
+        
         private fun forAllListeners(action: TransmissionResultListener.() -> Unit) =
                 transmissionResultListeners.forEach { it.action() }
 

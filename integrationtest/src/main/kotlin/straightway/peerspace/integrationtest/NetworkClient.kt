@@ -26,7 +26,7 @@ import straightway.peerspace.net.DataPushTarget
  */
 class NetworkClient(override val id: Id) : Identifyable, DataPushTarget {
 
-    override fun push(request: DataPushRequest) {
+    override fun pushDataChunk(request: DataPushRequest) {
         _receivedData += request.chunk
     }
 

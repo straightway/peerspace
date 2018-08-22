@@ -42,7 +42,7 @@ class KnownPeersQuerySourceImpl :
     private val network: Network by inject()
     private val knownPeerAnswerChooser: Chooser by inject("knownPeerAnswerChooser")
 
-    override fun query(request: KnownPeersQueryRequest) {
+    override fun queryKnownPeers(request: KnownPeersQueryRequest) {
         pushKnownPeersTo(request.originatorId)
         network.executePendingRequests()
     }

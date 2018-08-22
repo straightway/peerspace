@@ -21,5 +21,5 @@ package straightway.peerspace.net
 interface DataPushTarget {
 
     @RequestHandler
-    fun push(request: DataPushRequest)
+    fun pushDataChunk(request: DataPushRequest)
 }

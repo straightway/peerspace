@@ -100,7 +100,7 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(pushRequest, messageSize))
             } then {
-                verify(peer).push(pushRequest)
+                verify(peer).pushDataChunk(pushRequest)
             }
 
     @Test
@@ -108,7 +108,7 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(queryRequest, messageSize))
             } then {
-                verify(peer).query(queryRequest)
+                verify(peer).queryData(queryRequest)
             }
 
     @Test
@@ -116,10 +116,10 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(mock<Transmittable>(), messageSize))
             } then {
-                verify(peer, never()).push(any<DataPushRequest>())
-                verify(peer, never()).push(any<KnownPeersPushRequest>())
-                verify(peer, never()).query(any<DataQueryRequest>())
-                verify(peer, never()).query(any<KnownPeersQueryRequest>())
+                verify(peer, never()).pushDataChunk(any<DataPushRequest>())
+                verify(peer, never()).pushKnownPeers(any<KnownPeersPushRequest>())
+                verify(peer, never()).queryData(any<DataQueryRequest>())
+                verify(peer, never()).queryKnownPeers(any<KnownPeersQueryRequest>())
                 expect({ it.result } does Not - Throw.exception)
             }
 
@@ -128,10 +128,10 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(Any(), messageSize))
             } then {
-                verify(peer, never()).push(any<DataPushRequest>())
-                verify(peer, never()).push(any<KnownPeersPushRequest>())
-                verify(peer, never()).query(any<DataQueryRequest>())
-                verify(peer, never()).query(any<KnownPeersQueryRequest>())
+                verify(peer, never()).pushDataChunk(any<DataPushRequest>())
+                verify(peer, never()).pushKnownPeers(any<KnownPeersPushRequest>())
+                verify(peer, never()).queryData(any<DataQueryRequest>())
+                verify(peer, never()).queryKnownPeers(any<KnownPeersQueryRequest>())
                 expect({ it.result } does Not - Throw.exception)
             }
 

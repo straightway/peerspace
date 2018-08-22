@@ -27,7 +27,7 @@ import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.DataPushRequest
 
 /**
- * Forwarder implementation for push requests.
+ * Forwarder implementation for pushDataChunk requests.
  */
 class DataPushForwarder :
         Forwarder<DataPushRequest>,

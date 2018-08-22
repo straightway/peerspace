@@ -69,12 +69,12 @@ class QueryTest : KoinLoggingDisabler() {
             environment.addRemotePeer(pusher)
             pushForwardPeerIds = setOf(queryer.id)
         } when_ {
-            environment.peer.query(DataQueryRequest(queryer.id, DataQuery(chunk.key.id)))
-            environment.peer.push(DataPushRequest(pusher.id, chunk))
+            environment.peer.queryData(DataQueryRequest(queryer.id, DataQuery(chunk.key.id)))
+            environment.peer.pushDataChunk(DataPushRequest(pusher.id, chunk))
             environment.simulator.run()
         } then {
             verify(queryer, times(1))
-                    .push(eq(DataPushRequest(environment.peer.id, chunk)))
+                    .pushDataChunk(eq(DataPushRequest(environment.peer.id, chunk)))
         }
     }
 }

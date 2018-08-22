@@ -31,7 +31,7 @@ class KnownPeersPushTargetImpl :
 
     private val peerDirectory: PeerDirectory by inject()
 
-    override fun push(request: KnownPeersPushRequest) {
+    override fun pushKnownPeers(request: KnownPeersPushRequest) {
         peerDirectory.add(request.originatorId)
         request.knownPeersIds.forEach { peerDirectory.add(it) }
     }

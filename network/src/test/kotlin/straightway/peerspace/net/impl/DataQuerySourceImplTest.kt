@@ -45,7 +45,7 @@ class DataQuerySourceImplTest {
     @Test
     fun `queries are delegated to DataQueryHandler`() =
             test when_ {
-                sut.query(dataQuery)
+                sut.queryData(dataQuery)
             } then {
                 verify(environment.get<DataQueryHandler>("dataQueryHandler")).handle(dataQuery)
             }
@@ -53,7 +53,7 @@ class DataQuerySourceImplTest {
     @Test
     fun `query executes pending network requests`() =
             test when_ {
-                sut.query(dataQuery)
+                sut.queryData(dataQuery)
             } then {
                 verify(environment.get<Network>()).executePendingRequests()
             }
@@ -61,7 +61,7 @@ class DataQuerySourceImplTest {
     @Test
     fun `originator of query request is added to known peers`() =
             test when_ {
-                sut.query(dataQuery)
+                sut.queryData(dataQuery)
             } then {
                 verify(environment.get<PeerDirectory>()).add(dataQuery.originatorId)
             }

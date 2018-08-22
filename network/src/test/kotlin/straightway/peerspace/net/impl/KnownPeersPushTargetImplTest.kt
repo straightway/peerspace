@@ -45,7 +45,7 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `push adds originator to peer directory`() =
             test when_ {
-                sut.push(pushRequest)
+                sut.pushKnownPeers(pushRequest)
             } then {
                 verify(peerDirectory).add(originatorId)
             }
@@ -53,7 +53,7 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `push adds known peer ids`() =
             test when_ {
-                sut.push(pushRequest)
+                sut.pushKnownPeers(pushRequest)
             } then {
                 knownPeerIds.forEach { peerId -> verify(peerDirectory).add(peerId) }
             }

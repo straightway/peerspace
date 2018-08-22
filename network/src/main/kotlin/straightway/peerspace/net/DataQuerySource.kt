@@ -21,5 +21,5 @@ package straightway.peerspace.net
 interface DataQuerySource {
 
     @RequestHandler
-    fun query(request: DataQueryRequest)
+    fun queryData(request: DataQueryRequest)
 }

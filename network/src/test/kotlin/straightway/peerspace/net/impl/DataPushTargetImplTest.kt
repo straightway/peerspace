@@ -74,20 +74,20 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `push does not throw`() =
-            test when_ { sut.push(DataPushRequest(originatorId, chunk)) } then {
+            test when_ { sut.pushDataChunk(DataPushRequest(originatorId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { sut.push(DataPushRequest(originatorId, chunk)) } then {
+            test when_ { sut.pushDataChunk(DataPushRequest(originatorId, chunk)) } then {
                 verify(environment.get<DataChunkStore>()).store(chunk)
             }
 
     @Test
     fun `push executes pending network requests`() =
             test when_ {
-                sut.push(DataPushRequest(originatorId, chunk))
+                sut.pushDataChunk(DataPushRequest(originatorId, chunk))
             } then {
                 verify(environment.get<Network>()).executePendingRequests()
             }
@@ -95,7 +95,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `originator of push request is added to known peers`() =
             test when_ {
-                sut.push(DataPushRequest(originatorId, chunk))
+                sut.pushDataChunk(DataPushRequest(originatorId, chunk))
             } then {
                 verify(environment.get<PeerDirectory>()).add(originatorId)
             }
@@ -103,7 +103,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `forwarding is handled by pushForwardTracker`() =
             test when_ {
-                sut.push(pushRequest)
+                sut.pushDataChunk(pushRequest)
             } then {
                 verify(pushForwardTracker).forward(pushRequest)
             }
@@ -111,7 +111,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `forwarding notifies dataQueryHandler`() =
             test when_ {
-                sut.push(pushRequest)
+                sut.pushDataChunk(pushRequest)
             } then {
                 verify(dataQueryHandler).notifyChunkForwarded(pushRequest.chunk.key)
             }
@@ -122,7 +122,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
                 epochs = listOf(0, 1)
                 chunkKey = chunkKey.copy(timestamp = 83L)
             } when_ {
-                sut.push(pushRequest)
+                sut.pushDataChunk(pushRequest)
             } then {
                 inOrder(pushForwardTracker) {
                     verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(0)))

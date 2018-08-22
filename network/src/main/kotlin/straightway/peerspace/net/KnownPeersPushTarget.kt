@@ -21,5 +21,5 @@ package straightway.peerspace.net
 interface KnownPeersPushTarget {
 
     @RequestHandler
-    fun push(request: KnownPeersPushRequest)
+    fun pushKnownPeers(request: KnownPeersPushRequest)
 }

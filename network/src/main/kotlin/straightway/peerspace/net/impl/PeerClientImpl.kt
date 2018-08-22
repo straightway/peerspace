@@ -51,7 +51,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
 
     override fun store(data: DataChunk) {
         removeExpiredPendingQueries()
-        pushTarget.push(DataPushRequest(peerId, data))
+        pushTarget.pushDataChunk(DataPushRequest(peerId, data))
     }
 
     override fun query(
@@ -94,7 +94,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
         override fun keepAlive() {
             expirationTime =
                     timeProvider.now + configuration.timedDataQueryTimeout.toDuration()
-            querySource.query(DataQueryRequest(peerId, query))
+            querySource.queryData(DataQueryRequest(peerId, query))
         }
 
         override fun onExpiring(callback: QueryControl.(DataQuery) -> Unit) {

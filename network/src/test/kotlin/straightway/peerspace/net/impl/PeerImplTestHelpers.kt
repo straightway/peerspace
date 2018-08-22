@@ -38,10 +38,10 @@ fun createPeerMock(
 ) =
         mock<Peer> { _ ->
             on { this.id }.thenReturn(id)
-            on { push(any<DataPushRequest>()) }.thenAnswer {
+            on { pushDataChunk(any<DataPushRequest>()) }.thenAnswer {
                 pushCallback(it.arguments[0] as DataPushRequest)
             }
-            on { query(any<DataQueryRequest>()) }.thenAnswer {
+            on { queryData(any<DataQueryRequest>()) }.thenAnswer {
                 queryCallback(it.arguments[0] as DataQueryRequest)
             }
         }

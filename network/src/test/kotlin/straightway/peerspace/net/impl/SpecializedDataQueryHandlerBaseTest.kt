@@ -181,7 +181,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } then {
                 val pushRequest = DataPushRequest(environment.peerId, matchingChunk)
                 val queryOriginator = environment.getPeer(queryOriginatorId)
-                verify(queryOriginator).push(eq(pushRequest))
+                verify(queryOriginator).pushDataChunk(eq(pushRequest))
             }
 
     @Test
@@ -193,7 +193,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.notifyChunkForwarded(otherChunk.key)
             } then {
                 val queryOriginator = environment.getPeer(queryOriginatorId)
-                verify(queryOriginator, never()).push(any<DataPushRequest>())
+                verify(queryOriginator, never()).pushDataChunk(any<DataPushRequest>())
             }
 
     @Test

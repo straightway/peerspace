@@ -33,7 +33,7 @@ class DataQuerySourceImpl : DataQuerySource, KoinModuleComponent by KoinModuleCo
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val network: Network by inject()
 
-    override fun query(request: DataQueryRequest) {
+    override fun queryData(request: DataQueryRequest) {
         peerDirectory.add(request.originatorId)
         dataQueryHandler.handle(request)
         network.executePendingRequests()

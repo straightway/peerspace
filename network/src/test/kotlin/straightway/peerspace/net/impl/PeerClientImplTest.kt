@@ -85,7 +85,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.query(untimedQuery) { fail { "do not call" } }
         } then {
-            verify(environment.get<DataQuerySource>()).query(any())
+            verify(environment.get<DataQuerySource>()).queryData(any())
         }
 
     @Test
@@ -93,7 +93,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.query(untimedQuery) { fail { "do not call" } }
         } then {
-            verify(environment.get<DataQuerySource>()).query(argThat {
+            verify(environment.get<DataQuerySource>()).queryData(argThat {
                 originatorId == environment.peerId
             })
         }
@@ -103,7 +103,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.query(untimedQuery) { fail { "do not call" } }
         } then {
-            verify(environment.get<DataQuerySource>()).query(argThat {
+            verify(environment.get<DataQuerySource>()).queryData(argThat {
                 this.query == query
             })
         }
@@ -297,7 +297,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
                 sut.query(timedQuery) { fail { "do not call" } }.keepAlive()
             } then {
                 inOrder(environment.get<DataQuerySource>()) {
-                    verify(environment.get<DataQuerySource>(), calls(2)).query(any())
+                    verify(environment.get<DataQuerySource>(), calls(2)).queryData(any())
                 }
             }
 
@@ -306,7 +306,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.store(untimedMatchingChunk)
             } then {
-                verify(environment.get<DataPushTarget>()).push(argThat {
+                verify(environment.get<DataPushTarget>()).pushDataChunk(argThat {
                     chunk == untimedMatchingChunk
                 })
             }
@@ -316,7 +316,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.store(untimedMatchingChunk)
             } then {
-                verify(environment.get<DataPushTarget>()).push(argThat {
+                verify(environment.get<DataPushTarget>()).pushDataChunk(argThat {
                     originatorId == environment.peerId
                 })
             }

@@ -41,7 +41,7 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
             by inject("pushForwardTracker")
     private val epochAnalyzer: EpochAnalyzer by inject()
 
-    override fun push(request: DataPushRequest) {
+    override fun pushDataChunk(request: DataPushRequest) {
         peerDirectory.add(request.originatorId)
         dataChunkStore.store(request.chunk)
         forward(request)

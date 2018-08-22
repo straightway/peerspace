@@ -47,7 +47,7 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
             test when_ { sut.refreshKnownPeers() } then {
-                verify(knownPeers.single()).query(knownPeersRequest)
+                verify(knownPeers.single()).queryKnownPeers(knownPeersRequest)
             }
 
     @Test
@@ -57,7 +57,7 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.refreshKnownPeers()
             } then {
-                verify(knownPeers.single(), times(2)).query(knownPeersRequest)
+                verify(knownPeers.single(), times(2)).queryKnownPeers(knownPeersRequest)
             }
 
     @Test
@@ -75,11 +75,11 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
             } then {
                 knownPeers.take(get<Configuration>().maxPeersToQueryForKnownPeers)
                         .forEach { peer ->
-                            verify(peer).query(knownPeersRequest)
+                            verify(peer).queryKnownPeers(knownPeersRequest)
                         }
                 knownPeers.drop(get<Configuration>().maxPeersToQueryForKnownPeers)
                         .forEach { peer ->
-                            verify(peer, never()).query(knownPeersRequest)
+                            verify(peer, never()).queryKnownPeers(knownPeersRequest)
                         }
             }
 
@@ -101,8 +101,8 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.refreshKnownPeers()
             } then {
-                verify(knownPeers[0]).query(knownPeersRequest)
-                verify(knownPeers[1], never()).query(knownPeersRequest)
-                verify(knownPeers[2]).query(knownPeersRequest)
+                verify(knownPeers[0]).queryKnownPeers(knownPeersRequest)
+                verify(knownPeers[1], never()).queryKnownPeers(knownPeersRequest)
+                verify(knownPeers[2]).queryKnownPeers(knownPeersRequest)
             }
 }

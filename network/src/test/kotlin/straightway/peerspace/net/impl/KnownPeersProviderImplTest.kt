@@ -47,18 +47,18 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
     @Test
     fun `a query for known peers is answered immediately`() =
             test when_ {
-                get<KnownPeersQuerySource>().query(query)
+                get<KnownPeersQuerySource>().queryKnownPeers(query)
             } then {
-                verify(queryingPeer).push(any<KnownPeersPushRequest>())
+                verify(queryingPeer).pushKnownPeers(any<KnownPeersPushRequest>())
             }
 
     @Test
     fun `a query for known peers is answered with the list of known peers`() =
             test when_ {
-                get<KnownPeersQuerySource>().query(query)
+                get<KnownPeersQuerySource>().queryKnownPeers(query)
             } then {
                 val expectedKnownPeerIds = knownPeersIds
-                verify(queryingPeer).push(
+                verify(queryingPeer).pushKnownPeers(
                         argThat<KnownPeersPushRequest> {
                             knownPeersIds == expectedKnownPeerIds
                         })
@@ -75,10 +75,10 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
                             createChooser { knownPeersIds.slice(0..0) }
                         })
             } when_ {
-                get<KnownPeersQuerySource>().query(query)
+                get<KnownPeersQuerySource>().queryKnownPeers(query)
             } then {
                 val expectedPeerIds = knownPeersIds.slice(0..0)
-                verify(queryingPeer).push(
+                verify(queryingPeer).pushKnownPeers(
                         argThat<KnownPeersPushRequest> {
                             knownPeersIds == expectedPeerIds })
             }

@@ -68,7 +68,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<DataPushTarget>()).push(request)
+            verify(get<DataPushTarget>()).pushDataChunk(request)
         }
     }
 
@@ -78,7 +78,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<DataQuerySource>()).query(request)
+            verify(get<DataQuerySource>()).queryData(request)
         }
     }
 
@@ -88,7 +88,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<KnownPeersPushTarget>()).push(request)
+            verify(get<KnownPeersPushTarget>()).pushKnownPeers(request)
         }
     }
 
@@ -98,7 +98,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<KnownPeersQuerySource>()).query(request)
+            verify(get<KnownPeersQuerySource>()).queryKnownPeers(request)
         }
     }
 

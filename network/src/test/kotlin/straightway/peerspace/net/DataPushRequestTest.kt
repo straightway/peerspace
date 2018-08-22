@@ -17,7 +17,7 @@
 package straightway.peerspace.net
 
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.utils.deserializeTo
@@ -34,7 +34,7 @@ class DataPushRequestTest {
 
     private fun test(timestamp: Long = 0L, epoch: Int? = null) = Given {
         object {
-            val chunk = Chunk(Key(Id("4711"), timestamp, epoch), "Hello".toByteArray())
+            val chunk = DataChunk(Key(Id("4711"), timestamp, epoch), "Hello".toByteArray())
             val sut = DataPushRequest(Id("originatorId"), chunk)
         }
     }

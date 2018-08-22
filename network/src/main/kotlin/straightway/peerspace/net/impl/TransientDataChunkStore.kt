@@ -17,7 +17,7 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
@@ -37,7 +37,7 @@ class TransientDataChunkStore : DataChunkStore, KoinModuleComponent by KoinModul
     private val configuration: Configuration by inject()
     private val chunkSizeGetter: ChunkSizeGetter by inject()
 
-    override fun store(chunk: Chunk) {
+    override fun store(chunk: DataChunk) {
         if (chunk.exceedsCapacity)
             dropOldestChunk()
         storeNew(chunk)
@@ -50,14 +50,14 @@ class TransientDataChunkStore : DataChunkStore, KoinModuleComponent by KoinModul
                 forEach { it.markAsNew() }
             }
 
-    operator fun get(key: Key): Chunk? = storedData[key]
+    operator fun get(key: Key): DataChunk? = storedData[key]
 
-    private fun storeNew(chunk: Chunk) {
+    private fun storeNew(chunk: DataChunk) {
         chunk.markAsNew()
         storedData[chunk.key] = chunk
     }
 
-    private fun Chunk.markAsNew() {
+    private fun DataChunk.markAsNew() {
         storedChunkKeysInArrivalOrder -= key
         storedChunkKeysInArrivalOrder += key
     }
@@ -67,18 +67,18 @@ class TransientDataChunkStore : DataChunkStore, KoinModuleComponent by KoinModul
         storedChunkKeysInArrivalOrder = storedChunkKeysInArrivalOrder.drop(1)
     }
 
-    private val Chunk.exceedsCapacity get() =
+    private val DataChunk.exceedsCapacity get() =
             configuration.storageCapacity < currentStorageSize + chunkSizeGetter(this)
 
     private val currentStorageSize: UnitNumber<AmountOfData> get() =
             storedData.values.fold(0[bit]) {
-                acc: UnitNumber<AmountOfData>, chunk: Chunk ->
+                acc: UnitNumber<AmountOfData>, chunk: DataChunk ->
                 acc + chunkSizeGetter(chunk)
             }
 
-    private infix fun Chunk.satisfies(queryRequest: DataQueryRequest) =
+    private infix fun DataChunk.satisfies(queryRequest: DataQueryRequest) =
             key.id == queryRequest.id && key.timestamp in queryRequest.timestamps
 
-    private val storedData = mutableMapOf<Key, Chunk>()
+    private val storedData = mutableMapOf<Key, DataChunk>()
     private var storedChunkKeysInArrivalOrder = listOf<Key>()
 }

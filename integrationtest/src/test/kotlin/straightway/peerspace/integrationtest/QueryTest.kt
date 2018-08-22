@@ -22,7 +22,7 @@ import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -62,7 +62,7 @@ class QueryTest : KoinLoggingDisabler() {
             on { id }.thenReturn(Id("pusherId"))
         }
 
-        val chunk = Chunk(Key(Id("ChunkId")), byteArrayOf())
+        val chunk = DataChunk(Key(Id("ChunkId")), byteArrayOf())
 
         test while_ {
             environment.addRemotePeer(queryer)

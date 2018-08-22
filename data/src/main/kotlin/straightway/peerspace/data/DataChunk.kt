@@ -21,7 +21,7 @@ import java.util.Arrays
 /**
  * A chunk of data with a key.
  */
-data class Chunk(val key: Key, val data: ByteArray) : Serializable {
+data class DataChunk(val key: Key, val data: ByteArray) : Serializable {
 
     companion object {
         const val serialVersionUID = 1L
@@ -29,13 +29,13 @@ data class Chunk(val key: Key, val data: ByteArray) : Serializable {
     }
 
     fun withEpoch(epoch: Int) =
-            Chunk(key.copy(epoch = epoch), data)
+            DataChunk(key.copy(epoch = epoch), data)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Chunk
+        other as DataChunk
 
         return key == other.key && data contentEquals other.data
     }

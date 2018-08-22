@@ -17,7 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
@@ -48,10 +48,10 @@ fun createPeerMock(
 
 fun ids(vararg ids: String) = ids.map { Id(it) }
 
-fun createChunkDataStore(initialChunks: () -> List<Chunk> = { listOf() }): DataChunkStore {
-    val chunks: MutableList<Chunk> = mutableListOf(*initialChunks().toTypedArray())
+fun createChunkDataStore(initialChunks: () -> List<DataChunk> = { listOf() }): DataChunkStore {
+    val chunks: MutableList<DataChunk> = mutableListOf(*initialChunks().toTypedArray())
     return mock { _ ->
-        on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as Chunk) }
+        on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as DataChunk) }
         on { query(any()) }.thenAnswer { args ->
             val query = args.arguments[0] as DataQueryRequest
             chunks.filter { query.query.isMatching(it.key) }

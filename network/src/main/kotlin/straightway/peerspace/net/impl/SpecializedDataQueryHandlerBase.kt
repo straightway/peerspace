@@ -15,7 +15,7 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
@@ -99,10 +99,10 @@ abstract class SpecializedDataQueryHandlerBase(
         return localResult.any()
     }
 
-    private infix fun Iterable<Chunk>.forwardTo(targetId: Id) =
+    private infix fun Iterable<DataChunk>.forwardTo(targetId: Id) =
         forEach { chunk -> chunk forwardTo targetId }
 
-    private infix fun Chunk.forwardTo(targetId: Id) =
+    private infix fun DataChunk.forwardTo(targetId: Id) =
             network.scheduleTransmission(
                     Transmission(targetId, DataPushRequest(peerId, this)),
                     object : TransmissionResultListener {

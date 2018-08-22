@@ -23,7 +23,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
@@ -46,7 +46,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
         val originatorId = Id("originator")
         val chunkId = Id("chunkId")
         val data = "Data".toByteArray()
-        val chunk = Chunk(Key(chunkId), data)
+        val chunk = DataChunk(Key(chunkId), data)
     }
 
     private val test get() = Given {
@@ -54,7 +54,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             var epochs = listOf(0)
             var chunkKey = Key(chunkId)
             val pushRequest by lazy {
-                DataPushRequest(originatorId, Chunk(chunkKey, byteArrayOf()))
+                DataPushRequest(originatorId, DataChunk(chunkKey, byteArrayOf()))
             }
             val environment = PeerTestEnvironment(
                 dataPushTargetFactory = { DataPushTargetImpl() }) {

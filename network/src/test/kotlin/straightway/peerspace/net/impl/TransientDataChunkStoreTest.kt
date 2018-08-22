@@ -18,7 +18,7 @@ package straightway.peerspace.net.impl
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -64,11 +64,11 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
                 bean { chunkSizeGetter { _ -> 1[byte] } }
             }
             val sut = environment.get<DataChunkStore>() as TransientDataChunkStore
-            val untimedChunk = Chunk(Key(chunkId), chunkData)
-            val timedChunk = Chunk(Key(chunkId, chunkTimeStamp), chunkData)
+            val untimedChunk = DataChunk(Key(chunkId), chunkData)
+            val timedChunk = DataChunk(Key(chunkId, chunkTimeStamp), chunkData)
         }
     } while_ {
-        sut.store(Chunk(Key(otherChunkId), chunkData))
+        sut.store(DataChunk(Key(otherChunkId), chunkData))
     }
 
     @Test
@@ -165,7 +165,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
     fun `adding the same chunk again changes removal order`() =
             test(storageCapacity = 2[byte]) while_ {
                 sut.store(timedChunk)
-                sut.store(Chunk(Key(otherChunkId), chunkData))
+                sut.store(DataChunk(Key(otherChunkId), chunkData))
             } when_ {
                 sut.store(untimedChunk)
             } then {

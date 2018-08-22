@@ -18,7 +18,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.mock
 import org.koin.core.parameter.Parameters
 import org.koin.dsl.context.Context
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.get
@@ -56,7 +56,7 @@ data class PeerTestEnvironment(
         val peerId: Id = Id("peerId"),
         val knownPeersIds: List<Id> = listOf(),
         val unknownPeerIds: List<Id> = listOf(),
-        val localChunks: List<Chunk> = listOf(),
+        val localChunks: List<DataChunk> = listOf(),
         private val configurationFactory: BeanFactory<Configuration> = {
             Configuration()
         },

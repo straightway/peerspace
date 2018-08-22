@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.withContext
@@ -48,7 +48,7 @@ class DataQueryHandlerImplTest : KoinLoggingDisabler() {
                 object {
                     val push = DataPushRequest(
                             Id("originator"),
-                            Chunk(chunkKey, byteArrayOf()))
+                            DataChunk(chunkKey, byteArrayOf()))
                     val untimedId = Id("untimed")
                     val timedId = Id("timed")
                     val timedUntimedId = Id("timedUntimed")

@@ -22,7 +22,7 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
@@ -69,7 +69,7 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             val download = mock<TransmissionStream> { _ ->
                 on { isOnline }.thenAnswer { isDownloadOnline }
             }
-            val chunk = Chunk(chunkKey, chunkData)
+            val chunk = DataChunk(chunkKey, chunkData)
             val pushRequest = DataPushRequest(Id("senderId"), chunk)
             val queryRequest = DataQueryRequest(
                     Id("originId"), DataQuery(Id("chunkId"), untimedData))

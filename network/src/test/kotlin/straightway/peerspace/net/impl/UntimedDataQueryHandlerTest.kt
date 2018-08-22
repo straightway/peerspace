@@ -19,7 +19,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
@@ -39,7 +39,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
     private companion object {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
-        val chunk = Chunk(Key(chunkId), byteArrayOf())
+        val chunk = DataChunk(Key(chunkId), byteArrayOf())
     }
 
     private val test get() =

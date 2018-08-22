@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.KoinModuleComponent
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Network
@@ -47,7 +47,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
         val receiverId = Id("receiver")
         val pushRequest = DataPushRequest(
                 peerId,
-                Chunk(Key(Id("ChunkKey")), byteArrayOf()))
+                DataChunk(Key(Id("ChunkKey")), byteArrayOf()))
     }
 
     private val test get() =

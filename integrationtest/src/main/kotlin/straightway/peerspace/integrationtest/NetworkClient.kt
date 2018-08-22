@@ -15,7 +15,7 @@
  */
 package straightway.peerspace.integrationtest
 
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
 import straightway.peerspace.net.DataPushRequest
@@ -30,6 +30,6 @@ class NetworkClient(override val id: Id) : Identifyable, DataPushTarget {
         _receivedData += request.chunk
     }
 
-    val receivedData: List<Chunk> get() = _receivedData
-    private val _receivedData = mutableListOf<Chunk>()
+    val receivedData: List<DataChunk> get() = _receivedData
+    private val _receivedData = mutableListOf<DataChunk>()
 }

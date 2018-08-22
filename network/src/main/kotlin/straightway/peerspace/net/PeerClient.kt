@@ -15,13 +15,13 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 
 /**
  * Peerspace network facade for client applications.
  */
 interface PeerClient {
-    fun store(data: Chunk)
-    fun query(query: DataQuery, receiveCallback: QueryControl.(Chunk) -> Unit): QueryControl
+    fun store(data: DataChunk)
+    fun query(query: DataQuery, receiveCallback: QueryControl.(DataChunk) -> Unit): QueryControl
 }

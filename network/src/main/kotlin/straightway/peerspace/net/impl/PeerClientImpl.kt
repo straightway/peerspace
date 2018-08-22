@@ -18,7 +18,7 @@ package straightway.peerspace.net.impl
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.isMatching
@@ -49,14 +49,14 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
     private val timeProvider: TimeProvider by inject()
     private val configuration: Configuration by inject()
 
-    override fun store(data: Chunk) {
+    override fun store(data: DataChunk) {
         removeExpiredPendingQueries()
         pushTarget.push(DataPushRequest(peerId, data))
     }
 
     override fun query(
             query: DataQuery,
-            receiveCallback: QueryControl.(Chunk) -> Unit
+            receiveCallback: QueryControl.(DataChunk) -> Unit
     ): QueryControl {
         removeExpiredPendingQueries()
         return PendingQuery(query, receiveCallback).also { pendingQueries += it }
@@ -71,7 +71,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
 
     private inner class PendingQuery(
             val query: DataQuery,
-            val receiveCallback: QueryControl.(Chunk) -> Unit
+            val receiveCallback: QueryControl.(DataChunk) -> Unit
     ) : QueryControl {
 
         private val eventHandlerToken: EventHandlerToken

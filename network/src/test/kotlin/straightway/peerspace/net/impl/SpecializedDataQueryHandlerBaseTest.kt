@@ -22,7 +22,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
@@ -54,8 +54,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 DataQueryRequest(queryOriginatorId, DataQuery(queriedChunkId))
         val timedQueryRequest =
                 DataQueryRequest(queryOriginatorId, DataQuery(queriedChunkId, 2L..7L))
-        val matchingChunk = Chunk(Key(queriedChunkId), byteArrayOf())
-        val otherChunk = Chunk(Key(Id("otherChunkId")), byteArrayOf())
+        val matchingChunk = DataChunk(Key(queriedChunkId), byteArrayOf())
+        val otherChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())
     }
 
     private class DerivedSut(isLocalResultPreventingForwarding: Boolean) :
@@ -90,7 +90,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     private fun test(isLocalResultPreventingForwarding: Boolean = false) =
         Given {
             object {
-                var chunkStoreQueryResult = listOf<Chunk>()
+                var chunkStoreQueryResult = listOf<DataChunk>()
                 val environment = PeerTestEnvironment(
                         knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = {

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -53,9 +53,9 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         val chunkId = Id("chunk")
         val timedQuery = DataQuery(chunkId, 1L..2L)
         val untimedQuery = DataQuery(chunkId)
-        val timedMatchingChunk = Chunk(Key(chunkId, 1L), byteArrayOf())
-        val untimedMatchingChunk = Chunk(Key(chunkId), byteArrayOf())
-        val notMatchingChunk = Chunk(Key(Id("otherChunkId")), byteArrayOf())
+        val timedMatchingChunk = DataChunk(Key(chunkId, 1L), byteArrayOf())
+        val untimedMatchingChunk = DataChunk(Key(chunkId), byteArrayOf())
+        val notMatchingChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())
     }
 
     private val test get() =
@@ -110,7 +110,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `query callback is notified when matching chunk arrives`() {
-        var result: Chunk? = null
+        var result: DataChunk? = null
         test while_ {
             sut.query(untimedQuery) { result = it }
         } when_ {
@@ -132,7 +132,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `timed query callback is not notified any more when receiving is stopped`() {
-        var result: Chunk? = null
+        var result: DataChunk? = null
         test while_ {
             sut.query(timedQuery) { result = it; stopReceiving() }
         } when_ {
@@ -157,7 +157,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `untimed query callback is not notified when matching chunk arrives again`() {
-        var result: Chunk? = null
+        var result: DataChunk? = null
         test while_ {
             sut.query(untimedQuery) { result = it }
         } when_ {
@@ -171,7 +171,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `timed query callback is notified when matching chunk arrives again`() {
-        var result: Chunk? = null
+        var result: DataChunk? = null
         test while_ {
             sut.query(timedQuery) { result = it }
         } when_ {
@@ -321,5 +321,5 @@ class PeerClientImplTest : KoinLoggingDisabler() {
                 })
             }
 
-    private fun Chunk.request(originatorId: Id) = DataPushRequest(originatorId, this)
+    private fun DataChunk.request(originatorId: Id) = DataPushRequest(originatorId, this)
 }

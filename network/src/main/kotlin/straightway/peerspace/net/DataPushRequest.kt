@@ -16,13 +16,13 @@
 
 package straightway.peerspace.net
 
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 
 /**
  * A request to push data to another peer.
  */
-data class DataPushRequest(override val originatorId: Id, val chunk: Chunk) : Transmittable {
+data class DataPushRequest(override val originatorId: Id, val chunk: DataChunk) : Transmittable {
 
     override val identification: Any get() = chunk.key
     override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)

@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Chunk
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
@@ -46,7 +46,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
     private companion object {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
-        val chunk1 = Chunk(Key(chunkId, 1), byteArrayOf())
+        val chunk1 = DataChunk(Key(chunkId, 1), byteArrayOf())
         val queryOriginatorId = Id("originatorId")
         val matchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(chunkId, 1L..1L))
         val otherMatchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(chunkId, 1L..2L))
@@ -57,7 +57,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         Given {
             object {
                 var epochs = listOf(0)
-                var chunkStoreQueryResult = listOf<Chunk>()
+                var chunkStoreQueryResult = listOf<DataChunk>()
                 var pendingQueries = setOf<PendingDataQuery>()
                 val pendingQueryRemoveDelegates = mutableListOf<QueryRequestPredicate>()
                 val epochAnalyzer: EpochAnalyzer = mock { _ ->

@@ -28,6 +28,7 @@ import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.RequestHandler
 import straightway.peerspace.net.Transmittable
 import straightway.utils.getHandlers
+import straightway.utils.isClass
 
 /**
  * Default productive implementation of a peerspace peer.
@@ -47,4 +48,4 @@ class PeerImpl :
 }
 
 fun Peer.handle(request: Transmittable) =
-        getHandlers<RequestHandler>(request::class).forEach { it(request) }
+        getHandlers<RequestHandler>(isClass(request::class)).forEach { it(request) }

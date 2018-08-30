@@ -18,14 +18,14 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
-import straightway.koinutils.Property.property
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.KnownPeersPushRequest
-import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.KnownPeers
+import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.Transmission
 import straightway.random.Chooser
 
@@ -36,13 +36,12 @@ class KnownPeersQuerySourceImpl :
         KnownPeersQuerySource,
         KoinModuleComponent by KoinModuleComponent() {
 
-    private val id: Id by property("peerId") { Id(it) }
     private val configuration: Configuration by inject()
     private val peerDirectory: PeerDirectory by inject()
     private val network: Network by inject()
     private val knownPeerAnswerChooser: Chooser by inject("knownPeerAnswerChooser")
 
-    override fun queryKnownPeers(request: KnownPeersQueryRequest) {
+    override fun queryKnownPeers(request: Request<KnownPeersQuery>) {
         pushKnownPeersTo(request.originatorId)
         network.executePendingRequests()
     }
@@ -52,7 +51,7 @@ class KnownPeersQuerySourceImpl :
                     Transmission(targetPeerId, knownPeersAnswerRequest))
 
     private val knownPeersAnswerRequest
-        get() = KnownPeersPushRequest(id, knownPeersQueryAnswer)
+        get() = KnownPeers(knownPeersQueryAnswer)
 
     private val knownPeersQueryAnswer
         get() = knownPeerAnswerChooser choosePeers configuration.maxKnownPeersAnswers

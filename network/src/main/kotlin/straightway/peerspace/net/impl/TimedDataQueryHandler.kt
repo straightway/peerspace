@@ -17,11 +17,11 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.koinutils.Bean.inject
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.getPendingQueriesForChunk
 
 /**
@@ -43,8 +43,6 @@ class TimedDataQueryHandler :
     override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) =
         pendingDataQueryTracker.removePendingQueriesIf { originatorId == targetId }
 
-    override fun splitToEpochs(request: DataQueryRequest) =
-            epochAnalyzer.getEpochs(request.timestamps).map {
-                request.copy(query = request.query.withEpoch(it))
-            }
+    override fun splitToEpochs(query: DataQuery) =
+            epochAnalyzer.getEpochs(query.timestamps).map { query.withEpoch(it) }
 }

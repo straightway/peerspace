@@ -16,8 +16,8 @@
 
 package straightway.peerspace.net.impl
 
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.TransmissionResultListener
-import straightway.peerspace.net.Transmittable
 
 data class TransmissionRecord(
         val content: Transmittable,

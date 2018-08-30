@@ -31,7 +31,7 @@ import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
 import straightway.testing.flow.True
@@ -39,7 +39,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import java.time.LocalDateTime
 
-private typealias QueryRequestPredicate = DataQueryRequest.() -> Boolean
+private typealias QueryRequestPredicate = Request<DataQuery>.() -> Boolean
 
 class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
 
@@ -48,9 +48,9 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         val otherChunkId = Id("otherChunkId")
         val chunk1 = DataChunk(Key(chunkId, 1), byteArrayOf())
         val queryOriginatorId = Id("originatorId")
-        val matchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(chunkId, 1L..1L))
-        val otherMatchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(chunkId, 1L..2L))
-        val notMatchingQuery = DataQueryRequest(queryOriginatorId, DataQuery(otherChunkId))
+        val matchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..1L))
+        val otherMatchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..2L))
+        val notMatchingQuery = Request(queryOriginatorId, DataQuery(otherChunkId))
     }
 
     private val test get() =
@@ -90,7 +90,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 val pendingQueryTracker get() =
                     environment.get<PendingDataQueryTracker>("pendingTimedQueryTracker")
                 val forwardTracker get() =
-                    environment.get<ForwardStateTracker<DataQueryRequest>>(
+                    environment.get<ForwardStateTracker<DataQuery>>(
                             "queryForwardTracker")
             }
         }
@@ -135,7 +135,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             } then {
                 val predicate = pendingQueryRemoveDelegates.single()
                 expect(predicate(matchingQuery) is_ True)
-                expect(predicate(matchingQuery.copy(originatorId = Id("otherId"))) is_ False)
+                expect(predicate(Request(Id("otherQueryer"), matchingQuery.content)) is_ False)
             }
 
     @Test
@@ -145,14 +145,16 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(matchingQuery)
             } then {
-                verify(epochAnalyzer).getEpochs(matchingQuery.timestamps)
+                verify(epochAnalyzer).getEpochs(matchingQuery.content.timestamps)
                 inOrder(forwardTracker) {
                     verify(forwardTracker)
-                            .forward(matchingQuery.copy(query = matchingQuery.query.withEpoch(0)))
+                            .forward(Request(matchingQuery.originatorId,
+                                             matchingQuery.content.withEpoch(0)))
                     verify(forwardTracker)
-                            .forward(matchingQuery.copy(query = matchingQuery.query.withEpoch(1)))
+                            .forward(Request(matchingQuery.originatorId,
+                                             matchingQuery.content.withEpoch(1)))
                 }
             }
 
-    private val DataQueryRequest.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
+    private val Request<DataQuery>.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
 }

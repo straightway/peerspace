@@ -27,8 +27,7 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 
 class QueryTest : KoinLoggingDisabler() {
@@ -43,7 +42,7 @@ class QueryTest : KoinLoggingDisabler() {
                             mock { _ ->
                                 on { getForwardPeerIdsFor(any(), any()) }.thenAnswer {
                                     when (it.arguments[0]) {
-                                        is DataQueryRequest -> queryForwardPeerIds
+                                        is DataQuery -> queryForwardPeerIds
                                         else -> pushForwardPeerIds
                                     }
                                 }
@@ -69,12 +68,13 @@ class QueryTest : KoinLoggingDisabler() {
             environment.addRemotePeer(pusher)
             pushForwardPeerIds = setOf(queryer.id)
         } when_ {
-            environment.peer.queryData(DataQueryRequest(queryer.id, DataQuery(chunk.key.id)))
-            environment.peer.pushDataChunk(DataPushRequest(pusher.id, chunk))
+            environment.peer.queryData(
+                    Request(queryer.id, DataQuery(chunk.key.id, chunk.key.timestamps)))
+            environment.peer.pushDataChunk(Request(pusher.id, chunk))
             environment.simulator.run()
         } then {
             verify(queryer, times(1))
-                    .pushDataChunk(eq(DataPushRequest(environment.peer.id, chunk)))
+                    .pushDataChunk(eq(Request(environment.peer.id, chunk)))
         }
     }
 }

@@ -23,13 +23,14 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
-import straightway.peerspace.net.Transmittable
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -38,22 +39,17 @@ import straightway.testing.flow.to_
 
 class ForwardStateTrackerTest : KoinLoggingDisabler() {
 
-    private data class Request(
-            override val originatorId: Id,
-            override val identification: Any
-    ) : Transmittable {
-        override fun withOriginator(newOriginatorId: Id) =
-                copy(originatorId = newOriginatorId)
-    }
+    private data class Item(override val id: String) : Transmittable
 
     private companion object {
-        val request83 = Request(Id("originator"), "83")
-        val request2 = Request(Id("originator"), "2")
+        val originatorId = Id("originator")
+        val request83 = Request(originatorId, Item("83"))
+        val request2 = Request(originatorId, Item("2"))
     }
 
     private data class TransmissionRecord(
             val destination: Id,
-            val item: Request,
+            val item: Item,
             val listener: TransmissionResultListener)
 
     private val test get() = Given {
@@ -68,9 +64,9 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                                 val listener = it.arguments[1] as TransmissionResultListener
                                 transmissions.add(
                                         TransmissionRecord(
-                                        transmission.receiverId,
-                                        transmission.content as Request,
-                                        listener
+                                                transmission.receiverId,
+                                                transmission.content as Item,
+                                                listener
                                 ))
                             }
                         }
@@ -88,9 +84,8 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             }
 
             @Suppress("UNCHECKED_CAST")
-            val sut = environment.get<ForwardStateTracker<Int>>("testTracker")
-                    as ForwardStateTrackerImpl<Transmittable>
-            val forwarder = environment.get<Forwarder<Transmittable>>("testForwarder")
+            val sut = environment.get<ForwardStateTracker<Item>>("testTracker")
+            val forwarder = environment.get<Forwarder<Item>>("testForwarder")
         }
     }
 
@@ -194,9 +189,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                 sut.forward(request83)
             } then {
                 verify(environment.get<Network>()).scheduleTransmission(
-                        Transmission(
-                                Id("forward"),
-                                request83.withOriginator(environment.peerId)),
+                        Transmission(Id("forward"), request83.content),
                         transmissions.single().listener)
             }
 
@@ -263,9 +256,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             transmissions.first().listener.notifyFailure()
         } then {
             val network = environment.get<Network>()
-            val transmission = Transmission(
-                    Id("forward1"),
-                    request83.withOriginator(environment.peerId))
+            val transmission = Transmission(Id("forward1"), request83.content)
             inOrder(network) {
                 verify(network).scheduleTransmission(
                         transmission,

@@ -20,10 +20,11 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.Bean.get
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.isPending
 import straightway.units.Time
 import straightway.units.minus
@@ -39,8 +40,8 @@ class PendingDataQueryTrackerImpl(
 
     private val timeProvider: TimeProvider by inject()
 
-    override fun setPending(query: DataQueryRequest) {
-        if (!isPending(query))
+    override fun setPending(query: Request<DataQuery>) {
+        if (!isPending(query.content))
             _pendingQueries += PendingDataQuery(query, timeProvider.now)
     }
 
@@ -49,7 +50,7 @@ class PendingDataQueryTrackerImpl(
         return _pendingQueries
     }
 
-    override fun removePendingQueriesIf(predicate: DataQueryRequest.() -> Boolean) {
+    override fun removePendingQueriesIf(predicate: Request<DataQuery>.() -> Boolean) {
         _pendingQueries = _pendingQueries.filter { !query.predicate() }
     }
 

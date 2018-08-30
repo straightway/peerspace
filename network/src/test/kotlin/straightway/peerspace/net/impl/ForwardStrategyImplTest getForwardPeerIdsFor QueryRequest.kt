@@ -21,7 +21,7 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.ForwardState
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.impl.ForwardStrategyTestEnvironment.Companion.chunkId
 import straightway.peerspace.net.impl.ForwardStrategyTestEnvironment.Companion.idForHash
 import straightway.testing.bdd.Given
@@ -35,12 +35,12 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor QueryRequest` : KoinLoggingD
 
     private companion object {
         val originatorId = Id("originatorId")
-        val queryRequest = DataQueryRequest(originatorId, DataQuery(chunkId))
+        val queryRequest = Request(originatorId, DataQuery(chunkId))
     }
 
     private val test get() = Given {
         ForwardStrategyTestEnvironment().apply {
-            hashes[queryRequest] = listOf(100L)
+            hashes[queryRequest.content] = listOf(100L)
             hashes[Key(chunkId)] = listOf(100L)
         }
     }
@@ -50,7 +50,7 @@ class `ForwardStrategyImplTest getForwardPeerIdsFor QueryRequest` : KoinLoggingD
             test while_ {
                 addKnownPeerForHash(100)
             } when_ {
-                sut.getForwardPeerIdsFor(queryRequest, ForwardState())
+                sut.getForwardPeerIdsFor(queryRequest.content, ForwardState())
             } then {
                 expect(it.result is_ Equal to_ Values(idForHash[100]!!))
             }

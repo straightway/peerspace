@@ -40,6 +40,10 @@ class DataChunkTest {
             expect(DataChunk(Key(chunkId), chunkData).key is_ Equal to_ Key(chunkId))
 
     @Test
+    fun `id is same as key`() =
+            expect(DataChunk(Key(chunkId), chunkData).id is_ Equal to_ Key(chunkId))
+
+    @Test
     fun `data is as specified in construction`() =
             expect(DataChunk(Key(chunkId), chunkData).data is_ Equal to_ chunkData)
 

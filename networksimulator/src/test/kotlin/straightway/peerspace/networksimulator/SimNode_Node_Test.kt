@@ -29,12 +29,9 @@ import straightway.peerspace.data.untimedData
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
 import straightway.peerspace.data.DataQuery
-import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataQueryRequest
-import straightway.peerspace.net.KnownPeersPushRequest
-import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Peer
-import straightway.peerspace.net.Transmittable
+import straightway.peerspace.net.Request
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
@@ -70,8 +67,8 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
                 on { isOnline }.thenAnswer { isDownloadOnline }
             }
             val chunk = DataChunk(chunkKey, chunkData)
-            val pushRequest = DataPushRequest(Id("senderId"), chunk)
-            val queryRequest = DataQueryRequest(
+            val pushRequest = Request(Id("senderId"), chunk)
+            val queryRequest = Request(
                     Id("originId"), DataQuery(Id("chunkId"), untimedData))
             val peer = mock<Peer>()
             val sut = withContext {
@@ -96,31 +93,15 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ { sut.downloadStream } then { it.result is_ Same as_ download }
 
     @Test
-    fun `receiving a push requests calls push on parent peer`() =
-            test when_ {
-                sut.notifyReceive(mock(), Message(pushRequest, messageSize))
-            } then {
-                verify(peer).pushDataChunk(pushRequest)
-            }
-
-    @Test
-    fun `receiving a query requests calls query on parent peer`() =
-            test when_ {
-                sut.notifyReceive(mock(), Message(queryRequest, messageSize))
-            } then {
-                verify(peer).queryData(queryRequest)
-            }
-
-    @Test
     fun `receiving message with invalid request does nothing`() =
             test when_ {
                 sut.notifyReceive(mock(), Message(mock<Transmittable>(), messageSize))
             } then {
-                verify(peer, never()).pushDataChunk(any<DataPushRequest>())
-                verify(peer, never()).pushKnownPeers(any<KnownPeersPushRequest>())
-                verify(peer, never()).queryData(any<DataQueryRequest>())
-                verify(peer, never()).queryKnownPeers(any<KnownPeersQueryRequest>())
-                expect({ it.result } does Not - Throw.exception)
+                verify(peer, never()).pushDataChunk(any())
+                verify(peer, never()).pushKnownPeers(any())
+                verify(peer, never()).queryData(any())
+                verify(peer, never()).queryKnownPeers(any())
+                expect({ it.nullableResult } does Not - Throw.exception)
             }
 
     @Test
@@ -128,10 +109,10 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyReceive(mock(), Message(Any(), messageSize))
             } then {
-                verify(peer, never()).pushDataChunk(any<DataPushRequest>())
-                verify(peer, never()).pushKnownPeers(any<KnownPeersPushRequest>())
-                verify(peer, never()).queryData(any<DataQueryRequest>())
-                verify(peer, never()).queryKnownPeers(any<KnownPeersQueryRequest>())
+                verify(peer, never()).pushDataChunk(any())
+                verify(peer, never()).pushKnownPeers(any())
+                verify(peer, never()).queryData(any())
+                verify(peer, never()).queryKnownPeers(any())
                 expect({ it.result } does Not - Throw.exception)
             }
 

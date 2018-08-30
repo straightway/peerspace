@@ -13,22 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package straightway.peerspace.net
 
-import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.Id
+import straightway.peerspace.data.Transmittable
 
 /**
- * A request to push data to another peer.
+ * Query request to get known peers from another peer.
  */
-data class DataPushRequest(override val originatorId: Id, val chunk: DataChunk) : Transmittable {
+class KnownPeersQuery : Transmittable {
 
-    override val identification: Any get() = chunk.key
-    override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
+    override val id get() = Companion
 
-    fun withEpoch(epoch: Int) =
-            DataPushRequest(originatorId, chunk.withEpoch(epoch))
+    override fun equals(other: Any?) = other is KnownPeersQuery
+    override fun hashCode() = 0
+    override fun toString() = "KnownPeersQuery"
 
     companion object {
         const val serialVersionUID = 1L

@@ -21,5 +21,5 @@ package straightway.peerspace.net
 interface KnownPeersQuerySource {
 
     @RequestHandler
-    fun queryKnownPeers(request: KnownPeersQueryRequest)
+    fun queryKnownPeers(request: Request<KnownPeersQuery>)
 }

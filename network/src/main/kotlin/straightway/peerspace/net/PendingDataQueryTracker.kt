@@ -16,6 +16,7 @@
 
 package straightway.peerspace.net
 
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.isMatching
 
@@ -25,13 +26,13 @@ import straightway.peerspace.data.isMatching
  */
 interface PendingDataQueryTracker {
     val pendingDataQueries: Set<PendingDataQuery>
-    fun setPending(query: DataQueryRequest)
-    fun removePendingQueriesIf(predicate: DataQueryRequest.() -> Boolean)
+    fun setPending(query: Request<DataQuery>)
+    fun removePendingQueriesIf(predicate: Request<DataQuery>.() -> Boolean)
     fun addForwardedChunk(pendingQuery: PendingDataQuery, chunkKey: Key)
 }
 
-fun PendingDataQueryTracker.isPending(query: DataQueryRequest) =
-        pendingDataQueries.any { it.query == query }
+fun PendingDataQueryTracker.isPending(query: DataQuery) =
+        pendingDataQueries.any { it.query.content == query }
 
 fun PendingDataQueryTracker.getPendingQueriesForChunk(chunkKey: Key) =
-        pendingDataQueries.filter { it.query.query.isMatching(chunkKey) }
+        pendingDataQueries.filter { it.query.content.isMatching(chunkKey) }

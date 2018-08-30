@@ -16,6 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
@@ -31,9 +32,8 @@ import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.Network
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.Transmission
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -50,10 +50,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
     private companion object {
         val queryOriginatorId = Id("originatorId")
         val queriedChunkId = Id("chunkID")
-        val untimedQueryRequest =
-                DataQueryRequest(queryOriginatorId, DataQuery(queriedChunkId))
-        val timedQueryRequest =
-                DataQueryRequest(queryOriginatorId, DataQuery(queriedChunkId, 2L..7L))
+        val untimedQueryRequest = Request(queryOriginatorId, DataQuery(queriedChunkId))
+        val timedQueryRequest = Request(queryOriginatorId, DataQuery(queriedChunkId, 2L..7L))
         val matchingChunk = DataChunk(Key(queriedChunkId), byteArrayOf())
         val otherChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())
     }
@@ -64,8 +62,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
         var notifiedChunkKeys = listOf<Key>()
         var pendingQueries = setOf<PendingDataQuery>()
         var chunkForwardFailure: Pair<Key, Id>? = null
-        var splitRequests: List<DataQueryRequest>? = null
-        var splitSource: DataQueryRequest? = null
+        var splitRequests: List<DataQuery>? = null
+        var splitSource: DataQuery? = null
 
         public override val pendingDataQueryTracker by lazy {
             mock<PendingDataQueryTracker> { _ ->
@@ -81,9 +79,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             chunkForwardFailure = Pair(chunkKey, targetId)
         }
 
-        override fun splitToEpochs(request: DataQueryRequest): List<DataQueryRequest> {
-            splitSource = request
-            return splitRequests ?: listOf(request)
+        override fun splitToEpochs(query: DataQuery): List<DataQuery> {
+            splitSource = query
+            return splitRequests ?: listOf(query)
         }
     }
 
@@ -104,7 +102,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 val sut get() = environment.get<DataQueryHandler>("dataQueryHandler")
                         as DerivedSut
                 val forwardTracker get() = environment
-                        .get<ForwardStateTracker<DataQueryRequest>>("queryForwardTracker")
+                        .get<ForwardStateTracker<DataQuery>>("queryForwardTracker")
             }
         }
 
@@ -153,9 +151,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } then { _ ->
                 chunkStoreQueryResult.forEach {
                     verify(environment.get<Network>()).scheduleTransmission(
-                            eq(Transmission(
-                                    untimedQueryRequest.originatorId,
-                                    DataPushRequest(environment.peerId, it))),
+                            eq(Transmission(untimedQueryRequest.originatorId, it)),
                             any())
                 }
             }
@@ -179,7 +175,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.notifyChunkForwarded(matchingChunk.key)
                 environment.get<Network>().executePendingRequests()
             } then {
-                val pushRequest = DataPushRequest(environment.peerId, matchingChunk)
+                val pushRequest = Request(environment.peerId, matchingChunk)
                 val queryOriginator = environment.getPeer(queryOriginatorId)
                 verify(queryOriginator).pushDataChunk(eq(pushRequest))
             }
@@ -193,7 +189,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.notifyChunkForwarded(otherChunk.key)
             } then {
                 val queryOriginator = environment.getPeer(queryOriginatorId)
-                verify(queryOriginator, never()).pushDataChunk(any<DataPushRequest>())
+                verify(queryOriginator, never()).pushDataChunk(any())
             }
 
     @Test
@@ -222,21 +218,21 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             test() when_ {
                 sut.handle(timedQueryRequest)
             } then {
-                expect(sut.splitSource is_ Same as_ timedQueryRequest)
+                expect(sut.splitSource is_ Same as_ timedQueryRequest.content)
             }
 
     @Test
     fun `split epoch results of timed query are forwarded`() =
             test() while_ {
                 sut.splitRequests = listOf(
-                        timedQueryRequest.copy(query = timedQueryRequest.query.copy(epoch = 1)),
-                        timedQueryRequest.copy(query = timedQueryRequest.query.copy(epoch = 2)))
+                        timedQueryRequest.content.copy(epoch = 1),
+                        timedQueryRequest.content.copy(epoch = 2))
             } when_ {
                 sut.handle(timedQueryRequest)
             } then { _ ->
                 inOrder(forwardTracker) {
                     sut.splitRequests!!.forEach {
-                        verify(forwardTracker).forward(it)
+                        verify(forwardTracker).forward(argThat { content == it })
                     }
                 }
             }

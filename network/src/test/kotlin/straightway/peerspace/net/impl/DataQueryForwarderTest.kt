@@ -25,7 +25,7 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -35,7 +35,7 @@ import straightway.testing.flow.to_
 class DataQueryForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest = DataQueryRequest(Id("originatorId"), DataQuery(Id("chunkId")))
+        val queryRequest = Request(Id("originatorId"), DataQuery(Id("chunkId")))
     }
 
     private val test get() =
@@ -53,7 +53,7 @@ class DataQueryForwarderTest : KoinLoggingDisabler() {
                         }
                     })
                 val sut get() =
-                    environment.get<Forwarder<DataQueryRequest>>("queryForwarder")
+                    environment.get<Forwarder<DataQuery>>("queryForwarder")
                 val forwardStrategy get() =
                     environment.get<ForwardStrategy>()
             }
@@ -75,7 +75,7 @@ class DataQueryForwarderTest : KoinLoggingDisabler() {
         test when_ {
             sut.getForwardPeerIdsFor(queryRequest, forwardState)
         } then {
-            verify(forwardStrategy).getForwardPeerIdsFor(queryRequest, forwardState)
+            verify(forwardStrategy).getForwardPeerIdsFor(queryRequest.content, forwardState)
         }
     }
 }

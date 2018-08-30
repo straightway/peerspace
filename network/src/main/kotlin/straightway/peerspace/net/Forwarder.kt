@@ -17,10 +17,11 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Transmittable
 
 /**
  * Get forwarded peer ids for a given transmittable object from the forward strategy.
  */
 interface Forwarder<TItem : Transmittable> {
-    fun getForwardPeerIdsFor(item: TItem, state: ForwardState): Iterable<Id>
+    fun getForwardPeerIdsFor(item: Request<TItem>, state: ForwardState): Iterable<Id>
 }

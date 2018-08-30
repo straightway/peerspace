@@ -27,7 +27,7 @@ import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -41,7 +41,7 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
         val chunkId = Id("chunkId")
         val chunk = DataChunk(Key(chunkId), byteArrayOf())
         val originatorId = Id("originatorId")
-        val pushRequest = DataPushRequest(originatorId, chunk)
+        val pushRequest = Request(originatorId, chunk)
     }
 
     private val test get() =
@@ -67,7 +67,7 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
                             }
                         }
                 )
-                val sut get() = environment.get<Forwarder<DataPushRequest>>("pushForwarder")
+                val sut get() = environment.get<Forwarder<DataChunk>>("pushForwarder")
                 val forwardStrategy get() = environment.get<ForwardStrategy>()
                 val dataQueryHandler get() =
                     environment.get<DataQueryHandler>("dataQueryHandler")

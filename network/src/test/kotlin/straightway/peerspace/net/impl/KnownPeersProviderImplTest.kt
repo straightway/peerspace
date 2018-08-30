@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.KnownPeersPushRequest
-import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 
 class KnownPeersProviderImplTest : KoinLoggingDisabler() {
@@ -33,7 +33,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
         val peerId = Id("PeerId")
         val knownPeerId = Id("knownPeerId")
         val queryingPeerId = Id("QueryingPeerId")
-        val query = KnownPeersQueryRequest(queryingPeerId)
+        val query = Request(queryingPeerId, KnownPeersQuery())
     }
 
     private val test get() = Given {
@@ -49,7 +49,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             test when_ {
                 get<KnownPeersQuerySource>().queryKnownPeers(query)
             } then {
-                verify(queryingPeer).pushKnownPeers(any<KnownPeersPushRequest>())
+                verify(queryingPeer).pushKnownPeers(any())
             }
 
     @Test
@@ -59,8 +59,8 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             } then {
                 val expectedKnownPeerIds = knownPeersIds
                 verify(queryingPeer).pushKnownPeers(
-                        argThat<KnownPeersPushRequest> {
-                            knownPeersIds == expectedKnownPeerIds
+                        argThat {
+                            content.knownPeersIds == expectedKnownPeerIds
                         })
             }
 
@@ -79,8 +79,8 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             } then {
                 val expectedPeerIds = knownPeersIds.slice(0..0)
                 verify(queryingPeer).pushKnownPeers(
-                        argThat<KnownPeersPushRequest> {
-                            knownPeersIds == expectedPeerIds })
+                        argThat {
+                            content.knownPeersIds == expectedPeerIds })
             }
 
     private val PeerTestEnvironment.queryingPeer get() = getPeer(queryingPeerId)

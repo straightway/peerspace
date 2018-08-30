@@ -16,12 +16,14 @@
 
 package straightway.peerspace.net
 
+import straightway.peerspace.data.Transmittable
+
 /**
  * Track the network forwarding state of instances of the given item type, identified
  * by the key type (which may be the same).
  */
-interface ForwardStateTracker<TItem> {
+interface ForwardStateTracker<TItem : Transmittable> {
     val forwardStates: Map<Any, ForwardState>
-    fun forward(item: TItem)
+    fun forward(request: Request<TItem>)
     fun getStateFor(itemKey: Any): ForwardState
 }

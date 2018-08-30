@@ -25,8 +25,9 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.chunkSizeGetter
+import straightway.units.byte
+import straightway.units.get
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -40,15 +41,11 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.AmountOfData
 import straightway.units.UnitNumber
-import straightway.units.byte
-import straightway.units.get
 import straightway.units.me
 
 class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     private companion object {
-        val peerId = Id("peerId")
-        val receiverId = Id("receiverId")
         val chunkId = Id("chunkId")
         val chunkData = "ChunkData".toByteArray()
         val otherChunkId = Id("otherId")
@@ -80,7 +77,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
     @Test
     fun `query for not existing data is empty`() =
             test() when_ {
-                sut.query(DataQueryRequest(peerId, DataQuery(chunkId, untimedData)))
+                sut.query(DataQuery(chunkId, untimedData))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -90,7 +87,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             test() while_ {
                 sut.store(untimedChunk)
             } when_ {
-                sut.query(DataQueryRequest(receiverId, DataQuery(chunkId, untimedData)))
+                sut.query(DataQuery(chunkId, untimedData))
             } then {
                 expect(it.result is_ Equal to_ Values(untimedChunk))
             }
@@ -100,8 +97,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             test() while_ {
                 sut.store(timedChunk)
             } when_ {
-                sut.query(DataQueryRequest(
-                        receiverId, DataQuery(chunkId, 0L..(chunkTimeStamp - 1))))
+                sut.query(DataQuery(chunkId, 0L..(chunkTimeStamp - 1)))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -111,9 +107,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             test() while_ {
                 sut.store(timedChunk)
             } when_ {
-                sut.query(DataQueryRequest(
-                        receiverId,
-                        DataQuery(chunkId, chunkTimeStamp..chunkTimeStamp)))
+                sut.query(DataQuery(chunkId, chunkTimeStamp..chunkTimeStamp))
             } then {
                 expect(it.result is_ Equal to_ Values(timedChunk))
             }
@@ -152,7 +146,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
     fun `if capacity is exceeded, last queried chunks are considered new`() =
             test(storageCapacity = 2[byte]) while_ {
                 sut.store(timedChunk)
-                sut.query(DataQueryRequest(Id("originator"), DataQuery(otherChunkId)))
+                sut.query(DataQuery(otherChunkId))
             } when_ {
                 sut.store(untimedChunk)
             } then {

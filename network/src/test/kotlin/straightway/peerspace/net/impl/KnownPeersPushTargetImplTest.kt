@@ -19,9 +19,10 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 
 class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
@@ -29,7 +30,7 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
     private companion object {
         val originatorId = Id("originator")
         val knownPeerIds = listOf(Id("Peer1"), Id("Peer2"))
-        val pushRequest = KnownPeersPushRequest(originatorId, knownPeerIds)
+        val pushRequest = Request(originatorId, KnownPeers(knownPeerIds))
     }
 
     private val test get() = Given {

@@ -22,7 +22,7 @@ import straightway.koinutils.Property.property
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersGetter
-import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Transmission
@@ -46,9 +46,9 @@ class KnownPeersGetterImpl :
         network.executePendingRequests()
     }
 
-    private fun queryForKnownPeers(peerId: Id) =
+    private fun queryForKnownPeers(targetPeerId: Id) =
             network.scheduleTransmission(
-                    Transmission(peerId, KnownPeersQueryRequest(id)))
+                    Transmission(targetPeerId, KnownPeersQuery()))
 
     private val peersToQueryForOtherKnownPeers get() =
         knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers

@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
 
 /**
@@ -25,4 +26,6 @@ interface Peer :
         DataPushTarget,
         DataQuerySource,
         KnownPeersPushTarget,
-        KnownPeersQuerySource
+        KnownPeersQuerySource {
+    override val id: Id
+}

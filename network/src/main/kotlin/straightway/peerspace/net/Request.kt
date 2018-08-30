@@ -16,6 +16,8 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Identifyable
+import straightway.peerspace.data.Transmittable
 import straightway.utils.isGeneric
 import straightway.utils.RequestTypeSelector
 import straightway.utils.getHandlers
@@ -25,19 +27,29 @@ import straightway.utils.isClass
  * A request which can be automatically handled by a handler function being
  * tagged with RequestHandler and takes Request<T> as parameter.
  */
-class Request<T>(
+class Request<T : Transmittable>(
         val typeSelector: RequestTypeSelector,
         val originatorId: Id,
         val content: T
-) {
+) : Identifyable {
+
+    override val id get() = content.id
+
     override fun toString() = "Request(${originatorId.identifier} -> $content)"
 
+    override fun equals(other: Any?) =
+            other is Request<*> &&
+            originatorId == other.originatorId &&
+            content == other.content
+
+    override fun hashCode() = originatorId.hashCode() xor content.hashCode()
+
     companion object {
-        inline operator fun <reified T> invoke(originatorId: Id, content: T) =
+        inline operator fun <reified T : Transmittable> invoke(originatorId: Id, content: T) =
                 Request(isGeneric(Request::class, isClass(T::class)),
                         originatorId,
                         content)
-        fun fromAny(originatorId: Id, content: Any): Request<*> =
+        fun createDynamically(originatorId: Id, content: Transmittable): Request<*> =
                 Request(isGeneric(Request::class, isClass(content::class)),
                         originatorId,
                         content)

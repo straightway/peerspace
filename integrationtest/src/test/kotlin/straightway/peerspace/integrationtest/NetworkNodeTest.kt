@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.DataPushRequest
+import straightway.peerspace.net.Request
 import straightway.testing.TestBase
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -44,7 +44,7 @@ class NetworkNodeTest : TestBase<NetworkClient>() {
     @Test
     fun receiveData_isRegistered() {
         val data = DataChunk(Key(Id("0815")), byteArrayOf(1, 2, 3))
-        sut.pushDataChunk(DataPushRequest(Id("senderId"), data))
+        sut.pushDataChunk(Request(Id("senderId"), data))
         expect(sut.receivedData is_ Equal to_ listOf(data))
     }
 }

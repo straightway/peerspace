@@ -15,13 +15,12 @@
  */
 package straightway.peerspace.data
 
-import java.io.Serializable
 import java.util.Arrays
 
 /**
  * A chunk of data with a key.
  */
-data class DataChunk(val key: Key, val data: ByteArray) : Serializable {
+data class DataChunk(val key: Key, val data: ByteArray) : Transmittable {
 
     companion object {
         const val serialVersionUID = 1L
@@ -30,6 +29,8 @@ data class DataChunk(val key: Key, val data: ByteArray) : Serializable {
 
     fun withEpoch(epoch: Int) =
             DataChunk(key.copy(epoch = epoch), data)
+
+    override val id get() = key
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -20,17 +20,17 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 
 class DataQuerySourceImplTest {
 
     private companion object {
         val id = Id("thePeerId")
-        val dataQuery = DataQueryRequest(Id("queryingPeer"), DataQuery(Id("chunkId")))
+        val dataQuery = Request(Id("queryingPeer"), DataQuery(Id("chunkId")))
     }
 
     private val test get() = Given {

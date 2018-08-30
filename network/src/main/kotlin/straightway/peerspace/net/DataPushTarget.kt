@@ -15,11 +15,13 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.DataChunk
+
 /**
  * A target for pushing data.
  */
 interface DataPushTarget {
 
     @RequestHandler
-    fun pushDataChunk(request: DataPushRequest)
+    fun pushDataChunk(request: Request<DataChunk>)
 }

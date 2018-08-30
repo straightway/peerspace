@@ -23,7 +23,8 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersGetter
-import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.KnownPeersQuery
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 
 class KnownPeersGetterImplTest : KoinLoggingDisabler() {
@@ -31,7 +32,7 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
     private companion object {
         val peerId = Id("PeerId")
         val knownPeerId = Id("knownPeerId")
-        val knownPeersRequest = KnownPeersQueryRequest(peerId)
+        val knownPeersRequest = Request(peerId, KnownPeersQuery())
     }
 
     private val test get() = Given {

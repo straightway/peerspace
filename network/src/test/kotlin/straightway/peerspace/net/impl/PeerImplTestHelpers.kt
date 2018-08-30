@@ -18,31 +18,34 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.peerspace.net.handle
 import straightway.random.Chooser
 
 @Suppress("LongParameterList")
 fun createPeerMock(
         id: Id,
-        pushCallback: (DataPushRequest) -> Unit = { _ -> },
-        queryCallback: (DataQueryRequest) -> Unit = { _ -> }
+        pushCallback: (Request<DataChunk>) -> Unit = { _ -> },
+        queryCallback: (Request<DataQuery>) -> Unit = { _ -> }
 ) =
         mock<Peer> { _ ->
             on { this.id }.thenReturn(id)
-            on { pushDataChunk(any<DataPushRequest>()) }.thenAnswer {
-                pushCallback(it.arguments[0] as DataPushRequest)
+            on { pushDataChunk(any()) }.thenAnswer {
+                @Suppress("UNCHECKED_CAST")
+                pushCallback(it.arguments[0] as Request<DataChunk>)
             }
-            on { queryData(any<DataQueryRequest>()) }.thenAnswer {
-                queryCallback(it.arguments[0] as DataQueryRequest)
+            on { queryData(any()) }.thenAnswer {
+                @Suppress("UNCHECKED_CAST")
+                queryCallback(it.arguments[0] as Request<DataQuery>)
             }
         }
 
@@ -53,13 +56,16 @@ fun createChunkDataStore(initialChunks: () -> List<DataChunk> = { listOf() }): D
     return mock { _ ->
         on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as DataChunk) }
         on { query(any()) }.thenAnswer { args ->
-            val query = args.arguments[0] as DataQueryRequest
-            chunks.filter { query.query.isMatching(it.key) }
+            @Suppress("UNCHECKED_CAST")
+            val query = args.arguments[0] as DataQuery
+            chunks.filter { query.isMatching(it.key) }
         }
     }
 }
 
+@Suppress("LongParameterList")
 fun createNetworkMock(
+        localPeerId: Id,
         transmissionResultListeners: MutableList<TransmissionRecord>,
         peers: () -> Collection<Peer> = { listOf() }
 ) = mock<Network> { _ ->
@@ -70,7 +76,7 @@ fun createNetworkMock(
         val request = transmission.content
         transmissionResultListeners.add(TransmissionRecord(request, listener))
         val peer = peers().find { it.id == transmission.receiverId }!!
-        peer.handle(request)
+        peer.handle(Request.createDynamically(localPeerId, request))
         listener.notifySuccess()
     }
     on { executePendingRequests() }.thenAnswer { _ ->

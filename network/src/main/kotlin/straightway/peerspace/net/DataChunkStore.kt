@@ -17,11 +17,12 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.DataQuery
 
 /**
  * Store and retrieve data chunks.
  */
 interface DataChunkStore {
     fun store(chunk: DataChunk)
-    fun query(queryRequest: DataQueryRequest): Iterable<DataChunk>
+    fun query(queryRequest: DataQuery): Iterable<DataChunk>
 }

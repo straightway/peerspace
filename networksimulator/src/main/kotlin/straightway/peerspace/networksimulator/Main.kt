@@ -19,6 +19,7 @@ import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.KeyHasher
 import straightway.koinutils.withContext
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
@@ -30,7 +31,6 @@ import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.Transmittable
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.EpochAnalyzerImpl

@@ -91,9 +91,9 @@ class RequestTest {
             }
 
     @Test
-    fun `typeSelector of fromAny matches proper type`() =
+    fun `typeSelector of createDynamically matches proper type`() =
             Given {
-                Request.fromAny(originatorId, chunk)
+                Request.createDynamically(originatorId, chunk)
             } when_ {
                 typeSelector
             } then {
@@ -101,9 +101,9 @@ class RequestTest {
             }
 
     @Test
-    fun `typeSelector of fromAny does not match other type`() =
+    fun `typeSelector of createDynamically does not match other type`() =
             Given {
-                Request.fromAny(originatorId, DataQuery(Id("query")))
+                Request.createDynamically(originatorId, DataQuery(Id("query")))
             } when_ {
                 typeSelector
             } then {
@@ -111,10 +111,10 @@ class RequestTest {
             }
 
     @Test
-    fun `fromAny result matches according handler function`() {
+    fun `createDynamically result matches according handler function`() {
         val handler = mock<SingleHandler>()
         Given {
-            Request.fromAny(originatorId, chunk)
+            Request.createDynamically(originatorId, chunk)
         } when_ {
             handler.getHandlers<RequestHandler>(typeSelector).single()(this)
         } then {
@@ -127,7 +127,7 @@ class RequestTest {
     fun `handle calls matching handler function`() {
         val handler = mock<SingleHandler>()
         Given {
-            Request.fromAny(originatorId, chunk)
+            Request.createDynamically(originatorId, chunk)
         } when_ {
             handler handle this
         } then {
@@ -140,7 +140,7 @@ class RequestTest {
     fun `handle calls all matching handler function2`() {
         val handler = mock<TwoHandlers>()
         Given {
-            Request.fromAny(originatorId, chunk)
+            Request.createDynamically(originatorId, chunk)
         } when_ {
             handler handle this
         } then {
@@ -155,7 +155,7 @@ class RequestTest {
     fun `handle does not call not matching handler function`() {
         val handler = mock<SingleHandler>()
         Given {
-            Request.fromAny(originatorId, chunk)
+            Request.createDynamically(originatorId, chunk)
         } when_ {
             handler handle this
         } then {
@@ -172,6 +172,76 @@ class RequestTest {
                 toString()
             } then {
                 expect(it.result is_ Equal to_ "Request(${originatorId.identifier} -> $chunk)")
+            }
+
+    @Test
+    fun `two Requests with the same originator id and content are equal`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                equals(Request(originatorId, chunk))
+            } then {
+                expect(it.result is_ True)
+            }
+
+    @Test
+    fun `Requests are equal regardless of creation method`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                equals(Request.createDynamically(originatorId, chunk))
+            } then {
+                expect(it.result is_ True)
+            }
+
+    @Test
+    fun `a Request is not equal to another type's instance`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                Request(originatorId, chunk).equals(83)
+            } then {
+                expect(it.result is_ False)
+            }
+
+    @Test
+    fun `two Requests with the different originator ids are not equal`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                equals(Request(Id("otherOriginator"), chunk))
+            } then {
+                expect(it.result is_ False)
+            }
+
+    @Test
+    fun `two Requests with the different contents are not equal`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                equals(Request(originatorId, DataChunk(Key(Id("otherChunk")), byteArrayOf())))
+            } then {
+                expect(it.result is_ False)
+            }
+
+    @Test
+    fun `hashCode is computed from originatorId and content`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                hashCode()
+            } then {
+                expect(it.result is_ Equal to_ (originatorId.hashCode() xor chunk.hashCode()))
+            }
+
+    @Test
+    fun `id returns id of content`() =
+            Given {
+                Request(originatorId, chunk)
+            } when_ {
+                id
+            } then {
+                expect(it.result is_ Equal to_ chunk.id)
             }
 
     private interface SingleHandler {

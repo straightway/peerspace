@@ -18,7 +18,10 @@ package straightway.peerspace.integrationtest
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.koinutils.Bean.get
+import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
@@ -31,14 +34,11 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
-import straightway.peerspace.net.Transmittable
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
@@ -92,14 +92,13 @@ class SinglePeerEnvironment(
         val downloadBandwidth = 2[me(bit / second)]
     }
 
-    private val _simNodes = mutableMapOf<Id, SimNode>()
+    private val _simNodes = mutableMapOf<Any, SimNode>()
 
     private val simNetwork =
             SimNetwork(simulator, simulator, latency, offlineDetectionTime)
 
     private val chunkSizeGetter: ChunkSizeGetter = { _: Serializable -> 64[ki(byte)] }
 
-    val simNodes: Map<Id, SimNode> get() = _simNodes
     val peer get() = koin.get<Peer>()
 
     fun addRemotePeer(remotePeer: Peer) {
@@ -162,7 +161,7 @@ class SinglePeerEnvironment(
             TransientDataChunkStore() as DataChunkStore
         }
         bean("queryForwarder") {
-            DataQueryForwarder() as Forwarder<DataQueryRequest>
+            DataQueryForwarder() as Forwarder<DataQuery>
         }
         bean("pendingTimedQueryTracker") {
             PendingDataQueryTrackerImpl { timedDataQueryTimeout } as PendingDataQueryTracker
@@ -171,15 +170,15 @@ class SinglePeerEnvironment(
             PendingDataQueryTrackerImpl { untimedDataQueryTimeout } as PendingDataQueryTracker
         }
         bean("queryForwardTracker") {
-            ForwardStateTrackerImpl<DataQueryRequest>(get("queryForwarder"))
-                    as ForwardStateTracker<DataQueryRequest>
+            ForwardStateTrackerImpl<DataQuery>(get("queryForwarder"))
+                    as ForwardStateTracker<DataQuery>
         }
         bean("pushForwarder") {
-            straightway.peerspace.net.impl.DataPushForwarder() as Forwarder<DataPushRequest>
+            straightway.peerspace.net.impl.DataPushForwarder() as Forwarder<DataChunk>
         }
         bean("pushForwardTracker") {
-            ForwardStateTrackerImpl<DataPushRequest>(get("pushForwarder"))
-                    as ForwardStateTracker<DataPushRequest>
+            ForwardStateTrackerImpl<DataChunk>(get("pushForwarder"))
+                    as ForwardStateTracker<DataChunk>
         }
         bean {
             chunkSizeGetter { _ -> 64[ki(byte)] }
@@ -213,7 +212,7 @@ class SinglePeerEnvironment(
                             as TransmissionStream
                 }
             }.apply {
-                extraProperties["peerId"] = parentPeer.id.identifier
+                extraProperties["peerId"] = parentPeer.id
             } make {
                 SimNode()
             }

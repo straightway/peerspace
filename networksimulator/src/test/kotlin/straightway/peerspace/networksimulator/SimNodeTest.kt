@@ -15,10 +15,22 @@
  */
 package straightway.peerspace.networksimulator
 
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
+import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.Key
+import straightway.peerspace.data.Transmittable
+import straightway.peerspace.net.KnownPeers
+import straightway.peerspace.net.KnownPeersQuery
+import straightway.peerspace.net.Peer
+import straightway.peerspace.net.Request
+import straightway.sim.net.Message
+import straightway.sim.net.Node
 import straightway.testing.bdd.Given
 import straightway.testing.flow.References
 import straightway.testing.flow.Same
@@ -26,6 +38,8 @@ import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.has
 import straightway.testing.flow.is_
+import straightway.units.byte
+import straightway.units.get
 
 class SimNodeTest : KoinLoggingDisabler() {
 
@@ -36,8 +50,10 @@ class SimNodeTest : KoinLoggingDisabler() {
     private val test get() = Given {
         object {
             val existingInstances = mutableMapOf<Id, SimNode>()
+            val peer = mock<Peer> { _ -> on { id }.thenReturn(id) }
             fun createSimNode() =
                     withContext {
+                        bean { peer }
                         bean("simNodes") { existingInstances }
                     }.apply {
                         extraProperties["peerId"] = id.identifier
@@ -62,4 +78,36 @@ class SimNodeTest : KoinLoggingDisabler() {
             } then {
                 expect(existingInstances[id] is_ Same as_ it.result)
             }
+
+    @Test
+    fun `notifyReceive forwards push to peer`() =
+            testNotifyReceive(DataChunk(Key(Id("chunk")), byteArrayOf())) { pushDataChunk(it) }
+
+    @Test
+    fun `notifyReceive forwards query to peer`() =
+            testNotifyReceive(DataQuery(Id("chunk"))) { queryData(it) }
+
+    @Test
+    fun `notifyReceive forwards known peers to peer`() =
+            testNotifyReceive(KnownPeers(listOf(Id("knownPeer")))) { pushKnownPeers(it) }
+
+    @Test
+    fun `notifyReceive forwards known peers query to peer`() =
+        testNotifyReceive(KnownPeersQuery()) { queryKnownPeers(it) }
+
+    private fun <T : Transmittable> testNotifyReceive(
+            received: T,
+            checkedInvocation: Peer.(Request<T>) -> Unit
+    ) {
+        val senderId = Id("sender")
+        test when_ {
+            val sut = createSimNode()
+            val sender = mock<Node> { on { id }.thenReturn(senderId) }
+            sut.notifyReceive(sender, Message(received, 100[byte]))
+        } then {
+            val expectedRequest = Request.createDynamically(senderId, received)
+            @Suppress("UNCHECKED_CAST")
+            verify(peer).checkedInvocation(expectedRequest as Request<T>)
+        }
+    }
 }

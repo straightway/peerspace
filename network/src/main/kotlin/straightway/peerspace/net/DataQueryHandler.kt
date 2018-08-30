@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 
@@ -22,7 +23,7 @@ import straightway.peerspace.data.Key
  * Handle functionality associated with data queries.
  */
 interface DataQueryHandler {
-    fun handle(query: DataQueryRequest)
+    fun handle(query: Request<DataQuery>)
     fun getForwardPeerIdsFor(chunkKey: Key): Iterable<Id>
     fun notifyChunkForwarded(key: Key)
 }

@@ -18,15 +18,16 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Request
 
 /**
  * Default implementation of the DataPushTarget interface.
@@ -37,32 +38,35 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
     private val dataChunkStore: DataChunkStore by inject()
     private val network: Network by inject()
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
-    private val forwardTracker: ForwardStateTracker<DataPushRequest>
+    private val forwardTracker: ForwardStateTracker<DataChunk>
             by inject("pushForwardTracker")
     private val epochAnalyzer: EpochAnalyzer by inject()
 
-    override fun pushDataChunk(request: DataPushRequest) {
+    override fun pushDataChunk(request: Request<DataChunk>) {
         peerDirectory.add(request.originatorId)
-        dataChunkStore.store(request.chunk)
+        dataChunkStore.store(request.content)
         forward(request)
     }
 
-    private fun forward(push: DataPushRequest) {
-        if (push.chunk.key.isUntimed) {
-            forwardTracker.forward(push)
+    private fun forward(request: Request<DataChunk>) {
+        if (request.content.key.isUntimed) {
+            forwardTracker.forward(request)
         } else {
-            push.epochs.forEach { forwardTracker.forward(push.withEpoch(it)) }
+            request.content.epochs.forEach {
+                forwardTracker.forward(
+                        Request(request.originatorId, request.content.withEpoch(it)))
+            }
         }
 
-        notifyForwarded(push)
+        notifyForwarded(request.content)
         network.executePendingRequests()
     }
 
-    private val DataPushRequest.epochs get() =
-        epochAnalyzer.getEpochs(chunk.key.timestamps)
+    private val DataChunk.epochs get() =
+        epochAnalyzer.getEpochs(key.timestamps)
 
-    private fun notifyForwarded(push: DataPushRequest) {
-        val chunkKey = push.chunk.key
+    private fun notifyForwarded(data: DataChunk) {
+        val chunkKey = data.key
         dataQueryHandler.notifyChunkForwarded(chunkKey)
     }
 }

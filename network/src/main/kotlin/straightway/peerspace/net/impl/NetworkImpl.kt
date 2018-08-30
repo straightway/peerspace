@@ -13,7 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-@file:Suppress("ForbiddenComment")
 package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.get
@@ -21,11 +20,11 @@ import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
+import straightway.peerspace.data.Identifyable
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
-import straightway.peerspace.net.Transmittable
 import straightway.utils.Event
 
 /**
@@ -34,7 +33,7 @@ import straightway.utils.Event
 class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
 
     private val peerId: Id by property("peerId") { Id(it) }
-    private val localDeliveryEvent: Event<Transmittable> by inject("localDeliveryEvent")
+    private val localDeliveryEvent: Event<Identifyable> by inject("localDeliveryEvent")
 
     override fun scheduleTransmission(
             transmission: Transmission,
@@ -59,7 +58,6 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
     private inner class PendingTransmission(val transmission: Transmission) {
 
         var transmissionResultListeners = listOf<TransmissionResultListener>()
-        // TODO: Let channel determine originator ID
 
         fun execute() =
                 if (transmission.isLocal) deliverLocally()

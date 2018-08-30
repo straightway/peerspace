@@ -56,11 +56,16 @@ class SimNode_Factory_Test : KoinLoggingDisabler() {
 
             private fun createSimNode(id: Id): SimNode =
                     withContext {
+                        bean {
+                            mock<Peer> { _ ->
+                                on { this.id }.thenReturn(id)
+                            }
+                        }
                         bean { peers[it["id"]] as DataPushTarget }
                         bean { peers[it["id"]] as DataQuerySource }
                         bean("simNodes") { nodes }
                         bean { mock<TransmissionRequestHandler>() }
-                        bean { chunkSizeGetter { 16[byte] } }
+                        bean { _ -> chunkSizeGetter { 16[byte] } }
                     }.apply {
                         extraProperties["peerId"] = id.identifier
                     } make {

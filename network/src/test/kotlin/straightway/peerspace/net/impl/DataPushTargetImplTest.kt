@@ -16,7 +16,6 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -27,13 +26,13 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Throw
@@ -54,7 +53,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             var epochs = listOf(0)
             var chunkKey = Key(chunkId)
             val pushRequest by lazy {
-                DataPushRequest(originatorId, DataChunk(chunkKey, byteArrayOf()))
+                Request(originatorId, DataChunk(chunkKey, byteArrayOf()))
             }
             val environment = PeerTestEnvironment(
                 dataPushTargetFactory = { DataPushTargetImpl() }) {
@@ -68,26 +67,26 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             val dataQueryHandler =
                     environment.get<DataQueryHandler>("dataQueryHandler")
             val pushForwardTracker =
-                    environment.get<ForwardStateTracker<DataPushRequest>>("pushForwardTracker")
+                    environment.get<ForwardStateTracker<DataChunk>>("pushForwardTracker")
         }
     }
 
     @Test
     fun `push does not throw`() =
-            test when_ { sut.pushDataChunk(DataPushRequest(originatorId, chunk)) } then {
+            test when_ { sut.pushDataChunk(Request(originatorId, chunk)) } then {
                 expect ({ it.result } does Not - Throw.exception)
             }
 
     @Test
     fun `pushed data is stored`() =
-            test when_ { sut.pushDataChunk(DataPushRequest(originatorId, chunk)) } then {
+            test when_ { sut.pushDataChunk(Request(originatorId, chunk)) } then {
                 verify(environment.get<DataChunkStore>()).store(chunk)
             }
 
     @Test
     fun `push executes pending network requests`() =
             test when_ {
-                sut.pushDataChunk(DataPushRequest(originatorId, chunk))
+                sut.pushDataChunk(Request(originatorId, chunk))
             } then {
                 verify(environment.get<Network>()).executePendingRequests()
             }
@@ -95,7 +94,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `originator of push request is added to known peers`() =
             test when_ {
-                sut.pushDataChunk(DataPushRequest(originatorId, chunk))
+                sut.pushDataChunk(Request(originatorId, chunk))
             } then {
                 verify(environment.get<PeerDirectory>()).add(originatorId)
             }
@@ -113,7 +112,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.pushDataChunk(pushRequest)
             } then {
-                verify(dataQueryHandler).notifyChunkForwarded(pushRequest.chunk.key)
+                verify(dataQueryHandler).notifyChunkForwarded(pushRequest.content.key)
             }
 
     @Test
@@ -125,8 +124,10 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
                 sut.pushDataChunk(pushRequest)
             } then {
                 inOrder(pushForwardTracker) {
-                    verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(0)))
-                    verify(pushForwardTracker).forward(eq(pushRequest.withEpoch(1)))
+                    verify(pushForwardTracker).forward(
+                            Request(pushRequest.originatorId, pushRequest.content.withEpoch(0)))
+                    verify(pushForwardTracker).forward(
+                            Request(pushRequest.originatorId, pushRequest.content.withEpoch(1)))
                 }
             }
 }

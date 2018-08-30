@@ -13,16 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net
+package straightway.peerspace.data
 
-import straightway.peerspace.data.Id
 import java.io.Serializable
 
 /**
- * Interface for objects which can be transmitted via a network channel.
+ * Interface for instance which can be transmitted via network.
  */
-interface Transmittable : Serializable {
-    val identification: Any
-    val originatorId: Id
-    fun withOriginator(newOriginatorId: Id): Transmittable
-}
+interface Transmittable : Serializable, Identifyable

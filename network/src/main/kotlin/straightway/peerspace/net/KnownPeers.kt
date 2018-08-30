@@ -13,25 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
-import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
-import straightway.peerspace.data.KeyHashable
+import straightway.peerspace.data.Transmittable
 
 /**
- * A request for querying data in the peerspace network.
+ * Request to push known peer ids to another peer.
  */
-data class DataQueryRequest constructor(
-        override val originatorId: Id,
-        val query: DataQuery
-) : KeyHashable by query, Transmittable {
+data class KnownPeers(
+        val knownPeersIds: List<Id>
+) : Transmittable {
 
-    override val identification get() = query
-
-    override fun withOriginator(newOriginatorId: Id) = copy(originatorId = newOriginatorId)
-
-    override fun toString() = "Request ${originatorId.identifier}: $query"
+    override val id get() = knownPeersIds
+    override fun toString() =
+            "KnownPeers(${knownPeersIds.map { it.identifier }.joinToString(",")})"
 
     companion object {
         const val serialVersionUID = 1L

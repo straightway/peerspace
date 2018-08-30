@@ -18,11 +18,12 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
+import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.Request
 
 /**
  * Default implementation of the DataQuerySource interface.
@@ -33,7 +34,7 @@ class DataQuerySourceImpl : DataQuerySource, KoinModuleComponent by KoinModuleCo
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val network: Network by inject()
 
-    override fun queryData(request: DataQueryRequest) {
+    override fun queryData(request: Request<DataQuery>) {
         peerDirectory.add(request.originatorId)
         dataQueryHandler.handle(request)
         network.executePendingRequests()

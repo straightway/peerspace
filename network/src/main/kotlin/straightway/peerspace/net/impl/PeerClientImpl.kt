@@ -21,16 +21,15 @@ import straightway.koinutils.Property.property
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.QueryControl
-import straightway.peerspace.net.Transmittable
+import straightway.peerspace.net.Request
 import straightway.units.toDuration
 import straightway.utils.Event
 import straightway.utils.EventHandlerToken
@@ -51,7 +50,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
 
     override fun store(data: DataChunk) {
         removeExpiredPendingQueries()
-        pushTarget.pushDataChunk(DataPushRequest(peerId, data))
+        pushTarget.pushDataChunk(Request(peerId, data))
     }
 
     override fun query(
@@ -94,7 +93,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
         override fun keepAlive() {
             expirationTime =
                     timeProvider.now + configuration.timedDataQueryTimeout.toDuration()
-            querySource.queryData(DataQueryRequest(peerId, query))
+            querySource.queryData(Request(peerId, query))
         }
 
         override fun onExpiring(callback: QueryControl.(DataQuery) -> Unit) {
@@ -130,8 +129,8 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
         }
 
         private fun forwardNotificationAboutArrived(data: Transmittable) {
-            if (data is DataPushRequest && query.isMatching(data.chunk.key))
-                receiveCallback(data.chunk)
+            if (data is DataChunk && query.isMatching(data.key))
+                receiveCallback(data)
         }
     }
 }

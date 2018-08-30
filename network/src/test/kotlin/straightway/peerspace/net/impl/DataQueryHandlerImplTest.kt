@@ -27,8 +27,7 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.withContext
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.DataPushRequest
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Values
@@ -46,9 +45,7 @@ class DataQueryHandlerImplTest : KoinLoggingDisabler() {
     private val test get() =
             Given {
                 object {
-                    val push = DataPushRequest(
-                            Id("originator"),
-                            DataChunk(chunkKey, byteArrayOf()))
+                    val push = Request(Id("originator"), DataChunk(chunkKey, byteArrayOf()))
                     val untimedId = Id("untimed")
                     val timedId = Id("timed")
                     val timedUntimedId = Id("timedUntimed")
@@ -60,9 +57,9 @@ class DataQueryHandlerImplTest : KoinLoggingDisabler() {
                         on { getForwardPeerIdsFor(any()) }
                                 .thenReturn(listOf(timedId, timedUntimedId))
                     }
-                    val untimedQuery = DataQueryRequest(
+                    val untimedQuery = Request(
                             Id("originator"), DataQuery(Id("untimedQuery")))
-                    val timedQuery = DataQueryRequest(
+                    val timedQuery = Request(
                             Id("originator"), DataQuery(Id("timedQuery"), 1L..2L))
                     val sut = withContext {
                         bean("untimedDataQueryHandler") { untimedDataQueryHandler }
@@ -99,21 +96,21 @@ class DataQueryHandlerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `getForwardPeerIdsFor yields ids returned by untimed subhandler`() =
-            test when_ { sut.getForwardPeerIdsFor(push.chunk.key) } then {
-                verify(untimedDataQueryHandler).getForwardPeerIdsFor(push.chunk.key)
+            test when_ { sut.getForwardPeerIdsFor(push.content.key) } then {
+                verify(untimedDataQueryHandler).getForwardPeerIdsFor(push.content.key)
                 expect(it.result has Values(untimedId, timedUntimedId))
             }
 
     @Test
     fun `getForwardPeerIdsFor yields ids returned by timed subhandler`() =
-            test when_ { sut.getForwardPeerIdsFor(push.chunk.key) } then {
-                verify(timedDataQueryHandler).getForwardPeerIdsFor(push.chunk.key)
+            test when_ { sut.getForwardPeerIdsFor(push.content.key) } then {
+                verify(timedDataQueryHandler).getForwardPeerIdsFor(push.content.key)
                 expect(it.result has Values(timedId, timedUntimedId))
             }
 
     @Test
     fun `getForwardPeerIdsFor does not yield duplicates`() =
-            test when_ { sut.getForwardPeerIdsFor(push.chunk.key) } then {
+            test when_ { sut.getForwardPeerIdsFor(push.content.key) } then {
                 expect(it.result.size is_ Equal to_ 3)
             }
 

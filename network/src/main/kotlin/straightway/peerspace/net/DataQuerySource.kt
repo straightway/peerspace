@@ -15,11 +15,13 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.DataQuery
+
 /**
  * An entity which can be queried for data.
  */
 interface DataQuerySource {
 
     @RequestHandler
-    fun queryData(request: DataQueryRequest)
+    fun queryData(request: Request<DataQuery>)
 }

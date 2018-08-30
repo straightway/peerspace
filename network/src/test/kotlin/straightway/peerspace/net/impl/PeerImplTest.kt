@@ -23,15 +23,15 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.KnownPeersPushRequest
+import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersPushTarget
-import straightway.peerspace.net.KnownPeersQueryRequest
+import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.Request
+import straightway.peerspace.net.handle
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -62,7 +62,7 @@ class PeerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `handle with DataPushRequest calls according implementation`() {
-        val request = DataPushRequest(
+        val request = Request(
                 Id("originator"),
                 DataChunk(Key(Id("Chunk")), byteArrayOf()))
         test when_ {
@@ -74,7 +74,7 @@ class PeerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `handle with DataQueryRequest calls according implementation`() {
-        val request = DataQueryRequest(Id("originator"), DataQuery(Id("chunk")))
+        val request = Request(Id("originator"), DataQuery(Id("chunk")))
         test when_ {
             sut.handle(request)
         } then {
@@ -84,7 +84,7 @@ class PeerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `handle with KnownPeersPushRequest calls according implementation`() {
-        val request = KnownPeersPushRequest(Id("originator"), listOf())
+        val request = Request(Id("originator"), KnownPeers(listOf()))
         test when_ {
             sut.handle(request)
         } then {
@@ -94,7 +94,7 @@ class PeerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `handle with KnownPeersQueryRequest calls according implementation`() {
-        val request = KnownPeersQueryRequest(Id("originator"))
+        val request = Request(Id("originator"), KnownPeersQuery())
         test when_ {
             sut.handle(request)
         } then {

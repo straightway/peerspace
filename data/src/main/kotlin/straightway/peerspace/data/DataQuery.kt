@@ -15,8 +15,6 @@
  */
 package straightway.peerspace.data
 
-import java.io.Serializable
-
 val untimedData = LongRange(0L, 0L)
 
 /**
@@ -24,29 +22,27 @@ val untimedData = LongRange(0L, 0L)
  */
 @Suppress("DataClassPrivateConstructor")
 data class DataQuery private constructor(
-        override val id: Id,
+        val chunkId: Id,
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
         override val epoch: Int? = null
-) : KeyHashable, Serializable {
+) : KeyHashable, Transmittable {
 
-    constructor(id: Id, timestamps: ClosedRange<Long>)
-            : this(id, timestamps.start, timestamps.endInclusive)
+    constructor(chunkId: Id, timestamps: ClosedRange<Long>)
+            : this(chunkId, timestamps.start, timestamps.endInclusive)
 
-    constructor(id: Id, timestamps: ClosedRange<Long>, epoch: Int) : this(
-            id,
+    constructor(chunkId: Id, timestamps: ClosedRange<Long>, epoch: Int) : this(
+            chunkId,
             timestamps.start,
             timestamps.endInclusive,
             if (timestamps == untimedData) null else epoch)
 
-    constructor(id: Id)
-            : this(id, LongRange(0, 0))
+    constructor(chunkId: Id)
+            : this(chunkId, LongRange(0, 0))
 
-    constructor(identifyable: Identifyable)
-            : this(identifyable.id)
+    fun withEpoch(epoch: Int) = DataQuery(chunkId, timestamps, epoch)
 
-    fun withEpoch(epoch: Int) = DataQuery(id, timestamps, epoch)
-
+    override val id get() = chunkId
     override val timestamps get() = timestampsStart..timestampsEndInclusive
 
     override fun toString() = when {
@@ -54,11 +50,11 @@ data class DataQuery private constructor(
         else -> timedStringRepresentation
     }
 
-    private val untimedStringRepresentation get() =
-        "DataQuery(${id.identifier})"
-
     private val timedStringRepresentation get() =
-        "DataQuery(${id.identifier}[$rangeStringRepresentation])"
+        "DataQuery(${chunkId.identifier}[$rangeStringRepresentation])"
+
+    private val untimedStringRepresentation get() =
+        "DataQuery(${chunkId.identifier})"
 
     private val rangeStringRepresentation get() =
         "$timestampsStart..$timestampsEndInclusive$epochStringRepresentation"
@@ -72,6 +68,6 @@ data class DataQuery private constructor(
 }
 
 fun DataQuery.isMatching(key: Key) =
-        key.timestamp in timestamps && key.id == id
+        key.timestamp in timestamps && key.id == chunkId
 
 val DataQuery.isUntimed get() = timestamps == untimedData

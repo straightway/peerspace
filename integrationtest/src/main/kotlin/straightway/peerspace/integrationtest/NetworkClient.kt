@@ -18,16 +18,16 @@ package straightway.peerspace.integrationtest
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Identifyable
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.Request
 
 /**
  * A simulated client of the peerspace network.
  */
 class NetworkClient(override val id: Id) : Identifyable, DataPushTarget {
 
-    override fun pushDataChunk(request: DataPushRequest) {
-        _receivedData += request.chunk
+    override fun pushDataChunk(request: Request<DataChunk>) {
+        _receivedData += request.content
     }
 
     val receivedData: List<DataChunk> get() = _receivedData

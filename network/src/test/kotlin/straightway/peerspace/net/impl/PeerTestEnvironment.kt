@@ -23,6 +23,8 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.get
 import straightway.koinutils.withContext
+import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
@@ -34,14 +36,11 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataPushRequest
 import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQueryRequest
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
-import straightway.peerspace.net.Transmittable
 import straightway.random.Chooser
 import straightway.utils.Event
 import straightway.utils.TimeProvider
@@ -84,7 +83,7 @@ data class PeerTestEnvironment(
             createPeerDirectory { knownPeers }
         },
         private val networkFactory: BeanFactory<Network> = {
-            createNetworkMock(transmissionResultListeners) { knownPeers + unknownPeers }
+            createNetworkMock(peerId, transmissionResultListeners) { knownPeers + unknownPeers }
         },
         private val dataChunkStoreFactory: BeanFactory<DataChunkStore> = {
             createChunkDataStore { localChunks }
@@ -93,10 +92,10 @@ data class PeerTestEnvironment(
             mock()
         },
         private val queryForwarderFactory:
-        BeanFactory<Forwarder<DataQueryRequest>> = {
+        BeanFactory<Forwarder<DataQuery>> = {
             mock()
         },
-        private val pushForwarderFactory: BeanFactory<Forwarder<DataPushRequest>> = {
+        private val pushForwarderFactory: BeanFactory<Forwarder<DataChunk>> = {
             mock()
         },
         private val pendingTimedDataQueryTrackerFactory: BeanFactory<PendingDataQueryTracker> = {
@@ -106,11 +105,11 @@ data class PeerTestEnvironment(
             mock()
         },
         private val queryForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<DataQueryRequest>> = {
+        BeanFactory<ForwardStateTracker<DataQuery>> = {
             mock()
         },
         private val pushForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<DataPushRequest>> = {
+        BeanFactory<ForwardStateTracker<DataChunk>> = {
             mock()
         },
         private val dataPushTargetFactory: BeanFactory<DataPushTarget> = { mock() },

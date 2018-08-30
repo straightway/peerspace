@@ -24,7 +24,7 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.DataQueryRequest
+import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -43,8 +43,8 @@ import java.time.LocalDateTime
 class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest1 = DataQueryRequest(Id("originatorId"), DataQuery(Id("chunkId")))
-        val queryRequest2 = DataQueryRequest(Id("originatorId"), DataQuery(Id("otherChunkId")))
+        val queryRequest1 = Request(Id("originatorId"), DataQuery(Id("chunkId")))
+        val queryRequest2 = Request(Id("originatorId"), DataQuery(Id("otherChunkId")))
         val chunkKey1 = Key(Id("chunkKey1"))
         val chunkKey2 = Key(Id("chunkKey2"))
     }
@@ -129,8 +129,8 @@ class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
             test while_ {
                 sut.setPending(queryRequest1)
                 sut.setPending(
-                        queryRequest1.copy(
-                                query = queryRequest1.query.copy(id = Id("otherChunk"))))
+                        Request(queryRequest1.originatorId,
+                                queryRequest1.content.copy(chunkId = Id("otherChunk"))))
             } when_ {
                 sut.removePendingQueriesIf { id != queryRequest1.id }
             } then { _ ->

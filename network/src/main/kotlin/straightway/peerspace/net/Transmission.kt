@@ -17,10 +17,11 @@
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.Transmittable
 
 /**
  * A transmission specification of a given transmittable content to a receiver.
  */
 data class Transmission(val receiverId: Id, val content: Transmittable) {
-    val key get() = Pair(receiverId, content.identification)
+    val key get() = Pair(receiverId, content.id)
 }

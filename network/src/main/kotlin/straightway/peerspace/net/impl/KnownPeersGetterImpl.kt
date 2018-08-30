@@ -18,14 +18,13 @@ package straightway.peerspace.net.impl
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
-import straightway.koinutils.Property.property
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
-import straightway.peerspace.net.Transmission
+import straightway.peerspace.net.Request
 import straightway.random.Chooser
 
 /**
@@ -35,7 +34,6 @@ class KnownPeersGetterImpl :
         KnownPeersGetter,
         KoinModuleComponent by KoinModuleComponent() {
 
-    private val id: Id by property("peerId") { Id(it) }
     private val network: Network by inject()
     private val configuration: Configuration by inject()
     private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
@@ -48,7 +46,7 @@ class KnownPeersGetterImpl :
 
     private fun queryForKnownPeers(targetPeerId: Id) =
             network.scheduleTransmission(
-                    Transmission(targetPeerId, KnownPeersQuery()))
+                    Request(targetPeerId, KnownPeersQuery()))
 
     private val peersToQueryForOtherKnownPeers get() =
         knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers

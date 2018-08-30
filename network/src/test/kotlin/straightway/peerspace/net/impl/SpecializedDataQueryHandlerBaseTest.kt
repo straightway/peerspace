@@ -34,7 +34,6 @@ import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.Transmission
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Same
@@ -48,7 +47,7 @@ import java.time.LocalDateTime
 class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryOriginatorId = Id("originatorId")
+        val queryOriginatorId = Id("remotePeerId")
         val queriedChunkId = Id("chunkID")
         val untimedQueryRequest = Request(queryOriginatorId, DataQuery(queriedChunkId))
         val timedQueryRequest = Request(queryOriginatorId, DataQuery(queriedChunkId, 2L..7L))
@@ -151,7 +150,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } then { _ ->
                 chunkStoreQueryResult.forEach {
                     verify(environment.get<Network>()).scheduleTransmission(
-                            eq(Transmission(untimedQueryRequest.originatorId, it)),
+                            eq(Request(untimedQueryRequest.remotePeerId, it)),
                             any())
                 }
             }

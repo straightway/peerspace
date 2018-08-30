@@ -63,6 +63,6 @@ class DataQuerySourceImplTest {
             test when_ {
                 sut.queryData(dataQuery)
             } then {
-                verify(environment.get<PeerDirectory>()).add(dataQuery.originatorId)
+                verify(environment.get<PeerDirectory>()).add(dataQuery.remotePeerId)
             }
 }

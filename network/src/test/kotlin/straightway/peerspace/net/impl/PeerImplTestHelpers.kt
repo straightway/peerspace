@@ -26,7 +26,6 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.handle
 import straightway.random.Chooser
@@ -71,11 +70,11 @@ fun createNetworkMock(
 ) = mock<Network> { _ ->
     val pendingTransmissions = mutableListOf<() -> Unit>()
     on { scheduleTransmission(any(), any()) }.thenAnswer { args ->
-        val transmission = args.arguments[0] as Transmission
+        val transmission = args.arguments[0] as Request<*>
         val listener = args.arguments[1] as TransmissionResultListener
         val request = transmission.content
         transmissionResultListeners.add(TransmissionRecord(request, listener))
-        val peer = peers().find { it.id == transmission.receiverId }!!
+        val peer = peers().find { it.id == transmission.remotePeerId }!!
         peer.handle(Request.createDynamically(localPeerId, request))
         listener.notifySuccess()
     }

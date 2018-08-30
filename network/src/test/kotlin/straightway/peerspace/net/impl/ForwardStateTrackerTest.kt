@@ -29,7 +29,6 @@ import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -60,11 +59,11 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                     networkFactory = {
                         mock { _ ->
                             on { scheduleTransmission(any(), any()) }.thenAnswer {
-                                val transmission = it.arguments[0] as Transmission
+                                val transmission = it.arguments[0] as Request<*>
                                 val listener = it.arguments[1] as TransmissionResultListener
                                 transmissions.add(
                                         TransmissionRecord(
-                                                transmission.receiverId,
+                                                transmission.remotePeerId,
                                                 transmission.content as Item,
                                                 listener
                                 ))
@@ -189,7 +188,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                 sut.forward(request83)
             } then {
                 verify(environment.get<Network>()).scheduleTransmission(
-                        Transmission(Id("forward"), request83.content),
+                        Request(Id("forward"), request83.content),
                         transmissions.single().listener)
             }
 
@@ -256,13 +255,13 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
             transmissions.first().listener.notifyFailure()
         } then {
             val network = environment.get<Network>()
-            val transmission = Transmission(Id("forward1"), request83.content)
+            val transmission = Request(Id("forward1"), request83.content)
             inOrder(network) {
                 verify(network).scheduleTransmission(
                         transmission,
                         transmissions[0].listener)
                 verify(network).scheduleTransmission(
-                        transmission.copy(receiverId = Id("forward2")),
+                        Request(Id("forward2"), transmission.content),
                         transmissions[1].listener)
             }
 

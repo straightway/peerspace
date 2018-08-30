@@ -35,7 +35,7 @@ import straightway.testing.flow.to_
 class DataQueryForwarderTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest = Request(Id("originatorId"), DataQuery(Id("chunkId")))
+        val queryRequest = Request(Id("remotePeerId"), DataQuery(Id("chunkId")))
     }
 
     private val test get() =

@@ -20,7 +20,7 @@ package straightway.peerspace.net
  */
 interface Network {
     fun scheduleTransmission(
-            transmission: Transmission,
+            transmission: Request<*>,
             resultListener: TransmissionResultListener =
                     TransmissionResultListener.Ignore)
     fun executePendingRequests()

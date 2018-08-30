@@ -40,7 +40,7 @@ class DataPushForwarderTest : KoinLoggingDisabler() {
     private companion object {
         val chunkId = Id("chunkId")
         val chunk = DataChunk(Key(chunkId), byteArrayOf())
-        val originatorId = Id("originatorId")
+        val originatorId = Id("remotePeerId")
         val pushRequest = Request(originatorId, chunk)
     }
 

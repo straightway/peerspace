@@ -24,7 +24,6 @@ import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 
 /**
@@ -60,7 +59,7 @@ class ForwardStateTrackerImpl<TItem : Transmittable>(
             target: Id,
             transmissionResultListener: TransmissionResultListener
     ) = network.scheduleTransmission(
-            Transmission(target, this),
+            Request.createDynamically(target, this),
             transmissionResultListener)
 
     private fun setPending(itemKey: Any, targetPeerId: Id) {

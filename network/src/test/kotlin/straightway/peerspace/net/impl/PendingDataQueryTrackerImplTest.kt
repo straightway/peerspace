@@ -43,8 +43,8 @@ import java.time.LocalDateTime
 class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest1 = Request(Id("originatorId"), DataQuery(Id("chunkId")))
-        val queryRequest2 = Request(Id("originatorId"), DataQuery(Id("otherChunkId")))
+        val queryRequest1 = Request(Id("remotePeerId"), DataQuery(Id("chunkId")))
+        val queryRequest2 = Request(Id("remotePeerId"), DataQuery(Id("otherChunkId")))
         val chunkKey1 = Key(Id("chunkKey1"))
         val chunkKey2 = Key(Id("chunkKey2"))
     }
@@ -129,7 +129,7 @@ class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
             test while_ {
                 sut.setPending(queryRequest1)
                 sut.setPending(
-                        Request(queryRequest1.originatorId,
+                        Request(queryRequest1.remotePeerId,
                                 queryRequest1.content.copy(chunkId = Id("otherChunk"))))
             } when_ {
                 sut.removePendingQueriesIf { id != queryRequest1.id }

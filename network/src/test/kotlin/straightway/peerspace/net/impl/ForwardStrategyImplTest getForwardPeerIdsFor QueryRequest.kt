@@ -34,7 +34,7 @@ import straightway.testing.flow.to_
 class `ForwardStrategyImplTest getForwardPeerIdsFor QueryRequest` : KoinLoggingDisabler() {
 
     private companion object {
-        val originatorId = Id("originatorId")
+        val originatorId = Id("remotePeerId")
         val queryRequest = Request(originatorId, DataQuery(chunkId))
     }
 

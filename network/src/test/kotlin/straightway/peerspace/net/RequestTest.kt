@@ -171,7 +171,7 @@ class RequestTest {
             } when_ {
                 toString()
             } then {
-                expect(it.result is_ Equal to_ "Request(${originatorId.identifier} -> $chunk)")
+                expect(it.result is_ Equal to_ "Request(${remotePeerId.identifier} -> $chunk)")
             }
 
     @Test
@@ -179,7 +179,7 @@ class RequestTest {
             Given {
                 Request(originatorId, chunk)
             } when_ {
-                equals(Request(originatorId, chunk))
+                equals(Request(remotePeerId, chunk))
             } then {
                 expect(it.result is_ True)
             }
@@ -189,7 +189,7 @@ class RequestTest {
             Given {
                 Request(originatorId, chunk)
             } when_ {
-                equals(Request.createDynamically(originatorId, chunk))
+                equals(Request.createDynamically(remotePeerId, chunk))
             } then {
                 expect(it.result is_ True)
             }
@@ -199,7 +199,7 @@ class RequestTest {
             Given {
                 Request(originatorId, chunk)
             } when_ {
-                Request(originatorId, chunk).equals(83)
+                Request(remotePeerId, chunk).equals(83)
             } then {
                 expect(it.result is_ False)
             }
@@ -219,7 +219,7 @@ class RequestTest {
             Given {
                 Request(originatorId, chunk)
             } when_ {
-                equals(Request(originatorId, DataChunk(Key(Id("otherChunk")), byteArrayOf())))
+                equals(Request(remotePeerId, DataChunk(Key(Id("otherChunk")), byteArrayOf())))
             } then {
                 expect(it.result is_ False)
             }
@@ -231,7 +231,7 @@ class RequestTest {
             } when_ {
                 hashCode()
             } then {
-                expect(it.result is_ Equal to_ (originatorId.hashCode() xor chunk.hashCode()))
+                expect(it.result is_ Equal to_ (remotePeerId.hashCode() xor chunk.hashCode()))
             }
 
     @Test

@@ -43,7 +43,7 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
     private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun pushDataChunk(request: Request<DataChunk>) {
-        peerDirectory.add(request.originatorId)
+        peerDirectory.add(request.remotePeerId)
         dataChunkStore.store(request.content)
         forward(request)
     }
@@ -54,7 +54,7 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
         } else {
             request.content.epochs.forEach {
                 forwardTracker.forward(
-                        Request(request.originatorId, request.content.withEpoch(it)))
+                        Request(request.remotePeerId, request.content.withEpoch(it)))
             }
         }
 

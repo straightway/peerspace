@@ -125,9 +125,9 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             } then {
                 inOrder(pushForwardTracker) {
                     verify(pushForwardTracker).forward(
-                            Request(pushRequest.originatorId, pushRequest.content.withEpoch(0)))
+                            Request(pushRequest.remotePeerId, pushRequest.content.withEpoch(0)))
                     verify(pushForwardTracker).forward(
-                            Request(pushRequest.originatorId, pushRequest.content.withEpoch(1)))
+                            Request(pushRequest.remotePeerId, pushRequest.content.withEpoch(1)))
                 }
             }
 }

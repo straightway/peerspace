@@ -65,6 +65,6 @@ class PendingDataQueryTest {
                        sut.copy(forwardedChunkKeys = setOf(key2, key1)).toString())
     }
 
-    private val query = Request(Id("originatorId"), DataQuery(Id("chunkId")))
+    private val query = Request(Id("remotePeerId"), DataQuery(Id("chunkId")))
     private val sut = PendingDataQuery(query, LocalDateTime.MIN)
 }

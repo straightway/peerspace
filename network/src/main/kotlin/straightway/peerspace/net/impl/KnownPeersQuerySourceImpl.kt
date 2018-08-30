@@ -26,7 +26,6 @@ import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.Transmission
 import straightway.random.Chooser
 
 /**
@@ -42,13 +41,13 @@ class KnownPeersQuerySourceImpl :
     private val knownPeerAnswerChooser: Chooser by inject("knownPeerAnswerChooser")
 
     override fun queryKnownPeers(request: Request<KnownPeersQuery>) {
-        pushKnownPeersTo(request.originatorId)
+        pushKnownPeersTo(request.remotePeerId)
         network.executePendingRequests()
     }
 
     private fun pushKnownPeersTo(targetPeerId: Id) =
             network.scheduleTransmission(
-                    Transmission(targetPeerId, knownPeersAnswerRequest))
+                    Request(targetPeerId, knownPeersAnswerRequest))
 
     private val knownPeersAnswerRequest
         get() = KnownPeers(knownPeersQueryAnswer)

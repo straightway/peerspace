@@ -29,7 +29,7 @@ import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.Transmission
+import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -87,7 +87,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     @Test
     fun `scheduleTransmission creates new channel via Koin`() =
             test when_ {
-                sut.scheduleTransmission(Transmission(receiverId, transmittedData))
+                sut.scheduleTransmission(Request(receiverId, transmittedData))
                 sut.executePendingRequests()
             } then {
                 expect(createdIds is_ Equal to_ Values(receiverId))
@@ -96,7 +96,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     @Test
     fun `scheduleTransmission does not transmit immediately`() =
             test when_ {
-                sut.scheduleTransmission(Transmission(receiverId, transmittedData))
+                sut.scheduleTransmission(Request(receiverId, transmittedData))
             } then {
                 expect(receiverId !in channels)
             }
@@ -104,7 +104,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     @Test
     fun `scheduleTransmission executes push after call to executePendingRequests`() =
             test when_ {
-                sut.scheduleTransmission(Transmission(receiverId, transmittedData))
+                sut.scheduleTransmission(Request(receiverId, transmittedData))
                 sut.executePendingRequests()
             } then {
                 verify(channels[receiverId]!!).transmit(eq(transmittedData), any())
@@ -113,7 +113,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     @Test
     fun `scheduleTransmission not transmitted again after calling executePendingRequests again`() =
             test when_ {
-                sut.scheduleTransmission(Transmission(receiverId, transmittedData))
+                sut.scheduleTransmission(Request(receiverId, transmittedData))
                 sut.executePendingRequests()
                 sut.executePendingRequests()
             } then {
@@ -123,8 +123,8 @@ class NetworkImplTest : KoinLoggingDisabler() {
     @Test
     fun `transmitting twice the same data to same target is only executed once`() =
             test when_ {
-                sut.scheduleTransmission(Transmission(receiverId, transmittedData))
-                sut.scheduleTransmission(Transmission(receiverId, transmittedData))
+                sut.scheduleTransmission(Request(receiverId, transmittedData))
+                sut.scheduleTransmission(Request(receiverId, transmittedData))
                 sut.executePendingRequests()
             } then {
                 verify(channels[receiverId]!!).transmit(eq(transmittedData), any())
@@ -133,8 +133,8 @@ class NetworkImplTest : KoinLoggingDisabler() {
     @Test
     fun `transmitting the same data to two targets is executed for both`() =
             test when_ {
-                sut.scheduleTransmission(Transmission(Id("receiver1"), transmittedData))
-                sut.scheduleTransmission(Transmission(Id("receiver2"), transmittedData))
+                sut.scheduleTransmission(Request(Id("receiver1"), transmittedData))
+                sut.scheduleTransmission(Request(Id("receiver2"), transmittedData))
                 sut.executePendingRequests()
             } then { _ ->
                 expect(channels.size is_ Equal to_ 2)
@@ -147,7 +147,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     fun `single transmission result listener is notified of success`() {
         val listener = mock<TransmissionResultListener>()
         test while_ {
-            sut.scheduleTransmission(Transmission(receiverId, transmittedData), listener)
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener)
             sut.executePendingRequests()
         } when_ {
             transmissionResultListeners.single().notifySuccess()
@@ -160,7 +160,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     fun `single transmission result listener is notified of failure`() {
         val listener = mock<TransmissionResultListener>()
         test while_ {
-            sut.scheduleTransmission(Transmission(receiverId, transmittedData), listener)
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener)
             sut.executePendingRequests()
         } when_ {
             transmissionResultListeners.single().notifyFailure()
@@ -174,8 +174,8 @@ class NetworkImplTest : KoinLoggingDisabler() {
         val listener1 = mock<TransmissionResultListener>()
         val listener2 = mock<TransmissionResultListener>()
         test while_ {
-            sut.scheduleTransmission(Transmission(receiverId, transmittedData), listener1)
-            sut.scheduleTransmission(Transmission(receiverId, transmittedData), listener2)
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener1)
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener2)
             sut.executePendingRequests()
         } when_ {
             transmissionResultListeners.single().notifySuccess()
@@ -191,7 +191,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
         test while_ {
             localChunkDeliveryEvent.attach { transmitted += it }
         } when_ {
-            sut.scheduleTransmission(Transmission(environment.peerId, transmittedData))
+            sut.scheduleTransmission(Request(environment.peerId, transmittedData))
             sut.executePendingRequests()
         } then {
             expect(transmitted is_ Equal to_ Values(transmittedData))
@@ -202,7 +202,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     fun `transmission to local peer signals success` () {
         val listener = mock<TransmissionResultListener>()
         test when_ {
-            sut.scheduleTransmission(Transmission(environment.peerId, transmittedData), listener)
+            sut.scheduleTransmission(Request(environment.peerId, transmittedData), listener)
             sut.executePendingRequests()
         } then {
             verify(listener).notifySuccess()

@@ -29,7 +29,6 @@ import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.Transmission
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.getPendingQueriesForChunk
 import straightway.peerspace.net.isPending
@@ -55,14 +54,14 @@ abstract class SpecializedDataQueryHandlerBase(
     final override fun getForwardPeerIdsFor(chunkKey: Key) =
             pendingDataQueryTracker.getPendingQueriesForChunk(chunkKey)
                     .filter { !chunkKey.isAlreadyForwardedFor(it) }
-                    .map { it.query.originatorId }
+                    .map { it.query.remotePeerId }
 
     final override fun notifyChunkForwarded(key: Key) {
         val matchingChunks = dataChunkStore.query(DataQuery(key.id, key.timestamps))
         val matchingQueries = pendingDataQueryTracker.pendingDataQueries.filter {
             it.query.content.isMatching(key)
         }
-        matchingQueries.forEach { matchingChunks forwardTo it.query.originatorId }
+        matchingQueries.forEach { matchingChunks forwardTo it.query.remotePeerId }
         onChunkForwarding(key)
     }
 
@@ -88,12 +87,12 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private fun forward(request: Request<DataQuery>) =
             splitToEpochs(request.content).forEach {
-                forwardTracker.forward(Request(request.originatorId, it))
+                forwardTracker.forward(Request(request.remotePeerId, it))
             }
 
     private fun returnLocalResult(query: Request<DataQuery>): Boolean {
         val localResult = query.content.result.toList()
-        localResult forwardTo query.originatorId
+        localResult forwardTo query.remotePeerId
         return localResult.any()
     }
 
@@ -102,7 +101,7 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private infix fun DataChunk.forwardTo(targetId: Id) =
             network.scheduleTransmission(
-                    Transmission(targetId, this),
+                    Request(targetId, this),
                     object : TransmissionResultListener {
                         override fun notifySuccess() {}
                         override fun notifyFailure() = onChunkForwardFailed(key, targetId)

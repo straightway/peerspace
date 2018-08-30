@@ -92,7 +92,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
             sut.query(untimedQuery) { fail { "do not call" } }
         } then {
             verify(environment.get<DataQuerySource>()).queryData(argThat {
-                originatorId == environment.peerId
+                remotePeerId == environment.peerId
             })
         }
 
@@ -315,7 +315,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
                 sut.store(untimedMatchingChunk)
             } then {
                 verify(environment.get<DataPushTarget>()).pushDataChunk(argThat {
-                    originatorId == environment.peerId
+                    remotePeerId == environment.peerId
                 })
             }
 }

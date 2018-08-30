@@ -29,20 +29,20 @@ import straightway.utils.isClass
  */
 class Request<T : Transmittable>(
         val typeSelector: RequestTypeSelector,
-        val originatorId: Id,
+        val remotePeerId: Id,
         val content: T
 ) : Identifyable {
 
     override val id get() = content.id
 
-    override fun toString() = "Request(${originatorId.identifier} -> $content)"
+    override fun toString() = "Request(${remotePeerId.identifier} -> $content)"
 
     override fun equals(other: Any?) =
             other is Request<*> &&
-            originatorId == other.originatorId &&
+            remotePeerId == other.remotePeerId &&
             content == other.content
 
-    override fun hashCode() = originatorId.hashCode() xor content.hashCode()
+    override fun hashCode() = remotePeerId.hashCode() xor content.hashCode()
 
     companion object {
         inline operator fun <reified T : Transmittable> invoke(originatorId: Id, content: T) =

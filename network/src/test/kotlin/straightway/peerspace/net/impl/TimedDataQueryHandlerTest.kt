@@ -47,7 +47,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
         val chunk1 = DataChunk(Key(chunkId, 1), byteArrayOf())
-        val queryOriginatorId = Id("originatorId")
+        val queryOriginatorId = Id("remotePeerId")
         val matchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..1L))
         val otherMatchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..2L))
         val notMatchingQuery = Request(queryOriginatorId, DataQuery(otherChunkId))
@@ -148,10 +148,10 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 verify(epochAnalyzer).getEpochs(matchingQuery.content.timestamps)
                 inOrder(forwardTracker) {
                     verify(forwardTracker)
-                            .forward(Request(matchingQuery.originatorId,
+                            .forward(Request(matchingQuery.remotePeerId,
                                              matchingQuery.content.withEpoch(0)))
                     verify(forwardTracker)
-                            .forward(Request(matchingQuery.originatorId,
+                            .forward(Request(matchingQuery.remotePeerId,
                                              matchingQuery.content.withEpoch(1)))
                 }
             }

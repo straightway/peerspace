@@ -89,7 +89,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                expect(Request(Id("originatorId"), DataQuery(chunkId)).predicate()
+                expect(Request(Id("remotePeerId"), DataQuery(chunkId)).predicate()
                                is_ True)
             }
 
@@ -98,13 +98,13 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                expect(Request(Id("originatorId"), DataQuery(otherChunkId)).predicate()
+                expect(Request(Id("remotePeerId"), DataQuery(otherChunkId)).predicate()
                         is_ False)
             }
 
     @Test
     fun `splitToEpochs returns list with argument as single element`() {
-        val query = Request(Id("originatorId"), DataQuery(Id("ChunkId")))
+        val query = Request(Id("remotePeerId"), DataQuery(Id("ChunkId")))
         test when_ {
             sut.handle(query)
         } then {

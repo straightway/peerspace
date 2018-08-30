@@ -38,7 +38,7 @@ class DataPushForwarder :
     private val forwardStrategy: ForwardStrategy by inject()
 
     override fun getForwardPeerIdsFor(item: Request<DataChunk>, state: ForwardState) =
-            item.getForwardPeersFromStrategies(state) - item.originatorId
+            item.getForwardPeersFromStrategies(state) - item.remotePeerId
 
     private fun Request<DataChunk>.getForwardPeersFromStrategies(forwardState: ForwardState) =
             (getPushForwardPeerIds(forwardState) + content.key.queryForwardPeerIds).toSet()

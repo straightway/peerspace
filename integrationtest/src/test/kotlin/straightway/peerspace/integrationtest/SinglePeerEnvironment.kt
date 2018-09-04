@@ -18,9 +18,11 @@ package straightway.peerspace.integrationtest
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.koinutils.Bean.get
+import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
+import straightway.peerspace.data.KeyHasher
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.ChunkSizeGetter
@@ -36,10 +38,13 @@ import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.chunkSizeGetter
+import straightway.peerspace.net.impl.DataPushForwarder
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
 import straightway.peerspace.net.impl.ForwardStateTrackerImpl
@@ -49,9 +54,12 @@ import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.PendingDataQueryTrackerImpl
 import straightway.peerspace.net.impl.DataQueryForwarder
 import straightway.peerspace.net.impl.DataQuerySourceImpl
+import straightway.peerspace.net.impl.EpochAnalyzerImpl
+import straightway.peerspace.net.impl.EpochKeyHasher
 import straightway.peerspace.net.impl.KnownPeersGetterImpl
 import straightway.peerspace.net.impl.KnownPeersPushTargetImpl
 import straightway.peerspace.net.impl.KnownPeersQuerySourceImpl
+import straightway.peerspace.net.impl.PeerClientImpl
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -76,6 +84,7 @@ import straightway.units.second
 import straightway.utils.Event
 import straightway.sim.net.Network as SimNetwork
 import straightway.utils.TimeProvider
+import straightway.utils.toByteArray
 import java.io.Serializable
 import java.util.Random
 
@@ -83,7 +92,28 @@ class SinglePeerEnvironment(
         private val randomSource: RandomSource = RandomSource(Random(1234L)),
         val simulator: Simulator = Simulator(),
         peerId: Id = Id("peerId"),
-        forwardStrategyFactory: () -> ForwardStrategy = { ForwardStrategyImpl() }
+        private val simNodes: MutableMap<Any, SimNode> = mutableMapOf(),
+        val peerFactory: () -> Peer = {
+            PeerImpl()
+        },
+        val dataPushTargetFactory: () -> DataPushTarget = {
+            DataPushTargetImpl()
+        },
+        val knownPeersPushTargetFactory: () -> KnownPeersPushTarget = {
+            KnownPeersPushTargetImpl()
+        },
+        val dataQuerySourceFactory: () -> DataQuerySource = {
+            DataQuerySourceImpl()
+        },
+        val knownPeersQuerySourceFactory: () -> KnownPeersQuerySource = {
+            KnownPeersQuerySourceImpl()
+        },
+        forwardStrategyFactory: () -> ForwardStrategy = {
+            ForwardStrategyImpl()
+        },
+        keyHasherFactory: () -> KeyHasher = {
+            EpochKeyHasher()
+        }
 ) {
     private companion object {
         val latency = 50[milli(second)]
@@ -92,38 +122,42 @@ class SinglePeerEnvironment(
         val downloadBandwidth = 2[me(bit / second)]
     }
 
-    private val _simNodes = mutableMapOf<Any, SimNode>()
-
     private val simNetwork =
             SimNetwork(simulator, simulator, latency, offlineDetectionTime)
 
     private val chunkSizeGetter: ChunkSizeGetter = { _: Serializable -> 64[ki(byte)] }
 
-    val peer get() = koin.get<Peer>()
+    val peer get() = get<Peer>()
+    val client get() = get<PeerClient>()
+    val node get() = simNodes[peer.id]!!
+
+    inline fun <reified T> get(name: String = "") = koin.get<T>(name)
 
     fun addRemotePeer(remotePeer: Peer) {
         val simNode = createSimNode(remotePeer)
-        _simNodes[remotePeer.id] = simNode
+        addRemoteNode(simNode)
     }
 
-    private val koin = withContext {
+    fun addRemoteNode(remoteNode: SimNode) {
+        simNodes[remoteNode.id] = remoteNode
+    }
+
+    fun addKnownPeer(peerId: Id) =
+        get<PeerDirectory>().add(peerId)
+
+    fun addData(chunk: DataChunk) {
+        val dataStore = get<DataChunkStore>()
+        dataStore.store(chunk)
+    }
+
+    val koin = withContext {
         bean {
-            PeerImpl().apply {
-                addRemotePeer(this)
-            } as Peer
+            peerFactory().apply { addRemotePeer(this) }
         }
-        bean("localDataPushTarget") {
-            DataPushTargetImpl() as DataPushTarget
-        }
-        bean("localDataQuerySource") {
-            DataQuerySourceImpl() as DataQuerySource
-        }
-        bean("localKnownPeersPushTarget") {
-            KnownPeersPushTargetImpl() as KnownPeersPushTarget
-        }
-        bean("localKnownPeersQuerySource") {
-            KnownPeersQuerySourceImpl() as KnownPeersQuerySource
-        }
+        bean("localDataPushTarget") { dataPushTargetFactory() }
+        bean("localDataQuerySource") { dataQuerySourceFactory() }
+        bean("localKnownPeersPushTarget") { knownPeersPushTargetFactory() }
+        bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
         bean {
             KnownPeersGetterImpl() as KnownPeersGetter
         }
@@ -174,7 +208,7 @@ class SinglePeerEnvironment(
                     as ForwardStateTracker<DataQuery>
         }
         bean("pushForwarder") {
-            straightway.peerspace.net.impl.DataPushForwarder() as Forwarder<DataChunk>
+            DataPushForwarder() as Forwarder<DataChunk>
         }
         bean("pushForwardTracker") {
             ForwardStateTrackerImpl<DataChunk>(get("pushForwarder"))
@@ -186,9 +220,30 @@ class SinglePeerEnvironment(
         bean("localDeliveryEvent") {
             Event<Transmittable>()
         }
+        bean {
+            PeerClientImpl() as PeerClient
+        }
+        bean {
+            keyHasherFactory()
+        }
+        bean {
+            EpochAnalyzerImpl(arrayOf(
+                    LongRange(0L, 86400000L), // epoch 0: 1 day
+                    LongRange(86400001L, 604800000L), // epoch 1: 1 week
+                    LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
+                    LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
+                    LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
+                    LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
+             as EpochAnalyzer
+        }
+        bean {
+            object : Hasher {
+                override fun getHash(obj: Serializable) = obj.hashCode().toByteArray()
+            } as Hasher
+        }
         factory {
-            val from = _simNodes[peerId]!!
-            val to = _simNodes[it["id"]]!!
+            val from = simNodes[peerId]!!
+            val to = simNodes[it["id"]]!!
             SimChannel(simNetwork, chunkSizeGetter, from, to) as Channel
         }
     }.apply {
@@ -197,10 +252,10 @@ class SinglePeerEnvironment(
         KoinModuleComponent()
     }
 
-    fun createSimNode(parentPeer: Peer) =
+    private fun createSimNode(parentPeer: Peer) =
             withContext {
                 bean { parentPeer }
-                bean("simNodes") { _simNodes }
+                bean("simNodes") { simNodes }
                 bean { simNetwork as TransmissionRequestHandler }
                 bean { chunkSizeGetter }
                 bean("uploadStream") {

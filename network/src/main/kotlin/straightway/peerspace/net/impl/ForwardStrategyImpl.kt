@@ -47,7 +47,7 @@ class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleCo
         handleFailedPeers(state)
         return peersNearerTo(item.hash)
                 .notCoveredBy(state)
-                .take(state.receiversToFillUp)
+                .take(state.numberOfeceiversToFillUp)
                 .toSet()
     }
 
@@ -64,7 +64,7 @@ class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleCo
         failedPeers = failedPeers.filter { timeout < it.value }
     }
 
-    private val ForwardState.receiversToFillUp get() =
+    private val ForwardState.numberOfeceiversToFillUp get() =
             max(0, configuration.numberOfForwardPeers - nonFailed.size)
 
     private fun Iterable<Id>.notCoveredBy(state: ForwardState) =

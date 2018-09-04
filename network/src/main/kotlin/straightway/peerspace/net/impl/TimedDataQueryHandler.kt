@@ -44,5 +44,7 @@ class TimedDataQueryHandler :
         pendingDataQueryTracker.removePendingQueriesIf { remotePeerId == targetId }
 
     override fun splitToEpochs(query: DataQuery) =
-            epochAnalyzer.getEpochs(query.timestamps).map { query.withEpoch(it) }
+            if (query.epoch == null)
+                epochAnalyzer.getEpochs(query.timestamps).map { query.withEpoch(it) }
+            else listOf(query)
 }

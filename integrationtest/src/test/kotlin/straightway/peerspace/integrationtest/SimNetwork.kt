@@ -41,6 +41,15 @@ import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.networksimulator.SimNode
 import straightway.sim.core.Simulator
 import straightway.testing.flow.expect
+import straightway.units.Time
+import straightway.units.UnitNumber
+import straightway.units.UnitValue
+import straightway.units.get
+import straightway.units.milli
+import straightway.units.minus
+import straightway.units.second
+import straightway.units.unitValue
+import straightway.units.year
 
 interface PeerBuilder {
     val id: Id
@@ -116,7 +125,14 @@ class SimNetwork(
         }
     }
 
+    fun ageOf(time: UnitNumber<Time>) =
+            (simulator.now - time).unitValue[milli(second)].value.toLong()
+    fun <T : Number> ageOf(range: ClosedRange<UnitValue<T, Time>>) =
+            ageOf(range.start)..ageOf(range.endInclusive)
+
     init {
+        simulator.schedule(2013.5[year]) {}
+        simulator.run()
         this.initializer()
     }
 

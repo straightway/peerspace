@@ -156,5 +156,18 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 }
             }
 
+    @Test
+    fun `query already split into epochsis directly forwarded`() {
+        val epochQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..1L, 2))
+        test while_ {
+            epochs = listOf(0, 1)
+        } when_ {
+            sut.handle(epochQuery)
+        } then {
+            verify(epochAnalyzer, never()).getEpochs(any())
+            verify(forwardTracker).forward(epochQuery)
+        }
+    }
+
     private val Request<DataQuery>.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
 }

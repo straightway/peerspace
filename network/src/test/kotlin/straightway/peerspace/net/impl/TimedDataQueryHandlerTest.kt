@@ -29,6 +29,7 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
@@ -130,6 +131,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 chunkStoreQueryResult = listOf(chunk1)
                 pendingQueries = setOf(PendingDataQuery(matchingQuery, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(chunk1.key)
+                environment.get<Network>().executePendingRequests()
             } when_ {
                 environment.transmissionResultListeners.single().listener.notifyFailure()
             } then {

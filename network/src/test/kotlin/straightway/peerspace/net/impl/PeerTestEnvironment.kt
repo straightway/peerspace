@@ -158,6 +158,7 @@ data class PeerTestEnvironment(
 
     val knownPeers = knownPeersIds.map { createPeerMock(it) }.toMutableList()
     val transmissionResultListeners = mutableListOf<TransmissionRecord>()
+    val network get() = get<Network>() as MockedNetwork
 
     fun getPeer(id: Id) =
             knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!

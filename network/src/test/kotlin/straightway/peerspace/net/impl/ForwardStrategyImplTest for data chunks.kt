@@ -35,7 +35,7 @@ import straightway.units.get
 import straightway.units.plus
 import straightway.units.second
 
-class `ForwardStrategyImplTest getForwardPeerIdsFor ChunkKeys` : KoinLoggingDisabler() {
+class `ForwardStrategyImplTest for data chunks` : KoinLoggingDisabler() {
 
     private val test get() = Given { ForwardStrategyTestEnvironment() }
 

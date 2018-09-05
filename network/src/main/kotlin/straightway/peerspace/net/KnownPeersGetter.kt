@@ -21,5 +21,5 @@ package straightway.peerspace.net
  * fro other peers.
  */
 interface KnownPeersGetter {
-    fun refreshKnownPeers()
+    fun refreshKnownPeers(completionCallback: () -> Unit = {})
 }

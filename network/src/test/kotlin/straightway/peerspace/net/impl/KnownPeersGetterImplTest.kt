@@ -24,8 +24,15 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQuery
+import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.False
+import straightway.testing.flow.True
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 
 class KnownPeersGetterImplTest : KoinLoggingDisabler() {
 
@@ -85,7 +92,7 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `set peers to query for other known peers is randomized`() =
+    fun `set of peers to query for other known peers is randomized`() =
             Given {
                 PeerTestEnvironment(
                         peerId,
@@ -106,4 +113,62 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
                 verify(knownPeers[1], never()).queryKnownPeers(knownPeersRequest)
                 verify(knownPeers[2]).queryKnownPeers(knownPeersRequest)
             }
+
+    @Test
+    fun `refreshKnownPeers signals completion when all requests returned successful`() {
+        var completedCount = 0
+        Given {
+            PeerTestEnvironment(
+                    peerId,
+                    knownPeersGetterFactory = { KnownPeersGetterImpl() },
+                    knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
+                    configurationFactory = {
+                        Configuration(maxPeersToQueryForKnownPeers = 2)
+                    })
+        } when_ {
+            sut.refreshKnownPeers { completedCount++ }
+        } then {
+            expect(completedCount is_ Equal to_ 1)
+        }
+    }
+
+    @Test
+    fun `refreshKnownPeers signals completion when all requests failed`() {
+        var completedCount = 0
+        Given {
+            PeerTestEnvironment(
+                    peerId,
+                    knownPeersGetterFactory = { KnownPeersGetterImpl() },
+                    knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
+                    configurationFactory = {
+                        Configuration(maxPeersToQueryForKnownPeers = 2)
+                    })
+        } while_ {
+            knownPeersIds.forEach { network.setUnreachable(it) }
+        } when_ {
+            sut.refreshKnownPeers { completedCount++ }
+        } then {
+            expect(completedCount is_ Equal to_ 1)
+        }
+    }
+
+    @Test
+    fun `refreshKnownPeers does not signal completion while requests are pending`() {
+        var isCompleted = false
+        Given {
+            PeerTestEnvironment(
+                    peerId,
+                    knownPeersGetterFactory = { KnownPeersGetterImpl() },
+                    knownPeersIds = ids(knownPeerId.identifier, "1", "2"),
+                    configurationFactory = {
+                        Configuration(maxPeersToQueryForKnownPeers = 2)
+                    })
+        } while_ {
+            network.isSuspended = true
+        } when_ {
+            sut.refreshKnownPeers { isCompleted = true }
+        } then {
+            expect(isCompleted is_ False)
+        }
+    }
 }

@@ -205,6 +205,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 chunkStoreQueryResult = listOf(matchingChunk)
                 sut.pendingQueries = setOf(PendingDataQuery(untimedQueryRequest, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(matchingChunk.key)
+                environment.get<Network>().executePendingRequests()
             } when_ {
                 environment.transmissionResultListeners.single().listener.notifyFailure()
             } then {

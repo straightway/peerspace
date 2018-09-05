@@ -138,4 +138,23 @@ class DataQueryTest : KoinLoggingDisabler() {
             assertSendPath(query.withEpoch(1), 0, -1, -2)
         }
     }
+
+    @Test
+    fun `if no forward candidates are found, known peers are refreshed and forward is retried`() {
+        Given {
+            SimNetwork {
+                addPeer(5) {
+                    knows(9)
+                }
+                addPeer(9) {
+                    knows(0)
+                }
+                addPeer(0) {}
+            }
+        } when_ {
+            env(5).client.query(query) {}
+        } then {
+            assertSendPath(query, 5, 5, 0)
+        }
+    }
 }

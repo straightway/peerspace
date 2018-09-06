@@ -79,4 +79,24 @@ class DataPushTest : KoinLoggingDisabler() {
             } then {
                 assertUnaffected(11)
             }
+
+    @Test
+    fun `is preferred peer is not reachable, data is forwarded to other peer`() =
+            Given {
+                SimNetwork {
+                    addPeer(9) { knows(7, 6, 5) }
+                    addPeer(7) {}
+                    addPeer(6) {}
+                    addPeer(5) {}
+                }
+            } while_ {
+                env(5).node.isOnline = false
+            } when_ {
+                env(9).client.store((chunk))
+                simulator.run()
+            } then {
+                assertSendPath(chunk, 9, 9, 7)
+                assertSendPath(chunk, 9, 9, 6)
+                assertUnaffected(5)
+            }
 }

@@ -75,10 +75,15 @@ class ForwardStateTrackerImpl<TItem : Transmittable>(
     }
 
     private fun setFailed(item: Request<TItem>, targetPeerId: Id) {
+        markStateFailedFor(item, targetPeerId)
+        forward(item)
+        network.executePendingRequests()
+        clearFinishedTransmissionFor(item.content.id)
+    }
+
+    fun markStateFailedFor(item: Request<TItem>, targetPeerId: Id) {
         val newState = getStateFor(item.content.id).setFailed(targetPeerId)
         states += Pair(item.content.id, newState)
-        forward(item)
-        clearFinishedTransmissionFor(item.content.id)
     }
 
     private fun clearFinishedTransmissionFor(itemKey: Any) {

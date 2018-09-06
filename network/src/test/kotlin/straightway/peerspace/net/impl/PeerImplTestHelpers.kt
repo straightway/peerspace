@@ -22,12 +22,9 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.TransmissionResultListener
-import straightway.peerspace.net.handle
 import straightway.random.Chooser
 
 @Suppress("LongParameterList")
@@ -62,58 +59,30 @@ fun createChunkDataStore(initialChunks: () -> List<DataChunk> = { listOf() }): D
     }
 }
 
-interface MockedNetwork : Network {
-    var isSuspended: Boolean
-    fun setUnreachable(peerId: Id)
-}
-
 @Suppress("LongParameterList")
 fun createNetworkMock(
         localPeerId: Id,
         transmissionResultListeners: MutableList<TransmissionRecord>,
         peers: () -> Collection<Peer> = { listOf() }
-): Network {
-    val result = mock<MockedNetwork> { _ ->
-        var unreachablePeers = mutableSetOf<Id>()
-        var isSuspended = false
-        val suspendedTransmissions = mutableListOf<() -> Unit>()
-        val pendingTransmissions = mutableListOf<() -> Unit>()
-        on { scheduleTransmission(any(), any()) }.thenAnswer { args ->
-            pendingTransmissions.add {
-                val transmission = args.arguments[0] as Request<*>
-                val listener = args.arguments[1] as TransmissionResultListener
-                if (transmission.remotePeerId in unreachablePeers)
-                    listener.notifyFailure()
-                else {
-                    val request = transmission.content
-                    transmissionResultListeners.add(TransmissionRecord(request, listener))
-                    val peer = peers().find { it.id == transmission.remotePeerId }!!
-                    peer.handle(Request.createDynamically(localPeerId, request))
-                    listener.notifySuccess()
-                }
-            }
+) = MockedNetworkImpl(localPeerId, transmissionResultListeners, peers).let { net ->
+    fun MockedNetworkImpl.setSuspension(value: Boolean) { isSuspended = value }
+    mock<MockedNetwork> { _ ->
+        on { scheduleTransmission(any(), any()) }.thenAnswer {
+            net.scheduleTransmission(it.getArgument(0), it.getArgument(1))
         }
-        on { executePendingRequests() }.thenAnswer { _ ->
-            if (isSuspended)
-                suspendedTransmissions.addAll(pendingTransmissions)
-            else pendingTransmissions.forEach { it() }
-            pendingTransmissions.clear()
+        on { executePendingRequests() }.thenAnswer {
+            net.executePendingRequests()
         }
-        on { this.isSuspended }.thenAnswer { isSuspended }
-        on { this.isSuspended = any() }.then {
-            val isSuspending: Boolean = it.getArgument(0)
-            if (isSuspending != isSuspended) {
-                isSuspended = isSuspending
-                if (!isSuspended) {
-                    suspendedTransmissions.forEach { it() }
-                    suspendedTransmissions.clear()
-                }
-            }
+        on { isSuspended }.thenAnswer {
+            net.isSuspended
         }
-        on { setUnreachable(any()) }.then { unreachablePeers.add(it.getArgument(0)) }
+        on { isSuspended = any() }.thenAnswer {
+            net.setSuspension(it.getArgument(0))
+        }
+        on { setUnreachable(any()) }.thenAnswer {
+            net.setUnreachable(it.getArgument(0))
+        }
     }
-
-    return result
 }
 
 fun createPeerDirectory(peers: () -> Collection<Peer> = { listOf() }) = mock<PeerDirectory> { _ ->

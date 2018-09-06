@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.integrationtest
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
@@ -139,7 +140,7 @@ class DataQueryTest : KoinLoggingDisabler() {
         }
     }
 
-    @Test
+    @Test @Disabled
     fun `if no forward candidates are found, known peers are refreshed and forward is retried`() {
         Given {
             SimNetwork {

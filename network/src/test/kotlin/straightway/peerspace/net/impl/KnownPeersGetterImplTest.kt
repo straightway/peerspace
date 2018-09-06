@@ -24,12 +24,10 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQuery
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False
-import straightway.testing.flow.True
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_

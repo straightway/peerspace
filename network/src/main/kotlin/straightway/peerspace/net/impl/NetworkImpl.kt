@@ -70,9 +70,8 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
             localDeliveryEvent(transmission.content)
         }
 
-        private fun deliverViaNetwork() {
+        private fun deliverViaNetwork() =
             transmission.channel.transmit(transmission.content, distributingListener)
-        }
 
         private fun forAllListeners(action: TransmissionResultListener.() -> Unit) =
                 transmissionResultListeners.forEach { it.action() }

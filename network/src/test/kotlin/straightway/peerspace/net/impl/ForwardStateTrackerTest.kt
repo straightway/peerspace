@@ -263,6 +263,7 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                 verify(network).scheduleTransmission(
                         Request(Id("forward2"), transmission.content),
                         transmissions[1].listener)
+                verify(network).executePendingRequests()
             }
 
             expect(sut.getStateFor("83") is_ Equal to_ ForwardState(

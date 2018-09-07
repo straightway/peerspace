@@ -35,4 +35,5 @@ data class Configuration(
         val timedDataQueryTimeout: UnitNumber<Time> = 5[minute],
         val numberOfForwardPeers: Int = 2,
         val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute],
-        val storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)])
+        val storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)],
+        val forwardRetries: Int = 2)

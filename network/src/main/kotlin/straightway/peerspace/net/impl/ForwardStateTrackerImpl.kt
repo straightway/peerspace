@@ -19,6 +19,7 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Transmittable
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
@@ -34,6 +35,7 @@ import straightway.utils.handleOnce
  * Forward data items keeping track of transmission success or failure and re-asking
  * the strategy on failure.
  */
+@Suppress("LargeClass")
 class ForwardStateTrackerImpl<TItem : Transmittable>(
         private val forwarder: Forwarder<TItem>) :
         ForwardStateTracker<TItem>,
@@ -42,29 +44,36 @@ class ForwardStateTrackerImpl<TItem : Transmittable>(
     private val network: Network by inject()
     private val knownPeersGetter: KnownPeersGetter by inject()
     private val knownPeersReceivedEvent: Event<KnownPeers> by inject("knownPeersReceivedEvent")
+    private val configuration: Configuration by inject()
 
-    override fun forward(request: Request<TItem>) {
-        request.forwardPeerIds.apply {
-            if (isEmpty()) request.retryForwardAfterKnownPeersAreRefreshed()
-            else request.forwardTo(this)
-        }
-    }
+    override fun forward(request: Request<TItem>) { request.forward() }
 
     override fun getStateFor(itemKey: Any) = states.getOrDefault(itemKey, ForwardState())
 
     override val forwardStates get() = states
 
-    private fun Request<TItem>.retryForwardAfterKnownPeersAreRefreshed() {
-        knownPeersReceivedEvent.handleOnce { _ ->
-            forwardTo(forwardPeerIds)
-            network.executePendingRequests()
+    private fun Request<TItem>.retryForwardAfterKnownPeersAreRefreshed(
+            pendingRetries: Int = configuration.forwardRetries
+    ) {
+        if (0 < pendingRetries) {
+            knownPeersReceivedEvent.handleOnce {
+                if (forward(pendingRetries - 1)) network.executePendingRequests()
+            }
+            knownPeersGetter.refreshKnownPeers()
         }
-        knownPeersGetter.refreshKnownPeers()
     }
 
-    private fun Request<TItem>.forwardTo(receiverIds: List<Id>) {
+    private fun Request<TItem>.forward(retries: Int = configuration.forwardRetries) =
+        with(forwardPeerIds) {
+            if (any()) {
+                forwardTo(this); true
+            } else {
+                retryForwardAfterKnownPeersAreRefreshed(retries); false
+            }
+        }
+
+    private fun Request<TItem>.forwardTo(receiverIds: List<Id>) =
         receiverIds.forEach { this forwardToPeer it }
-    }
 
     private val Request<TItem>.forwardPeerIds: List<Id> get() =
         forwarder.getForwardPeerIdsFor(this, getStateFor(content.id)).toList()
@@ -103,7 +112,7 @@ class ForwardStateTrackerImpl<TItem : Transmittable>(
         clearFinishedTransmissionFor(item.content.id)
     }
 
-    fun markStateFailedFor(item: Request<TItem>, targetPeerId: Id) {
+    private fun markStateFailedFor(item: Request<TItem>, targetPeerId: Id) {
         val newState = getStateFor(item.content.id).setFailed(targetPeerId)
         states += Pair(item.content.id, newState)
     }

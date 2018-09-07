@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Transmittable
+import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
@@ -55,11 +56,16 @@ class ForwardStateTrackerImplTest : KoinLoggingDisabler() {
             val item: Item,
             val listener: TransmissionResultListener)
 
-    private val test get() = Given {
+    private val test get() = test(forwardRetries = 1)
+
+    private fun test(forwardRetries: Int) = Given {
         object {
             val forwardIds = mutableListOf<Id>()
             val transmissions = mutableListOf<TransmissionRecord>()
             val environment = PeerTestEnvironment(
+                    configurationFactory = {
+                        Configuration(forwardRetries = forwardRetries)
+                    },
                     networkFactory = {
                         mock { _ ->
                             on { scheduleTransmission(any(), any()) }.thenAnswer {
@@ -305,13 +311,29 @@ class ForwardStateTrackerImplTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `only single forwarding retry after known peers are refreshed`() =
-            test while_ {
+    fun `only configured number of forwarding retries after known peers are refreshed`() =
+            test(forwardRetries = 1) while_ {
                 forwardIds.clear()
                 sut.forward(request83)
             } when_ {
                 forwardIds.add(Id("forward"))
                 knownPeersReceivedEvent(KnownPeers(listOf()))
+                knownPeersReceivedEvent(KnownPeers(listOf()))
+            } then {
+                verify(environment.get<Network>()).scheduleTransmission(
+                        eq(Request(Id("forward"), request83.content)),
+                        any())
+                verify(environment.get<Network>()).executePendingRequests()
+            }
+
+    @Test
+    fun `multiple forwarding retries if necessary and configured`() =
+            test(forwardRetries = 2) while_ {
+                forwardIds.clear()
+                sut.forward(request83)
+            } when_ {
+                knownPeersReceivedEvent(KnownPeers(listOf()))
+                forwardIds.add(Id("forward"))
                 knownPeersReceivedEvent(KnownPeers(listOf()))
             } then {
                 verify(environment.get<Network>()).scheduleTransmission(

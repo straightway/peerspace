@@ -92,11 +92,31 @@ class DataPushTest : KoinLoggingDisabler() {
             } while_ {
                 env(5).node.isOnline = false
             } when_ {
-                env(9).client.store((chunk))
+                env(9).client.store(chunk)
                 simulator.run()
             } then {
                 assertSendPath(chunk, 9, 9, 7)
                 assertSendPath(chunk, 9, 9, 6)
                 assertUnaffected(5)
             }
+
+    @Test
+    fun `if no forward candidates are found, known peers are refreshed and forward is retried`() {
+        Given {
+            SimNetwork {
+                addPeer(5) {
+                    knows(9)
+                }
+                addPeer(9) {
+                    knows(0)
+                }
+                addPeer(0) {}
+            }
+        } when_ {
+            env(5).client.store(chunk)
+            simulator.run()
+        } then {
+            assertSendPath(chunk, 5, 0)
+        }
+    }
 }

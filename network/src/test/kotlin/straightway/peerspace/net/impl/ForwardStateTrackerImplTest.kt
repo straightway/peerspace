@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.clearInvocations
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -27,6 +28,8 @@ import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.KnownPeers
+import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
@@ -35,8 +38,9 @@ import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.Event
 
-class ForwardStateTrackerTest : KoinLoggingDisabler() {
+class ForwardStateTrackerImplTest : KoinLoggingDisabler() {
 
     private data class Item(override val id: String) : Transmittable
 
@@ -82,9 +86,10 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                 }
             }
 
-            @Suppress("UNCHECKED_CAST")
-            val sut = environment.get<ForwardStateTracker<Item>>("testTracker")
-            val forwarder = environment.get<Forwarder<Item>>("testForwarder")
+            val sut get() = environment.get<ForwardStateTracker<Item>>("testTracker")
+            val forwarder get() = environment.get<Forwarder<Item>>("testForwarder")
+            val knownPeersReceivedEvent: Event<KnownPeers> =
+                    environment.get("knownPeersReceivedEvent")
         }
     }
 
@@ -109,7 +114,9 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
 
     @Test
     fun `forward asks for peers to forward`() =
-            test when_ {
+            test while_ {
+                forwardIds.add(Id("forward"))
+            } when_ {
                 sut.forward(request83)
             } then {
                 verify(forwarder).getForwardPeerIdsFor(request83, ForwardState())
@@ -271,4 +278,45 @@ class ForwardStateTrackerTest : KoinLoggingDisabler() {
                     pending = setOf(Id("forward2"))
             ))
         }
+
+    @Test
+    fun `if strategy yields no forward peers, refresh known peers`() =
+            test while_ {
+                forwardIds.clear()
+            } when_ {
+                sut.forward(request83)
+            } then {
+                verify(environment.get<KnownPeersGetter>()).refreshKnownPeers()
+            }
+
+    @Test
+    fun `if strategy yields no forward peers, retry forwarding after known peers are refreshed`() =
+            test while_ {
+                forwardIds.clear()
+                sut.forward(request83)
+            } when_ {
+                forwardIds.add(Id("forward"))
+                knownPeersReceivedEvent(KnownPeers(listOf()))
+            } then {
+                verify(environment.get<Network>()).scheduleTransmission(
+                        eq(Request(Id("forward"), request83.content)),
+                        any())
+                verify(environment.get<Network>()).executePendingRequests()
+            }
+
+    @Test
+    fun `only single forwarding retry after known peers are refreshed`() =
+            test while_ {
+                forwardIds.clear()
+                sut.forward(request83)
+            } when_ {
+                forwardIds.add(Id("forward"))
+                knownPeersReceivedEvent(KnownPeers(listOf()))
+                knownPeersReceivedEvent(KnownPeers(listOf()))
+            } then {
+                verify(environment.get<Network>()).scheduleTransmission(
+                        eq(Request(Id("forward"), request83.content)),
+                        any())
+                verify(environment.get<Network>()).executePendingRequests()
+            }
 }

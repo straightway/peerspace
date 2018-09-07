@@ -15,9 +15,9 @@
  */
 package straightway.peerspace.integrationtest
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.integrationtest.SimNetwork.Companion.id
 import straightway.peerspace.net.Request
@@ -50,7 +50,10 @@ class DataQueryTest : KoinLoggingDisabler() {
                 peer(1).queryData(Request(id(2), query))
                 simulator.run()
             } then { _ ->
-                expect(log.filter { it.request.remotePeerId == id(1) }.size is_ Equal to_ 1)
+                expect(log.filter {
+                    it.request.content is DataChunk &&
+                    it.request.remotePeerId == id(1)
+                }.size is_ Equal to_ 1)
             }
 
     @Test
@@ -140,22 +143,22 @@ class DataQueryTest : KoinLoggingDisabler() {
         }
     }
 
-    @Test @Disabled
-    fun `if no forward candidates are found, known peers are refreshed and forward is retried`() {
-        Given {
-            SimNetwork {
-                addPeer(5) {
-                    knows(9)
+    @Test
+    fun `if no forward candidates are found, known peers are refreshed and forward is retried`() =
+            Given {
+                SimNetwork {
+                    addPeer(5) {
+                        knows(9)
+                    }
+                    addPeer(9) {
+                        knows(0)
+                    }
+                    addPeer(0) {}
                 }
-                addPeer(9) {
-                    knows(0)
-                }
-                addPeer(0) {}
+            } when_ {
+                env(5).client.query(query) {}
+                simulator.run()
+            } then {
+                assertSendPath(query, 5, 0)
             }
-        } when_ {
-            env(5).client.query(query) {}
-        } then {
-            assertSendPath(query, 5, 5, 0)
-        }
-    }
 }

@@ -17,6 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.KnownPeers
@@ -24,6 +25,15 @@ import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.Not
+import straightway.testing.flow.Null
+import straightway.testing.flow.Throw
+import straightway.testing.flow.does
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
+import straightway.utils.Event
 
 class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
 
@@ -40,6 +50,8 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
             })
             val sut: KnownPeersPushTarget = environment.get()
             val peerDirectory: PeerDirectory = environment.get()
+            val knownPeersReceivedEvent: Event<KnownPeers> =
+                    environment.get("knownPeersReceivedEvent")
         }
     }
 
@@ -58,4 +70,32 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
             } then {
                 knownPeerIds.forEach { peerId -> verify(peerDirectory).add(peerId) }
             }
+
+    @Test
+    fun `received known peers are published via knownPeersReceivedEvent`() {
+        var receivedRequest: KnownPeers? = null
+        test while_ {
+            knownPeersReceivedEvent.attach {
+                expect(receivedRequest is_ Null)
+                receivedRequest = it
+            }
+        } when_ {
+            sut.pushKnownPeers(pushRequest)
+        } then {
+            expect(receivedRequest is_ Equal to_ pushRequest.content)
+        }
+    }
+
+    @Test
+    fun `knownPeersReceivedEvent is fired after known peers were added to peer directory`() {
+        test while_ {
+            knownPeersReceivedEvent.attach { event ->
+                event.knownPeersIds.forEach { verify(peerDirectory).add(it) }
+            }
+        } when_ {
+            sut.pushKnownPeers(pushRequest)
+        } then {
+            expect({ it.result } does Not - Throw.exception)
+        }
+    }
 }

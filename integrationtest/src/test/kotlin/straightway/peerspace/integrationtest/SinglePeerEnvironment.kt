@@ -39,6 +39,7 @@ import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.EpochAnalyzer
+import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
@@ -219,6 +220,9 @@ class SinglePeerEnvironment(
         }
         bean("localDeliveryEvent") {
             Event<Transmittable>()
+        }
+        bean("knownPeersReceivedEvent") {
+            Event<KnownPeers>()
         }
         bean {
             PeerClientImpl() as PeerClient

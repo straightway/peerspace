@@ -38,6 +38,7 @@ import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
@@ -146,6 +147,7 @@ data class PeerTestEnvironment(
             bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
             bean { knownPeersGetterFactory() }
             bean("localDeliveryEvent") { Event<Transmittable>() }
+            bean("knownPeersReceivedEvent") { Event<KnownPeers>() }
             additionalInit()
         }.apply {
             extraProperties["peerId"] = peerId.identifier

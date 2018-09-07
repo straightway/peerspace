@@ -22,9 +22,13 @@ import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.KnownPeers
+import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.utils.Event
+import straightway.utils.handleOnce
 
 /**
  * Forward data items keeping track of transmission success or failure and re-asking
@@ -36,16 +40,34 @@ class ForwardStateTrackerImpl<TItem : Transmittable>(
         KoinModuleComponent by KoinModuleComponent() {
 
     private val network: Network by inject()
+    private val knownPeersGetter: KnownPeersGetter by inject()
+    private val knownPeersReceivedEvent: Event<KnownPeers> by inject("knownPeersReceivedEvent")
 
     override fun forward(request: Request<TItem>) {
-        val forwardState = getStateFor(request.content.id)
-        val forwardPeerIds = forwarder.getForwardPeerIdsFor(request, forwardState)
-        forwardPeerIds.forEach { peerId -> request forwardToPeer peerId }
+        request.forwardPeerIds.apply {
+            if (isEmpty()) request.retryForwardAfterKnownPeersAreRefreshed()
+            else request.forwardTo(this)
+        }
     }
 
     override fun getStateFor(itemKey: Any) = states.getOrDefault(itemKey, ForwardState())
 
     override val forwardStates get() = states
+
+    private fun Request<TItem>.retryForwardAfterKnownPeersAreRefreshed() {
+        knownPeersReceivedEvent.handleOnce { _ ->
+            forwardTo(forwardPeerIds)
+            network.executePendingRequests()
+        }
+        knownPeersGetter.refreshKnownPeers()
+    }
+
+    private fun Request<TItem>.forwardTo(receiverIds: List<Id>) {
+        receiverIds.forEach { this forwardToPeer it }
+    }
+
+    private val Request<TItem>.forwardPeerIds: List<Id> get() =
+        forwarder.getForwardPeerIdsFor(this, getStateFor(content.id)).toList()
 
     private infix fun Request<TItem>.forwardToPeer(targetPeerId: Id) {
         setPending(content.id, targetPeerId)

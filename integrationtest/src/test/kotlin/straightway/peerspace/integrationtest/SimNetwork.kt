@@ -114,9 +114,7 @@ class SimNetwork(
     fun assertUnaffected(id: Int) {
         val peer = env(id).peer
         verify(peer, never()).queryData(any())
-        verify(peer, never()).queryKnownPeers(any())
         verify(peer, never()).pushDataChunk(any())
-        verify(peer, never()).pushKnownPeers(any())
     }
 
     val hash = object : HashSetter {

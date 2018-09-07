@@ -25,7 +25,6 @@ import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.TransmissionResultListener
 import straightway.random.Chooser
 
 /**
@@ -40,27 +39,13 @@ class KnownPeersGetterImpl :
     private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
     private val peerDirectory: PeerDirectory by inject()
 
-    override fun refreshKnownPeers(completionCallback: () -> Unit) {
-        val pendingReplies = peersToQueryForOtherKnownPeers.toMutableSet()
-        peersToQueryForOtherKnownPeers.forEach {
-            queryForKnownPeers(it) {
-                pendingReplies.remove(it)
-                if (pendingReplies.isEmpty()) completionCallback()
-            }
-        }
+    override fun refreshKnownPeers() {
+        peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }
         network.executePendingRequests()
     }
 
-    private fun queryForKnownPeers(targetPeerId: Id, completionCallback: () -> Unit) =
-            network.scheduleTransmission(
-                    Request(targetPeerId, KnownPeersQuery()),
-                    transmissionResultListenerFor(completionCallback))
-
-    private fun transmissionResultListenerFor(completionCallback: () -> Unit) =
-            object : TransmissionResultListener {
-                override fun notifySuccess() = completionCallback()
-                override fun notifyFailure() = completionCallback()
-            }
+    private fun queryForKnownPeers(targetPeerId: Id) =
+            network.scheduleTransmission(Request(targetPeerId, KnownPeersQuery()))
 
     private val peersToQueryForOtherKnownPeers get() =
         knownPeerQueryChooser choosePeers configuration.maxPeersToQueryForKnownPeers

@@ -29,7 +29,7 @@ import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
@@ -66,8 +66,8 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             val sut: DataPushTarget = environment.get()
             val dataQueryHandler =
                     environment.get<DataQueryHandler>("dataQueryHandler")
-            val pushForwardTracker =
-                    environment.get<ForwardStateTracker<DataChunk>>("pushForwardTracker")
+            val pushForwarder =
+                    environment.get<Forwarder>("pushForwarder")
         }
     }
 
@@ -104,7 +104,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.pushDataChunk(pushRequest)
             } then {
-                verify(pushForwardTracker).forward(pushRequest)
+                verify(pushForwarder).forward(pushRequest)
             }
 
     @Test
@@ -123,10 +123,10 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.pushDataChunk(pushRequest)
             } then {
-                inOrder(pushForwardTracker) {
-                    verify(pushForwardTracker).forward(
+                inOrder(pushForwarder) {
+                    verify(pushForwarder).forward(
                             Request(pushRequest.remotePeerId, pushRequest.content.withEpoch(0)))
-                    verify(pushForwardTracker).forward(
+                    verify(pushForwarder).forward(
                             Request(pushRequest.remotePeerId, pushRequest.content.withEpoch(1)))
                 }
             }

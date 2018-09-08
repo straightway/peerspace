@@ -21,18 +21,18 @@ import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Request
 
 /**
- * Forwarder implementation for query requests.
+ * ForwardTargetGetter implementation for query requests.
  */
-class DataQueryForwarder :
-        Forwarder<DataQuery>,
+class DataQueryForwardTargetGetter :
+        ForwardTargetGetter,
         KoinModuleComponent by KoinModuleComponent() {
 
     private val forwardStrategy: ForwardStrategy by inject()
 
-    override fun getForwardPeerIdsFor(item: Request<DataQuery>, state: ForwardState) =
-            forwardStrategy.getForwardPeerIdsFor(item.content, state)
+    override fun getForwardPeerIdsFor(item: Request<*>, state: ForwardState) =
+            forwardStrategy.getForwardPeerIdsFor(item.content as DataQuery, state)
 }

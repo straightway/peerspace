@@ -13,13 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package straightway.peerspace.net
 
 import straightway.peerspace.data.Id
 
 /**
- * Provide known peers to some other peer.
+ * Get forwarded peer ids for a given transmittable object from the forward strategy.
  */
-interface KnownPeersProvider {
-    fun pushKnownPeersTo(targetPeerId: Id)
+interface ForwardTargetGetter {
+    fun getForwardPeerIdsFor(item: Request<*>, state: ForwardState): Iterable<Id>
 }

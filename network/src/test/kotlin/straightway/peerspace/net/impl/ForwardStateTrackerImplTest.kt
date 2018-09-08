@@ -28,7 +28,7 @@ import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStateTracker
-import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.Network
@@ -82,18 +82,18 @@ class ForwardStateTrackerImplTest : KoinLoggingDisabler() {
                     }
             ) {
                 bean("testForwarder") { _ ->
-                    mock<Forwarder<Transmittable>> { _ ->
+                    mock<ForwardTargetGetter> { _ ->
                         on { getForwardPeerIdsFor(any(), any()) }.thenAnswer { forwardIds }
                     }
                 }
                 bean("testTracker") {
-                    ForwardStateTrackerImpl(get<Forwarder<Transmittable>>("testForwarder"))
-                            as ForwardStateTracker<Transmittable>
+                    ForwardStateTrackerImpl(get("testForwarder")) as ForwardStateTracker
                 }
             }
 
-            val sut get() = environment.get<ForwardStateTracker<Item>>("testTracker")
-            val forwarder get() = environment.get<Forwarder<Item>>("testForwarder")
+            val sut get() =
+                environment.get<ForwardStateTracker>("testTracker") as ForwardStateTrackerImpl
+            val forwarder get() = environment.get<ForwardTargetGetter>("testForwarder")
             val knownPeersReceivedEvent: Event<KnownPeers> =
                     environment.get("knownPeersReceivedEvent")
         }

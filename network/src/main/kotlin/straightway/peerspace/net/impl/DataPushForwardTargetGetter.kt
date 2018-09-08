@@ -21,30 +21,33 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Request
 
 /**
- * Forwarder implementation for pushDataChunk requests.
+ * ForwardTargetGetter implementation for pushDataChunk requests.
  */
-class DataPushForwarder :
-        Forwarder<DataChunk>,
+class DataPushForwardTargetGetter :
+        ForwardTargetGetter,
         KoinModuleComponent by KoinModuleComponent() {
 
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
     private val forwardStrategy: ForwardStrategy by inject()
 
-    override fun getForwardPeerIdsFor(item: Request<DataChunk>, state: ForwardState) =
+    override fun getForwardPeerIdsFor(item: Request<*>, state: ForwardState) =
             item.getForwardPeersFromStrategies(state) - item.remotePeerId
 
-    private fun Request<DataChunk>.getForwardPeersFromStrategies(forwardState: ForwardState) =
+    private fun Request<*>.getForwardPeersFromStrategies(forwardState: ForwardState) =
             (getPushForwardPeerIds(forwardState) + content.key.queryForwardPeerIds).toSet()
 
-    private fun Request<DataChunk>.getPushForwardPeerIds(forwardState: ForwardState) =
+    private fun Request<*>.getPushForwardPeerIds(forwardState: ForwardState) =
             forwardStrategy.getForwardPeerIdsFor(content.key, forwardState)
+
+    private val Transmittable.key get() = (this as DataChunk).key
 
     private val Key.queryForwardPeerIds: Iterable<Id>
         get() = dataQueryHandler.getForwardPeerIdsFor(this)

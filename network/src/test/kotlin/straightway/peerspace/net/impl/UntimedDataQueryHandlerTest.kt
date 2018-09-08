@@ -25,7 +25,7 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
@@ -63,9 +63,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             as UntimedDataQueryHandler
                 val pendingQueryTracker get() =
                     environment.get<PendingDataQueryTracker>("pendingUntimedQueryTracker")
-                val forwardTracker get() =
-                        environment.get<ForwardStateTracker<DataQuery>>(
-                                "queryForwardTracker")
+                val forwarder get() = environment.get<Forwarder>("queryForwarder")
                 val predicate get() = removePredicates.single()
             }
         }
@@ -108,7 +106,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(query)
         } then {
-            verify(forwardTracker).forward(query)
+            verify(forwarder).forward(query)
         }
     }
 }

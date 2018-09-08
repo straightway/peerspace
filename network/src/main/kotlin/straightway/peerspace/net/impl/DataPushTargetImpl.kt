@@ -24,7 +24,7 @@ import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
@@ -38,8 +38,7 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
     private val dataChunkStore: DataChunkStore by inject()
     private val network: Network by inject()
     private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
-    private val forwardTracker: ForwardStateTracker<DataChunk>
-            by inject("pushForwardTracker")
+    private val forwardTracker: Forwarder by inject("pushForwarder")
     private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun pushDataChunk(request: Request<DataChunk>) {

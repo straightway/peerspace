@@ -24,7 +24,7 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
@@ -43,8 +43,7 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private val network: Network by inject()
     private val dataChunkStore: DataChunkStore by inject()
-    private val forwardTracker: ForwardStateTracker<DataQuery>
-            by inject("queryForwardTracker")
+    private val forwarder: Forwarder by inject("queryForwarder")
 
     final override fun handle(query: Request<DataQuery>) {
         if (!pendingDataQueryTracker.isPending(query.content))
@@ -87,7 +86,7 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private fun forward(request: Request<DataQuery>) =
             splitToEpochs(request.content).forEach {
-                forwardTracker.forward(Request(request.remotePeerId, it))
+                forwarder.forward(Request(request.remotePeerId, it))
             }
 
     private fun returnLocalResult(query: Request<DataQuery>): Boolean {

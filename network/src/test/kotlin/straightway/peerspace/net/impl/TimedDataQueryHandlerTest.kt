@@ -28,7 +28,7 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
@@ -90,9 +90,8 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             as TimedDataQueryHandler
                 val pendingQueryTracker get() =
                     environment.get<PendingDataQueryTracker>("pendingTimedQueryTracker")
-                val forwardTracker get() =
-                    environment.get<ForwardStateTracker<DataQuery>>(
-                            "queryForwardTracker")
+                val forwarder get() =
+                    environment.get<Forwarder>("queryForwarder")
             }
         }
 
@@ -148,11 +147,11 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 sut.handle(matchingQuery)
             } then {
                 verify(epochAnalyzer).getEpochs(matchingQuery.content.timestamps)
-                inOrder(forwardTracker) {
-                    verify(forwardTracker)
+                inOrder(forwarder) {
+                    verify(forwarder)
                             .forward(Request(matchingQuery.remotePeerId,
                                              matchingQuery.content.withEpoch(0)))
-                    verify(forwardTracker)
+                    verify(forwarder)
                             .forward(Request(matchingQuery.remotePeerId,
                                              matchingQuery.content.withEpoch(1)))
                 }
@@ -167,7 +166,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             sut.handle(epochQuery)
         } then {
             verify(epochAnalyzer, never()).getEpochs(any())
-            verify(forwardTracker).forward(epochQuery)
+            verify(forwarder).forward(epochQuery)
         }
     }
 

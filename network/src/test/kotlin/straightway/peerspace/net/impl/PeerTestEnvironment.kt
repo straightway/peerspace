@@ -20,29 +20,29 @@ import org.koin.core.parameter.Parameters
 import org.koin.dsl.context.Context
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
-import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Bean.get
-import straightway.koinutils.withContext
-import straightway.peerspace.data.DataQuery
-import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.KnownPeersProvider
+import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.KnownPeers
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.chunkSizeGetter
+import straightway.peerspace.net.createPeerEnvironment
 import straightway.random.Chooser
+import straightway.units.byte
+import straightway.units.get
+import straightway.units.ki
 import straightway.utils.Event
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
@@ -71,9 +71,6 @@ data class PeerTestEnvironment(
         private val dataQueryHandlerFactory: BeanFactory<DataQueryHandler> = {
             mock()
         },
-        private val knownPeersProviderFactory: BeanFactory<KnownPeersProvider> = {
-            mock()
-        },
         private val knownPeerQueryChooserFactory: BeanFactory<Chooser> = {
             createChooser { knownPeersIds }
         },
@@ -92,11 +89,11 @@ data class PeerTestEnvironment(
         private val peerFactory: BeanFactory<Peer> = {
             mock()
         },
-        private val queryForwarderFactory:
-        BeanFactory<Forwarder<DataQuery>> = {
+        private val queryForwardTargetGetterFactory:
+        BeanFactory<ForwardTargetGetter> = {
             mock()
         },
-        private val pushForwarderFactory: BeanFactory<Forwarder<DataChunk>> = {
+        private val pushForwardTargetGetterFactory: BeanFactory<ForwardTargetGetter> = {
             mock()
         },
         private val pendingTimedDataQueryTrackerFactory: BeanFactory<PendingDataQueryTracker> = {
@@ -106,11 +103,19 @@ data class PeerTestEnvironment(
             mock()
         },
         private val queryForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<DataQuery>> = {
+        BeanFactory<ForwardStateTracker> = {
+            mock()
+        },
+        private val queryForwarderFactory:
+        BeanFactory<Forwarder> = {
             mock()
         },
         private val pushForwardTrackerFactory:
-        BeanFactory<ForwardStateTracker<DataChunk>> = {
+        BeanFactory<ForwardStateTracker> = {
+            mock()
+        },
+        private val pushForwarderFactory:
+        BeanFactory<Forwarder> = {
             mock()
         },
         private val dataPushTargetFactory: BeanFactory<DataPushTarget> = { mock() },
@@ -122,36 +127,44 @@ data class PeerTestEnvironment(
 ) {
 
     val koin by lazy {
-        withContext {
-            bean { configurationFactory() }
-            bean { forwardStrategyFactory() }
-            bean { timeProviderFactory() }
-            bean("dataQueryHandler") { dataQueryHandlerFactory() }
-            bean("otherDataQueryHandler") { mock<DataQueryHandler>() }
-            bean { knownPeersProviderFactory() }
-            bean("knownPeerQueryChooser") { knownPeerQueryChooserFactory() }
-            bean("knownPeerAnswerChooser") { knownPeerAnswerChooserFactory() }
-            bean { peerDirectoryFactory() }
-            bean { networkFactory() }
-            bean { dataChunkStoreFactory() }
-            bean { peerFactory() }
-            bean("queryForwarder") { queryForwarderFactory() }
-            bean("pendingTimedQueryTracker") { pendingTimedDataQueryTrackerFactory() }
-            bean("pendingUntimedQueryTracker") { pendingUntimedDataQueryTrackerFactory() }
-            bean("queryForwardTracker") { queryForwardTrackerFactory() }
-            bean("pushForwarder") { pushForwarderFactory() }
-            bean("pushForwardTracker") { pushForwardTrackerFactory() }
-            bean("localDataPushTarget") { dataPushTargetFactory() }
-            bean("localDataQuerySource") { dataQuerySourceFactory() }
-            bean("localKnownPeersPushTarget") { knownPeersPushTargetFactory() }
-            bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
-            bean { knownPeersGetterFactory() }
-            bean("localDeliveryEvent") { Event<Transmittable>() }
-            bean("knownPeersReceivedEvent") { Event<KnownPeers>() }
+        createPeerEnvironment(
+                peerId,
+                { configurationFactory() },
+                { forwardStrategyFactory() },
+                { timeProviderFactory() },
+                { dataQueryHandlerFactory() },
+                { mock() },
+                { mock() },
+                { knownPeerQueryChooserFactory() },
+                { knownPeerAnswerChooserFactory() },
+                { peerDirectoryFactory() },
+                { networkFactory() },
+                { dataChunkStoreFactory() },
+                { peerFactory() },
+                { queryForwardTargetGetterFactory() },
+                { pushForwardTargetGetterFactory() },
+                { pendingTimedDataQueryTrackerFactory() },
+                { pendingUntimedDataQueryTrackerFactory() },
+                { queryForwardTrackerFactory() },
+                { queryForwarderFactory() },
+                { pushForwardTrackerFactory() },
+                { pushForwarderFactory() },
+                { dataPushTargetFactory() },
+                { dataQuerySourceFactory() },
+                { knownPeersPushTargetFactory() },
+                { knownPeersQuerySourceFactory() },
+                { knownPeersGetterFactory() },
+                { chunkSizeGetter { _ -> 64[ki(byte)] } },
+                { Event() },
+                { Event() },
+                { mock() },
+                { mock() },
+                { mock() },
+                { mock() },
+                { mock() }
+        ) {
             additionalInit()
-        }.apply {
-            extraProperties["peerId"] = peerId.identifier
-        } make { KoinModuleComponent() }
+        }
     }
 
     inline fun <reified T> get() = koin.get<T>()

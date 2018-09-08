@@ -29,7 +29,7 @@ import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.ForwardStateTracker
+import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Network
@@ -100,8 +100,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                         })
                 val sut get() = environment.get<DataQueryHandler>("dataQueryHandler")
                         as DerivedSut
-                val forwardTracker get() = environment
-                        .get<ForwardStateTracker<DataQuery>>("queryForwardTracker")
+                val forwarder get() = environment
+                        .get<Forwarder>("queryForwarder")
             }
         }
 
@@ -118,7 +118,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             test() when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker).forward(untimedQueryRequest)
+                verify(forwarder).forward(untimedQueryRequest)
             }
 
     @Test
@@ -128,7 +128,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker, never()).forward(untimedQueryRequest)
+                verify(forwarder, never()).forward(untimedQueryRequest)
             }
 
     @Test
@@ -138,7 +138,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker).forward(untimedQueryRequest)
+                verify(forwarder).forward(untimedQueryRequest)
             }
 
     @Test
@@ -162,7 +162,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwardTracker, never()).forward(untimedQueryRequest)
+                verify(forwarder, never()).forward(untimedQueryRequest)
             }
 
     @Test
@@ -230,9 +230,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(timedQueryRequest)
             } then { _ ->
-                inOrder(forwardTracker) {
+                inOrder(forwarder) {
                     sut.splitRequests!!.forEach {
-                        verify(forwardTracker).forward(argThat { content == it })
+                        verify(forwarder).forward(argThat { content == it })
                     }
                 }
             }

@@ -16,15 +16,15 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQuery
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.knownPeerQueryChooser
+import straightway.peerspace.net.network
+import straightway.peerspace.net.peerDirectory
 import straightway.random.Chooser
 
 /**
@@ -33,11 +33,6 @@ import straightway.random.Chooser
 class KnownPeersGetterImpl :
         KnownPeersGetter,
         KoinModuleComponent by KoinModuleComponent() {
-
-    private val network: Network by inject()
-    private val configuration: Configuration by inject()
-    private val knownPeerQueryChooser: Chooser by inject("knownPeerQueryChooser")
-    private val peerDirectory: PeerDirectory by inject()
 
     override fun refreshKnownPeers() {
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }

@@ -16,13 +16,12 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
-import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.data.untimedData
+import straightway.peerspace.net.epochAnalyzer
+import straightway.peerspace.net.hasher
 
 /**
  * Hasher computing hash codes for KeyHashable objects, respecting the timestamp
@@ -30,9 +29,6 @@ import straightway.peerspace.data.untimedData
  * timestamps directly for hashing).
  */
 class EpochKeyHasher : KeyHasher, KoinModuleComponent by KoinModuleComponent() {
-
-    private val baseHasher: Hasher by inject()
-    private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun getHashes(hashable: KeyHashable) =
             when (hashable.timestamps) {
@@ -50,7 +46,7 @@ class EpochKeyHasher : KeyHasher, KoinModuleComponent by KoinModuleComponent() {
             listOf(getLongHash("DATA"))
 
     private fun KeyHashable.getLongHash(hashType: String) =
-            foldToLong(baseHasher.getHash("$hashType($id)"))
+            foldToLong(hasher.getHash("$hashType($id)"))
 
     companion object {
         private const val BitsPerByte = 8

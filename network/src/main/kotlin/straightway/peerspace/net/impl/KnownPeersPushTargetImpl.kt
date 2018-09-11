@@ -16,13 +16,12 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersPushTarget
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
-import straightway.utils.Event
+import straightway.peerspace.net.knownPeersReceivedEvent
+import straightway.peerspace.net.peerDirectory
 
 /**
  * Default implementation of the KnownPeersPushTarget interface.
@@ -30,9 +29,6 @@ import straightway.utils.Event
 class KnownPeersPushTargetImpl :
         KnownPeersPushTarget,
         KoinModuleComponent by KoinModuleComponent() {
-
-    private val peerDirectory: PeerDirectory by inject()
-    private val knownPeersReceivedEvent: Event<KnownPeers> by inject("knownPeersReceivedEvent")
 
     override fun pushKnownPeers(request: Request<KnownPeers>) {
         peerDirectory.add(request.remotePeerId)

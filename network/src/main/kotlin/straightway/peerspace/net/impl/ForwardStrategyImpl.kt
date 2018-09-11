@@ -15,19 +15,18 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
 import straightway.peerspace.data.KeyHashable
-import straightway.peerspace.data.KeyHasher
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.keyHasher
+import straightway.peerspace.net.peerDirectory
+import straightway.peerspace.net.timeProvider
 import straightway.units.minus
-import straightway.utils.TimeProvider
 import java.lang.Math.abs
 import java.lang.Math.max
 import java.time.LocalDateTime
@@ -38,10 +37,6 @@ import java.time.LocalDateTime
 class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleComponent() {
 
     private val id: Id by property("peerId") { Id(it) }
-    private val peerDirectory: PeerDirectory by inject()
-    private val hasher: KeyHasher by inject()
-    private val configuration: Configuration by inject()
-    private val timeProvider: TimeProvider by inject()
 
     override fun getForwardPeerIdsFor(item: KeyHashable, state: ForwardState): Set<Id> {
         handleFailedPeers(state)
@@ -82,7 +77,7 @@ class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleCo
     private infix fun Id.distanceTo(chunkHash: Long) = abs(chunkHash - hash)
     private val Id.hash get() = Key(this).hashes.single()
     private val KeyHashable.hash get() = hashes.single()
-    private val KeyHashable.hashes get() = hasher.getHashes(this)
+    private val KeyHashable.hashes get() = keyHasher.getHashes(this)
     private val ForwardState.allPeerIds get() = pending + successful + failed
     private val ForwardState.nonFailed get() = pending + successful
 

@@ -19,19 +19,18 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinModuleComponent
-import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.isMatching
-import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.getPendingQueriesForChunk
 import straightway.peerspace.net.isPending
+import straightway.peerspace.net.network
+import straightway.peerspace.net.queryForwarder
 
 /**
  * Base class for DataQueryHandler implementations.
@@ -40,10 +39,6 @@ abstract class SpecializedDataQueryHandlerBase(
         val isLocalResultPreventingForwarding: Boolean) :
         DataQueryHandler,
         KoinModuleComponent by KoinModuleComponent() {
-
-    private val network: Network by inject()
-    private val dataChunkStore: DataChunkStore by inject()
-    private val forwarder: Forwarder by inject("queryForwarder")
 
     final override fun handle(query: Request<DataQuery>) {
         if (!pendingDataQueryTracker.isPending(query.content))
@@ -86,7 +81,7 @@ abstract class SpecializedDataQueryHandlerBase(
 
     private fun forward(request: Request<DataQuery>) =
             splitToEpochs(request.content).forEach {
-                forwarder.forward(Request(request.remotePeerId, it))
+                queryForwarder.forward(Request(request.remotePeerId, it))
             }
 
     private fun returnLocalResult(query: Request<DataQuery>): Boolean {

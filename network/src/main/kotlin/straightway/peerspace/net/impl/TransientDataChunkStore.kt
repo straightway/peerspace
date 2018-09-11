@@ -15,14 +15,13 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.ChunkSizeGetter
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
+import straightway.peerspace.net.chunkSizeGetter
+import straightway.peerspace.net.configuration
 import straightway.units.AmountOfData
 import straightway.units.UnitNumber
 import straightway.units.bit
@@ -33,9 +32,6 @@ import straightway.units.plus
  * Store data chunks transiently.
  */
 class TransientDataChunkStore : DataChunkStore, KoinModuleComponent by KoinModuleComponent() {
-
-    private val configuration: Configuration by inject()
-    private val chunkSizeGetter: ChunkSizeGetter by inject()
 
     override fun store(chunk: DataChunk) {
         if (chunk.exceedsCapacity)

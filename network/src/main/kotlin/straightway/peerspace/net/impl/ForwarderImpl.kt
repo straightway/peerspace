@@ -15,20 +15,18 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Transmittable
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.KnownPeers
-import straightway.peerspace.net.KnownPeersGetter
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
-import straightway.utils.Event
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.knownPeersGetter
+import straightway.peerspace.net.knownPeersReceivedEvent
+import straightway.peerspace.net.network
 import straightway.utils.handleOnce
 
 /**
@@ -38,11 +36,6 @@ class ForwarderImpl(
         private val tracker: ForwardStateTracker,
         private val forwardTargetGetter: ForwardTargetGetter
 ) : Forwarder, KoinModuleComponent by KoinModuleComponent() {
-
-    private val network: Network by inject()
-    private val knownPeersGetter: KnownPeersGetter by inject()
-    private val knownPeersReceivedEvent: Event<KnownPeers> by inject("knownPeersReceivedEvent")
-    private val configuration: Configuration by inject()
 
     override fun forward(request: Request<*>) { request.forward() }
 
@@ -67,9 +60,7 @@ class ForwarderImpl(
             }
 
     private val Request<*>.forwardPeerIds: List<Id> get() =
-        forwardTargetGetter.getForwardPeerIdsFor(
-                this,
-                tracker.get(content.id)).toList()
+        forwardTargetGetter.getForwardPeerIdsFor(this, tracker[content.id]).toList()
 
     private infix fun Request<*>.forwardToPeer(targetPeerId: Id) {
         tracker[content.id] = tracker[content.id].setPending(targetPeerId)

@@ -16,30 +16,22 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.isUntimed
-import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataChunkStore
+import straightway.peerspace.net.dataQueryHandler
+import straightway.peerspace.net.epochAnalyzer
+import straightway.peerspace.net.network
+import straightway.peerspace.net.peerDirectory
+import straightway.peerspace.net.pushForwarder
 
 /**
  * Default implementation of the DataPushTarget interface.
  */
 class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComponent() {
-
-    private val peerDirectory: PeerDirectory by inject()
-    private val dataChunkStore: DataChunkStore by inject()
-    private val network: Network by inject()
-    private val dataQueryHandler: DataQueryHandler by inject("dataQueryHandler")
-    private val forwardTracker: Forwarder by inject("pushForwarder")
-    private val epochAnalyzer: EpochAnalyzer by inject()
 
     override fun pushDataChunk(request: Request<DataChunk>) {
         peerDirectory.add(request.remotePeerId)
@@ -49,10 +41,10 @@ class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComp
 
     private fun forward(request: Request<DataChunk>) {
         if (request.content.key.isUntimed) {
-            forwardTracker.forward(request)
+            pushForwarder.forward(request)
         } else {
             request.content.epochs.forEach {
-                forwardTracker.forward(
+                pushForwarder.forward(
                         Request(request.remotePeerId, request.content.withEpoch(it)))
             }
         }

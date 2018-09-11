@@ -15,7 +15,6 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
 import straightway.peerspace.data.DataChunk
@@ -24,16 +23,16 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.data.isUntimed
-import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.QueryControl
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.dataPushTarget
+import straightway.peerspace.net.dataQuerySource
+import straightway.peerspace.net.localDeliveryEvent
+import straightway.peerspace.net.timeProvider
 import straightway.units.toDuration
-import straightway.utils.Event
 import straightway.utils.EventHandlerToken
-import straightway.utils.TimeProvider
 import java.time.LocalDateTime
 
 /**
@@ -42,15 +41,10 @@ import java.time.LocalDateTime
 class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() {
 
     private val peerId: Id by property("peerId") { Id(it) }
-    private val querySource: DataQuerySource by inject()
-    private val pushTarget: DataPushTarget by inject()
-    private val localDeliveryEvent: Event<Transmittable> by inject("localDeliveryEvent")
-    private val timeProvider: TimeProvider by inject()
-    private val configuration: Configuration by inject()
 
     override fun store(data: DataChunk) {
         removeExpiredPendingQueries()
-        pushTarget.pushDataChunk(Request(peerId, data))
+        dataPushTarget.pushDataChunk(Request(peerId, data))
     }
 
     override fun query(
@@ -93,7 +87,7 @@ class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() 
         override fun keepAlive() {
             expirationTime =
                     timeProvider.now + configuration.timedDataQueryTimeout.toDuration()
-            querySource.queryData(Request(peerId, query))
+            dataQuerySource.queryData(Request(peerId, query))
         }
 
         override fun onExpiring(callback: QueryControl.(DataQuery) -> Unit) {

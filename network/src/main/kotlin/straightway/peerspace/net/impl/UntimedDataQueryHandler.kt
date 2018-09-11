@@ -16,10 +16,9 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.isMatching
-import straightway.peerspace.net.PendingDataQueryTracker
+import straightway.peerspace.net.pendingUntimedDataQueryTracker
 
 /**
  * DataQueryHandler for untimed queries.
@@ -27,8 +26,7 @@ import straightway.peerspace.net.PendingDataQueryTracker
 class UntimedDataQueryHandler
     : SpecializedDataQueryHandlerBase(isLocalResultPreventingForwarding = true) {
 
-    override val pendingDataQueryTracker: PendingDataQueryTracker
-            by inject("pendingUntimedQueryTracker")
+    override val pendingDataQueryTracker = pendingUntimedDataQueryTracker
 
     override fun onChunkForwarding(key: Key) =
             pendingDataQueryTracker.removePendingQueriesIf { content.isMatching(key) }

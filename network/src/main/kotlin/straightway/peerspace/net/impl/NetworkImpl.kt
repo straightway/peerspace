@@ -15,16 +15,14 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
-import straightway.peerspace.data.Identifyable
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.createChannelTo
-import straightway.utils.Event
+import straightway.peerspace.net.localDeliveryEvent
 
 /**
  * Productive implementation of the Network interface.
@@ -32,7 +30,6 @@ import straightway.utils.Event
 class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
 
     private val peerId: Id by property("peerId") { Id(it) }
-    private val localDeliveryEvent: Event<Identifyable> by inject("localDeliveryEvent")
 
     override fun scheduleTransmission(
             transmission: Request<*>,

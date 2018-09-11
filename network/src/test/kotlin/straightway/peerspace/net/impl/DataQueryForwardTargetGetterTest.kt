@@ -23,9 +23,9 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.ForwardState
-import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.forwardStrategy
+import straightway.peerspace.net.queryForwardTargetGetter
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -52,10 +52,7 @@ class DataQueryForwardTargetGetterTest : KoinLoggingDisabler() {
                             }
                         }
                     })
-                val sut get() =
-                    environment.get<ForwardTargetGetter>("queryForwardTargetGetter")
-                val forwardStrategy get() =
-                    environment.get<ForwardStrategy>()
+                val sut get() = environment.queryForwardTargetGetter
             }
         }
 
@@ -75,7 +72,8 @@ class DataQueryForwardTargetGetterTest : KoinLoggingDisabler() {
         test when_ {
             sut.getForwardPeerIdsFor(queryRequest, forwardState)
         } then {
-            verify(forwardStrategy).getForwardPeerIdsFor(queryRequest.content, forwardState)
+            verify(environment.forwardStrategy)
+                    .getForwardPeerIdsFor(queryRequest.content, forwardState)
         }
     }
 }

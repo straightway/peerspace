@@ -21,6 +21,7 @@ package straightway.peerspace.net
  * by the key type (which may be the same).
  */
 interface ForwardStateTracker {
-    val forwardStates: Map<Any, ForwardState>
-    fun getStateFor(itemKey: Any): ForwardState
+    operator fun get(itemKey: Any): ForwardState
+    operator fun set(itemKey: Any, newState: ForwardState)
+    fun clearFinishedTransmissionFor(itemKey: Any)
 }

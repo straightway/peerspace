@@ -28,12 +28,12 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
-import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataQueryHandler
+import straightway.peerspace.net.network
+import straightway.peerspace.net.queryForwarder
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Same
@@ -98,10 +98,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         })
-                val sut get() = environment.get<DataQueryHandler>("dataQueryHandler")
-                        as DerivedSut
-                val forwarder get() = environment
-                        .get<Forwarder>("queryForwarder")
+                val sut get() = environment.dataQueryHandler as DerivedSut
             }
         }
 
@@ -118,7 +115,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             test() when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwarder).forward(untimedQueryRequest)
+                verify(environment.queryForwarder).forward(untimedQueryRequest)
             }
 
     @Test
@@ -128,7 +125,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwarder, never()).forward(untimedQueryRequest)
+                verify(environment.queryForwarder, never()).forward(untimedQueryRequest)
             }
 
     @Test
@@ -138,7 +135,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwarder).forward(untimedQueryRequest)
+                verify(environment.queryForwarder).forward(untimedQueryRequest)
             }
 
     @Test
@@ -149,7 +146,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.handle(untimedQueryRequest)
             } then { _ ->
                 chunkStoreQueryResult.forEach {
-                    verify(environment.get<Network>()).scheduleTransmission(
+                    verify(environment.network).scheduleTransmission(
                             eq(Request(untimedQueryRequest.remotePeerId, it)),
                             any())
                 }
@@ -162,7 +159,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(untimedQueryRequest)
             } then {
-                verify(forwarder, never()).forward(untimedQueryRequest)
+                verify(environment.queryForwarder, never()).forward(untimedQueryRequest)
             }
 
     @Test
@@ -172,7 +169,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 sut.pendingQueries = setOf(PendingDataQuery(untimedQueryRequest, LocalDateTime.MIN))
             } when_ {
                 sut.notifyChunkForwarded(matchingChunk.key)
-                environment.get<Network>().executePendingRequests()
+                environment.network.executePendingRequests()
             } then {
                 val pushRequest = Request(environment.peerId, matchingChunk)
                 val queryOriginator = environment.getPeer(queryOriginatorId)
@@ -205,7 +202,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
                 chunkStoreQueryResult = listOf(matchingChunk)
                 sut.pendingQueries = setOf(PendingDataQuery(untimedQueryRequest, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(matchingChunk.key)
-                environment.get<Network>().executePendingRequests()
+                environment.network.executePendingRequests()
             } when_ {
                 environment.transmissionResultListeners.single().listener.notifyFailure()
             } then {
@@ -230,9 +227,9 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             } when_ {
                 sut.handle(timedQueryRequest)
             } then { _ ->
-                inOrder(forwarder) {
+                inOrder(environment.queryForwarder) {
                     sut.splitRequests!!.forEach {
-                        verify(forwarder).forward(argThat { content == it })
+                        verify(environment.queryForwarder).forward(argThat { content == it })
                     }
                 }
             }

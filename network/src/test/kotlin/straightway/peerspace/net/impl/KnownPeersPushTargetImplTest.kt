@@ -21,9 +21,10 @@ import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.KnownPeers
-import straightway.peerspace.net.KnownPeersPushTarget
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.knownPeersPushTarget
+import straightway.peerspace.net.knownPeersReceivedEvent
+import straightway.peerspace.net.peerDirectory
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -33,7 +34,6 @@ import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.utils.Event
 
 class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
 
@@ -48,10 +48,7 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
             val environment = PeerTestEnvironment(knownPeersPushTargetFactory = {
                 KnownPeersPushTargetImpl()
             })
-            val sut: KnownPeersPushTarget = environment.get()
-            val peerDirectory: PeerDirectory = environment.get()
-            val knownPeersReceivedEvent: Event<KnownPeers> =
-                    environment.get("knownPeersReceivedEvent")
+            val sut = environment.knownPeersPushTarget
         }
     }
 
@@ -60,7 +57,7 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.pushKnownPeers(pushRequest)
             } then {
-                verify(peerDirectory).add(originatorId)
+                verify(environment.peerDirectory).add(originatorId)
             }
 
     @Test
@@ -68,14 +65,14 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.pushKnownPeers(pushRequest)
             } then {
-                knownPeerIds.forEach { peerId -> verify(peerDirectory).add(peerId) }
+                knownPeerIds.forEach { peerId -> verify(environment.peerDirectory).add(peerId) }
             }
 
     @Test
     fun `received known peers are published via knownPeersReceivedEvent`() {
         var receivedRequest: KnownPeers? = null
         test while_ {
-            knownPeersReceivedEvent.attach {
+            environment.knownPeersReceivedEvent.attach {
                 expect(receivedRequest is_ Null)
                 receivedRequest = it
             }
@@ -89,8 +86,8 @@ class KnownPeersPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `knownPeersReceivedEvent is fired after known peers were added to peer directory`() {
         test while_ {
-            knownPeersReceivedEvent.attach { event ->
-                event.knownPeersIds.forEach { verify(peerDirectory).add(it) }
+            environment.knownPeersReceivedEvent.attach { event ->
+                event.knownPeersIds.forEach { verify(environment.peerDirectory).add(it) }
             }
         } when_ {
             sut.pushKnownPeers(pushRequest)

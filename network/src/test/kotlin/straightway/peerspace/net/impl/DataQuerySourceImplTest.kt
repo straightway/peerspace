@@ -19,11 +19,11 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataQueryHandler
+import straightway.peerspace.net.dataQuerySource
+import straightway.peerspace.net.network
+import straightway.peerspace.net.peerDirectory
 import straightway.testing.bdd.Given
 
 class DataQuerySourceImplTest {
@@ -38,7 +38,7 @@ class DataQuerySourceImplTest {
             val environment = PeerTestEnvironment(
                 id,
                 dataQuerySourceFactory = { DataQuerySourceImpl() })
-            val sut: DataQuerySource = environment.get()
+            val sut = environment.dataQuerySource
         }
     }
 
@@ -47,7 +47,7 @@ class DataQuerySourceImplTest {
             test when_ {
                 sut.queryData(dataQuery)
             } then {
-                verify(environment.get<DataQueryHandler>("dataQueryHandler")).handle(dataQuery)
+                verify(environment.dataQueryHandler).handle(dataQuery)
             }
 
     @Test
@@ -55,7 +55,7 @@ class DataQuerySourceImplTest {
             test when_ {
                 sut.queryData(dataQuery)
             } then {
-                verify(environment.get<Network>()).executePendingRequests()
+                verify(environment.network).executePendingRequests()
             }
 
     @Test
@@ -63,6 +63,6 @@ class DataQuerySourceImplTest {
             test when_ {
                 sut.queryData(dataQuery)
             } then {
-                verify(environment.get<PeerDirectory>()).add(dataQuery.remotePeerId)
+                verify(environment.peerDirectory).add(dataQuery.remotePeerId)
             }
 }

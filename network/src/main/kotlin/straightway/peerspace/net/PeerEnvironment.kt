@@ -13,9 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+@file:Suppress("unused")
+
 package straightway.peerspace.net
 
 import org.koin.dsl.context.Context
+import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.peerspace.crypto.Hasher
@@ -83,7 +86,7 @@ fun createPeerEnvironment(
             bean("pendingUntimedQueryTracker") { pendingUntimedDataQueryTrackerFactory() }
             bean("queryForwardStateTracker") { queryForwardTrackerFactory() }
             bean("pushForwarder") { pushForwarderFactory() }
-            bean("pushForwarder") { pushForwardTargetGetterFactory() }
+            bean("pushForwarderTargetGetter") { pushForwardTargetGetterFactory() }
             bean("pushForwardTargetGetter") { pushForwardTargetGetterFactory() }
             bean("pushForwardStateTracker") { pushForwardTrackerFactory() }
             bean("localDataPushTarget") { dataPushTargetFactory() }
@@ -92,8 +95,6 @@ fun createPeerEnvironment(
             bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
             bean { knownPeersGetterFactory() }
             bean { chunkSizeGetterFactory() }
-            bean("localDeliveryEvent") { Event<Transmittable>() }
-            bean("knownPeersReceivedEvent") { Event<KnownPeers>() }
             bean("localDeliveryEvent") { localDeliveryEventFactory() }
             bean("knownPeersReceivedEvent") { knownPeersReceivedEventFactory() }
             bean { peerClientFactory() }
@@ -105,3 +106,70 @@ fun createPeerEnvironment(
         }.apply {
             extraProperties["peerId"] = peerId.identifier
         } make { KoinModuleComponent() }
+
+val KoinModuleComponent.configuration: Configuration get() =
+    get()
+val KoinModuleComponent.forwardStrategy: ForwardStrategy get() =
+    get()
+val KoinModuleComponent.timeProvider: TimeProvider get() =
+    get()
+val KoinModuleComponent.dataQueryHandler: DataQueryHandler get() =
+    get("dataQueryHandler")
+val KoinModuleComponent.timedDataQueryHandler: DataQueryHandler get() =
+    get("timedDataQueryHandler")
+val KoinModuleComponent.untimedDataQueryHandler: DataQueryHandler get() =
+    get("untimedDataQueryHandler")
+val KoinModuleComponent.knownPeerQueryChooser: Chooser get() =
+    get("knownPeerQueryChooser")
+val KoinModuleComponent.knownPeerAnswerChooser: Chooser get() =
+    get("knownPeerAnswerChooser")
+val KoinModuleComponent.peerDirectory: PeerDirectory get() =
+    get()
+val KoinModuleComponent.network: Network get() =
+    get()
+val KoinModuleComponent.dataChunkStore: DataChunkStore get() =
+    get()
+val KoinModuleComponent.peer: Peer get() =
+    get()
+val KoinModuleComponent.queryForwardTargetGetter: ForwardTargetGetter get() =
+    get("queryForwardTargetGetter")
+val KoinModuleComponent.pushForwardTargetGetter: ForwardTargetGetter get() =
+    get("pushForwarderTargetGetter")
+val KoinModuleComponent.pendingTimedDataQueryTracker: PendingDataQueryTracker get() =
+    get("pendingTimedQueryTracker")
+val KoinModuleComponent.pendingUntimedDataQueryTracker: PendingDataQueryTracker get() =
+    get("pendingUntimedQueryTracker")
+val KoinModuleComponent.queryForwardStateTracker: ForwardStateTracker get() =
+    get("queryForwardStateTracker")
+val KoinModuleComponent.queryForwarder: Forwarder get() =
+    get("queryForwarder")
+val KoinModuleComponent.pushForwardStateTracker: ForwardStateTracker get() =
+    get("pushForwardStateTracker")
+val KoinModuleComponent.pushForwarder: Forwarder get() =
+    get("pushForwarder")
+val KoinModuleComponent.dataPushTarget: DataPushTarget get() =
+    get("localDataPushTarget")
+val KoinModuleComponent.dataQuerySource: DataQuerySource get() =
+    get("localDataQuerySource")
+val KoinModuleComponent.knownPeersPushTarget: KnownPeersPushTarget get() =
+    get("localKnownPeersPushTarget")
+val KoinModuleComponent.knownPeersQuerySource: KnownPeersQuerySource get() =
+    get("localKnownPeersQuerySource")
+val KoinModuleComponent.knownPeersGetter: KnownPeersGetter get() =
+    get()
+val KoinModuleComponent.chunkSizeGetter: ChunkSizeGetter get() =
+    get()
+val KoinModuleComponent.localDeliveryEvent: Event<Transmittable> get() =
+    get("localDeliveryEvent")
+val KoinModuleComponent.knownPeersReceivedEvent: Event<KnownPeers> get() =
+    get("knownPeersReceivedEvent")
+val KoinModuleComponent.peerClient: PeerClient get() =
+    get()
+val KoinModuleComponent.keyHasher: KeyHasher get() =
+    get()
+val KoinModuleComponent.epochAnalyzer: EpochAnalyzer get() =
+    get()
+val KoinModuleComponent.hasher: Hasher get() =
+    get()
+fun KoinModuleComponent.createChannelTo(remotePeerId: Id): Channel =
+        get { mapOf("id" to remotePeerId) }

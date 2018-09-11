@@ -16,11 +16,10 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.mock
-import org.koin.core.parameter.Parameters
 import org.koin.dsl.context.Context
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
-import straightway.koinutils.Bean.get
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
@@ -124,9 +123,17 @@ data class PeerTestEnvironment(
         private val knownPeersQuerySourceFactory: BeanFactory<KnownPeersQuerySource> = { mock() },
         private val knownPeersGetterFactory: BeanFactory<KnownPeersGetter> = { mock() },
         private val additionalInit: Context.() -> Unit = {}
-) {
+) : KoinModuleComponent {
 
-    val koin by lazy {
+    override val context get() = koin.context
+
+    val knownPeers = knownPeersIds.map { createPeerMock(it) }.toMutableList()
+    val transmissionResultListeners = mutableListOf<TransmissionRecord>()
+
+    fun getPeer(id: Id) =
+            knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!
+
+    private val koin by lazy {
         createPeerEnvironment(
                 peerId,
                 { configurationFactory() },
@@ -166,17 +173,6 @@ data class PeerTestEnvironment(
             additionalInit()
         }
     }
-
-    inline fun <reified T> get() = koin.get<T>()
-    inline fun <reified T> get(beanName: String) = koin.get<T>(beanName)
-    inline fun <reified T> get(noinline parameters: Parameters) = koin.get<T>(parameters)
-
-    val knownPeers = knownPeersIds.map { createPeerMock(it) }.toMutableList()
-    val transmissionResultListeners = mutableListOf<TransmissionRecord>()
-    val network get() = get<Network>() as MockedNetwork
-
-    fun getPeer(id: Id) =
-            knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!
 
     private val unknownPeers = unknownPeerIds.map { createPeerMock(it) }
 }

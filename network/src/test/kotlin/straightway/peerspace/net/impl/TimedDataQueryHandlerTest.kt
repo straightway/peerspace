@@ -26,13 +26,13 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
-import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.Network
 import straightway.peerspace.net.PendingDataQuery
-import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataQueryHandler
+import straightway.peerspace.net.network
+import straightway.peerspace.net.pendingTimedDataQueryTracker
+import straightway.peerspace.net.queryForwarder
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
 import straightway.testing.flow.True
@@ -86,12 +86,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                     bean { epochAnalyzer }
                 }
                 val sut get() =
-                    environment.get<DataQueryHandler>("dataQueryHandler")
-                            as TimedDataQueryHandler
-                val pendingQueryTracker get() =
-                    environment.get<PendingDataQueryTracker>("pendingTimedQueryTracker")
-                val forwarder get() =
-                    environment.get<Forwarder>("queryForwarder")
+                    environment.dataQueryHandler as TimedDataQueryHandler
             }
         }
 
@@ -109,7 +104,8 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 sut.notifyChunkForwarded(chunk1.key)
             } then { _ ->
                 pendingQueries.forEach {
-                    verify(pendingQueryTracker).addForwardedChunk(it, chunk1.key)
+                    verify(environment.pendingTimedDataQueryTracker)
+                            .addForwardedChunk(it, chunk1.key)
                 }
             }
 
@@ -120,7 +116,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             } when_ {
                 sut.notifyChunkForwarded(chunk1.key)
             } then {
-                verify(pendingQueryTracker, never())
+                verify(environment.pendingTimedDataQueryTracker, never())
                         .addForwardedChunk(notMatchingQuery.pending, chunk1.key)
             }
 
@@ -130,7 +126,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 chunkStoreQueryResult = listOf(chunk1)
                 pendingQueries = setOf(PendingDataQuery(matchingQuery, LocalDateTime.MIN))
                 sut.notifyChunkForwarded(chunk1.key)
-                environment.get<Network>().executePendingRequests()
+                environment.network.executePendingRequests()
             } when_ {
                 environment.transmissionResultListeners.single().listener.notifyFailure()
             } then {
@@ -147,11 +143,11 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
                 sut.handle(matchingQuery)
             } then {
                 verify(epochAnalyzer).getEpochs(matchingQuery.content.timestamps)
-                inOrder(forwarder) {
-                    verify(forwarder)
+                inOrder(environment.queryForwarder) {
+                    verify(environment.queryForwarder)
                             .forward(Request(matchingQuery.remotePeerId,
                                              matchingQuery.content.withEpoch(0)))
-                    verify(forwarder)
+                    verify(environment.queryForwarder)
                             .forward(Request(matchingQuery.remotePeerId,
                                              matchingQuery.content.withEpoch(1)))
                 }
@@ -166,7 +162,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
             sut.handle(epochQuery)
         } then {
             verify(epochAnalyzer, never()).getEpochs(any())
-            verify(forwarder).forward(epochQuery)
+            verify(environment.queryForwarder).forward(epochQuery)
         }
     }
 

@@ -24,10 +24,10 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
-import straightway.peerspace.net.DataQueryHandler
-import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataQueryHandler
+import straightway.peerspace.net.pendingUntimedDataQueryTracker
+import straightway.peerspace.net.queryForwarder
 import straightway.testing.bdd.Given
 import straightway.testing.flow.False
 import straightway.testing.flow.True
@@ -58,12 +58,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
                             }
                         }
                 )
-                val sut get() =
-                    environment.get<DataQueryHandler>("dataQueryHandler")
-                            as UntimedDataQueryHandler
-                val pendingQueryTracker get() =
-                    environment.get<PendingDataQueryTracker>("pendingUntimedQueryTracker")
-                val forwarder get() = environment.get<Forwarder>("queryForwarder")
+                val sut get() = environment.dataQueryHandler as UntimedDataQueryHandler
                 val predicate get() = removePredicates.single()
             }
         }
@@ -79,7 +74,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                verify(pendingQueryTracker).removePendingQueriesIf(any())
+                verify(environment.pendingUntimedDataQueryTracker).removePendingQueriesIf(any())
             }
 
     @Test
@@ -106,7 +101,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(query)
         } then {
-            verify(forwarder).forward(query)
+            verify(environment.queryForwarder).forward(query)
         }
     }
 }

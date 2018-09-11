@@ -17,7 +17,6 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.koinutils.Bean.get
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataQuery
@@ -25,6 +24,7 @@ import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.configuration
 import straightway.peerspace.net.isPending
 import straightway.units.Time
 import straightway.units.minus
@@ -66,7 +66,7 @@ class PendingDataQueryTrackerImpl(
     }
 
     private val PendingDataQuery.isTooOld get() = receiveTime < tooOldThreshold
-    private val pendingTimeout by lazy { get<Configuration>().pendingTimeoutConfiguration() }
+    private val pendingTimeout by lazy { configuration.pendingTimeoutConfiguration() }
     private val tooOldThreshold get() = timeProvider.now - pendingTimeout
 
     private fun <T> Set<T>.filter(predicate: T.() -> Boolean) =

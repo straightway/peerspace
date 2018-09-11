@@ -19,19 +19,20 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
+import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeers
-import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuery
-import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataPushTarget
+import straightway.peerspace.net.dataQuerySource
 import straightway.peerspace.net.handle
+import straightway.peerspace.net.knownPeersPushTarget
+import straightway.peerspace.net.knownPeersQuerySource
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -68,7 +69,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<DataPushTarget>()).pushDataChunk(request)
+            verify(dataPushTarget).pushDataChunk(request)
         }
     }
 
@@ -78,7 +79,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<DataQuerySource>()).queryData(request)
+            verify(dataQuerySource).queryData(request)
         }
     }
 
@@ -88,7 +89,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<KnownPeersPushTarget>()).pushKnownPeers(request)
+            verify(knownPeersPushTarget).pushKnownPeers(request)
         }
     }
 
@@ -98,7 +99,7 @@ class PeerImplTest : KoinLoggingDisabler() {
         test when_ {
             sut.handle(request)
         } then {
-            verify(get<KnownPeersQuerySource>()).queryKnownPeers(request)
+            verify(knownPeersQuerySource).queryKnownPeers(request)
         }
     }
 

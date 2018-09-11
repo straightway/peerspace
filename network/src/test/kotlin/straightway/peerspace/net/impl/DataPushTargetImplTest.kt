@@ -25,14 +25,14 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.DataPushTarget
-import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.EpochAnalyzer
-import straightway.peerspace.net.Forwarder
-import straightway.peerspace.net.Network
-import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.dataChunkStore
+import straightway.peerspace.net.dataPushTarget
+import straightway.peerspace.net.dataQueryHandler
+import straightway.peerspace.net.network
+import straightway.peerspace.net.peerDirectory
+import straightway.peerspace.net.pushForwarder
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Throw
@@ -63,11 +63,9 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
                     }
                 }
             }
-            val sut: DataPushTarget = environment.get()
-            val dataQueryHandler =
-                    environment.get<DataQueryHandler>("dataQueryHandler")
-            val pushForwarder =
-                    environment.get<Forwarder>("pushForwarder")
+            val sut = environment.dataPushTarget
+            val dataQueryHandler = environment.dataQueryHandler
+            val pushForwarder = environment.pushForwarder
         }
     }
 
@@ -80,7 +78,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `pushed data is stored`() =
             test when_ { sut.pushDataChunk(Request(originatorId, chunk)) } then {
-                verify(environment.get<DataChunkStore>()).store(chunk)
+                verify(environment.dataChunkStore).store(chunk)
             }
 
     @Test
@@ -88,7 +86,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.pushDataChunk(Request(originatorId, chunk))
             } then {
-                verify(environment.get<Network>()).executePendingRequests()
+                verify(environment.network).executePendingRequests()
             }
 
     @Test
@@ -96,7 +94,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.pushDataChunk(Request(originatorId, chunk))
             } then {
-                verify(environment.get<PeerDirectory>()).add(originatorId)
+                verify(environment.peerDirectory).add(originatorId)
             }
 
     @Test

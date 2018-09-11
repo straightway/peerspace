@@ -24,8 +24,8 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.chunkSizeGetter
+import straightway.peerspace.net.dataChunkStore
 import straightway.units.byte
 import straightway.units.get
 import straightway.testing.bdd.Given
@@ -60,7 +60,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             ) {
                 bean { chunkSizeGetter { _ -> 1[byte] } }
             }
-            val sut = environment.get<DataChunkStore>() as TransientDataChunkStore
+            val sut = environment.dataChunkStore as TransientDataChunkStore
             val untimedChunk = DataChunk(Key(chunkId), chunkData)
             val timedChunk = DataChunk(Key(chunkId, chunkTimeStamp), chunkData)
         }

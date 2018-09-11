@@ -22,9 +22,10 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.knownPeersGetter
 import straightway.testing.bdd.Given
 
 class KnownPeersGetterImplTest : KoinLoggingDisabler() {
@@ -43,7 +44,7 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
                 configurationFactory = { Configuration(maxPeersToQueryForKnownPeers = 2) })
     }
 
-    private val PeerTestEnvironment.sut get() = get<KnownPeersGetter>()
+    private val PeerTestEnvironment.sut get() = knownPeersGetter
 
     @Test
     fun `refreshKnownPeers queries peer from peerDirectory`() =
@@ -74,11 +75,11 @@ class KnownPeersGetterImplTest : KoinLoggingDisabler() {
             } when_ {
                 sut.refreshKnownPeers()
             } then {
-                knownPeers.take(get<Configuration>().maxPeersToQueryForKnownPeers)
+                knownPeers.take(configuration.maxPeersToQueryForKnownPeers)
                         .forEach { peer ->
                             verify(peer).queryKnownPeers(knownPeersRequest)
                         }
-                knownPeers.drop(get<Configuration>().maxPeersToQueryForKnownPeers)
+                knownPeers.drop(configuration.maxPeersToQueryForKnownPeers)
                         .forEach { peer ->
                             verify(peer, never()).queryKnownPeers(knownPeersRequest)
                         }

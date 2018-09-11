@@ -23,8 +23,8 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PendingDataQuery
-import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.pendingUntimedDataQueryTracker
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -64,8 +64,7 @@ class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
                             on { now }.thenAnswer { currentTime }
                         }
                     })
-            val sut get() =
-                    environment.get<PendingDataQueryTracker>("pendingUntimedQueryTracker")
+            val sut get() = environment.pendingUntimedDataQueryTracker
             var currentTime: LocalDateTime = LocalDateTime.of(2000, 1, 1, 0, 0)
         }
     }

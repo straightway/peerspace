@@ -25,14 +25,11 @@ import straightway.peerspace.data.KeyHasher
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
-import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardStrategy
-import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerDirectory
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.PeerClient
@@ -50,6 +47,7 @@ import straightway.peerspace.net.impl.DataQueryForwardTargetGetter
 import straightway.peerspace.net.impl.DataQuerySourceImpl
 import straightway.peerspace.net.impl.EpochAnalyzerImpl
 import straightway.peerspace.net.impl.EpochKeyHasher
+import straightway.peerspace.net.impl.ForwarderImpl
 import straightway.peerspace.net.impl.KnownPeersGetterImpl
 import straightway.peerspace.net.impl.KnownPeersPushTargetImpl
 import straightway.peerspace.net.impl.KnownPeersQuerySourceImpl
@@ -58,6 +56,10 @@ import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
 import straightway.peerspace.net.impl.UntimedDataQueryHandler
+import straightway.peerspace.net.pushForwardStateTracker
+import straightway.peerspace.net.pushForwardTargetGetter
+import straightway.peerspace.net.queryForwardStateTracker
+import straightway.peerspace.net.queryForwardTargetGetter
 import straightway.peerspace.networksimulator.SimChannel
 import straightway.peerspace.networksimulator.SimNode
 import straightway.random.RandomChooser
@@ -142,7 +144,8 @@ class SinglePeerEnvironment(
         dataStore.store(chunk)
     }
 
-    val koin: KoinModuleComponent = createPeerEnvironment(
+    val koin: KoinModuleComponent by lazy {
+        createPeerEnvironment(
             peerId,
             { Configuration() },
             { forwardStrategyFactory() },
@@ -160,13 +163,10 @@ class SinglePeerEnvironment(
             { DataPushForwardTargetGetter() },
             { PendingDataQueryTrackerImpl { timedDataQueryTimeout } },
             { PendingDataQueryTrackerImpl { untimedDataQueryTimeout } },
-            {
-                val queryForwardTargetGetter = get<ForwardTargetGetter>("queryForwardTargetGetter")
-                ForwardStateTrackerImpl(queryForwardTargetGetter)
-            },
-            { get<ForwardStateTracker>("queryForwardStateTracker") as Forwarder },
-            { ForwardStateTrackerImpl(get("pushForwardTargetGetter")) },
-            { get<ForwardStateTracker>("pushForwardStateTracker") as Forwarder },
+            { ForwardStateTrackerImpl() },
+            { ForwarderImpl(koin.queryForwardStateTracker, koin.queryForwardTargetGetter) },
+            { ForwardStateTrackerImpl() },
+            { ForwarderImpl(koin.pushForwardStateTracker, koin.pushForwardTargetGetter) },
             { dataPushTargetFactory() },
             { dataQuerySourceFactory() },
             { knownPeersPushTargetFactory() },
@@ -196,6 +196,7 @@ class SinglePeerEnvironment(
                 val to = simNodes[remoteNodeId]!!
                 SimChannel(simNetwork, chunkSizeGetter, from, to)
             })
+    }
 
     private fun createSimNode(parentPeer: Peer) =
             withContext {

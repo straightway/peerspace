@@ -15,16 +15,15 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Bean.get
 import straightway.koinutils.Bean.inject
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
 import straightway.peerspace.data.Identifyable
-import straightway.peerspace.net.Channel
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
+import straightway.peerspace.net.createChannelTo
 import straightway.utils.Event
 
 /**
@@ -52,7 +51,7 @@ class NetworkImpl : Network, KoinModuleComponent by KoinModuleComponent() {
     }
 
     private val pendingTransmissions = mutableMapOf<Pair<Id, Any>, PendingTransmission>()
-    private val Request<*>.channel get() = get<Channel> { mapOf("id" to remotePeerId) }
+    private val Request<*>.channel get() = createChannelTo(remotePeerId)
     private val Request<*>.key get() = kotlin.Pair(remotePeerId, content.id)
 
     private inner class PendingTransmission(val transmission: Request<*>) {

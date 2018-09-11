@@ -21,10 +21,10 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.KnownPeersQuery
-import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.knownPeersQuerySource
 import straightway.testing.bdd.Given
 
 class KnownPeersProviderImplTest : KoinLoggingDisabler() {
@@ -47,7 +47,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
     @Test
     fun `a query for known peers is answered immediately`() =
             test when_ {
-                get<KnownPeersQuerySource>().queryKnownPeers(query)
+                knownPeersQuerySource.queryKnownPeers(query)
             } then {
                 verify(queryingPeer).pushKnownPeers(any())
             }
@@ -55,7 +55,7 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
     @Test
     fun `a query for known peers is answered with the list of known peers`() =
             test when_ {
-                get<KnownPeersQuerySource>().queryKnownPeers(query)
+                knownPeersQuerySource.queryKnownPeers(query)
             } then {
                 val expectedKnownPeerIds = knownPeersIds
                 verify(queryingPeer).pushKnownPeers(
@@ -69,13 +69,13 @@ class KnownPeersProviderImplTest : KoinLoggingDisabler() {
             test andGiven {
                 it.copy(
                         configurationFactory = {
-                            it.get<Configuration>().copy(maxKnownPeersAnswers = 1)
+                            it.configuration.copy(maxKnownPeersAnswers = 1)
                         },
                         knownPeerAnswerChooserFactory = {
                             createChooser { knownPeersIds.slice(0..0) }
                         })
             } when_ {
-                get<KnownPeersQuerySource>().queryKnownPeers(query)
+                knownPeersQuerySource.queryKnownPeers(query)
             } then {
                 val expectedPeerIds = knownPeersIds.slice(0..0)
                 verify(queryingPeer).pushKnownPeers(

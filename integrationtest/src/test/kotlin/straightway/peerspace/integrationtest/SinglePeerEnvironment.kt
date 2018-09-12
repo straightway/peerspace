@@ -15,7 +15,6 @@
  */
 package straightway.peerspace.integrationtest
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.koinutils.Bean.get
 import straightway.peerspace.crypto.Hasher
@@ -33,8 +32,8 @@ import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.PeerClient
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.chunkSizeGetter
-import straightway.peerspace.net.createPeerEnvironment
 import straightway.peerspace.net.impl.DataPushForwardTargetGetter
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
@@ -144,8 +143,8 @@ class SinglePeerEnvironment(
         dataStore.store(chunk)
     }
 
-    val koin: KoinModuleComponent by lazy {
-        createPeerEnvironment(
+    val koin: PeerComponent by lazy {
+        PeerComponent.createEnvironment(
             peerId,
             { Configuration() },
             { forwardStrategyFactory() },

@@ -15,12 +15,12 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.ForwardStateTracker
 import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.Forwarder
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.configuration
@@ -35,7 +35,7 @@ import straightway.utils.handleOnce
 class ForwarderImpl(
         private val tracker: ForwardStateTracker,
         private val forwardTargetGetter: ForwardTargetGetter
-) : Forwarder, KoinModuleComponent by KoinModuleComponent() {
+) : Forwarder, PeerComponent by PeerComponent() {
 
     override fun forward(request: Request<*>) { request.forward() }
 

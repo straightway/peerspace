@@ -17,9 +17,9 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.Configuration
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
@@ -35,7 +35,7 @@ import straightway.units.UnitNumber
  */
 class PendingDataQueryTrackerImpl(
         private val pendingTimeoutConfiguration: Configuration.() -> UnitNumber<Time>
-) : PendingDataQueryTracker, KoinModuleComponent by KoinModuleComponent() {
+) : PendingDataQueryTracker, PeerComponent by PeerComponent() {
 
     override fun setPending(query: Request<DataQuery>) {
         if (!isPending(query.content))

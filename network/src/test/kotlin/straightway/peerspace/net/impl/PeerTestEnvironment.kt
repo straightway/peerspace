@@ -19,7 +19,6 @@ import com.nhaarman.mockito_kotlin.mock
 import org.koin.dsl.context.Context
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.DataQueryHandler
@@ -36,8 +35,8 @@ import straightway.peerspace.net.Forwarder
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.chunkSizeGetter
-import straightway.peerspace.net.createPeerEnvironment
 import straightway.random.Chooser
 import straightway.units.byte
 import straightway.units.get
@@ -123,7 +122,7 @@ data class PeerTestEnvironment(
         private val knownPeersQuerySourceFactory: BeanFactory<KnownPeersQuerySource> = { mock() },
         private val knownPeersGetterFactory: BeanFactory<KnownPeersGetter> = { mock() },
         private val additionalInit: Context.() -> Unit = {}
-) : KoinModuleComponent {
+) : PeerComponent {
 
     override val context get() = koin.context
 
@@ -134,7 +133,7 @@ data class PeerTestEnvironment(
             knownPeers.find { it.id == id } ?: unknownPeers.find { it.id == id }!!
 
     private val koin by lazy {
-        createPeerEnvironment(
+        PeerComponent.createEnvironment(
                 peerId,
                 { configurationFactory() },
                 { forwardStrategyFactory() },

@@ -18,11 +18,11 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardTargetGetter
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.dataQueryHandler
 import straightway.peerspace.net.forwardStrategy
@@ -32,7 +32,7 @@ import straightway.peerspace.net.forwardStrategy
  */
 class DataPushForwardTargetGetter :
         ForwardTargetGetter,
-        KoinModuleComponent by KoinModuleComponent() {
+        PeerComponent by PeerComponent() {
 
     override fun getForwardPeerIdsFor(item: Request<*>, state: ForwardState) =
             item.getForwardPeersFromStrategies(state) - item.remotePeerId

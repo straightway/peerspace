@@ -16,11 +16,11 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersQuery
 import straightway.peerspace.net.KnownPeersQuerySource
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.configuration
 import straightway.peerspace.net.knownPeerAnswerChooser
@@ -33,7 +33,7 @@ import straightway.random.Chooser
  */
 class KnownPeersQuerySourceImpl :
         KnownPeersQuerySource,
-        KoinModuleComponent by KoinModuleComponent() {
+        PeerComponent by PeerComponent() {
 
     override fun queryKnownPeers(request: Request<KnownPeersQuery>) {
         pushKnownPeersTo(request.remotePeerId)

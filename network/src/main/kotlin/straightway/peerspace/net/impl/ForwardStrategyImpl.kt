@@ -17,11 +17,11 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.configuration
 import straightway.peerspace.net.keyHasher
 import straightway.peerspace.net.peerDirectory
@@ -34,7 +34,7 @@ import java.time.LocalDateTime
 /**
  * Implementation of the forward strategy for queries and pushes.
  */
-class ForwardStrategyImpl : ForwardStrategy, KoinModuleComponent by KoinModuleComponent() {
+class ForwardStrategyImpl : ForwardStrategy, PeerComponent by PeerComponent() {
 
     private val id: Id by property("peerId") { Id(it) }
 

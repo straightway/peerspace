@@ -16,10 +16,10 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardTargetGetter
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.forwardStrategy
 
@@ -28,7 +28,7 @@ import straightway.peerspace.net.forwardStrategy
  */
 class DataQueryForwardTargetGetter :
         ForwardTargetGetter,
-        KoinModuleComponent by KoinModuleComponent() {
+        PeerComponent by PeerComponent() {
 
     override fun getForwardPeerIdsFor(item: Request<*>, state: ForwardState) =
             forwardStrategy.getForwardPeerIdsFor(item.content as DataQuery, state)

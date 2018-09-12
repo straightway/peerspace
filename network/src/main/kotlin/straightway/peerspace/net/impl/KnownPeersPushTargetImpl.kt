@@ -16,9 +16,9 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersPushTarget
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.knownPeersReceivedEvent
 import straightway.peerspace.net.peerDirectory
@@ -28,7 +28,7 @@ import straightway.peerspace.net.peerDirectory
  */
 class KnownPeersPushTargetImpl :
         KnownPeersPushTarget,
-        KoinModuleComponent by KoinModuleComponent() {
+        PeerComponent by PeerComponent() {
 
     override fun pushKnownPeers(request: Request<KnownPeers>) {
         peerDirectory.add(request.remotePeerId)

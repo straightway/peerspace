@@ -16,9 +16,9 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.net.DataQuerySource
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.dataQueryHandler
 import straightway.peerspace.net.network
@@ -27,7 +27,7 @@ import straightway.peerspace.net.peerDirectory
 /**
  * Default implementation of the DataQuerySource interface.
  */
-class DataQuerySourceImpl : DataQuerySource, KoinModuleComponent by KoinModuleComponent() {
+class DataQuerySourceImpl : DataQuerySource, PeerComponent by PeerComponent() {
 
     override fun queryData(request: Request<DataQuery>) {
         peerDirectory.add(request.remotePeerId)

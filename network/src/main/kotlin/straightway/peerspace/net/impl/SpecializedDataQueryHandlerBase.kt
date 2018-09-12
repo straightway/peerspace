@@ -18,10 +18,10 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataQueryHandler
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
@@ -38,7 +38,7 @@ import straightway.peerspace.net.queryForwarder
 abstract class SpecializedDataQueryHandlerBase(
         val isLocalResultPreventingForwarding: Boolean) :
         DataQueryHandler,
-        KoinModuleComponent by KoinModuleComponent() {
+        PeerComponent by PeerComponent() {
 
     final override fun handle(query: Request<DataQuery>) {
         if (!pendingDataQueryTracker.isPending(query.content))

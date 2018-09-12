@@ -16,10 +16,10 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.DataPushTarget
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.dataQueryHandler
@@ -31,7 +31,7 @@ import straightway.peerspace.net.pushForwarder
 /**
  * Default implementation of the DataPushTarget interface.
  */
-class DataPushTargetImpl : DataPushTarget, KoinModuleComponent by KoinModuleComponent() {
+class DataPushTargetImpl : DataPushTarget, PeerComponent by PeerComponent() {
 
     override fun pushDataChunk(request: Request<DataChunk>) {
         peerDirectory.add(request.remotePeerId)

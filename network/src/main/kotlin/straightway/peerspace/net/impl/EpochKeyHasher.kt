@@ -18,8 +18,8 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.untimedData
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.epochAnalyzer
 import straightway.peerspace.net.hasher
 
@@ -28,7 +28,7 @@ import straightway.peerspace.net.hasher
  * range of these objects and assigning them to time epochs (instead of using the
  * timestamps directly for hashing).
  */
-class EpochKeyHasher : KeyHasher, KoinModuleComponent by KoinModuleComponent() {
+class EpochKeyHasher : KeyHasher, PeerComponent by PeerComponent() {
 
     override fun getHashes(hashable: KeyHashable) =
             when (hashable.timestamps) {

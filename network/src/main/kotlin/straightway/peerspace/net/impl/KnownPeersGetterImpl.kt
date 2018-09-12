@@ -16,10 +16,10 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersQuery
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.configuration
 import straightway.peerspace.net.knownPeerQueryChooser
@@ -32,7 +32,7 @@ import straightway.random.Chooser
  */
 class KnownPeersGetterImpl :
         KnownPeersGetter,
-        KoinModuleComponent by KoinModuleComponent() {
+        PeerComponent by PeerComponent() {
 
     override fun refreshKnownPeers() {
         peersToQueryForOtherKnownPeers.forEach { queryForKnownPeers(it) }

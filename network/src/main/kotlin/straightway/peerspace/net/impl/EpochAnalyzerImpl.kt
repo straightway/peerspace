@@ -15,8 +15,8 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.net.EpochAnalyzer
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.timeProvider
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -26,7 +26,7 @@ import java.time.temporal.ChronoUnit
  */
 class EpochAnalyzerImpl(
     private val epochs: Array<LongRange>
-) : EpochAnalyzer, KoinModuleComponent by KoinModuleComponent() {
+) : EpochAnalyzer, PeerComponent by PeerComponent() {
 
     override fun getEpochs(timestamp: ClosedRange<Long>) =
             getRelativeRange(timestamp).let {

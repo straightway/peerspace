@@ -15,7 +15,6 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.Property.property
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
@@ -24,6 +23,7 @@ import straightway.peerspace.data.Transmittable
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.PeerClient
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.QueryControl
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.configuration
@@ -38,7 +38,7 @@ import java.time.LocalDateTime
 /**
  * Default implementation of the PeerClient interface.
  */
-class PeerClientImpl : PeerClient, KoinModuleComponent by KoinModuleComponent() {
+class PeerClientImpl : PeerClient, PeerComponent by PeerComponent() {
 
     private val peerId: Id by property("peerId") { Id(it) }
 

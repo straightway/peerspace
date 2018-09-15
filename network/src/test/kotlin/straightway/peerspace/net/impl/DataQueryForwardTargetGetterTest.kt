@@ -57,7 +57,7 @@ class DataQueryForwardTargetGetterTest : KoinLoggingDisabler() {
         }
 
     @Test
-    fun `getForwardPeerIdsFor returns query forward peer ids from strategy` () =
+    fun `getForwardPeerIdsFor returns query forward peer ids from strategy`() =
             test while_ {
                 forwardPeerIds = setOf(environment.knownPeersIds.first())
             } when_ {
@@ -67,7 +67,7 @@ class DataQueryForwardTargetGetterTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `getForwardPeerIdsFor passes forward state to forward strategy` () {
+    fun `getForwardPeerIdsFor passes forward state to forward strategy`() {
         val forwardState = ForwardState(pending = setOf(Id("pendingId")))
         test when_ {
             sut.getForwardPeerIdsFor(queryRequest, forwardState)

@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
+// ktlint-disable filename
 package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.Test
@@ -130,7 +132,6 @@ class `ForwardStrategyImplTest for data chunks` : KoinLoggingDisabler() {
             } when_ {
                 sut.getForwardPeerIdsFor(chunkKey, forwardState)
             } then {
-                //verify(forwardPeerChooser).chooseFrom(listOf(idForHash[150]!!), 1)
                 expect(it.result is_ Equal to_ Values(idForHash[150]!!))
             }
 

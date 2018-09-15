@@ -98,7 +98,7 @@ class ForwarderImplTest : KoinLoggingDisabler() {
                         }
                     }
                 }
-                bean ("testForwarder") {
+                bean("testForwarder") {
                     ForwarderImpl(get("testTracker"), get("testForwardTargetGetter"))
                 }
             }

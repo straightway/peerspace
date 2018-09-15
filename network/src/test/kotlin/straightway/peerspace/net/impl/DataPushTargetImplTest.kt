@@ -72,7 +72,7 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     @Test
     fun `push does not throw`() =
             test when_ { sut.pushDataChunk(Request(originatorId, chunk)) } then {
-                expect ({ it.result } does Not - Throw.exception)
+                expect({ it.result } does Not - Throw.exception)
             }
 
     @Test

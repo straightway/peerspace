@@ -117,11 +117,11 @@ class KeyTest {
             expect(Key(id, timestamp).timestamps is_ Equal to_ LongRange(timestamp, timestamp))
 
     @Test
-    fun `isUntimed returns true if timestamp is 0` () =
+    fun `isUntimed returns true if timestamp is 0`() =
             expect(Key(id, 0).isUntimed is_ True)
 
     @Test
-    fun `isUntimed returns false if timestamp is not 0` () =
+    fun `isUntimed returns false if timestamp is not 0`() =
             expect(Key(id, 1).isUntimed is_ False)
 
     @Test

@@ -184,7 +184,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     }
 
     @Test
-    fun `transmission to local peer is sent via localChunkDeliveryEvent` () {
+    fun `transmission to local peer is sent via localChunkDeliveryEvent`() {
         var transmitted = listOf<Transmittable>()
         test while_ {
             environment.localDeliveryEvent.attach { transmitted += it }
@@ -197,7 +197,7 @@ class NetworkImplTest : KoinLoggingDisabler() {
     }
 
     @Test
-    fun `transmission to local peer signals success` () {
+    fun `transmission to local peer signals success`() {
         val listener = mock<TransmissionResultListener>()
         test when_ {
             sut.scheduleTransmission(Request(environment.peerId, transmittedData), listener)

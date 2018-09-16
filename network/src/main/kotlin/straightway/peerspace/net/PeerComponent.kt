@@ -18,6 +18,7 @@ package straightway.peerspace.net
 import org.koin.dsl.context.Context
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinModuleComponent
+import straightway.koinutils.Property.getProperty
 import straightway.koinutils.withContext
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
@@ -36,10 +37,12 @@ interface PeerComponent : KoinModuleComponent {
     @Suppress("LargeClass")
     companion object {
         operator fun invoke() = Impl()
+
         class Impl : PeerComponent, KoinModuleComponent by KoinModuleComponent()
+
         @Suppress("LongParameterList")
         fun createEnvironment(
-                peerId: Id = Id("peerId"),
+                peerId: Id,
                 configurationFactory: () -> Configuration,
                 forwardStrategyFactory: () -> ForwardStrategy,
                 timeProviderFactory: () -> TimeProvider,
@@ -117,6 +120,8 @@ interface PeerComponent : KoinModuleComponent {
     }
 }
 
+val PeerComponent.localPeerId: Id get() =
+    Id(getProperty("peerId"))
 val PeerComponent.configuration: Configuration get() =
     get()
 val PeerComponent.forwardStrategy: ForwardStrategy get() =

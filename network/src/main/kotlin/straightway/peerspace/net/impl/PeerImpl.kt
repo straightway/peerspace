@@ -15,8 +15,6 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.Id
-import straightway.koinutils.Property.property
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
@@ -29,6 +27,7 @@ import straightway.peerspace.net.dataQuerySource
 import straightway.peerspace.net.knownPeersGetter
 import straightway.peerspace.net.knownPeersPushTarget
 import straightway.peerspace.net.knownPeersQuerySource
+import straightway.peerspace.net.localPeerId
 
 /**
  * Default productive implementation of a peerspace peer.
@@ -42,7 +41,7 @@ class PeerImpl :
         KnownPeersGetter by PeerComponent().knownPeersGetter,
         PeerComponent by PeerComponent() {
 
-    override val id: Id by property("peerId") { Id(it) }
+    override val id get() = localPeerId
 
     override fun toString() = "PeerImpl(${id.identifier})"
 }

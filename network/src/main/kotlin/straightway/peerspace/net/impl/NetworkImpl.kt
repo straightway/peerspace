@@ -16,20 +16,18 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
-import straightway.koinutils.Property.property
 import straightway.peerspace.net.Network
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.createChannelTo
 import straightway.peerspace.net.localDeliveryEvent
+import straightway.peerspace.net.localPeerId
 
 /**
  * Productive implementation of the Network interface.
  */
 class NetworkImpl : Network, PeerComponent by PeerComponent() {
-
-    private val peerId: Id by property("peerId") { Id(it) }
 
     override fun scheduleTransmission(
             transmission: Request<*>,
@@ -59,7 +57,7 @@ class NetworkImpl : Network, PeerComponent by PeerComponent() {
                 if (transmission.isLocal) deliverLocally()
                 else deliverViaNetwork()
 
-        private val Request<*>.isLocal get() = remotePeerId == peerId
+        private val Request<*>.isLocal get() = remotePeerId == localPeerId
 
         private fun deliverLocally() {
             distributingListener.notifySuccess()

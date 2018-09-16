@@ -15,10 +15,8 @@
  */
 package straightway.peerspace.net.impl
 
-import straightway.koinutils.Property.property
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
-import straightway.peerspace.data.Id
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.data.isUntimed
@@ -30,6 +28,7 @@ import straightway.peerspace.net.configuration
 import straightway.peerspace.net.dataPushTarget
 import straightway.peerspace.net.dataQuerySource
 import straightway.peerspace.net.localDeliveryEvent
+import straightway.peerspace.net.localPeerId
 import straightway.peerspace.net.timeProvider
 import straightway.units.toDuration
 import straightway.utils.EventHandlerToken
@@ -40,11 +39,9 @@ import java.time.LocalDateTime
  */
 class PeerClientImpl : PeerClient, PeerComponent by PeerComponent() {
 
-    private val peerId: Id by property("peerId") { Id(it) }
-
     override fun store(data: DataChunk) {
         removeExpiredPendingQueries()
-        dataPushTarget.pushDataChunk(Request(peerId, data))
+        dataPushTarget.pushDataChunk(Request(localPeerId, data))
     }
 
     override fun query(
@@ -87,7 +84,7 @@ class PeerClientImpl : PeerClient, PeerComponent by PeerComponent() {
         override fun keepAlive() {
             expirationTime =
                     timeProvider.now + configuration.timedDataQueryTimeout.toDuration()
-            dataQuerySource.queryData(Request(peerId, query))
+            dataQuerySource.queryData(Request(localPeerId, query))
         }
 
         override fun onExpiring(callback: QueryControl.(DataQuery) -> Unit) {

@@ -17,13 +17,13 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.koinutils.Property.property
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardStrategy
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.configuration
 import straightway.peerspace.net.keyHasher
+import straightway.peerspace.net.localPeerId
 import straightway.peerspace.net.peerDirectory
 import straightway.peerspace.net.timeProvider
 import straightway.units.minus
@@ -36,13 +36,11 @@ import java.time.LocalDateTime
  */
 class ForwardStrategyImpl : ForwardStrategy, PeerComponent by PeerComponent() {
 
-    private val id: Id by property("peerId") { Id(it) }
-
     override fun getForwardPeerIdsFor(item: KeyHashable, state: ForwardState): Set<Id> {
         handleFailedPeers(state)
         return peersNearerTo(item.hash)
                 .notCoveredBy(state)
-                .take(state.numberOfeceiversToFillUp)
+                .take(state.numberOfReceiversToFillUp)
                 .toSet()
     }
 
@@ -59,7 +57,7 @@ class ForwardStrategyImpl : ForwardStrategy, PeerComponent by PeerComponent() {
         failedPeers = failedPeers.filter { timeout < it.value }
     }
 
-    private val ForwardState.numberOfeceiversToFillUp get() =
+    private val ForwardState.numberOfReceiversToFillUp get() =
             max(0, configuration.numberOfForwardPeers - nonFailed.size)
 
     private fun Iterable<Id>.notCoveredBy(state: ForwardState) =
@@ -81,6 +79,6 @@ class ForwardStrategyImpl : ForwardStrategy, PeerComponent by PeerComponent() {
     private val ForwardState.allPeerIds get() = pending + successful + failed
     private val ForwardState.nonFailed get() = pending + successful
 
-    private val ownHash by lazy { id.hash }
+    private val ownHash by lazy { localPeerId.hash }
     private var failedPeers = mapOf<Id, LocalDateTime>()
 }

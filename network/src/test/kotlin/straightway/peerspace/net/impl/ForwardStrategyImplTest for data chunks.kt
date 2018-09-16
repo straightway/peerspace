@@ -1,3 +1,4 @@
+// ktlint-disable filename
 /*
  * Copyright 2016 github.com/straightway
  *
@@ -13,8 +14,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-// ktlint-disable filename
 package straightway.peerspace.net.impl
 
 import org.junit.jupiter.api.Test

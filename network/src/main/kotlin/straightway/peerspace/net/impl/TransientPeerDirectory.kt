@@ -16,14 +16,55 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Id
+import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.PeerDirectory
+import straightway.peerspace.net.configuration
+import straightway.peerspace.net.timeProvider
+import straightway.units.plus
+import java.time.LocalDateTime
 
 /**
  * PeerDirectory implementation holding the given peer IDs transiently.
  */
-class TransientPeerDirectory : PeerDirectory {
-    override val allKnownPeersIds: Set<Id> get() = ids
-    override infix fun add(id: Id) { ids += id }
+class TransientPeerDirectory : PeerDirectory, PeerComponent by PeerComponent() {
 
-    private var ids = setOf<Id>()
+    override val allKnownPeersIds: Set<Id> get() {
+        resumeUnreachablePeersIfNeeded()
+        return ids.toSet() - unreachablePeerSuspensions.keys
+    }
+
+    override fun add(id: Id) {
+        ids -= id
+        ids += id
+        cleanUpIfMaxSizeIsReached()
+    }
+
+    override fun setUnreachable(id: Id) {
+        ids -= id
+        ids = unreachablePeers + id + reachablePeers
+        unreachablePeerSuspensions +=
+                Pair(id, timeProvider.now + configuration.unreachablePeerSuspendTime)
+    }
+
+    // region Private
+
+    private val unreachablePeers get() = ids.takeWhile { it in unreachablePeerSuspensions }
+    private val reachablePeers get() = ids.dropWhile { it in unreachablePeerSuspensions }
+
+    private fun resumeUnreachablePeersIfNeeded() {
+        val now = timeProvider.now
+        unreachablePeerSuspensions -= unreachablePeerSuspensions.filter { it.value <= now }.keys
+    }
+
+    private fun cleanUpIfMaxSizeIsReached() {
+        if (configuration.maxKnownPeers < ids.size) {
+            unreachablePeerSuspensions -= ids.first()
+            ids = ids.drop(1)
+        }
+    }
+
+    private var ids = listOf<Id>()
+    private var unreachablePeerSuspensions = mapOf<Id, LocalDateTime>()
+
+    // endregion
 }

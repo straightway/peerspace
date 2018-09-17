@@ -22,5 +22,6 @@ import straightway.peerspace.data.Id
  */
 interface PeerDirectory {
     val allKnownPeersIds: Set<Id>
-    infix fun add(id: Id)
+    fun add(id: Id)
+    fun setUnreachable(id: Id)
 }

@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.net
 
+import straightway.peerspace.data.Id
 import straightway.units.AmountOfData
 import straightway.units.Time
 import straightway.units.UnitNumber
@@ -39,4 +40,5 @@ data class Configuration(
         val numberOfForwardPeers: Int = 2,
         val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute],
         val storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)],
-        val forwardRetries: Int = 2)
+        val forwardRetries: Int = 2,
+        val seedPeerIds: Set<Id> = setOf(Id("seedNodeId")))

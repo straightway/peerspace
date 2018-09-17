@@ -51,6 +51,7 @@ import straightway.peerspace.net.impl.KnownPeersGetterImpl
 import straightway.peerspace.net.impl.KnownPeersPushTargetImpl
 import straightway.peerspace.net.impl.KnownPeersQuerySourceImpl
 import straightway.peerspace.net.impl.PeerClientImpl
+import straightway.peerspace.net.impl.SeedPeerDirectory
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -145,38 +146,38 @@ class SinglePeerEnvironment(
 
     val koin: PeerComponent by lazy {
         PeerComponent.createEnvironment(
-            peerId,
-            { Configuration() },
-            { forwardStrategyFactory() },
-            { simulator },
-            { DataQueryHandlerImpl() },
-            { TimedDataQueryHandler() },
-            { UntimedDataQueryHandler() },
-            { RandomChooser(randomSource) },
-            { RandomChooser(randomSource) },
-            { TransientPeerDirectory() },
-            { NetworkImpl() },
-            { TransientDataChunkStore() },
-            { peerFactory().apply { addRemotePeer(this) } },
-            { DataQueryForwardTargetGetter() },
-            { DataPushForwardTargetGetter() },
-            { PendingDataQueryTrackerImpl { timedDataQueryTimeout } },
-            { PendingDataQueryTrackerImpl { untimedDataQueryTimeout } },
-            { ForwardStateTrackerImpl() },
-            { ForwarderImpl(koin.queryForwardStateTracker, koin.queryForwardTargetGetter) },
-            { ForwardStateTrackerImpl() },
-            { ForwarderImpl(koin.pushForwardStateTracker, koin.pushForwardTargetGetter) },
-            { dataPushTargetFactory() },
-            { dataQuerySourceFactory() },
-            { knownPeersPushTargetFactory() },
-            { knownPeersQuerySourceFactory() },
-            { KnownPeersGetterImpl() },
-            { chunkSizeGetter { _ -> 64[ki(byte)] } },
-            { Event() },
-            { Event() },
-            { PeerClientImpl() },
-            { keyHasherFactory() },
-            {
+                peerId,
+                { Configuration() },
+                { forwardStrategyFactory() },
+                { simulator },
+                { DataQueryHandlerImpl() },
+                { TimedDataQueryHandler() },
+                { UntimedDataQueryHandler() },
+                { RandomChooser(randomSource) },
+                { RandomChooser(randomSource) },
+                { SeedPeerDirectory(TransientPeerDirectory()) },
+                { NetworkImpl() },
+                { TransientDataChunkStore() },
+                { peerFactory().apply { addRemotePeer(this) } },
+                { DataQueryForwardTargetGetter() },
+                { DataPushForwardTargetGetter() },
+                { PendingDataQueryTrackerImpl { timedDataQueryTimeout } },
+                { PendingDataQueryTrackerImpl { untimedDataQueryTimeout } },
+                { ForwardStateTrackerImpl() },
+                { ForwarderImpl(koin.queryForwardStateTracker, koin.queryForwardTargetGetter) },
+                { ForwardStateTrackerImpl() },
+                { ForwarderImpl(koin.pushForwardStateTracker, koin.pushForwardTargetGetter) },
+                { dataPushTargetFactory() },
+                { dataQuerySourceFactory() },
+                { knownPeersPushTargetFactory() },
+                { knownPeersQuerySourceFactory() },
+                { KnownPeersGetterImpl() },
+                { chunkSizeGetter { _ -> 64[ki(byte)] } },
+                { Event() },
+                { Event() },
+                { PeerClientImpl() },
+                { keyHasherFactory() },
+                {
                 EpochAnalyzerImpl(arrayOf(
                     LongRange(0L, 86400000L), // epoch 0: 1 day
                     LongRange(86400001L, 604800000L), // epoch 1: 1 week
@@ -185,12 +186,12 @@ class SinglePeerEnvironment(
                     LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                     LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
             },
-            {
+                {
                 object : Hasher {
                     override fun getHash(obj: Serializable) = obj.hashCode().toByteArray()
                 }
             },
-            { remoteNodeId ->
+                { remoteNodeId ->
                 val from = simNodes[peerId]!!
                 val to = simNodes[remoteNodeId]!!
                 SimChannel(simNetwork, chunkSizeGetter, from, to)

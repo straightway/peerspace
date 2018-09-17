@@ -41,6 +41,7 @@ import straightway.peerspace.net.impl.NetworkImpl
 import straightway.peerspace.net.impl.PeerClientImpl
 import straightway.peerspace.net.impl.PeerImpl
 import straightway.peerspace.net.impl.PendingDataQueryTrackerImpl
+import straightway.peerspace.net.impl.SeedPeerDirectory
 import straightway.peerspace.net.impl.TimedDataQueryHandler
 import straightway.peerspace.net.impl.TransientDataChunkStore
 import straightway.peerspace.net.impl.TransientPeerDirectory
@@ -92,6 +93,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
     private val chunkSizeGetter = chunkSizeGetter { _ -> CHUNK_SIZE }
 
+    @Suppress("MagicNumber")
     private fun createPeer(id: Id): Peer {
         lateinit var env: PeerComponent
         env = PeerComponent.createEnvironment(
@@ -104,7 +106,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                 { UntimedDataQueryHandler() },
                 { RandomChooser(randomSource) },
                 { RandomChooser(randomSource) },
-                { TransientPeerDirectory() },
+                { SeedPeerDirectory(TransientPeerDirectory()) },
                 { NetworkImpl() },
                 { TransientDataChunkStore() },
                 { PeerImpl() },
@@ -133,7 +135,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                             LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
                             LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
                             LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
-                            LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
+                            LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: > 10 years
                 },
                 {
                     SimHasher()
@@ -146,7 +148,6 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
 
         return env.peer.also { peers[id] = it }
     }
-
 
     private fun createSimNode(parentPeer: Peer) =
             withContext {
@@ -167,14 +168,6 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             } make {
                 SimNode()
             }
-
-
-    /*
-    @Suppress("UNUSED_PARAMETER")
-    private fun createPeerNetwork(): Network {
-        //val peerStubFactory = PeerStubFactory(channelFactory)
-        return NetworkImpl()
-    }*/
 
     init {
         (1..numberOfPeers).map { Id("$it") }.forEach { createSimNode(createPeer(it)) }

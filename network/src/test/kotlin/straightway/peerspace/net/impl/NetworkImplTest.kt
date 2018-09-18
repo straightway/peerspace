@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.expr.minus
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.KoinModuleComponent
@@ -32,9 +33,13 @@ import straightway.peerspace.net.Request
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.localDeliveryEvent
 import straightway.peerspace.net.network
+import straightway.peerspace.net.peerDirectory
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Not
+import straightway.testing.flow.Throw
 import straightway.testing.flow.Values
+import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -206,4 +211,35 @@ class NetworkImplTest : KoinLoggingDisabler() {
             verify(listener).notifySuccess()
         }
     }
+
+    @Test
+    fun `failed transmission marks peer as unreachable`() {
+        val listener1 = mock<TransmissionResultListener>()
+        val listener2 = mock<TransmissionResultListener>()
+        test while_ {
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener1)
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener2)
+            sut.executePendingRequests()
+        } when_ {
+            transmissionResultListeners.single().notifyFailure()
+        } then {
+            verify(environment.peerDirectory).setUnreachable(receiverId)
+        }
+    }
+
+    @Test
+    fun `peer is marked as unreachable before listeners are notified`() =
+        test while_ {
+            val listener: TransmissionResultListener = mock { _ ->
+                on { notifyFailure() }.thenAnswer {
+                    verify(environment.peerDirectory).setUnreachable(receiverId)
+                }
+            }
+            sut.scheduleTransmission(Request(receiverId, transmittedData), listener)
+            sut.executePendingRequests()
+        } when_ {
+            transmissionResultListeners.single().notifyFailure()
+        } then {
+            expect({ it.result } does Not - Throw.exception)
+        }
 }

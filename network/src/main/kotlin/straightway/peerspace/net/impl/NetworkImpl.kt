@@ -23,6 +23,7 @@ import straightway.peerspace.net.TransmissionResultListener
 import straightway.peerspace.net.createChannelTo
 import straightway.peerspace.net.localDeliveryEvent
 import straightway.peerspace.net.localPeerId
+import straightway.peerspace.net.peerDirectory
 
 /**
  * Productive implementation of the Network interface.
@@ -72,7 +73,10 @@ class NetworkImpl : Network, PeerComponent by PeerComponent() {
 
         private val distributingListener = object : TransmissionResultListener {
             override fun notifySuccess() = forAllListeners { notifySuccess() }
-            override fun notifyFailure() = forAllListeners { notifyFailure() }
+            override fun notifyFailure() {
+                peerDirectory.setUnreachable(transmission.remotePeerId)
+                forAllListeners { notifyFailure() }
+            }
         }
     }
 }

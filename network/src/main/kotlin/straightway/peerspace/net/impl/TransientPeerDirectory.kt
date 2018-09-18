@@ -34,6 +34,7 @@ class TransientPeerDirectory : PeerDirectory, PeerComponent by PeerComponent() {
     }
 
     override fun add(id: Id) {
+        if (id in unreachablePeerSuspensions) return
         ids -= id
         ids += id
         cleanUpIfMaxSizeIsReached()

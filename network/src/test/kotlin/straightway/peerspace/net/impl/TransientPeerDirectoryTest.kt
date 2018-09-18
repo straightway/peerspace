@@ -143,6 +143,19 @@ class TransientPeerDirectoryTest : KoinLoggingDisabler() {
                                environment.fullKnownPeers - Id("1") + knownPeerId)
             }
 
+    @Test
+    fun `adding an already unreachable peer keeps it unreachable`() =
+            test while_ {
+                environment.fullKnownPeers.forEach { sut.add(it) }
+            } when_ {
+                sut.setUnreachable(Id("1"))
+                sut.add(Id("1"))
+                sut.add(knownPeerId)
+            } then {
+                expect(sut.allKnownPeersIds is_ Equal to_
+                               environment.fullKnownPeers - Id("1") + knownPeerId)
+            }
+
     private val PeerTestEnvironment.fullKnownPeers get() =
         (1..configuration.maxKnownPeers).map { Id(it.toString()) }.toSet()
 }

@@ -137,9 +137,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
                             LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
                             LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: > 10 years
                 },
-                {
-                    SimHasher()
-                },
+                { SimHasher() },
                 { remotePeerId ->
                     val from = simPeers[id]!!
                     val to = simPeers[remotePeerId]!!

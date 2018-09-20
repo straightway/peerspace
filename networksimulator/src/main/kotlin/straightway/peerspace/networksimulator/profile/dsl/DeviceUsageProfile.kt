@@ -13,18 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profileDsl
+package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.units.AmountOfData
-import straightway.units.Time
-import straightway.units.UnitNumber
+/**
+ * Profile of how a certain device is used in the simulation.
+ */
+class DeviceUsageProfile(init: DeviceUsageProfile.() -> Unit) {
 
-class UsageProfile(init: UsageProfile.() -> Unit) {
-    val activity = SingleValueProvider<Activity>("activity")
-    val numberOfTimes = SingleValueProvider<Int>("numberOfTimes")
-    val duration = SingleValueProvider<UnitNumber<Time>>("duration")
-    val time = SingleValueProvider<Weekly>("time")
-    val dataVolume = SingleValueProvider<UnitNumber<AmountOfData>>("dataVolume")
+    val onlineTimes = MultiValueProvider<Weekly>("onlineTime")
+    val usages = MultiValueProvider<UsageProfile>("usages")
+    val device = SingleValueProvider<DeviceProfile>("devices")
+
     init { init() }
-    operator fun invoke(update: UsageProfile.() -> Unit): UsageProfile { update(); return this }
 }

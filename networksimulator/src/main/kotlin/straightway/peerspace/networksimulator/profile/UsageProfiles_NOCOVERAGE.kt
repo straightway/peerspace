@@ -13,9 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profiles
+@file:Suppress("MagicNumber")
+package straightway.peerspace.networksimulator.profile
 
-import straightway.peerspace.networksimulator.profileDsl.UsageProfile
+import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 import straightway.peerspace.networksimulator.activities.doReadSocialMediaFeeds
 import straightway.peerspace.networksimulator.activities.doPostOnSocialMediaFeed
 import straightway.peerspace.networksimulator.activities.doReadMessages

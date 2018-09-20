@@ -13,14 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profileDsl
+package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.error.Panic
 
-class SingleValueProvider<T>(
-        val name: String,
-        private var getter: SingleValueProvider<T>.() -> T = { throw Panic("No value specified for $name") }
+/**
+ * Provide a list of values by a getter function.
+ */
+class MultiValueProvider<T>(
+        val name: String
 ) {
-    val value get() = getter()
-    operator fun invoke(getter: SingleValueProvider<T>.() -> T) { this.getter = getter }
+    val values get() = getter()
+    fun values(vararg items: T): List<T> = items.toList()
+    operator fun List<T>.plus(other: T) = add(other)
+    operator fun T.unaryPlus(): List<T> = listOf(this)
+    operator fun invoke(getter: MultiValueProvider<T>.() -> Iterable<T>) { this.getter = getter }
+
+    private var getter: MultiValueProvider<T>.() -> Iterable<T> =
+            { throw Panic("No value specified for $name") }
 }
+
+private fun <T> List<T>.add(item: T): List<T> = this + item

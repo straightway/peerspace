@@ -13,13 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profileDsl
+package straightway.peerspace.networksimulator.profile.dsl
 
-class DeviceUsageProfile(init: DeviceUsageProfile.() -> Unit) {
+import org.junit.jupiter.api.Test
 
-    val onlineTimes = MultiValueProvider<Weekly>("onlineTime")
-    val usages = MultiValueProvider<UsageProfile>("usages")
-    val device = SingleValueProvider<DeviceProfile>("devices")
+class DeviceUsageProfileTest {
 
-    init { init() }
+    private val sut get() = testProfile<DeviceUsageProfile> { DeviceUsageProfile(it) }
+
+    @Test
+    fun onlineTimes() = sut.testMultiValue { onlineTimes }
+
+    @Test
+    fun usages() = sut.testMultiValue { usages }
+
+    @Test
+    fun device() = sut.testSingleValue(DeviceProfile {}) { device }
 }

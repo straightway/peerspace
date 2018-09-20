@@ -13,26 +13,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profileDsl
+package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.units.AmountOfData
 import straightway.units.Bandwidth
 import straightway.units.UnitNumber
-import straightway.units.bit
-import straightway.units.byte
-import straightway.units.div
-import straightway.units.get
-import straightway.units.gi
-import straightway.units.me
-import straightway.units.second
 
+/**
+ * Profile for a simulated physical device participating in the peerspace network,
+ * e.g. a PC or a smart phone.
+ */
 class DeviceProfile(init: DeviceProfile.() -> Unit) {
-    val uploadBandwidth
-            = SingleValueProvider<UnitNumber<Bandwidth>>("uploadBandwidth")
-    val downloadBandwidth
-            = SingleValueProvider<UnitNumber<Bandwidth>>("downloadBandwidth")
-    val persistentStorageAvailable
-            = SingleValueProvider<UnitNumber<AmountOfData>>("persistentStorageAvailable")
+    val uploadBandwidth =
+            SingleValueProvider<UnitNumber<Bandwidth>>("uploadBandwidth")
+    val downloadBandwidth =
+            SingleValueProvider<UnitNumber<Bandwidth>>("downloadBandwidth")
+    val persistentStorageAvailable =
+            SingleValueProvider<UnitNumber<AmountOfData>>("persistentStorageAvailable")
 
     init { init() }
 }

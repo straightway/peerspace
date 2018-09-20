@@ -13,29 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profiles
+package straightway.peerspace.networksimulator.activities
 
-import straightway.peerspace.networksimulator.profileDsl.UserProfile
+import com.nhaarman.mockito_kotlin.mock
+import org.junit.jupiter.api.Test
+import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 
-val officeWorker = UserProfile {
-    usedDevices {
-        +workPc
-        +homeUsedPc
-        +mobilePhone
-    }
-}
-
-val nonOfficeWorker = UserProfile {
-    usedDevices {
-        +homeUsedPc
-        +mobilePhone
-    }
-}
-
-val mobileOnlyUser = UserProfile {
-    usedDevices { +mobilePhone }
-}
-
-val homePcOnlyUser = UserProfile {
-    usedDevices { +homeUsedPc }
+class ReadSocialMediaFeedsTest {
+    @Test
+    fun tempAlibi() = doReadSocialMediaFeeds(mock(), UsageProfile {})
 }

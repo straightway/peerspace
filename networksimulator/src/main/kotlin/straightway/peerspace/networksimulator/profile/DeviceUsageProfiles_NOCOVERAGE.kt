@@ -13,27 +13,28 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profiles
+@file:Suppress("MagicNumber")
+package straightway.peerspace.networksimulator.profile
 
-import straightway.peerspace.networksimulator.profileDsl.DeviceUsageProfile
-import straightway.peerspace.networksimulator.profileDsl.Weekly
+import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
+import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.units.get
 import straightway.units.hour
 import straightway.units.minute
 
 val homeUsedPc = DeviceUsageProfile {
     onlineTimes {
-        +Weekly.workday { 19[hour]..22[hour] }
-        +Weekly.weekend { 19[hour]..24[hour] }
-        +Weekly.sunday { 0[hour]..2[hour] }
+        +Weekly.workdays { 19[hour]..22[hour] }
+        +Weekly.weekends { 19[hour]..24[hour] }
+        +Weekly.sundays { 0[hour]..2[hour] }
     }
-    usages  {
+    usages {
         +readSocialMediaFeeds {
-            time { Weekly.workday { 19[hour]..22[hour] } }
+            time { Weekly.workdays { 19[hour]..22[hour] } }
             numberOfTimes { 70 }
         }
         +postOnSocialMediaFeed {
-            time { Weekly.workday { 19[hour]..22[hour] } }
+            time { Weekly.workdays { 19[hour]..22[hour] } }
             numberOfTimes { 30 }
         }
     }
@@ -41,7 +42,7 @@ val homeUsedPc = DeviceUsageProfile {
 }
 
 val mobilePhone = DeviceUsageProfile {
-    onlineTimes { +Weekly.eachDay { 0[hour].. 24[hour] } }
+    onlineTimes { +Weekly.eachDay { 0[hour]..24[hour] } }
     usages {
         +postOnSocialMediaFeed {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
@@ -67,7 +68,7 @@ val mobilePhone = DeviceUsageProfile {
 
 val workPc = DeviceUsageProfile {
     onlineTimes {
-        +Weekly.workday { 8[hour]..17[hour] }
+        +Weekly.workdays { 8[hour]..17[hour] }
     }
     usages {
         +readMessages {

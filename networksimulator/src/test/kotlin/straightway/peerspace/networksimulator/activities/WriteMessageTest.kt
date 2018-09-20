@@ -13,9 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profileDsl
+package straightway.peerspace.networksimulator.activities
 
-class UserProfile(init: UserProfile.() -> Unit) {
-    val usedDevices = MultiValueProvider<DeviceUsageProfile>("usedDevices")
-    init { init() }
+import com.nhaarman.mockito_kotlin.mock
+import org.junit.jupiter.api.Test
+import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
+
+class WriteMessageTest {
+    @Test
+    fun tempAlibi() = doWriteMessage(mock(), UsageProfile {})
 }

@@ -13,8 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.activities
+package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.peerspace.networksimulator.profile.dsl.Activity
+import straightway.error.Panic
 
-val doPostOnSocialMediaFeed: Activity = { _, _ -> }
+/**
+ * Provide a single value by a getter function.
+ */
+class SingleValueProvider<T>(val name: String) {
+    val value get() = getter()
+    operator fun invoke(getter: SingleValueProvider<T>.() -> T) { this.getter = getter }
+
+    private var getter: SingleValueProvider<T>.() -> T =
+            { throw Panic("No value specified for $name") }
+}

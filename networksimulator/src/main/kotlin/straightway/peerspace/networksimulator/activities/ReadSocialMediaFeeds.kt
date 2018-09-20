@@ -15,6 +15,6 @@
  */
 package straightway.peerspace.networksimulator.activities
 
-import straightway.peerspace.networksimulator.profileDsl.Activity
+import straightway.peerspace.networksimulator.profile.dsl.Activity
 
 val doReadSocialMediaFeeds: Activity = { _, _ -> }

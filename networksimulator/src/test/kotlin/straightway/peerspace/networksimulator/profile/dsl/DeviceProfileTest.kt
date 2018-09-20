@@ -13,9 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profiles
+package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.peerspace.networksimulator.profileDsl.DeviceProfile
+import org.junit.jupiter.api.Test
 import straightway.units.bit
 import straightway.units.byte
 import straightway.units.div
@@ -24,14 +24,18 @@ import straightway.units.gi
 import straightway.units.me
 import straightway.units.second
 
-val mobileDevice get() = DeviceProfile {
-    uploadBandwidth { 2[me(bit) / second] }
-    downloadBandwidth { 7[me(bit) / second] }
-    persistentStorageAvailable { 3[gi(byte)] }
-}
+class DeviceProfileTest {
 
-val pc get() = DeviceProfile {
-    uploadBandwidth { 1[me(bit) / second] }
-    downloadBandwidth { 3[me(bit) / second] }
-    persistentStorageAvailable { 20[gi(byte)] }
+    private val sut get() = testProfile<DeviceProfile> { DeviceProfile(it) }
+
+    @Test
+    fun uploadBandwidth() = sut.testSingleValue(3[me(bit) / second]) { uploadBandwidth }
+
+    @Test
+    fun downloadBandwidth() = sut.testSingleValue(3[me(bit) / second]) { downloadBandwidth }
+
+    @Test
+    fun persistentStorageAvailable() = sut.testSingleValue(3[gi(byte)]) {
+        persistentStorageAvailable
+    }
 }

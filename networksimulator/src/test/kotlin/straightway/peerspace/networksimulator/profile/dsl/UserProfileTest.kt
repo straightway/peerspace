@@ -13,8 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profileDsl
+package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.peerspace.networksimulator.SimNode
+import org.junit.jupiter.api.Test
 
-typealias Activity = (SimNode, UsageProfile) -> Unit
+class UserProfileTest {
+
+    @Test
+    fun usedDevices() =
+            testProfile<UserProfile> { UserProfile(it) }
+                    .testMultiValue { usedDevices }
+}

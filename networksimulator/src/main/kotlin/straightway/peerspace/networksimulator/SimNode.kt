@@ -17,14 +17,13 @@ package straightway.peerspace.networksimulator
 
 import straightway.peerspace.data.Id
 import straightway.koinutils.Bean.inject
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Channel
-import straightway.peerspace.net.PeerComponent
+import straightway.peerspace.net.ChunkSizeGetter
+import straightway.peerspace.net.Peer
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.handle
-import straightway.peerspace.net.localPeerId
-import straightway.peerspace.net.peer
 import straightway.sim.net.Message
 import straightway.sim.net.Node
 import straightway.sim.net.TransmissionRequestHandler
@@ -33,12 +32,14 @@ import straightway.sim.net.TransmissionStream
 /**
  * Infrastructure for the simulation of a network peer.
  */
-class SimNode : Node, PeerComponent by PeerComponent() {
+class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
 
+    private val peer: Peer by inject()
     private val simNodes: MutableMap<Id, SimNode> by inject("simNodes")
     private val transmissionRequestHandler: TransmissionRequestHandler by inject()
+    private val chunkSizeGetter: ChunkSizeGetter by inject()
 
-    override val id: Id get() = localPeerId
+    override val id: Id get() = peer.id
     override val uploadStream: TransmissionStream by inject("uploadStream")
     override val downloadStream: TransmissionStream by inject("downloadStream")
 
@@ -56,16 +57,16 @@ class SimNode : Node, PeerComponent by PeerComponent() {
                     sender.id as? Id ?: Id("<invalid>"), messageContent)
     }
 
-    override fun notifySuccess(receiver: Node) {}
-
-    override fun notifyFailure(receiver: Node) {}
-
     fun createChannel(id: Id): Channel =
             SimChannel(
                     transmissionRequestHandler,
                     chunkSizeGetter,
                     from = this,
                     to = simNodes[id]!!)
+
+    override fun notifySuccess(receiver: Node) {}
+
+    override fun notifyFailure(receiver: Node) {}
 
     init {
         simNodes[peer.id] = this

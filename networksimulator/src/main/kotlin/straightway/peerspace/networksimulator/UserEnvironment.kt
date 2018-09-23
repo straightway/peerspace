@@ -13,8 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.activities
+package straightway.peerspace.networksimulator
 
-import straightway.peerspace.networksimulator.profile.dsl.Activity
-
-val doPostOnSocialMediaFeed: Activity = {}
+/**
+ * The environment of a simulated user in the peerspace network.
+ */
+interface UserEnvironment {
+    val nodes: List<SimNode>
+}

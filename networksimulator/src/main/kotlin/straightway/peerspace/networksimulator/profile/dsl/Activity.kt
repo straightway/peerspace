@@ -15,9 +15,9 @@
  */
 package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.peerspace.networksimulator.User
+import straightway.peerspace.networksimulator.UserEnvironment
 
 /**
  * A simulated activity by a simulated user on a simulated node.
  */
-typealias Activity = (User, UsageProfile) -> Unit
+typealias Activity = UserEnvironment.(UsageProfile) -> Unit

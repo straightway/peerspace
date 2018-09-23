@@ -17,4 +17,4 @@ package straightway.peerspace.networksimulator.activities
 
 import straightway.peerspace.networksimulator.profile.dsl.Activity
 
-val doReadSocialMediaFeeds: Activity = { _, _ -> }
+val doReadSocialMediaFeeds: Activity = {}

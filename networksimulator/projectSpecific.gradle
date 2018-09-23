@@ -23,5 +23,5 @@ dependencies {
     compile straightway('sim')
     compile straightway('sim:net')
     testCompile straightway('testing')
-    testCompile mockitoKotlin()
+    compile mockitoKotlin()
 }

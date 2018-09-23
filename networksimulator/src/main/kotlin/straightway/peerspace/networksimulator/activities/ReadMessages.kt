@@ -17,4 +17,4 @@ package straightway.peerspace.networksimulator.activities
 
 import straightway.peerspace.networksimulator.profile.dsl.Activity
 
-val doReadMessages: Activity = { _, _ -> }
+val doReadMessages: Activity = {}

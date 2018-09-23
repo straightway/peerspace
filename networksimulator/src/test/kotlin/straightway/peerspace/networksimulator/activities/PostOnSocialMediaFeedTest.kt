@@ -17,9 +17,10 @@ package straightway.peerspace.networksimulator.activities
 
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
+import straightway.peerspace.networksimulator.UserEnvironment
 import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 
 class PostOnSocialMediaFeedTest {
     @Test
-    fun tempAlibi() = doPostOnSocialMediaFeed(mock(), UsageProfile {})
+    fun tempAlibi() = mock<UserEnvironment>().doPostOnSocialMediaFeed(UsageProfile {})
 }

@@ -32,7 +32,7 @@ class UsageProfileTest {
     private val sut get() = testProfile<UsageProfile> { UsageProfile(it) }
 
     @Test
-    fun activity() = sut.testSingleValue({ _, _ -> }) { activity }
+    fun activity() = sut.testSingleValue({ _ -> }) { activity }
 
     @Test
     fun numberOfTimes() = sut.testSingleValue(3) { numberOfTimes }

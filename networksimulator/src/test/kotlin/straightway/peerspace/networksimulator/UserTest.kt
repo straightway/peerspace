@@ -84,7 +84,7 @@ class UserTest : KoinLoggingDisabler() {
     @Test
     fun `construction creates node with own node id`() =
         test when_ {
-            sut.environment.nodes.single().id
+            sut.environment.devices.single().id
         } then {
             expect(it.result is_ Not - Equal to_ sut.id)
         }
@@ -94,7 +94,7 @@ class UserTest : KoinLoggingDisabler() {
             test while_ {
                 profile.usedDevices { +device + device }
             } when_ {
-                sut.environment.nodes
+                sut.environment.devices
             } then {
                 expect(it.result.size is_ Equal to_ 2)
             }
@@ -104,7 +104,7 @@ class UserTest : KoinLoggingDisabler() {
             test while_ {
                 profile.usedDevices { +device + device }
             } when_ {
-                sut.environment.nodes
+                sut.environment.devices
             } then {
                 expect(it.result[0].id is_ Not - Equal to_ it.result[1].id)
             }

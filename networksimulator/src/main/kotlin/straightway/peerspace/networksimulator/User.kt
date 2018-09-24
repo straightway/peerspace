@@ -24,6 +24,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Peer
+import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwardTargetGetter
@@ -84,15 +85,27 @@ class User : KoinModuleComponent by KoinModuleComponent() {
     val id: Id = Id("User_${currentId++}")
 
     private inner class Environment : UserEnvironment {
-        override val nodes by lazy {
-            profile.usedDevices.values.map {
-                createNode(it.device.value)
-            }
-        }
+        override val devices =
+                profile.usedDevices.values.map {
+                    object : Device {
+                        override val id: Id
+                            get() = node.id
+                        override var isOnline: Boolean
+                            get() = node.isOnline
+                            set(value) { node.isOnline = value }
+                        override val peerClient: PeerClient
+                        private val node: SimNode
+
+                        init {
+                            val peerEnv = createPeer()
+                            peerClient = peerEnv.get()
+                            node = createNode(it.device.value, peerEnv.get())
+                        }
+                    }
+                }
     }
 
-    private fun createNode(device: DeviceProfile): SimNode {
-        val peer = createPeer()
+    private fun createNode(device: DeviceProfile, peer: Peer): SimNode {
         return withContext {
             bean { peer }
             bean("simNodes") { simNodes }
@@ -113,7 +126,7 @@ class User : KoinModuleComponent by KoinModuleComponent() {
         }
     }
 
-    private fun createPeer(): Peer {
+    private fun createPeer(): PeerComponent {
         val peerId = Id("Peer_${currentId++}")
         lateinit var environment: PeerComponent
         environment = PeerComponent.createEnvironment(
@@ -138,7 +151,8 @@ class User : KoinModuleComponent by KoinModuleComponent() {
                 {
                     ForwarderImpl(
                             environment.queryForwardStateTracker,
-                            environment.queryForwardTargetGetter) },
+                            environment.queryForwardTargetGetter)
+                },
                 { ForwardStateTrackerImpl() },
                 {
                     ForwarderImpl(
@@ -175,7 +189,7 @@ class User : KoinModuleComponent by KoinModuleComponent() {
                         SimChannel(transmissionRequestHandler, chunkSizeGetter, from, to)
                 })
 
-        return environment.get()
+        return environment
     }
 
     private companion object {

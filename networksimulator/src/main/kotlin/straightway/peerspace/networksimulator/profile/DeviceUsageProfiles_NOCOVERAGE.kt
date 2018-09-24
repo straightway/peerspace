@@ -64,6 +64,7 @@ val mobilePhone = DeviceUsageProfile {
             duration { 1[minute] }
         }
     }
+    device { mobileDevice }
 }
 
 val workPc = DeviceUsageProfile {

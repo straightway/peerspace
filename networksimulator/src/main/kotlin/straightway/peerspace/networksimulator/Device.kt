@@ -15,9 +15,11 @@
  */
 package straightway.peerspace.networksimulator
 
-/**
- * The environment of a simulated user in the peerspace network.
- */
-interface UserEnvironment {
-    val devices: List<Device>
+import straightway.peerspace.data.Id
+import straightway.peerspace.net.PeerClient
+
+interface Device {
+    val id: Id
+    var isOnline: Boolean
+    val peerClient: PeerClient
 }

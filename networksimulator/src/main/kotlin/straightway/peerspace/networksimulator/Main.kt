@@ -15,64 +15,32 @@
  */
 package straightway.peerspace.networksimulator
 
+import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.crypto.Hasher
+import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.koinutils.withContext
-import straightway.peerspace.net.Configuration
 import straightway.sim.net.Network as SimNetwork
-import straightway.peerspace.net.Peer
-import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.chunkSizeGetter
-import straightway.peerspace.net.impl.DataPushForwardTargetGetter
-import straightway.peerspace.net.impl.DataPushTargetImpl
-import straightway.peerspace.net.impl.DataQueryForwardTargetGetter
-import straightway.peerspace.net.impl.DataQueryHandlerImpl
-import straightway.peerspace.net.impl.DataQuerySourceImpl
-import straightway.peerspace.net.impl.EpochAnalyzerImpl
-import straightway.peerspace.net.impl.EpochKeyHasher
-import straightway.peerspace.net.impl.ForwardStateTrackerImpl
-import straightway.peerspace.net.impl.ForwardStrategyImpl
-import straightway.peerspace.net.impl.ForwarderImpl
-import straightway.peerspace.net.impl.KnownPeersGetterImpl
-import straightway.peerspace.net.impl.KnownPeersPushTargetImpl
-import straightway.peerspace.net.impl.KnownPeersQuerySourceImpl
-import straightway.peerspace.net.impl.NetworkImpl
-import straightway.peerspace.net.impl.PeerClientImpl
-import straightway.peerspace.net.impl.PeerImpl
-import straightway.peerspace.net.impl.PendingDataQueryTrackerImpl
-import straightway.peerspace.net.impl.SeedPeerDirectory
-import straightway.peerspace.net.impl.TimedDataQueryHandler
-import straightway.peerspace.net.impl.TransientDataChunkStore
-import straightway.peerspace.net.impl.TransientPeerDirectory
-import straightway.peerspace.net.impl.UntimedDataQueryHandler
-import straightway.peerspace.net.peer
-import straightway.peerspace.net.pushForwardStateTracker
-import straightway.peerspace.net.pushForwardTargetGetter
-import straightway.peerspace.net.queryForwardStateTracker
-import straightway.peerspace.net.queryForwardTargetGetter
 import straightway.peerspace.networksimulator.profile.officeWorker
-import straightway.random.RandomChooser
+import straightway.peerspace.networksimulator.user.User
+import straightway.peerspace.networksimulator.user.UserActivityScheduler
+import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
+import straightway.random.RandomDistribution
 import straightway.random.RandomSource
 import straightway.sim.core.Simulator
-import straightway.sim.net.AsyncSequentialTransmissionStream
-import straightway.sim.net.TransmissionRequestHandler
-import straightway.sim.net.TransmissionStream
-import straightway.units.bit
 import straightway.units.byte
-import straightway.units.div
 import straightway.units.get
 import straightway.units.ki
-import straightway.units.me
 import straightway.units.milli
 import straightway.units.second
-import straightway.utils.Event
-import straightway.utils.toByteArray
-import java.io.Serializable
+import straightway.units.minus
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.Random
 
-@Suppress("LargeClass") // Temporary, must be cleaned up
-private class MainClass(numberOfPeers: Int, randomSeed: Long) {
+private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDate) {
 
     val simulator = Simulator()
 
@@ -92,14 +60,27 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
             withContext {
                 bean("simNodes") { simNodes }
                 bean { _ -> officeWorker }
-                bean { _ -> RandomSource(Random(1234L)) }
+                bean("randomSource") { _ -> randomSource as RandomDistribution<Byte> }
                 bean { _ -> simulator }
                 bean { _ -> chunkSizeGetter }
                 bean { _ -> simNet }
+                bean { _ -> UserActivitySchedulerImpl() as UserActivityScheduler }
+                bean { _ -> User() }
             } make {
-                User()
+                KoinModuleComponent().get<User>()
             }
         }
+
+    fun initializeSimulation() {
+        println("Initializing simulation at ${simulator.now}")
+        users.forEach { }
+    }
+
+    init {
+        simulator.schedule(
+                LocalDateTime.of(startDate, LocalTime.MIDNIGHT) - simulator.now,
+                this::initializeSimulation)
+    }
 
     private companion object {
         val LATENCY = 50[milli(second)]
@@ -108,12 +89,15 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long) {
     }
 }
 
-@Suppress("UNUSED_VARIABLE")
+@Suppress("UNUSED_VARIABLE", "MagicNumber")
 fun main(args: Array<String>) {
     KoinLoggingDisabler().use {
         println("Starting simulation")
 
-        val mainClass = MainClass(numberOfPeers = 100, randomSeed = 1234L)
+        val mainClass = MainClass(
+                numberOfPeers = 100,
+                randomSeed = 1234L,
+                startDate = LocalDate.of(2023, 2, 3))
         println("Created ${mainClass.users.size} users")
         mainClass.simulator.run()
 

@@ -40,6 +40,13 @@ fun <T, V> ProfileCreator<T>.testSingleValue(
         expect({ it.result } does Throw.type<Panic>())
     }
 
+    testSingleValueAssignment(testValue, valueGetter)
+}
+
+fun <T, V> ProfileCreator<T>.testSingleValueAssignment(
+        testValue: V,
+        valueGetter: T.() -> SingleValueProvider<V>
+) {
     Given {
         this { valueGetter().invoke { testValue } }
     } when_ {

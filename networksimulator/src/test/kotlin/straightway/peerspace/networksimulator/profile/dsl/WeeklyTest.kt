@@ -41,15 +41,24 @@ class WeeklyTest {
 
     @Test
     fun hours() =
-            testProfile<Weekly> { Weekly(it) }
-                    .testSingleValue<Weekly, ClosedRange<UnitNumber<Time>>>(1[hour]..3[hour]) {
-                        hours
-                    }
+            testProfile<Weekly> { Weekly("", it) }
+                    .testSingleValueAssignment<Weekly, ClosedRange<UnitNumber<Time>>>(
+                            1[hour]..3[hour]) { hours }
+
+    @Test
+    fun `hours are by default the whole day`() =
+            Given {
+                Weekly("") { isApplicableTo { { true } } }
+            } when_ {
+                hours.value
+            } then {
+                expect(it.result is_ Equal to_ 0[hour]..24[hour])
+            }
 
     @Test
     fun `update by invoke yields same instance`() =
             Given {
-                Weekly {}
+                Weekly("") {}
             } when_ {
                 this { 1[hour]..2[hour] }
             } then {
@@ -59,7 +68,7 @@ class WeeklyTest {
     @Test
     fun `update by invoke alters hours`() =
             Given {
-                Weekly {}
+                Weekly("") {}
             } when_ {
                 this {
                     1[hour]..2[hour]
@@ -71,7 +80,7 @@ class WeeklyTest {
     @Test
     fun `isApplicableTo yields true for matching LocalDateTime`() =
             Given {
-                Weekly {
+                Weekly("") {
                     isApplicableTo { { _ -> true } }
                 }
             } when_ {
@@ -83,7 +92,7 @@ class WeeklyTest {
     @Test
     fun `isApplicableTo yields false for not matching LocalDateTime`() =
             Given {
-                Weekly {
+                Weekly("") {
                     isApplicableTo { { _ -> false } }
                 }
             } when_ {
@@ -96,7 +105,7 @@ class WeeklyTest {
     fun `isApplicableTo considers passed LocalDateTime`() {
         val testDateTime = LocalDateTime.of(2001, 1, 1, 17, 59)
         Given {
-            Weekly {
+            Weekly("") {
                 isApplicableTo { { dateTime -> expect(dateTime is_ Same as_ testDateTime); true } }
             }
         } when_ {
@@ -157,6 +166,116 @@ class WeeklyTest {
                     DayOfWeek.FRIDAY,
                     DayOfWeek.SATURDAY,
                     DayOfWeek.SUNDAY)
+
+    @Test
+    fun `toString for mondays`() =
+            Given {
+                Weekly.mondays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "mondays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for tuesdays`() =
+            Given {
+                Weekly.tuesdays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "tuesdays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for wednesdays`() =
+            Given {
+                Weekly.wednesdays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "wednesdays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for thursdays`() =
+            Given {
+                Weekly.thursdays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "thursdays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for fridays`() =
+            Given {
+                Weekly.fridays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "fridays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for saturdays`() =
+            Given {
+                Weekly.saturdays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "saturdays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for sundays`() =
+            Given {
+                Weekly.sundays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "sundays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for workdays`() =
+            Given {
+                Weekly.workdays { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "workdays 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for weekends`() =
+            Given {
+                Weekly.weekends { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "weekends 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString for eachDay`() =
+            Given {
+                Weekly.eachDay { 8[hour]..13[hour] }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "daily 08:00:00..13:00:00")
+            }
+
+    @Test
+    fun `toString with default hours`() =
+            Given {
+                Weekly("dayFilter") { isApplicableTo { { true } } }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "dayFilter")
+            }
 
     private infix fun Weekly.checkIsOnlyApplicableTo(daysToCheck: Set<DayOfWeek>) {
         val startTime = LocalDateTime.of(2018, 9, 16, 17, 59) // a sunday

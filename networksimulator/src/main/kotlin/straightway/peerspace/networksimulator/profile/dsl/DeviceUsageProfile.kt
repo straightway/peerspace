@@ -15,14 +15,19 @@
  */
 package straightway.peerspace.networksimulator.profile.dsl
 
+import straightway.utils.joinMultiLine
+
 /**
  * Profile of how a certain device is used in the simulation.
  */
 class DeviceUsageProfile(init: DeviceUsageProfile.() -> Unit) {
 
-    val onlineTimes = MultiValueProvider<Weekly>("onlineTime")
+    val onlineTimes = MultiValueProvider<Weekly>("onlineTimes")
     val usages = MultiValueProvider<UsageProfile>("usages")
-    val device = SingleValueProvider<DeviceProfile>("devices")
+    val device = SingleValueProvider<DeviceProfile>("device")
+
+    override fun toString() = "DeviceUsageProfile " +
+            listOf(onlineTimes, usages, device).joinMultiLine(indentation = 2)
 
     init { init() }
 }

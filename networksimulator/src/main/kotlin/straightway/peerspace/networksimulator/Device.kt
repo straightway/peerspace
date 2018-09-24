@@ -18,6 +18,10 @@ package straightway.peerspace.networksimulator
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
 
+/**
+ * A simulated hardware device participating in a simulated
+ * peerspace network.
+ */
 interface Device {
     val id: Id
     var isOnline: Boolean

@@ -16,6 +16,11 @@
 package straightway.peerspace.networksimulator.profile.dsl
 
 import org.junit.jupiter.api.Test
+import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 import straightway.units.bit
 import straightway.units.byte
 import straightway.units.div
@@ -38,4 +43,19 @@ class DeviceProfileTest {
     fun persistentStorageAvailable() = sut.testSingleValue(3[gi(byte)]) {
         persistentStorageAvailable
     }
+
+    @Test
+    fun `toString without set values`() =
+            Given {
+                DeviceProfile { }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_
+                               "DeviceProfile {\n" +
+                               "  uploadBandwidth = <unset>\n" +
+                               "  downloadBandwidth = <unset>\n" +
+                               "  persistentStorageAvailable = <unset>\n" +
+                               "}")
+            }
 }

@@ -17,30 +17,60 @@ package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.units.Time
 import straightway.units.UnitNumber
+import straightway.units.get
+import straightway.units.hour
+import straightway.units.nano
+import straightway.units.second
 import java.time.DayOfWeek
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Define a time span on a defined set of days every week.
  */
-class Weekly(init: Weekly.() -> Unit) {
+@Suppress("MagicNumber")
+class Weekly(private val weekdayFilterName: String, init: Weekly.() -> Unit) {
     companion object {
-        val mondays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.MONDAY } } }
-        val tuesdays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.TUESDAY } } }
-        val wednesdays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.WEDNESDAY } } }
-        val thursdays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.THURSDAY } } }
-        val fridays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.FRIDAY } } }
-        val saturdays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.SATURDAY } } }
-        val sundays get() = Weekly { isApplicableTo { { it.dayOfWeek == DayOfWeek.SUNDAY } } }
-        val workdays get() = Weekly { isApplicableTo { { it.dayOfWeek.value in 1..5 } } }
-        val weekends get() = Weekly { isApplicableTo { { it.dayOfWeek.value in 6..7 } } }
-        val eachDay get() = Weekly { isApplicableTo { { true } } }
+        val mondays get() = Weekly("mondays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.MONDAY } }
+        }
+        val tuesdays get() = Weekly("tuesdays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.TUESDAY } }
+        }
+        val wednesdays get() = Weekly("wednesdays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.WEDNESDAY } }
+        }
+        val thursdays get() = Weekly("thursdays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.THURSDAY } }
+        }
+        val fridays get() = Weekly("fridays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.FRIDAY } }
+        }
+        val saturdays get() = Weekly("saturdays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.SATURDAY } }
+        }
+        val sundays get() = Weekly("sundays") {
+            isApplicableTo { { it.dayOfWeek == DayOfWeek.SUNDAY } }
+        }
+        val workdays get() = Weekly("workdays") {
+            isApplicableTo { { it.dayOfWeek.value in 1..5 } }
+        }
+        val weekends get() = Weekly("weekends") {
+            isApplicableTo { { it.dayOfWeek.value in 6..7 } }
+        }
+        val eachDay get() = Weekly("daily") {
+            isApplicableTo { { true } }
+        }
+        private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
     }
 
-    var isApplicableTo = SingleValueProvider<(LocalDateTime) -> Boolean>("isApplicableTo")
+    val isApplicableTo = SingleValueProvider<(LocalDateTime) -> Boolean>("isApplicableTo")
     fun isApplicableTo(dateTime: LocalDateTime) = isApplicableTo.value(dateTime)
 
-    var hours = SingleValueProvider<ClosedRange<UnitNumber<Time>>>("hours")
+    val hours = SingleValueProvider<ClosedRange<UnitNumber<Time>>>("hours")
+
+    override fun toString() = (listOf(weekdayFilterName) + hoursString).joinToString(" ")
 
     operator fun invoke(valueGetter: Weekly.() -> ClosedRange<UnitNumber<Time>>): Weekly {
         hours {
@@ -51,7 +81,23 @@ class Weekly(init: Weekly.() -> Unit) {
     }
 
     init {
+        hours { 0[hour]..24[hour] }
         @Suppress("UNUSED_EXPRESSION")
         init()
     }
+
+    private val hoursString get() = with(hours.value) {
+        if (this == 0[hour]..24[hour]) listOf()
+        else {
+            val from = start.toTimeString()
+            val to = endInclusive.toTimeString()
+            listOf("$from..$to")
+        }
+    }
+
+    private fun UnitNumber<Time>.toTimeString() =
+            toLocalTime().format(timeFormatter)
+
+    private fun UnitNumber<Time>.toLocalTime() =
+            LocalTime.MIDNIGHT.plusNanos(this[nano(second)].value.toLong() + 1)
 }

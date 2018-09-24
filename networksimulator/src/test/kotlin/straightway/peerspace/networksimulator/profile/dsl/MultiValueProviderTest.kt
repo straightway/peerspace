@@ -102,4 +102,43 @@ class MultiValueProviderTest {
             } then {
                 expect(it.result is_ Equal to_ Values("Hello", "World"))
             }
+
+    @Test
+    fun `toString for unset values`() =
+            Given {
+                MultiValueProvider<Int>("name")
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "name = <unset>")
+            }
+
+    @Test
+    fun `toString for set values`() =
+            Given {
+                MultiValueProvider<Int>("name")
+            } while_ {
+                this { values(1, 2, 3, 4) }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "name = [1, 2, 3, 4]")
+            }
+
+    @Test
+    fun `toString for set values with multiline string representation`() =
+            Given {
+                MultiValueProvider<String>("name")
+            } while_ {
+                this { values("single line", "multi\nline") }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_
+                               "name = [\n" +
+                               "  single line,\n" +
+                               "  multi\n" +
+                               "  line\n" +
+                               "]")
+            }
 }

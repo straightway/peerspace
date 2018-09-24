@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator
+package straightway.peerspace.networksimulator.user
 
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
@@ -21,12 +21,14 @@ import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
 import straightway.peerspace.net.chunkSizeGetter
+import straightway.peerspace.networksimulator.SimNode
+import straightway.peerspace.networksimulator.profile.dsl.Activity
 import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
 import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.peerspace.networksimulator.profile.pc
-import straightway.random.RandomSource
+import straightway.random.RandomDistribution
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -39,7 +41,6 @@ import straightway.units.get
 import straightway.units.hour
 import straightway.units.ki
 import straightway.utils.TimeProvider
-import java.util.Random
 
 class UserTest : KoinLoggingDisabler() {
 
@@ -62,12 +63,13 @@ class UserTest : KoinLoggingDisabler() {
                     usages { +testUsage }
                 }
                 val testUsage = UsageProfile {
-                    activity { { mockedActivity(it) } }
+                    activity { mockedActivity }
                 }
 
-                fun UserEnvironment.mockedActivity(profile: UsageProfile) {
-                    activityHandler.handleActivity(this, profile)
-                }
+                val mockedActivity get() =
+                    Activity("activityName") { profile: UsageProfile ->
+                        activityHandler.handleActivity(this, profile)
+                    }
 
                 val sut by lazy { createUser(profile) }
             }
@@ -113,10 +115,11 @@ class UserTest : KoinLoggingDisabler() {
             withContext {
                 bean("simNodes") { mutableMapOf<Any, SimNode>() }
                 bean { _ -> profile }
-                bean { _ -> RandomSource(Random(1234L)) }
+                bean("randomSource") { _ -> mock<RandomDistribution<Byte>>() }
                 bean { _ -> mock<TimeProvider>() }
                 bean { _ -> chunkSizeGetter { 64[ki(byte)] } }
                 bean { _ -> mock<TransmissionRequestHandler>() }
+                bean { _ -> mock<UserActivityScheduler>() }
             } make {
                 User()
             }

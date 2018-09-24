@@ -81,4 +81,26 @@ class SingleValueProviderTest {
         } then {
             expect(it.result is_ True)
         }
+
+    @Test
+    fun `toString for unsetValue`() =
+            Given {
+                SingleValueProvider<Int>("name")
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "name = <unset>")
+            }
+
+    @Test
+    fun `toString for setValue`() =
+            Given {
+                SingleValueProvider<Int>("name")
+            } while_ {
+                this { 83 }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "name = 83")
+            }
 }

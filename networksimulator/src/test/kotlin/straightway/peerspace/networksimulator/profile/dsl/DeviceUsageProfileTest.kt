@@ -16,6 +16,11 @@
 package straightway.peerspace.networksimulator.profile.dsl
 
 import org.junit.jupiter.api.Test
+import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
 
 class DeviceUsageProfileTest {
 
@@ -29,4 +34,19 @@ class DeviceUsageProfileTest {
 
     @Test
     fun device() = sut.testSingleValue(DeviceProfile {}) { device }
+
+    @Test
+    fun `toString without set values`() =
+            Given {
+                DeviceUsageProfile { }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_
+                               "DeviceUsageProfile {\n" +
+                               "  onlineTimes = <unset>\n" +
+                               "  usages = <unset>\n" +
+                               "  device = <unset>\n" +
+                               "}")
+            }
 }

@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator
+package straightway.peerspace.networksimulator.user
 
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.Bean.get
@@ -53,10 +53,13 @@ import straightway.peerspace.net.pushForwardStateTracker
 import straightway.peerspace.net.pushForwardTargetGetter
 import straightway.peerspace.net.queryForwardStateTracker
 import straightway.peerspace.net.queryForwardTargetGetter
+import straightway.peerspace.networksimulator.Device
+import straightway.peerspace.networksimulator.SimChannel
+import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.DeviceProfile
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.random.RandomChooser
-import straightway.random.RandomSource
+import straightway.random.RandomDistribution
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
@@ -79,7 +82,8 @@ class User : KoinModuleComponent by KoinModuleComponent() {
     private val chunkSizeGetter: ChunkSizeGetter by inject()
     private val simNodes: MutableMap<Any, SimNode> by inject("simNodes")
     private val timeProvider: TimeProvider by inject()
-    private val randomSource: RandomSource by inject()
+    private val randomSource: RandomDistribution<Byte> by inject("randomSource")
+    private val activityScheduler: UserActivityScheduler by inject()
 
     val environment: UserEnvironment = Environment()
     val id: Id = Id("User_${currentId++}")
@@ -186,7 +190,7 @@ class User : KoinModuleComponent by KoinModuleComponent() {
                 { remoteNodeId ->
                         val from = simNodes[peerId]!!
                         val to = simNodes[remoteNodeId]!!
-                        SimChannel(transmissionRequestHandler, chunkSizeGetter, from, to)
+                    SimChannel(transmissionRequestHandler, chunkSizeGetter, from, to)
                 })
 
         return environment

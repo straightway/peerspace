@@ -13,11 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator
+package straightway.peerspace.networksimulator.user
 
 /**
- * The environment of a simulated user in the peerspace network.
+ * Schedule user activities defined in a user profile.
  */
-interface UserEnvironment {
-    val devices: List<Device>
-}
+interface UserActivityScheduler

@@ -13,13 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.activities
+package straightway.peerspace.networksimulator.user
 
-import com.nhaarman.mockito_kotlin.mock
-import org.junit.jupiter.api.Test
-import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
+import straightway.peerspace.networksimulator.Device
 
-class ReadSocialMediaFeedsTest {
-    @Test
-    fun tempAlibi() = doReadSocialMediaFeeds(mock(), UsageProfile {})
+/**
+ * The environment of a simulated user in the peerspace network.
+ */
+interface UserEnvironment {
+    val devices: List<Device>
 }

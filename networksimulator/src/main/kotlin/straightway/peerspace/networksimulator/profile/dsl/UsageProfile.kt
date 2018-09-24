@@ -18,6 +18,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 import straightway.units.AmountOfData
 import straightway.units.Time
 import straightway.units.UnitNumber
+import straightway.utils.joinMultiLine
 
 /**
  * Profile of how a certain activity is executed.
@@ -28,6 +29,12 @@ class UsageProfile(init: UsageProfile.() -> Unit) {
     val duration = SingleValueProvider<UnitNumber<Time>>("duration")
     val time = SingleValueProvider<Weekly>("time")
     val dataVolume = SingleValueProvider<UnitNumber<AmountOfData>>("dataVolume")
-    init { init() }
+
     operator fun invoke(update: UsageProfile.() -> Unit): UsageProfile { update(); return this }
+
+    override fun toString() = "UsageProfile " +
+            listOf(activity, numberOfTimes, duration, time, dataVolume)
+                    .joinMultiLine(indentation = 2)
+
+    init { init() }
 }

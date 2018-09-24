@@ -16,6 +16,7 @@
 package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.error.Panic
+import straightway.utils.indent
 
 /**
  * Provide a list of values by a getter function.
@@ -27,10 +28,29 @@ class MultiValueProvider<T>(
     fun values(vararg items: T): List<T> = items.toList()
     operator fun List<T>.plus(other: T) = add(other)
     operator fun T.unaryPlus(): List<T> = listOf(this)
-    operator fun invoke(getter: MultiValueProvider<T>.() -> Iterable<T>) { this.getter = getter }
+    operator fun invoke(getter: MultiValueProvider<T>.() -> Iterable<T>) {
+        this.getter = getter
+        stringRepresentation = null
+    }
+
+    override fun toString(): String {
+        if (stringRepresentation == null)
+            determineStringRepresentation()
+        return stringRepresentation!!
+    }
+
+    private fun determineStringRepresentation() = values.map { it.toString() }.apply {
+        if (any { it.contains('\n') })
+            stringRepresentation = "$name = [\n" +
+                    "${map { it.indent(2) }.joinToString(",\n")}\n" +
+                    "]"
+        else stringRepresentation = "$name = [${joinToString(", ")}]"
+    }
 
     private var getter: MultiValueProvider<T>.() -> Iterable<T> =
             { throw Panic("No value specified for $name") }
+
+    private var stringRepresentation: String? = "$name = <unset>"
 }
 
 private fun <T> List<T>.add(item: T): List<T> = this + item

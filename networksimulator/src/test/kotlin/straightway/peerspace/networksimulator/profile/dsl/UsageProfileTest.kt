@@ -32,7 +32,7 @@ class UsageProfileTest {
     private val sut get() = testProfile<UsageProfile> { UsageProfile(it) }
 
     @Test
-    fun activity() = sut.testSingleValue({ _ -> }) { activity }
+    fun activity() = sut.testSingleValue(Activity("activityName") { _ -> }) { activity }
 
     @Test
     fun numberOfTimes() = sut.testSingleValue(3) { numberOfTimes }
@@ -66,5 +66,22 @@ class UsageProfileTest {
                 }
             } then {
                 expect(numberOfTimes.value is_ Equal to_ 3)
+            }
+
+    @Test
+    fun `toString without set values`() =
+            Given {
+                UsageProfile { }
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_
+                               "UsageProfile {\n" +
+                               "  activity = <unset>\n" +
+                               "  numberOfTimes = <unset>\n" +
+                               "  duration = <unset>\n" +
+                               "  time = <unset>\n" +
+                               "  dataVolume = <unset>\n" +
+                               "}")
             }
 }

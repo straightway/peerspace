@@ -15,9 +15,14 @@
  */
 package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.peerspace.networksimulator.UserEnvironment
+import straightway.peerspace.networksimulator.user.UserEnvironment
 
 /**
  * A simulated activity by a simulated user on a simulated node.
  */
-typealias Activity = UserEnvironment.(UsageProfile) -> Unit
+class Activity(val name: String, val action: UserEnvironment.(UsageProfile) -> Unit) {
+    operator fun invoke(userEnvironment: UserEnvironment, profile: UsageProfile) =
+            userEnvironment.action(profile)
+
+    override fun toString() = name
+}

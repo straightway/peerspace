@@ -18,6 +18,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 import straightway.units.AmountOfData
 import straightway.units.Bandwidth
 import straightway.units.UnitNumber
+import straightway.utils.joinMultiLine
 
 /**
  * Profile for a simulated physical device participating in the peerspace network,
@@ -30,6 +31,10 @@ class DeviceProfile(init: DeviceProfile.() -> Unit) {
             SingleValueProvider<UnitNumber<Bandwidth>>("downloadBandwidth")
     val persistentStorageAvailable =
             SingleValueProvider<UnitNumber<AmountOfData>>("persistentStorageAvailable")
+
+    override fun toString() = "DeviceProfile " +
+            listOf(uploadBandwidth, downloadBandwidth, persistentStorageAvailable)
+                    .joinMultiLine(indentation = 2)
 
     init { init() }
 }

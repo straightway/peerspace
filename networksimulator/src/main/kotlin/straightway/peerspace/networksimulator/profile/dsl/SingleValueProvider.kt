@@ -22,8 +22,19 @@ import straightway.error.Panic
  */
 class SingleValueProvider<T>(val name: String) {
     val value get() = getter()
-    operator fun invoke(getter: SingleValueProvider<T>.() -> T) { this.getter = getter }
+    operator fun invoke(getter: SingleValueProvider<T>.() -> T) {
+        this.getter = getter
+        stringRepresentation = null
+    }
+
+    override fun toString(): String {
+        if (stringRepresentation == null)
+            stringRepresentation = "$name = $value"
+        return stringRepresentation!!
+    }
 
     private var getter: SingleValueProvider<T>.() -> T =
             { throw Panic("No value specified for $name") }
+
+    private var stringRepresentation: String? = "$name = <unset>"
 }

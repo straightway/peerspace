@@ -13,11 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.user
+package straightway.peerspace.networksimulator.profile.dsl
 
 /**
- * The environment of a simulated user in the peerspace network.
+ * Provide a single named value by a getter function.
  */
-interface UserEnvironment {
-    val devices: List<Device>
+class DynamicSingleValue<T>(name: String) : SingleValue<T>(name) {
+    override operator fun invoke(getter: SingleValue<T>.() -> T) {
+        this.getter = getter
+    }
+    override val valueBackingField: T? get() = getter()
+    private var getter: DynamicSingleValue<T>.() -> T? = { null }
 }

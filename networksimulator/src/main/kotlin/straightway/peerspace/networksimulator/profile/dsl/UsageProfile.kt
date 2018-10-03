@@ -24,11 +24,11 @@ import straightway.utils.joinMultiLine
  * Profile of how a certain activity is executed.
  */
 class UsageProfile(init: UsageProfile.() -> Unit) {
-    val activity = SingleValueProvider<Activity>("activity")
-    val numberOfTimes = SingleValueProvider<Int>("numberOfTimes")
-    val duration = SingleValueProvider<UnitNumber<Time>>("duration")
-    val time = SingleValueProvider<Weekly>("time")
-    val dataVolume = SingleValueProvider<UnitNumber<AmountOfData>>("dataVolume")
+    val activity = StaticSingleValue<Activity>("activity")
+    val numberOfTimes = DynamicSingleValue<Int>("numberOfTimes")
+    val duration = DynamicSingleValue<UnitNumber<Time>>("duration")
+    val time = StaticSingleValue<Weekly>("time")
+    val dataVolume = DynamicSingleValue<UnitNumber<AmountOfData>>("dataVolume")
 
     operator fun invoke(update: UsageProfile.() -> Unit): UsageProfile { update(); return this }
 

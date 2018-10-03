@@ -13,11 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.user
+package straightway.peerspace.networksimulator.profile.dsl
+
+import straightway.error.Panic
 
 /**
- * The environment of a simulated user in the peerspace network.
+ * A single named value.
  */
-interface UserEnvironment {
-    val devices: List<Device>
+abstract class SingleValue<T>(name: String) : Named(name) {
+    val value: T get() = valueBackingField ?: throw Panic("No value specified for $name")
+    abstract operator fun invoke(getter: SingleValue<T>.() -> T)
+    override fun toString() = "$name = ${valueBackingField ?: "<unset>"}"
+    protected abstract val valueBackingField: T?
 }

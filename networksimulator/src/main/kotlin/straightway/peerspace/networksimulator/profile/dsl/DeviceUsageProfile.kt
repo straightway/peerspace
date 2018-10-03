@@ -22,9 +22,9 @@ import straightway.utils.joinMultiLine
  */
 class DeviceUsageProfile(init: DeviceUsageProfile.() -> Unit) {
 
-    val onlineTimes = MultiValueProvider<Weekly>("onlineTimes")
-    val usages = MultiValueProvider<UsageProfile>("usages")
-    val device = SingleValueProvider<DeviceProfile>("device")
+    val onlineTimes = StaticMultiValue<Weekly>("onlineTimes")
+    val usages = StaticMultiValue<UsageProfile>("usages")
+    val device = StaticSingleValue<DeviceProfile>("device")
 
     override fun toString() = "DeviceUsageProfile " +
             listOf(onlineTimes, usages, device).joinMultiLine(indentation = 2)

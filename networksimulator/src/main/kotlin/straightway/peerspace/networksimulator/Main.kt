@@ -23,6 +23,8 @@ import straightway.koinutils.withContext
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.networksimulator.profile.officeWorker
+import straightway.peerspace.networksimulator.user.Device
+import straightway.peerspace.networksimulator.user.DeviceImpl
 import straightway.peerspace.networksimulator.user.User
 import straightway.peerspace.networksimulator.user.UserActivityScheduler
 import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
@@ -35,6 +37,7 @@ import straightway.units.ki
 import straightway.units.milli
 import straightway.units.second
 import straightway.units.minus
+import straightway.utils.TimeProvider
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -61,11 +64,12 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
                 bean("simNodes") { simNodes }
                 bean { _ -> officeWorker }
                 bean("randomSource") { _ -> randomSource as RandomDistribution<Byte> }
-                bean { _ -> simulator }
+                bean { _ -> simulator as TimeProvider }
                 bean { _ -> chunkSizeGetter }
                 bean { _ -> simNet }
                 bean { _ -> UserActivitySchedulerImpl() as UserActivityScheduler }
                 bean { _ -> User() }
+                factory { DeviceImpl(it["id"], it["profile"]) as Device }
             } make {
                 KoinModuleComponent().get<User>()
             }

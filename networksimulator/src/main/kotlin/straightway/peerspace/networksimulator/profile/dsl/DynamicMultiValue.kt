@@ -13,11 +13,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.user
+package straightway.peerspace.networksimulator.profile.dsl
 
 /**
- * The environment of a simulated user in the peerspace network.
+ * Provide a named list of values by a getter function.
  */
-interface UserEnvironment {
-    val devices: List<Device>
+class DynamicMultiValue<T>(name: String) : MultiValue<T>(name) {
+
+    override fun setValuesFrom(getter: () -> List<T>) {
+        this.getter = getter
+    }
+
+    override val valuesBackingField: Iterable<T>? get() = getter()
+
+    private var getter: () -> List<T>? = { null }
 }

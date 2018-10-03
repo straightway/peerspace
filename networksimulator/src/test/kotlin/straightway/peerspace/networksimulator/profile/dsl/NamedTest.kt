@@ -13,11 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.user
+package straightway.peerspace.networksimulator.profile.dsl
 
-/**
- * The environment of a simulated user in the peerspace network.
- */
-interface UserEnvironment {
-    val devices: List<Device>
+import org.junit.jupiter.api.Test
+import straightway.testing.bdd.Given
+import straightway.testing.flow.Equal
+import straightway.testing.flow.expect
+import straightway.testing.flow.is_
+import straightway.testing.flow.to_
+
+class NamedTest {
+
+    @Test
+    fun `name is accessible`() =
+            Given {
+                Named("name")
+            } when_ {
+                name
+            } then {
+                expect(it.result is_ Equal to_ "name")
+            }
 }

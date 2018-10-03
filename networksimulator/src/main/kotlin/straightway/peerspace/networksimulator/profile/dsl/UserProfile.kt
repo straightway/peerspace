@@ -21,7 +21,7 @@ import straightway.utils.joinMultiLine
  * Profile for a user participating in the peerspace network.
  */
 class UserProfile(init: UserProfile.() -> Unit) {
-    val usedDevices = MultiValueProvider<DeviceUsageProfile>("usedDevices")
+    val usedDevices = StaticMultiValue<DeviceUsageProfile>("usedDevices")
 
     override fun toString() = "UserProfile " +
             listOf(usedDevices).joinMultiLine(indentation = 2)

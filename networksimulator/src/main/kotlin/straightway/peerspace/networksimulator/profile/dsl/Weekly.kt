@@ -65,10 +65,10 @@ class Weekly(private val weekdayFilterName: String, init: Weekly.() -> Unit) {
         private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
     }
 
-    val isApplicableTo = SingleValueProvider<(LocalDateTime) -> Boolean>("isApplicableTo")
+    val isApplicableTo = StaticSingleValue<(LocalDateTime) -> Boolean>("isApplicableTo")
     fun isApplicableTo(dateTime: LocalDateTime) = isApplicableTo.value(dateTime)
 
-    val hours = SingleValueProvider<ClosedRange<UnitNumber<Time>>>("hours")
+    val hours = DynamicSingleValue<ClosedRange<UnitNumber<Time>>>("hours")
 
     override fun toString() = (listOf(weekdayFilterName) + hoursString).joinToString(" ")
 

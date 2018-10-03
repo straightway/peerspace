@@ -15,26 +15,7 @@
  */
 package straightway.peerspace.networksimulator.profile.dsl
 
-import straightway.error.Panic
-
 /**
- * Provide a single value by a getter function.
+ * Base class for named objects.
  */
-class SingleValueProvider<T>(val name: String) {
-    val value get() = getter()
-    operator fun invoke(getter: SingleValueProvider<T>.() -> T) {
-        this.getter = getter
-        stringRepresentation = null
-    }
-
-    override fun toString(): String {
-        if (stringRepresentation == null)
-            stringRepresentation = "$name = $value"
-        return stringRepresentation!!
-    }
-
-    private var getter: SingleValueProvider<T>.() -> T =
-            { throw Panic("No value specified for $name") }
-
-    private var stringRepresentation: String? = "$name = <unset>"
-}
+open class Named(val name: String)

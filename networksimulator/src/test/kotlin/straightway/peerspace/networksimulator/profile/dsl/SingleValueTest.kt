@@ -19,88 +19,67 @@ import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
-import straightway.testing.flow.False
 import straightway.testing.flow.Throw
-import straightway.testing.flow.True
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class SingleValueProviderTest {
+class SingleValueTest {
 
-    private val test get() =
-        Given {
-            SingleValueProvider<Boolean>("test")
+    private class Sut : SingleValue<String>("name") {
+        override operator fun invoke(getter: SingleValue<String>.() -> String) {
+            valueBackingField = getter()
         }
 
+        public override var valueBackingField: String? = null
+    }
+
+    private val test get() = Given { Sut() }
+
     @Test
-    fun `name is accessible`() =
+    fun `name is as specified`() =
             test when_ {
                 name
             } then {
-                expect(it.result is_ Equal to_ "test")
+                expect(it.result is_ Equal to_ "name")
             }
 
     @Test
-    fun `access to not initialized value panics`() =
-            test when_ {
+    fun `values panics if valueBackingField is null`() =
+            test while_ {
+                valueBackingField = null
+            } when_ {
                 value
             } then {
                 expect({ it.result } does Throw.type<Panic>())
             }
 
     @Test
-    fun `invoke method sets value getter`() {
-        var called = false
-        test while_ {
-            this { called = true; true }
-        } when_ {
-            value
-        } then {
-            expect(called is_ True)
-        }
-    }
-
-    @Test
-    fun `value getter is not called during invoke`() {
-        var called = false
-        test when_ {
-            this { called = true; true }
-        } then {
-            expect(called is_ False)
-        }
-    }
-
-    @Test
-    fun `value yields return value of getter`() =
-        test while_ {
-            this { true }
-        } when_ {
-            value
-        } then {
-            expect(it.result is_ True)
-        }
-
-    @Test
-    fun `toString for unsetValue`() =
-            Given {
-                SingleValueProvider<Int>("name")
+    fun `value returns non-null valueBackingField`() =
+            test while_ {
+                valueBackingField = "hello"
             } when_ {
+                value
+            } then {
+                expect(it.result is_ Equal to_ "hello")
+            }
+
+    @Test
+    fun `toString for unset field`() =
+            test when_ {
                 toString()
             } then {
                 expect(it.result is_ Equal to_ "name = <unset>")
             }
 
     @Test
-    fun `toString for setValue`() =
-            Given {
-                SingleValueProvider<Int>("name")
-            } while_ {
-                this { 83 }
+    fun `toString for set field`() =
+            test while_ {
+                valueBackingField = "hello"
             } when_ {
                 toString()
             } then {
-                expect(it.result is_ Equal to_ "name = 83")
+                expect(it.result is_ Equal to_ "name = hello")
             }
 }

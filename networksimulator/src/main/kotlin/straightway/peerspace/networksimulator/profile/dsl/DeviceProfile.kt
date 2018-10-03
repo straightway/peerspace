@@ -26,11 +26,11 @@ import straightway.utils.joinMultiLine
  */
 class DeviceProfile(init: DeviceProfile.() -> Unit) {
     val uploadBandwidth =
-            SingleValueProvider<UnitNumber<Bandwidth>>("uploadBandwidth")
+            DynamicSingleValue<UnitNumber<Bandwidth>>("uploadBandwidth")
     val downloadBandwidth =
-            SingleValueProvider<UnitNumber<Bandwidth>>("downloadBandwidth")
+            DynamicSingleValue<UnitNumber<Bandwidth>>("downloadBandwidth")
     val persistentStorageAvailable =
-            SingleValueProvider<UnitNumber<AmountOfData>>("persistentStorageAvailable")
+            DynamicSingleValue<UnitNumber<AmountOfData>>("persistentStorageAvailable")
 
     override fun toString() = "DeviceProfile " +
             listOf(uploadBandwidth, downloadBandwidth, persistentStorageAvailable)

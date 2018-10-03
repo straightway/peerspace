@@ -32,6 +32,7 @@ import straightway.random.RandomDistribution
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.False
 import straightway.testing.flow.Not
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
@@ -52,18 +53,24 @@ class UserTest : KoinLoggingDisabler() {
         Given {
             object {
                 val activityHandler: ActivityHandler = mock()
-                val profile = UserProfile {
-                    usedDevices {
-                        +device
+                val profile by lazy {
+                    UserProfile {
+                        usedDevices {
+                            +device
+                        }
                     }
                 }
-                val device = DeviceUsageProfile {
-                    device { pc }
-                    onlineTimes { +Weekly.mondays { 8[hour]..12[hour] } }
-                    usages { +testUsage }
+                val device by lazy {
+                    DeviceUsageProfile {
+                        device { pc }
+                        onlineTimes { +Weekly.mondays { 8[hour]..12[hour] } }
+                        usages { +testUsage }
+                    }
                 }
-                val testUsage = UsageProfile {
-                    activity { mockedActivity }
+                val testUsage by lazy {
+                    UsageProfile {
+                        activity { mockedActivity }
+                    }
                 }
 
                 val mockedActivity get() =
@@ -94,7 +101,10 @@ class UserTest : KoinLoggingDisabler() {
     @Test
     fun `construction creates one node per device`() =
             test while_ {
-                profile.usedDevices { +device + device }
+                profile.usedDevices {
+                    +device
+                    +device
+                }
             } when_ {
                 sut.environment.devices
             } then {
@@ -104,11 +114,22 @@ class UserTest : KoinLoggingDisabler() {
     @Test
     fun `each created node has a different id`() =
             test while_ {
-                profile.usedDevices { +device + device }
+                profile.usedDevices {
+                    +device
+                    +device
+                }
             } when_ {
                 sut.environment.devices
             } then {
                 expect(it.result[0].id is_ Not - Equal to_ it.result[1].id)
+            }
+
+    @Test
+    fun `user devices are offline initially`() =
+            test when_ {
+                sut.environment.devices.first().isOnline
+            } then {
+                expect(it.result is_ False)
             }
 
     private fun createUser(profile: UserProfile) =
@@ -120,6 +141,7 @@ class UserTest : KoinLoggingDisabler() {
                 bean { _ -> chunkSizeGetter { 64[ki(byte)] } }
                 bean { _ -> mock<TransmissionRequestHandler>() }
                 bean { _ -> mock<UserActivityScheduler>() }
+                factory { args -> mock<Device> { on { id }.thenAnswer { args["id"] } } }
             } make {
                 User()
             }

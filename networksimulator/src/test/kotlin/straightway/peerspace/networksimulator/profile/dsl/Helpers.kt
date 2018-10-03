@@ -17,6 +17,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.error.Panic
 import straightway.testing.bdd.Given
+import straightway.testing.flow.Empty
 import straightway.testing.flow.Same
 import straightway.testing.flow.Throw
 import straightway.testing.flow.as_
@@ -30,7 +31,7 @@ fun <T> testProfile(sutCreator: ProfileCreator<T>) = sutCreator
 
 fun <T, V> ProfileCreator<T>.testSingleValue(
         testValue: V,
-        valueGetter: T.() -> SingleValueProvider<V>
+        valueGetter: T.() -> SingleValue<V>
 ) {
     Given {
         this {}
@@ -45,7 +46,7 @@ fun <T, V> ProfileCreator<T>.testSingleValue(
 
 fun <T, V> ProfileCreator<T>.testSingleValueAssignment(
         testValue: V,
-        valueGetter: T.() -> SingleValueProvider<V>
+        valueGetter: T.() -> SingleValue<V>
 ) {
     Given {
         this { valueGetter().invoke { testValue } }
@@ -56,7 +57,7 @@ fun <T, V> ProfileCreator<T>.testSingleValueAssignment(
     }
 }
 
-fun <T, V> ProfileCreator<T>.testMultiValue(valueGetter: T.() -> MultiValueProvider<V>
+fun <T, V> ProfileCreator<T>.testMultiValue(valueGetter: T.() -> MultiValue<V>
 ) {
     Given {
         this {}
@@ -66,12 +67,11 @@ fun <T, V> ProfileCreator<T>.testMultiValue(valueGetter: T.() -> MultiValueProvi
         expect({ it.result } does Throw.type<Panic>())
     }
 
-    val testValues = listOf<V>()
     Given {
-        this { valueGetter().invoke { testValues } }
+        this { valueGetter().invoke { values.clear() } }
     } when_ {
         valueGetter().values
     } then {
-        expect(it.result is_ Same as_ testValues)
+        expect(it.result is_ Empty)
     }
 }

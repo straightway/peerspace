@@ -22,17 +22,17 @@ import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
 import straightway.units.gi
-import straightway.units.me
+import straightway.units.mi
 import straightway.units.second
 
 val mobileDevice get() = DeviceProfile {
-    uploadBandwidth { 2[me(bit) / second] }
-    downloadBandwidth { 7[me(bit) / second] }
+    uploadBandwidth { 2[mi(bit) / second] }
+    downloadBandwidth { 7[mi(bit) / second] }
     persistentStorageAvailable { 3[gi(byte)] }
 }
 
 val pc get() = DeviceProfile {
-    uploadBandwidth { 1[me(bit) / second] }
-    downloadBandwidth { 3[me(bit) / second] }
+    uploadBandwidth { 1[mi(bit) / second] }
+    downloadBandwidth { 3[mi(bit) / second] }
     persistentStorageAvailable { 20[gi(byte)] }
 }

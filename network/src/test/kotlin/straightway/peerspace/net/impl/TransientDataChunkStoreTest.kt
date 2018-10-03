@@ -41,7 +41,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.AmountOfData
 import straightway.units.UnitNumber
-import straightway.units.me
+import straightway.units.mi
 
 class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
@@ -52,7 +52,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
         const val chunkTimeStamp = 83L
     }
 
-    private fun test(storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)]) = Given {
+    private fun test(storageCapacity: UnitNumber<AmountOfData> = 512[mi(byte)]) = Given {
         object {
             val environment = PeerTestEnvironment(
                     dataChunkStoreFactory = { TransientDataChunkStore() },

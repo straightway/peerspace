@@ -73,7 +73,7 @@ import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
 import straightway.units.ki
-import straightway.units.me
+import straightway.units.mi
 import straightway.units.milli
 import straightway.units.second
 import straightway.utils.Event
@@ -112,8 +112,8 @@ class SinglePeerEnvironment(
     private companion object {
         val latency = 50[milli(second)]
         val offlineDetectionTime = 30[second]
-        val uploadBandwidth = 1[me(bit / second)]
-        val downloadBandwidth = 2[me(bit / second)]
+        val uploadBandwidth = 1[mi(bit / second)]
+        val downloadBandwidth = 2[mi(bit / second)]
     }
 
     private val simNetwork =

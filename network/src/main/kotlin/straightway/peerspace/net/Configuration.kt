@@ -22,7 +22,7 @@ import straightway.units.UnitNumber
 import straightway.units.byte
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.me
+import straightway.units.mi
 import straightway.units.minute
 import straightway.units.second
 
@@ -39,6 +39,6 @@ data class Configuration(
         val timedDataQueryTimeout: UnitNumber<Time> = 5[minute],
         val numberOfForwardPeers: Int = 2,
         val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute],
-        val storageCapacity: UnitNumber<AmountOfData> = 512[me(byte)],
+        val storageCapacity: UnitNumber<AmountOfData> = 512[mi(byte)],
         val forwardRetries: Int = 2,
         val seedPeerIds: Set<Id> = setOf(Id("seedNodeId")))

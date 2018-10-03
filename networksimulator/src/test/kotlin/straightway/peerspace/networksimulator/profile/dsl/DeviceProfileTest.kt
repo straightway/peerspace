@@ -26,7 +26,7 @@ import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
 import straightway.units.gi
-import straightway.units.me
+import straightway.units.mi
 import straightway.units.second
 
 class DeviceProfileTest {
@@ -34,10 +34,10 @@ class DeviceProfileTest {
     private val sut get() = testProfile<DeviceProfile> { DeviceProfile(it) }
 
     @Test
-    fun uploadBandwidth() = sut.testSingleValue(3[me(bit) / second]) { uploadBandwidth }
+    fun uploadBandwidth() = sut.testSingleValue(3[mi(bit) / second]) { uploadBandwidth }
 
     @Test
-    fun downloadBandwidth() = sut.testSingleValue(3[me(bit) / second]) { downloadBandwidth }
+    fun downloadBandwidth() = sut.testSingleValue(3[mi(bit) / second]) { downloadBandwidth }
 
     @Test
     fun persistentStorageAvailable() = sut.testSingleValue(3[gi(byte)]) {

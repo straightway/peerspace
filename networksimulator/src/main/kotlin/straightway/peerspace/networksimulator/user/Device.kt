@@ -17,6 +17,7 @@ package straightway.peerspace.networksimulator.user
 
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
+import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
 
 /**
  * A simulated hardware device participating in a simulated
@@ -26,4 +27,5 @@ interface Device {
     val id: Id
     var isOnline: Boolean
     val peerClient: PeerClient
+    val usage: DeviceUsageProfile
 }

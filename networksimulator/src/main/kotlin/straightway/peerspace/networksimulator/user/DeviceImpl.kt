@@ -56,6 +56,7 @@ import straightway.peerspace.net.queryForwardTargetGetter
 import straightway.peerspace.networksimulator.SimChannel
 import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.DeviceProfile
+import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
 import straightway.random.RandomChooser
 import straightway.random.RandomDistribution
 import straightway.sim.net.AsyncSequentialTransmissionStream
@@ -72,7 +73,7 @@ import java.io.Serializable
 /**
  * Default implementation of the Device interface.
  */
-class DeviceImpl(override val id: Id, profile: DeviceProfile) :
+class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
         Device, KoinModuleComponent by KoinModuleComponent() {
 
     // region Component references
@@ -191,7 +192,7 @@ class DeviceImpl(override val id: Id, profile: DeviceProfile) :
     init {
         val peerEnv = createPeerEnvironment()
         peerClient = peerEnv.get()
-        node = createNode(profile, peerEnv.get())
+        node = createNode(usage.device.value, peerEnv.get())
         node.isOnline = false
     }
 

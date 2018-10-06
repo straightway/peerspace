@@ -43,7 +43,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-class UserActivitySchedulerTestEnvironment(
+open class UserActivitySchedulerTestEnvironment(
         init: UserActivitySchedulerTestEnvironment.() -> Unit
 ) {
 
@@ -102,6 +102,7 @@ class UserActivitySchedulerTestEnvironment(
                     on { this.isOnline = any() }.thenAnswer {
                         setOnline(it.getArgument(0))
                     }
+                    on { this.usage }.thenAnswer { args["usageProfile"] }
                 }
             }
         } make {

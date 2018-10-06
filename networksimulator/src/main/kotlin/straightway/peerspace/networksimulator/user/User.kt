@@ -39,7 +39,7 @@ class User : KoinModuleComponent by KoinModuleComponent() {
                     get<Device> {
                         mapOf(
                             "id" to Id("Peer_${currentId++}"),
-                            "profile" to it.device.value)
+                            "usageProfile" to it)
                     }
                 }
     }

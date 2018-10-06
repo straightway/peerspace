@@ -27,6 +27,7 @@ import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.peer
 import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.DeviceProfile
+import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
 import straightway.random.RandomDistribution
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
@@ -53,14 +54,18 @@ class DeviceImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val defaultId = Id("default")
-        val defaultProfile = DeviceProfile {
-            uploadBandwidth { 16[mi(bit) / second] }
-            downloadBandwidth { 4[mi(bit) / second] }
-            persistentStorageAvailable { 4[gi(byte)] }
+        val defaultUsage = DeviceUsageProfile {
+            device {
+                DeviceProfile {
+                    uploadBandwidth { 16[mi(bit) / second] }
+                    downloadBandwidth { 4[mi(bit) / second] }
+                    persistentStorageAvailable { 4[gi(byte)] }
+                }
+            }
         }
     }
 
-    private fun test(id: Id = defaultId, profile: DeviceProfile = defaultProfile) =
+    private fun test(id: Id = defaultId, usage: DeviceUsageProfile = defaultUsage) =
             Given {
                 object {
                     val environment = withContext {
@@ -69,7 +74,7 @@ class DeviceImplTest : KoinLoggingDisabler() {
                         bean("simNodes") { mutableMapOf<Any, SimNode>() }
                         bean { mock<TimeProvider>() }
                         bean { mock<RandomDistribution<Byte>>() }
-                        bean { DeviceImpl(id, profile) }
+                        bean { DeviceImpl(id, usage) }
                     } make {
                         KoinModuleComponent()
                     }

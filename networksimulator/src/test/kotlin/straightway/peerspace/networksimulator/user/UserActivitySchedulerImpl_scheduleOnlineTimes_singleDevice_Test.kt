@@ -38,7 +38,10 @@ import straightway.units.minus
 import straightway.units.second
 import java.time.LocalDate
 
-class UserActivitySchedulerImpl_scheduleOnlineTimes_Test : KoinLoggingDisabler() {
+class UserActivitySchedulerImpl_scheduleOnlineTimes_singleDevice_Test :
+        KoinLoggingDisabler() {
+
+    // region Setup
 
     private val test get() =
         Given {
@@ -48,6 +51,8 @@ class UserActivitySchedulerImpl_scheduleOnlineTimes_Test : KoinLoggingDisabler()
                 }
             }
         }
+
+    // endregion
 
     @Test
     fun `switches on and off devices at defined times`() =
@@ -178,6 +183,24 @@ class UserActivitySchedulerImpl_scheduleOnlineTimes_Test : KoinLoggingDisabler()
                 day.checkAt(27[hour]) { expect(device.isOnline is_ True) }
             }
 
+    @Test
+    fun `online time is not scheduled if weekday does not match`() =
+            test while_ {
+                deviceUsageProfile.onlineTimes {
+                    +Weekly("never") {
+                        isApplicableTo { { false } }
+                        hours { 1[hour]..6[hour] }
+                    }
+                }
+                device.isOnline = false
+            } when_ {
+                sut.scheduleDay(day)
+            } then {
+                day.checkAt(2[hour]) { expect(device.isOnline is_ False) }
+            }
+
+    // region Private
+
     private val UserActivitySchedulerTestEnvironment.device get() =
         user.environment.devices.single()
 
@@ -212,4 +235,6 @@ class UserActivitySchedulerImpl_scheduleOnlineTimes_Test : KoinLoggingDisabler()
             }
         }
     }
+
+    // endregion
 }

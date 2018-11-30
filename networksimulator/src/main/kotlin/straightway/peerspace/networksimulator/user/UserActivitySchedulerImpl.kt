@@ -16,18 +16,15 @@
  */
 package straightway.peerspace.networksimulator.user
 
+import straightway.koinutils.Bean.get
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.sim.Scheduler
-import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.at
 import straightway.units.get
 import straightway.units.hour
 import straightway.units.minus
-import straightway.units.plus
 import straightway.utils.TimeProvider
-import straightway.utils.max
-import straightway.utils.min
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -46,7 +43,7 @@ class UserActivitySchedulerImpl :
 
     // endregion
 
-    // region Components
+    // region Component references
 
     private val simScheduler: Scheduler by inject()
     private val timeProvider: TimeProvider by inject()
@@ -56,120 +53,41 @@ class UserActivitySchedulerImpl :
 
     // region Fields
 
-    private val deviceSchedules = user.environment.devices.map {
-        DeviceSchedule(it)
+    private val deviceOnlineTimeSchedule = user.environment.devices.map {
+        get<DeviceOnlineTimeSchedule> { mapOf("device" to it) }
+    }
+
+    private val deviceActivitySchedule = user.environment.devices.map {
+        get<DeviceActivitySchedule> { mapOf("device" to it) }
     }
 
     // endregion
 
     // region UserActivityScheduler implementation
 
-    fun scheduleDay(day: LocalDate) {
+    override fun scheduleDay(day: LocalDate) {
         if (LocalDateTime.of(day, LocalTime.MIDNIGHT) < timeProvider.now)
             return
         scheduleNextDay(day)
         scheduleOnlineTimes(day)
+        scheduleActivities(day)
     }
 
     // endregion
 
     // region Private
 
-    private fun scheduleOnlineTimes(day: LocalDate) =
-            deviceSchedules.forEach { it.scheduleOnlineTimes(day) }
-
     private fun scheduleNextDay(day: LocalDate) =
-        scheduleAt(day.at(fullDay)) { scheduleDay(day.plusDays(1)) }
+            scheduleAt(day.at(fullDay)) { scheduleDay(day.plusDays(1)) }
 
-    private fun LocalDate.at(time: UnitNumber<Time>) =
-            LocalDateTime.of(this, LocalTime.MIDNIGHT) + time
+    private fun scheduleOnlineTimes(day: LocalDate) =
+            deviceOnlineTimeSchedule.forEach { it.scheduleOnlineTimes(day) }
+
+    private fun scheduleActivities(day: LocalDate) =
+            deviceActivitySchedule.forEach { it.scheduleActivities(day) }
 
     private fun scheduleAt(time: LocalDateTime, action: () -> Unit) =
             simScheduler.schedule(time - timeProvider.now, action)
-
-    // endregion
-
-    // region Nested class
-
-    private inner class DeviceSchedule(val device: Device) {
-
-        private var scheduledOnlineTimes = listOf<ClosedRange<LocalDateTime>>()
-
-        fun scheduleOnlineTimes(day: LocalDate) {
-            val newOnlineTimes = onlineTimesFor(day).filter {
-                day.at(0[hour]) <= it.endInclusive
-            }
-            newOnlineTimes.filter { it.start.toLocalDate() == day }.forEach {
-                scheduleOnlineTime(it)
-            }
-            scheduledOnlineTimes = newOnlineTimes
-        }
-
-        private fun onlineTimesFor(day: LocalDate) =
-                mergeOverlaps(
-                        day,
-                        scheduledOnlineTimes + definedOnlineTimesFor(day).map {
-                            day.at(it.hours.value)
-                        })
-
-        private val ClosedRange<LocalDateTime>.offlineTime get() =
-            scheduledOnlineTimes.single {
-                it.start == start
-            }.endInclusive
-
-        private fun scheduleOnlineTime(onlineTimeRange: ClosedRange<LocalDateTime>) {
-            if (onlineTimeRange.endInclusive <= onlineTimeRange.start)
-                return
-            if (onlineTimeRange.start < timeProvider.now)
-                return
-            scheduleAt(onlineTimeRange.start) {
-                device.isOnline = true
-                setOfflineIfTimeHasCome(onlineTimeRange)
-            }
-        }
-
-        private fun setOfflineIfTimeHasCome(onlineTimeRange: ClosedRange<LocalDateTime>) {
-            if (timeProvider.now == onlineTimeRange.offlineTime) {
-                device.isOnline = false
-            } else {
-                scheduleAt(onlineTimeRange.offlineTime) {
-                    setOfflineIfTimeHasCome(onlineTimeRange)
-                }
-            }
-        }
-
-        private fun definedOnlineTimesFor(day: LocalDate) =
-                device.usage.onlineTimes.values.filter {
-                    it.isApplicableTo.value(day.at(0[hour]))
-                }
-
-        private fun mergeOverlaps(day: LocalDate, times: Iterable<ClosedRange<LocalDateTime>>) =
-                times.filter {
-                    it.start.toLocalDate() == day || it.endInclusive.toLocalDate() == day
-                }.fold(listOf<ClosedRange<LocalDateTime>>()) { result, range ->
-                    result.addTimeRange(range)
-                }
-
-        private fun List<ClosedRange<LocalDateTime>>.addTimeRange(
-                newRange: ClosedRange<LocalDateTime>): List<ClosedRange<LocalDateTime>> =
-                firstOrNull { it.intersectsWith(newRange) }.let { intersection ->
-                    if (intersection == null) {
-                        this + newRange
-                    } else {
-                        (this - intersection).addTimeRange(newRange + intersection)
-                    }
-                }
-
-        private fun <T : Comparable<T>> ClosedRange<T>.intersectsWith(other: ClosedRange<T>) =
-                contains(other.start) or contains(other.endInclusive)
-
-        private operator fun <T : Comparable<T>> ClosedRange<T>.plus(
-                other: ClosedRange<T>) =
-                min(start, other.start)..max(endInclusive, other.endInclusive)
-
-        private fun LocalDate.at(range: ClosedRange<UnitNumber<Time>>) =
-                at(range.start)..at(range.endInclusive)
-    }
 
     // endregion
 }

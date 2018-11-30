@@ -18,8 +18,8 @@ package straightway.peerspace.networksimulator.user
 import java.time.LocalDate
 
 /**
- * Schedule user activities defined in a user profile.
+ * Schedule online times for a device.
  */
-interface UserActivityScheduler {
-    fun scheduleDay(day: LocalDate)
+interface DeviceOnlineTimeSchedule {
+    fun scheduleOnlineTimes(day: LocalDate)
 }

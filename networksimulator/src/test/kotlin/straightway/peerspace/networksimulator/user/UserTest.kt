@@ -28,7 +28,6 @@ import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.peerspace.networksimulator.profile.pc
-import straightway.random.RandomDistribution
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -46,7 +45,7 @@ import straightway.utils.TimeProvider
 class UserTest : KoinLoggingDisabler() {
 
     private interface ActivityHandler {
-        fun handleActivity(env: UserEnvironment, profile: UsageProfile)
+        fun handleActivity(device: Device, profile: UsageProfile)
     }
 
     private val test get() =
@@ -136,7 +135,7 @@ class UserTest : KoinLoggingDisabler() {
             withContext {
                 bean("simNodes") { mutableMapOf<Any, SimNode>() }
                 bean { _ -> profile }
-                bean("randomSource") { _ -> mock<RandomDistribution<Byte>>() }
+                bean("randomSource") { _ -> mock<Iterator<Byte>>() }
                 bean { _ -> mock<TimeProvider>() }
                 bean { _ -> chunkSizeGetter { 64[ki(byte)] } }
                 bean { _ -> mock<TransmissionRequestHandler>() }

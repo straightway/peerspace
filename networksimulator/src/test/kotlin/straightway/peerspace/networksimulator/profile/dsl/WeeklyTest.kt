@@ -17,6 +17,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
+import straightway.peerspace.networksimulator.user.TimeRange
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False
@@ -29,8 +30,6 @@ import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.units.Time
-import straightway.units.UnitNumber
 import straightway.units.get
 import straightway.units.hour
 import java.time.DayOfWeek
@@ -42,7 +41,7 @@ class WeeklyTest {
     @Test
     fun hours() =
             testProfile<Weekly> { Weekly("", it) }
-                    .testSingleValueAssignment<Weekly, ClosedRange<UnitNumber<Time>>>(
+                    .testSingleValueAssignment<Weekly, TimeRange>(
                             1[hour]..3[hour]) { hours }
 
     @Test

@@ -17,7 +17,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
-import straightway.peerspace.networksimulator.user.UserEnvironment
+import straightway.peerspace.networksimulator.user.Device
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Same
@@ -40,16 +40,16 @@ class ActivityTest {
 
     @Test
     fun `action is invoked with proper arguments`() {
-        var calledEnv: UserEnvironment? = null
+        var calledDevice: Device? = null
         var calledProfile: UsageProfile? = null
-        val env: UserEnvironment = mock()
+        val device: Device = mock()
         val profile = UsageProfile {}
         Given {
-            Activity("name") { profile -> calledProfile = profile; calledEnv = this }
+            Activity("name") { profile -> calledProfile = profile; calledDevice = this }
         } when_ {
-            this(env, profile)
+            this(device, profile)
         } then {
-            expect(calledEnv is_ Same as_ env)
+            expect(calledDevice is_ Same as_ device)
             expect(calledProfile is_ Same as_ profile)
         }
     }

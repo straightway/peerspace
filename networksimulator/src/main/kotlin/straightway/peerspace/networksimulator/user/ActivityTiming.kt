@@ -15,11 +15,9 @@
  */
 package straightway.peerspace.networksimulator.user
 
-import java.time.LocalDate
-
 /**
- * Schedule user activities defined in a user profile.
+ * Timing of an activity within a series of time ranges.
  */
-interface UserActivityScheduler {
-    fun scheduleDay(day: LocalDate)
+interface ActivityTiming {
+    val timeRange: TimeRange
 }

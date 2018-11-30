@@ -58,7 +58,6 @@ import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.DeviceProfile
 import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
 import straightway.random.RandomChooser
-import straightway.random.RandomDistribution
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
@@ -82,7 +81,7 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
     private val chunkSizeGetter: ChunkSizeGetter by inject()
     private val simNodes: MutableMap<Any, SimNode> by inject("simNodes")
     private val timeProvider: TimeProvider by inject()
-    private val randomSource: RandomDistribution<Byte> by inject("randomSource")
+    private val randomSource: Iterator<Byte> by inject("randomSource")
 
     // endregion
 
@@ -159,7 +158,7 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
                 { KnownPeersPushTargetImpl() },
                 { KnownPeersQuerySourceImpl() },
                 { KnownPeersGetterImpl() },
-                { chunkSizeGetter { _ -> 64[ki(byte)] } },
+                { chunkSizeGetter { 64[ki(byte)] } },
                 { Event() },
                 { Event() },
                 { PeerClientImpl() },

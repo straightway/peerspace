@@ -27,11 +27,25 @@ import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 @Suppress("MagicNumber")
 class User : KoinModuleComponent by KoinModuleComponent() {
 
+    // region Component references
+
     val profile: UserProfile by inject()
     private val activityScheduler: UserActivityScheduler by inject()
 
+    // endregion
+
     val environment: UserEnvironment = Environment()
     val id: Id = Id("User_${currentId++}")
+
+    // region Private
+
+    private companion object {
+        var currentId = 0
+    }
+
+    // endregion
+
+    // region Nested class
 
     private inner class Environment : UserEnvironment {
         override val devices =
@@ -39,12 +53,10 @@ class User : KoinModuleComponent by KoinModuleComponent() {
                     get<Device> {
                         mapOf(
                             "id" to Id("Peer_${currentId++}"),
-                            "usageProfile" to it)
+                            "profile" to it)
                     }
                 }
     }
 
-    private companion object {
-        var currentId = 0
-    }
+    // endregion
 }

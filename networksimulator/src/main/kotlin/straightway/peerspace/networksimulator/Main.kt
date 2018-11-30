@@ -28,7 +28,6 @@ import straightway.peerspace.networksimulator.user.DeviceImpl
 import straightway.peerspace.networksimulator.user.User
 import straightway.peerspace.networksimulator.user.UserActivityScheduler
 import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
-import straightway.random.RandomDistribution
 import straightway.random.RandomSource
 import straightway.sim.core.Simulator
 import straightway.units.byte
@@ -63,7 +62,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
             withContext {
                 bean("simNodes") { simNodes }
                 bean { _ -> officeWorker }
-                bean("randomSource") { _ -> randomSource as RandomDistribution<Byte> }
+                bean("randomSource") { _ -> randomSource as Iterator<Byte> }
                 bean { _ -> simulator as TimeProvider }
                 bean { _ -> chunkSizeGetter }
                 bean { _ -> simNet }

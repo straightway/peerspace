@@ -145,6 +145,7 @@ class SimNetwork(
         return peerEnvironment
     }
 
+    @Suppress("SwallowedException")
     private val KeyHashable.encodedHash get(): Long? {
         val idId = id as? Id
         return if (idId != null)

@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.networksimulator.profile.dsl
 
+import straightway.peerspace.networksimulator.user.TimeRange
 import straightway.units.Time
 import straightway.units.UnitNumber
 import straightway.units.get
@@ -68,11 +69,11 @@ class Weekly(private val weekdayFilterName: String, init: Weekly.() -> Unit) {
     val isApplicableTo = StaticSingleValue<(LocalDateTime) -> Boolean>("isApplicableTo")
     fun isApplicableTo(dateTime: LocalDateTime) = isApplicableTo.value(dateTime)
 
-    val hours = DynamicSingleValue<ClosedRange<UnitNumber<Time>>>("hours")
+    val hours = DynamicSingleValue<TimeRange>("hours")
 
     override fun toString() = (listOf(weekdayFilterName) + hoursString).joinToString(" ")
 
-    operator fun invoke(valueGetter: Weekly.() -> ClosedRange<UnitNumber<Time>>): Weekly {
+    operator fun invoke(valueGetter: Weekly.() -> TimeRange): Weekly {
         hours {
             @Suppress("UNUSED_EXPRESSION")
             valueGetter()

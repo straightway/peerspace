@@ -39,6 +39,7 @@ import straightway.units.minus
 import straightway.units.plus
 import straightway.units.second
 import straightway.utils.TimeProvider
+import straightway.utils.repeatAsPattern
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -46,7 +47,6 @@ import java.time.LocalTime
 open class UserActivitySchedulerTestEnvironment(
         init: UserActivitySchedulerTestEnvironment.() -> Unit
 ) {
-
     val day = LocalDate.of(2013, 1, 1)!!
 
     val profile = UserProfile {
@@ -59,18 +59,28 @@ open class UserActivitySchedulerTestEnvironment(
                         downloadBandwidth { 8[mi(byte) / second] }
                     }
                 }
+                usages { }
             }
         }
     }
+
+    var userActivitySchedulerFactory = { mock<UserActivityScheduler>() }
+
+    var activityTiminigFactory: (List<TimeRange>, UnitNumber<Time>) -> ActivityTiming =
+            { _, _ -> mock() }
+
+    var deviceActivityScheduleFactory: (Device) -> DeviceActivitySchedule = { mock() }
+    var deviceOnlineTimeScheduleFactory: (Device) -> DeviceOnlineTimeSchedule = { mock() }
+
     val simulator = Simulator()
     val simScheduler: Scheduler = mock {
-        on { schedule(any(), any()) }.thenAnswer {
-            simulator.schedule(it.getArgument(0), it.getArgument(1))
+        on { schedule(any(), any()) }.thenAnswer { args ->
+            simulator.schedule(args.getArgument(0), args.getArgument(1))
         }
     }
-    val timeProvider: TimeProvider = simulator
-    val sut by lazy { context.get<UserActivitySchedulerImpl>() }
+    val userActivityScheduler by lazy { context.get<UserActivityScheduler>() }
     val user by lazy { context.get<User>() }
+    private var randomSource: Iterator<Byte> = listOf<Byte>(0).repeatAsPattern().iterator()
     fun LocalDate.at(time: UnitNumber<Time>) =
             LocalDateTime.of(this, LocalTime.MIDNIGHT) + time
     fun LocalDate.checkAt(time: UnitNumber<Time>, check: () -> Unit) {
@@ -83,14 +93,15 @@ open class UserActivitySchedulerTestEnvironment(
         simulator.run()
         expect(isCheckExecuted) { "The check has not been executed" }
     }
-    private val context by lazy {
+    val context by lazy {
         withContext {
             bean("simNodes") { mutableMapOf<Any, SimNode>() }
-            bean { _ -> profile }
-            bean { _ -> timeProvider }
-            bean { _ -> simScheduler }
-            bean { _ -> User() }
-            bean { UserActivitySchedulerImpl() }
+            bean { profile }
+            bean { simulator as TimeProvider }
+            bean { simScheduler }
+            bean { User() }
+            bean("randomSource") { randomSource }
+            bean { userActivitySchedulerFactory() }
             factory { args ->
                 val peerClient = mock<PeerClient>()
                 var isOnline = false
@@ -99,12 +110,15 @@ open class UserActivitySchedulerTestEnvironment(
                     on { this.id }.thenAnswer { args["id"] }
                     on { this.peerClient }.thenAnswer { peerClient }
                     on { this.isOnline }.thenAnswer { isOnline }
-                    on { this.isOnline = any() }.thenAnswer {
-                        setOnline(it.getArgument(0))
+                    on { this.isOnline = any() }.thenAnswer { args ->
+                        setOnline(args.getArgument(0))
                     }
-                    on { this.usage }.thenAnswer { args["usageProfile"] }
+                    on { this.usage }.thenAnswer { args["profile"] }
                 }
             }
+            factory { args -> activityTiminigFactory(args["ranges"], args["duration"]) }
+            factory { args -> deviceActivityScheduleFactory(args["device"]) }
+            factory { args -> deviceOnlineTimeScheduleFactory(args["device"]) }
         } make {
             KoinModuleComponent()
         }

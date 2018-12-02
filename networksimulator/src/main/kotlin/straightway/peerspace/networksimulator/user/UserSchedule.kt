@@ -21,6 +21,6 @@ import java.time.LocalDate
  * The user schedule keeps track all blocked time periods of a user.
  */
 interface UserSchedule {
-    fun block(day: LocalDate, range: TimeRange  )
+    fun block(day: LocalDate, range: TimeRange)
     fun getBlockedTimes(day: LocalDate): List<TimeRange>
 }

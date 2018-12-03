@@ -38,6 +38,7 @@ class UserProfileTest {
             } then {
                 expect(it.result is_ Equal to_
                                "UserProfile {\n" +
+                               "  activityTimes = <unset>\n" +
                                "  usedDevices = <unset>\n" +
                                "}")
             }

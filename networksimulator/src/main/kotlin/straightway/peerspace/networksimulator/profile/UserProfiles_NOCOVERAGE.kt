@@ -15,7 +15,16 @@
  */
 package straightway.peerspace.networksimulator.profile
 
+import straightway.peerspace.networksimulator.profile.dsl.DynamicMultiValue
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
+import straightway.peerspace.networksimulator.profile.dsl.Weekly
+import straightway.units.get
+import straightway.units.hour
+
+val defaultActivityTimes = listOf(
+    Weekly.workdays { 7[hour]..23[hour] },
+    Weekly.weekends { 10[hour]..26[hour] }
+)
 
 val officeWorker = UserProfile {
     usedDevices {
@@ -23,6 +32,7 @@ val officeWorker = UserProfile {
         +homeUsedPc
         +mobilePhone
     }
+    activityTimes { +defaultActivityTimes }
 }
 
 val nonOfficeWorker = UserProfile {
@@ -30,12 +40,15 @@ val nonOfficeWorker = UserProfile {
         +homeUsedPc
         +mobilePhone
     }
+    activityTimes { +defaultActivityTimes }
 }
 
 val mobileOnlyUser = UserProfile {
     usedDevices { +mobilePhone }
+    activityTimes { +defaultActivityTimes }
 }
 
 val homePcOnlyUser = UserProfile {
     usedDevices { +homeUsedPc }
+    activityTimes { +defaultActivityTimes }
 }

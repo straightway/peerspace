@@ -72,6 +72,8 @@ open class UserActivitySchedulerTestEnvironment(
     var deviceActivityScheduleFactory: (Device) -> DeviceActivitySchedule = { mock() }
     var deviceOnlineTimeScheduleFactory: (Device) -> DeviceOnlineTimeSchedule = { mock() }
 
+    var blockedUserTimes = listOf<TimeRange>()
+
     val simulator = Simulator()
     val simScheduler: Scheduler = mock {
         on { schedule(any(), any()) }.thenAnswer { args ->
@@ -80,7 +82,6 @@ open class UserActivitySchedulerTestEnvironment(
     }
     val userActivityScheduler by lazy { context.get<UserActivityScheduler>() }
     val user by lazy { context.get<User>() }
-    private var randomSource: Iterator<Byte> = listOf<Byte>(0).repeatAsPattern().iterator()
     fun LocalDate.at(time: UnitNumber<Time>) =
             LocalDateTime.of(this, LocalTime.MIDNIGHT) + time
     fun LocalDate.checkAt(time: UnitNumber<Time>, check: () -> Unit) {
@@ -116,6 +117,15 @@ open class UserActivitySchedulerTestEnvironment(
                     on { this.usage }.thenAnswer { args["profile"] }
                 }
             }
+            bean {
+                mock<UserSchedule> {
+                    on { block(any(), any()) }.thenAnswer { args ->
+                        blockedUserTimes = blockedUserTimes.include(args.getArgument(1))
+                        @Suppress("OptionalUnit") Unit
+                    }
+                    on { getBlockedTimes(any()) }.thenAnswer { blockedUserTimes }
+                }
+            }
             factory { args -> activityTiminigFactory(args["ranges"], args["duration"]) }
             factory { args -> deviceActivityScheduleFactory(args["device"]) }
             factory { args -> deviceOnlineTimeScheduleFactory(args["device"]) }
@@ -123,6 +133,8 @@ open class UserActivitySchedulerTestEnvironment(
             KoinModuleComponent()
         }
     }
+
+    private var randomSource: Iterator<Byte> = listOf<Byte>(0).repeatAsPattern().iterator()
 
     init {
         val now = LocalDateTime.of(day.minusDays(1), LocalTime.MIDNIGHT)

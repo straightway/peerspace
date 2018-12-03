@@ -16,6 +16,7 @@
 package straightway.peerspace.networksimulator.user
 
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
@@ -81,6 +82,9 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
                 environment.context.get<DeviceActivitySchedule> { mapOf("device" to device) }
             }
 
+            val userSchedule get() =
+                environment.context.get<UserSchedule>()
+
             val deviceUsageProfile get() =
                 environment.profile.usedDevices.values.single()
         }
@@ -90,12 +94,12 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `activityTiming is initially called with range defined in usage profile`() =
-        test(10[hour]..11[hour]) when_ {
-            sut.scheduleActivities(environment.day)
-        } then {
-            expect(activityTiminigs.single().ranges is_
-                    Equal to_ Values(8[hour]..17[hour]))
-        }
+            test(10[hour]..11[hour]) when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                expect(activityTiminigs.single().ranges is_
+                        Equal to_ Values(8[hour]..17[hour]))
+            }
 
     @Test
     fun `second call to activityTiminig is called with split range due to first activity`() =
@@ -114,9 +118,28 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `activityTiming is initially called with duration defined in usage profile`() =
-        test(10[hour]..11[hour]) when_ {
-            sut.scheduleActivities(environment.day)
-        } then {
-            expect(activityTiminigs.single().duration is_ Equal to_ 1[minute])
-        }
+            test(10[hour]..11[hour]) when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                expect(activityTiminigs.single().duration is_ Equal to_ 1[minute])
+            }
+
+    @Test
+    fun `scheduled activity time is blocked for user`() =
+            test(10[hour]..11[hour]) when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                verify(userSchedule).block(environment.day, 10[hour]..11[hour])
+            }
+
+    @Test
+    fun `blocked user times are respected`() =
+            test(10[hour]..11[hour]) while_ {
+                environment.blockedUserTimes = listOf<TimeRange>(14[hour]..15[hour])
+            } when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                expect(activityTiminigs.single().ranges is_
+                        Equal to_ Values(8[hour]..14[hour], 15[hour]..17[hour]))
+            }
 }

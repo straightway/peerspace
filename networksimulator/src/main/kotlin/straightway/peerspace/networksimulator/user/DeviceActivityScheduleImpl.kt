@@ -38,6 +38,7 @@ class DeviceActivityScheduleImpl(val device: Device)
 
     private val simScheduler: Scheduler by inject()
     private val timeProvider: TimeProvider by inject()
+    private val userSchedule: UserSchedule by inject()
 
     // endregion
 
@@ -53,8 +54,9 @@ class DeviceActivityScheduleImpl(val device: Device)
     private fun UsageProfile.scheduleActivityAt(day: LocalDate) {
         var timeRanges = listOf(time.value.hours.value)
         (1..numberOfTimes.value).forEach { _ ->
+            userSchedule.getBlockedTimes(day).forEach { timeRanges = timeRanges.exclude(it) }
             with(activityTiming(timeRanges)) {
-                timeRanges = timeRanges.exclude(timeRange)
+                userSchedule.block(day, timeRange)
                 scheduleAt(day.at(timeRange.endInclusive)) {
                     activity.value.action(device, this@scheduleActivityAt)
                 }

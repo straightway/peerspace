@@ -15,12 +15,12 @@
  */
 package straightway.peerspace.networksimulator.profile
 
-import straightway.peerspace.networksimulator.profile.dsl.DynamicMultiValue
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.units.get
 import straightway.units.hour
 
+@Suppress("MagicNumber")
 val defaultActivityTimes = listOf(
     Weekly.workdays { 7[hour]..23[hour] },
     Weekly.weekends { 10[hour]..26[hour] }

@@ -25,6 +25,7 @@ import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.DeviceProfile
 import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
+import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.sim.Scheduler
 import straightway.sim.core.Simulator
 import straightway.testing.flow.expect
@@ -33,6 +34,7 @@ import straightway.units.UnitNumber
 import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
+import straightway.units.hour
 import straightway.units.mi
 import straightway.units.milli
 import straightway.units.minus
@@ -49,7 +51,7 @@ open class UserActivitySchedulerTestEnvironment(
 ) {
     val day = LocalDate.of(2013, 1, 1)!!
 
-    val profile = UserProfile {
+    var profile = UserProfile {
         usedDevices {
             +DeviceUsageProfile {
                 onlineTimes { values() }
@@ -61,6 +63,9 @@ open class UserActivitySchedulerTestEnvironment(
                 }
                 usages { }
             }
+        }
+        activityTimes {
+            +Weekly.eachDay { 0[hour]..24[hour] }
         }
     }
 

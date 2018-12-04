@@ -22,8 +22,13 @@ import straightway.units.hour
 
 @Suppress("MagicNumber")
 val defaultActivityTimes = listOf(
-    Weekly.workdays { 7[hour]..23[hour] },
-    Weekly.weekends { 10[hour]..26[hour] }
+        Weekly.mondays { +7[hour]..23[hour] },
+        Weekly.tuesdays { +7[hour]..23[hour] },
+        Weekly.wednesdays { +7[hour]..23[hour] },
+        Weekly.thursdays { +7[hour]..22[hour] },
+        Weekly.fridays { +7[hour]..24[hour] },
+        Weekly.saturdays { +0[hour]..1[hour]; +9[hour]..24[hour] },
+        Weekly.sundays { +0[hour]..2[hour]; +10[hour]..23[hour] }
 )
 
 val officeWorker = UserProfile {

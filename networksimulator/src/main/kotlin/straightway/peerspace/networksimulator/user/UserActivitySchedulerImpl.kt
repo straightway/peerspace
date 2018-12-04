@@ -48,6 +48,7 @@ class UserActivitySchedulerImpl :
     private val simScheduler: Scheduler by inject()
     private val timeProvider: TimeProvider by inject()
     private val user: User by inject()
+    private val userSchedule: UserSchedule by inject()
 
     // endregion
 
@@ -68,14 +69,35 @@ class UserActivitySchedulerImpl :
     override fun scheduleDay(day: LocalDate) {
         if (LocalDateTime.of(day, LocalTime.MIDNIGHT) < timeProvider.now)
             return
-        scheduleNextDay(day)
-        scheduleOnlineTimes(day)
-        scheduleActivities(day)
+        blockInactiveTimes(day)
+        scheduleActivityEvents(day)
     }
 
     // endregion
 
     // region Private
+
+    private fun scheduleActivityEvents(day: LocalDate) {
+        scheduleNextDay(day)
+        scheduleOnlineTimes(day)
+        scheduleActivities(day)
+    }
+
+    private fun blockInactiveTimes(day: LocalDate) =
+            getInactivityTimes(day).forEach { userSchedule.block(day, it) }
+
+    private fun getInactivityTimes(day: LocalDate): List<TimeRange> {
+        var inactivityTimes = listOf<TimeRange>(0[hour]..fullDay)
+        getActivityTimesFor(day).forEach {
+            inactivityTimes = inactivityTimes.exclude(it.hours.value)
+        }
+        return inactivityTimes
+    }
+
+    private fun getActivityTimesFor(day: LocalDate) =
+            activityTimes.filter { it.isApplicableTo(day.at(0[hour])) }
+
+    private val activityTimes get() = user.profile.activityTimes.values
 
     private fun scheduleNextDay(day: LocalDate) =
             scheduleAt(day.at(fullDay)) { scheduleDay(day.plusDays(1)) }

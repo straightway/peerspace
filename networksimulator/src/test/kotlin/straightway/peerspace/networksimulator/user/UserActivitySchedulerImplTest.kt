@@ -18,19 +18,22 @@ package straightway.peerspace.networksimulator.user
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
 import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
+import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.peerspace.networksimulator.profile.pc
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.get
 import straightway.units.hour
 
-class UserActivitySchedulerImplTest { // : KoinLoggingDisabler() {
+class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
 
     // region Setup
 
@@ -93,5 +96,54 @@ class UserActivitySchedulerImplTest { // : KoinLoggingDisabler() {
                         verify(deviceActivitySchedules[it.id]!!).scheduleActivities(day)
                     }
                 }
+            }
+
+     @Test
+     fun `blocks inactive times`() =
+             test while_ {
+                 environment.profile = UserProfile {
+                     usedDevices { }
+                     activityTimes { +Weekly.eachDay { 8[hour]..16[hour] } }
+                 }
+             } when_ {
+                 environment.userActivityScheduler.scheduleDay(environment.day)
+             } then {
+                expect(environment.blockedUserTimes is_ Equal to_
+                        Values(0[hour]..8[hour], 16[hour]..24[hour]))
+             }
+
+    @Test
+    fun `blocks inactive times of all weekly periods`() =
+            test while_ {
+                environment.profile = UserProfile {
+                    usedDevices { }
+                    activityTimes {
+                        +Weekly.eachDay { 8[hour]..16[hour] }
+                        +Weekly.eachDay { 18[hour]..22[hour] }
+                    }
+                }
+            } when_ {
+                environment.userActivityScheduler.scheduleDay(environment.day)
+            } then {
+                expect(environment.blockedUserTimes is_ Equal to_
+                        Values(0[hour]..8[hour], 16[hour]..18[hour], 22[hour]..24[hour]))
+            }
+
+    @Test
+    fun `does not block inactive times for other weekdays`() =
+            test while_ {
+                environment.profile = UserProfile {
+                    usedDevices { }
+                    activityTimes {
+                        +Weekly.eachDay { 8[hour]..16[hour] }
+                        +Weekly("never") { isApplicableTo { { false } } }
+                                .invoke { 18[hour]..22[hour] }
+                    }
+                }
+            } when_ {
+                environment.userActivityScheduler.scheduleDay(environment.day)
+            } then {
+                expect(environment.blockedUserTimes is_ Equal to_
+                        Values(0[hour]..8[hour], 16[hour]..24[hour]))
             }
 }

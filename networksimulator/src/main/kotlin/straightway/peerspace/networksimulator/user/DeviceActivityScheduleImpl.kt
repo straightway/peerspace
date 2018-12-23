@@ -52,9 +52,9 @@ class DeviceActivityScheduleImpl(val device: Device)
     // region Private
 
     private fun UsageProfile.scheduleActivityAt(day: LocalDate) {
-        var timeRanges = listOf(time.value.hours.value)
-        (1..numberOfTimes.value).forEach { _ ->
-            userSchedule.getBlockedTimes(day).forEach { timeRanges = timeRanges.exclude(it) }
+        val timeRanges = TimeRanges(listOf(time.value.hours.value))
+        (1..numberOfTimes.value).forEach {
+            userSchedule.getBlockedTimes(day).forEach { timeRanges -= it }
             with(activityTiming(timeRanges)) {
                 userSchedule.block(day, timeRange)
                 scheduleAt(day.at(timeRange.endInclusive)) {
@@ -64,7 +64,7 @@ class DeviceActivityScheduleImpl(val device: Device)
         }
     }
 
-    private fun UsageProfile.activityTiming(timeRanges: List<TimeRange>) = get<ActivityTiming> {
+    private fun UsageProfile.activityTiming(timeRanges: TimeRanges) = get<ActivityTiming> {
         mapOf(
                 "ranges" to timeRanges,
                 "duration" to duration.value)

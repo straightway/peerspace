@@ -21,6 +21,7 @@ import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.units.get
 import straightway.units.hour
 import straightway.units.minute
+import straightway.units.second
 
 val homeUsedPc = DeviceUsageProfile {
     onlineTimes {
@@ -31,11 +32,13 @@ val homeUsedPc = DeviceUsageProfile {
     usages {
         +readSocialMediaFeeds {
             time { Weekly.workdays { 19[hour]..22[hour] } }
-            numberOfTimes { 70 }
+            duration { 30[second] }
+            numberOfTimes { 7 }
         }
         +postOnSocialMediaFeed {
             time { Weekly.workdays { 19[hour]..22[hour] } }
-            numberOfTimes { 30 }
+            duration { 2[minute] }
+            numberOfTimes { 3 }
         }
     }
     device { pc }
@@ -51,16 +54,17 @@ val mobilePhone = DeviceUsageProfile {
         }
         +readSocialMediaFeeds {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            numberOfTimes { 15 }
+            numberOfTimes { 1 }
             duration { 1[minute] }
         }
         +readMessages {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            numberOfTimes { 200 }
+            duration { 2[minute] }
+            numberOfTimes { 20 }
         }
         +writeMessages {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            numberOfTimes { 30 }
+            numberOfTimes { 3 }
             duration { 1[minute] }
         }
     }
@@ -74,11 +78,13 @@ val workPc = DeviceUsageProfile {
     usages {
         +readMessages {
             time { onlineTimes.values.single() }
-            numberOfTimes { 200 }
+            duration { 2[minute] }
+            numberOfTimes { 20 }
         }
         +writeMessages {
             time { onlineTimes.values.single() }
             duration { 10[minute] }
+            numberOfTimes { 2 }
         }
     }
     device { pc }

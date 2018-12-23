@@ -36,9 +36,9 @@ class UserScheduleImpl : UserSchedule, KoinModuleComponent by KoinModuleComponen
 
     // region UserSchedule
 
-    override fun getBlockedTimes(day: LocalDate): List<TimeRange> {
+    override fun getBlockedTimes(day: LocalDate): TimeRanges {
         clearPastDays()
-        return blocked[day] ?: listOf()
+        return blocked[day] ?: TimeRanges()
     }
 
     override fun block(day: LocalDate, range: TimeRange) {
@@ -46,7 +46,7 @@ class UserScheduleImpl : UserSchedule, KoinModuleComponent by KoinModuleComponen
             range.endInclusive <= range.start -> Unit
             range.endInclusive < 0[hour] -> Unit
             range.start < 0[hour] -> block(day, 0[hour]..range.endInclusive)
-            else -> blocked += mapOf(day to (blocked[day] ?: listOf()).include(range))
+            else -> blockRangeAtDay(day, range)
         }
 
         blockNextOverlappingDays(range, day)
@@ -55,6 +55,11 @@ class UserScheduleImpl : UserSchedule, KoinModuleComponent by KoinModuleComponen
     // endregion
 
     // region Private
+
+    private fun blockRangeAtDay(day: LocalDate, range: TimeRange) {
+        if (day !in blocked) blocked += (day to TimeRanges())
+        blocked[day]!! += range
+    }
 
     private fun clearPastDays() {
         val today = timeProvider.now.toLocalDate()
@@ -66,7 +71,7 @@ class UserScheduleImpl : UserSchedule, KoinModuleComponent by KoinModuleComponen
             block(day.plusDays(1), (range.start - fullDay)..(range.endInclusive - fullDay))
     }
 
-    private var blocked = mapOf<LocalDate, List<TimeRange>>()
+    private var blocked = mapOf<LocalDate, TimeRanges>()
 
     private companion object {
         val fullDay = 1[straightway.units.day]

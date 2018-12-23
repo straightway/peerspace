@@ -69,6 +69,7 @@ class UserActivitySchedulerImpl :
     override fun scheduleDay(day: LocalDate) {
         if (LocalDateTime.of(day, LocalTime.MIDNIGHT) < timeProvider.now)
             return
+        println("scheduling $day for user ${user.hashCode()}")
         blockInactiveTimes(day)
         scheduleActivityEvents(day)
     }
@@ -86,11 +87,9 @@ class UserActivitySchedulerImpl :
     private fun blockInactiveTimes(day: LocalDate) =
             getInactivityTimes(day).forEach { userSchedule.block(day, it) }
 
-    private fun getInactivityTimes(day: LocalDate): List<TimeRange> {
-        var inactivityTimes = listOf<TimeRange>(0[hour]..fullDay)
-        getActivityTimesFor(day).forEach {
-            inactivityTimes = inactivityTimes.exclude(it.hours.value)
-        }
+    private fun getInactivityTimes(day: LocalDate): TimeRanges {
+        val inactivityTimes = TimeRanges(0[hour]..fullDay)
+        getActivityTimesFor(day).forEach { inactivityTimes.minusAssign(it.hours.value) }
         return inactivityTimes
     }
 

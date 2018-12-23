@@ -41,14 +41,27 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     // region Setup
 
-    private data class ActivityTimingParameters
-    (
-            val ranges: List<TimeRange>,
+    private data class ActivityTimingParameters private constructor(
+            val ranges: TimeRanges,
             val duration: UnitNumber<Time>,
-            val resultRange: TimeRange) {
+            val resultRange: TimeRange
+    ) {
 
         val timing = mock<ActivityTiming> {
             on { timeRange }.thenAnswer { resultRange }
+        }
+
+        companion object {
+            @Suppress("LongParameterList")
+            operator fun invoke(
+                    ranges: TimeRanges,
+                    duration: UnitNumber<Time>,
+                    resultRange: TimeRange
+            ): ActivityTimingParameters {
+                val copyRanges = mutableListOf<TimeRange>()
+                ranges.forEach { copyRanges.add(it) }
+                return ActivityTimingParameters(TimeRanges(copyRanges), duration, resultRange)
+            }
         }
     }
 
@@ -135,7 +148,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
     @Test
     fun `blocked user times are respected`() =
             test(10[hour]..11[hour]) while_ {
-                environment.blockedUserTimes = listOf<TimeRange>(14[hour]..15[hour])
+                environment.blockedUserTimes = TimeRanges(14[hour]..15[hour])
             } when_ {
                 sut.scheduleActivities(environment.day)
             } then {

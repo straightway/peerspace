@@ -44,7 +44,7 @@ class ActivityTimingImplTest : KoinLoggingDisabler() {
                 val sut = withContext {
                     bean("randomSource") { randomSource.toList().toRandomStream().iterator() }
                 } make {
-                    ActivityTimingImpl(map { it.asTimeRange() }, duration)
+                    ActivityTimingImpl(TimeRanges(map { it.asTimeRange() }), duration)
                 }
             }
         }
@@ -53,7 +53,7 @@ class ActivityTimingImplTest : KoinLoggingDisabler() {
     fun `construction throws if no ranges are specified`() =
             expect({
                 withContext {} make {
-                    ActivityTimingImpl(listOf(), 30[minute])
+                    ActivityTimingImpl(TimeRanges(), 30[minute])
                 }
             } does Throw.type<Panic>())
 
@@ -103,6 +103,14 @@ class ActivityTimingImplTest : KoinLoggingDisabler() {
                 sut.timeRange
             } then {
                 expect(it.result[hour] is_ Equal to_ 1.75[hour]..2.25[hour])
+            }
+
+    @Test
+    fun `activity is too long`() =
+            listOf(1[hour]..2[hour]).test(3[hour], 0.5) when_ {
+                sut.timeRange
+            } then {
+                expect({ it.result } does Throw.type<Panic>())
             }
 
     private operator fun TimeRange.get(unit: Time) =

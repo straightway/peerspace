@@ -71,13 +71,13 @@ open class UserActivitySchedulerTestEnvironment(
 
     var userActivitySchedulerFactory = { mock<UserActivityScheduler>() }
 
-    var activityTiminigFactory: (List<TimeRange>, UnitNumber<Time>) -> ActivityTiming =
+    var activityTiminigFactory: (TimeRanges, UnitNumber<Time>) -> ActivityTiming =
             { _, _ -> mock() }
 
     var deviceActivityScheduleFactory: (Device) -> DeviceActivitySchedule = { mock() }
     var deviceOnlineTimeScheduleFactory: (Device) -> DeviceOnlineTimeSchedule = { mock() }
 
-    var blockedUserTimes = listOf<TimeRange>()
+    var blockedUserTimes = TimeRanges()
 
     val simulator = Simulator()
     val simScheduler: Scheduler = mock {
@@ -125,8 +125,7 @@ open class UserActivitySchedulerTestEnvironment(
             bean {
                 mock<UserSchedule> {
                     on { block(any(), any()) }.thenAnswer { args ->
-                        blockedUserTimes = blockedUserTimes.include(args.getArgument(1))
-                        @Suppress("OptionalUnit") Unit
+                        blockedUserTimes.plusAssign(args.getArgument<TimeRange>(1))
                     }
                     on { getBlockedTimes(any()) }.thenAnswer { blockedUserTimes }
                 }

@@ -22,5 +22,5 @@ import java.time.LocalDate
  */
 interface UserSchedule {
     fun block(day: LocalDate, range: TimeRange)
-    fun getBlockedTimes(day: LocalDate): List<TimeRange>
+    fun getBlockedTimes(day: LocalDate): TimeRanges
 }

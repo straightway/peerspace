@@ -31,7 +31,7 @@ import straightway.units.times
  * Timing of an activity within a series of time ranges.
  */
 class ActivityTimingImpl(
-        private val ranges: List<TimeRange>,
+        private val ranges: TimeRanges,
         private val duration: UnitNumber<Time>
 ) : ActivityTiming, KoinModuleComponent by KoinModuleComponent() {
 
@@ -51,39 +51,33 @@ class ActivityTimingImpl(
 
     // region Private
 
-    private val startTime: UnitNumber<Time> by lazy { unifiedRanges.findTime(relativeStartTime) }
-    private val unifiedRanges by lazy { getUnifiedRanges(ranges) }
-    private fun getUnifiedRanges(ranges: List<TimeRange>): List<TimeRange> =
-            when {
-                ranges.size < 2 ->
-                    ranges
-                ranges[1].start <= ranges[0].endInclusive ->
-                    getUnifiedRanges(
-                            listOf(ranges[0].start..ranges[1].endInclusive) + ranges.drop(2))
-                else ->
-                    ranges.slice(0..0) + getUnifiedRanges(ranges.drop(1))
-            }
+    private val startTime: UnitNumber<Time> by lazy {
+        ranges.findRelativeSubRange(relativeStartTime, duration)
+    }
 
     private val relativeStartTime by lazy { activityRange * randomNumberGenerator.next() }
     private val endTime get() = startTime + duration
     private val activityRange: UnitNumber<Time> get() =
-        unifiedRanges.fold(0[hour] as UnitNumber<Time>) {
-            acc, range -> acc + range.size - duration
+        ranges.fold(0[hour] as UnitNumber<Time>) { acc, range ->
+            acc + range.endInclusive - range.start - duration
         }
 
-    private fun List<TimeRange>.findTime(
-            relativeTimeOverAllRanges: UnitNumber<Time>
-    ): UnitNumber<Time> =
-            with(first()) {
-                val startRangeSize = size - duration
-                if (relativeTimeOverAllRanges <= startRangeSize) start + relativeTimeOverAllRanges
-                else drop(1).findTime(relativeTimeOverAllRanges - startRangeSize)
-            }
-
-    private val TimeRange.size get() = endInclusive - start
+    private fun TimeRanges.findRelativeSubRange(
+            relativeTimeOverAllRanges: UnitNumber<Time>,
+            duration: UnitNumber<Time>
+    ): UnitNumber<Time> {
+        var rest = relativeTimeOverAllRanges
+        forEach {
+            val size = it.endInclusive - it.start
+            val startRangeSize = size - duration
+            if (rest <= startRangeSize) return it.start + rest
+            rest -= startRangeSize
+        }
+        throw Panic("Activity of duration $duration does not fit into $ranges")
+    }
 
     init {
-        if (ranges.isEmpty()) throw Panic("No ranges specified")
+        if (!ranges.any()) throw Panic("No ranges specified")
     }
 
     // endregion

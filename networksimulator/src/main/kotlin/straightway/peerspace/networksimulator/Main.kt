@@ -23,12 +23,21 @@ import straightway.koinutils.withContext
 import straightway.sim.net.Network as SimNetwork
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.networksimulator.profile.officeWorker
+import straightway.peerspace.networksimulator.user.ActivityTiming
+import straightway.peerspace.networksimulator.user.ActivityTimingImpl
 import straightway.peerspace.networksimulator.user.Device
+import straightway.peerspace.networksimulator.user.DeviceActivitySchedule
+import straightway.peerspace.networksimulator.user.DeviceActivityScheduleImpl
 import straightway.peerspace.networksimulator.user.DeviceImpl
+import straightway.peerspace.networksimulator.user.DeviceOnlineTimeSchedule
+import straightway.peerspace.networksimulator.user.DeviceOnlineTimeScheduleImpl
 import straightway.peerspace.networksimulator.user.User
 import straightway.peerspace.networksimulator.user.UserActivityScheduler
 import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
+import straightway.peerspace.networksimulator.user.UserSchedule
+import straightway.peerspace.networksimulator.user.UserScheduleImpl
 import straightway.random.RandomSource
+import straightway.sim.Scheduler
 import straightway.sim.core.Simulator
 import straightway.units.byte
 import straightway.units.get
@@ -58,25 +67,42 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
 
     private val chunkSizeGetter = chunkSizeGetter { _ -> CHUNK_SIZE }
 
-    val users = (1..numberOfPeers).map { _ ->
+    val userContexts = (1..numberOfPeers).map { _ ->
             withContext {
                 bean("simNodes") { simNodes }
                 bean { _ -> officeWorker }
                 bean("randomSource") { _ -> randomSource as Iterator<Byte> }
                 bean { _ -> simulator as TimeProvider }
+                bean { _ -> simulator as Scheduler }
                 bean { _ -> chunkSizeGetter }
                 bean { _ -> simNet }
                 bean { _ -> UserActivitySchedulerImpl() as UserActivityScheduler }
                 bean { _ -> User() }
-                factory { DeviceImpl(it["id"], it["profile"]) as Device }
+                bean { _ -> UserScheduleImpl() as UserSchedule }
+                factory { args ->
+                    DeviceImpl(args["id"], args["profile"]) as Device
+                }
+                factory { args ->
+                    ActivityTimingImpl(args["ranges"], args["duration"]) as ActivityTiming
+                }
+                factory { args ->
+                    DeviceActivityScheduleImpl(args["device"]) as DeviceActivitySchedule
+                }
+                factory { args ->
+                    DeviceOnlineTimeScheduleImpl(args["device"]) as DeviceOnlineTimeSchedule
+                }
             } make {
-                KoinModuleComponent().get<User>()
+                KoinModuleComponent()
             }
         }
 
     fun initializeSimulation() {
         println("Initializing simulation at ${simulator.now}")
-        users.forEach { }
+        userContexts.forEach { context ->
+            val userScheduler = context.get<UserActivityScheduler>()
+            userScheduler.scheduleDay(simulator.now.toLocalDate())
+        }
+        println("done.")
     }
 
     init {
@@ -98,10 +124,10 @@ fun main(args: Array<String>) {
         println("Starting simulation")
 
         val mainClass = MainClass(
-                numberOfPeers = 100,
+                numberOfPeers = 5,
                 randomSeed = 1234L,
                 startDate = LocalDate.of(2023, 2, 3))
-        println("Created ${mainClass.users.size} users")
+        println("Created ${mainClass.userContexts.size} userContexts")
         mainClass.simulator.run()
 
         println("Simulation finished")

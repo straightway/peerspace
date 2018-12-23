@@ -17,60 +17,36 @@ package straightway.peerspace.networksimulator.user
 
 import straightway.units.Time
 import straightway.units.UnitNumber
-import straightway.units.max
-import straightway.units.min
+import straightway.units.UnitValue
+import straightway.units.get
+import straightway.units.second
+import straightway.utils.Ranges
 
 typealias TimeRange = ClosedRange<UnitNumber<Time>>
 
-fun List<TimeRange>.exclude(toExclude: TimeRange): List<TimeRange> =
-        when {
-            toExclude.isEmpty -> this
-            isEmpty() -> listOf()
-            else -> first().exclude(toExclude) + drop(1).exclude(toExclude)
-        }
+/**
+ * Optimized collection of ranges, spezialized for time ranges.
+ */
+class TimeRanges(initRanges: Iterable<TimeRange>) : Iterable<TimeRange> {
 
-fun List<TimeRange>.include(toInclude: TimeRange): List<TimeRange> =
-        when {
-            isEmpty() -> listOf(toInclude)
-            else -> includeInNonEmptyRangeList(toInclude)
-        }
+    constructor() : this (listOf())
 
-private fun List<TimeRange>.includeInNonEmptyRangeList(toInclude: TimeRange) =
-        drop(1).includeInNonEmptyRangeList(first(), toInclude)
+    override fun iterator() = ranges.map {
+        (it.start[second] as UnitNumber<Time>)..(it.endInclusive[second] as UnitNumber<Time>)
+    }.iterator()
 
-private fun List<TimeRange>.includeInNonEmptyRangeList(
-        firstRange: TimeRange, toInclude: TimeRange
-) =
-    firstRange.include(toInclude).let { included ->
-        if (included.any()) included + this
-        else listOf(firstRange) + include(toInclude)
+    operator fun minusAssign(r: TimeRange) = ranges.minusAssign(r.prim)
+
+    operator fun plusAssign(r: TimeRange) = ranges.plusAssign(r.prim)
+
+    private var ranges = Ranges(initRanges.map { it.prim })
+
+    companion object {
+        operator fun <T : Number> invoke(vararg initRanges: ClosedRange<UnitValue<T, Time>>) =
+                TimeRanges(initRanges.map {
+                    (it.start as UnitNumber<Time>)..(it.endInclusive as UnitNumber<Time>)
+                })
+        private val TimeRange.prim get() =
+            start.baseValue.toDouble()..endInclusive.baseValue.toDouble()
     }
-
-private fun TimeRange.include(include: TimeRange): List<TimeRange> =
-        when {
-            include.start in this && include.endInclusive in this ->
-                listOf(this)
-            start in include || endInclusive in include ->
-                listOf(min(start, include.start)..max(endInclusive, include.endInclusive))
-            start < include.start ->
-                listOf()
-            else ->
-                listOf(include, this)
-        }
-
-private fun TimeRange.exclude(exclude: TimeRange) =
-        when {
-            isEmpty -> listOf()
-            exclude.start in this -> partBefore(exclude.start) + partAfter(exclude.endInclusive)
-            exclude.endInclusive in this -> partAfter(exclude.endInclusive)
-            else -> listOf(this)
-        }
-
-private val TimeRange.isEmpty: Boolean get() =
-        endInclusive <= start
-
-private fun TimeRange.partBefore(border: UnitNumber<Time>) =
-        if (start < border) listOf(start..border) else listOf()
-
-private fun TimeRange.partAfter(border: UnitNumber<Time>) =
-        if (border < endInclusive) listOf(border..endInclusive) else listOf()
+}

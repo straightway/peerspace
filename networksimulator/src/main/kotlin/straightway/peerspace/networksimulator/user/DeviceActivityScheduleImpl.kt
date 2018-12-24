@@ -56,10 +56,12 @@ class DeviceActivityScheduleImpl(val device: Device)
         (1..numberOfTimes.value).forEach {
             userSchedule.getBlockedTimes(day).forEach { timeRanges -= it }
             with(activityTiming(timeRanges)) {
-                userSchedule.block(day, timeRange)
-                scheduleAt(day.at(timeRange.endInclusive)) {
-                    activity.value.action(device, this@scheduleActivityAt)
-                }
+                try {
+                    userSchedule.block(day, timeRange)
+                    scheduleAt(day.at(timeRange.endInclusive)) {
+                        activity.value.action(device, this@scheduleActivityAt)
+                    }
+                } catch (x: DoesNotFitException) {}
             }
         }
     }

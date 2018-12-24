@@ -78,6 +78,7 @@ open class UserActivitySchedulerTestEnvironment(
     var deviceOnlineTimeScheduleFactory: (Device) -> DeviceOnlineTimeSchedule = { mock() }
 
     var blockedUserTimes = TimeRanges()
+    var blockUserAction = { timeRange: TimeRange -> blockedUserTimes.plusAssign(timeRange) }
 
     val simulator = Simulator()
     val simScheduler: Scheduler = mock {
@@ -125,7 +126,7 @@ open class UserActivitySchedulerTestEnvironment(
             bean {
                 mock<UserSchedule> {
                     on { block(any(), any()) }.thenAnswer { args ->
-                        blockedUserTimes.plusAssign(args.getArgument<TimeRange>(1))
+                        blockUserAction(args.getArgument<TimeRange>(1))
                     }
                     on { getBlockedTimes(any()) }.thenAnswer { blockedUserTimes }
                 }

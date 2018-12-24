@@ -124,7 +124,7 @@ fun main(args: Array<String>) {
         println("Starting simulation")
 
         val mainClass = MainClass(
-                numberOfPeers = 5,
+                numberOfPeers = 100,
                 randomSeed = 1234L,
                 startDate = LocalDate.of(2023, 2, 3))
         println("Created ${mainClass.userContexts.size} userContexts")

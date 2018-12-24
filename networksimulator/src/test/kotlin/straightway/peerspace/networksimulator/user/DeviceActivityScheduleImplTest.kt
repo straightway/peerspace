@@ -18,6 +18,7 @@ package straightway.peerspace.networksimulator.user
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.expr.minus
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.networksimulator.profile.dsl.Activity
@@ -25,7 +26,10 @@ import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Not
+import straightway.testing.flow.Throw
 import straightway.testing.flow.Values
+import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -154,5 +158,28 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
             } then {
                 expect(activityTiminigs.single().ranges is_
                         Equal to_ Values(8[hour]..14[hour], 15[hour]..17[hour]))
+            }
+
+    @Test
+    fun `if blocking user time does not work, no exception is thrown`() =
+            test(10[hour]..11[hour]) while_ {
+                environment.blockUserAction = { throw DoesNotFitException("test") }
+            } when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                expect({ it.result } does Not - Throw.exception)
+            }
+
+    @Test
+    fun `if blocking one user time does not work, following times are nevertheless blocked`() =
+            test(10[hour]..11[hour]) while_ {
+                with(environment) {
+                    profile.usedDevices.values.single().usages.values.single().numberOfTimes { 2 }
+                    blockUserAction = { _ -> throw DoesNotFitException("test") }
+                }
+            } when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                expect(activityTiminigs.size is_ Equal to_ 2)
             }
 }

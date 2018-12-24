@@ -28,7 +28,7 @@ import straightway.units.UnitNumber
 import straightway.units.get
 import straightway.units.hour
 
-class TimeRangeTest {
+class TimeRangesTest {
 
     @Test
     fun `exclude from empty list remains empty`() =
@@ -289,5 +289,15 @@ class TimeRangeTest {
             } then {
                 expect(this is_ Equal to_
                         Values(9[hour]..12[hour], 13[hour]..14[hour], 15[hour]..18[hour]))
+            }
+
+    @Test
+    fun `toString yields proper representation`() =
+            Given {
+                TimeRanges(9[hour]..12[hour], 13[hour]..14[hour])
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_ "TimeRanges[9.0 h..12.0 h, 13.0 h..14.0 h]")
             }
 }

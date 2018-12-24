@@ -15,8 +15,8 @@
  */
 package straightway.peerspace.networksimulator.user
 
-import straightway.units.Time
-import straightway.units.UnitNumber
-
-typealias TimeRange = ClosedRange<UnitNumber<Time>>
-
+/**
+ * Exception being thrown if an activity cannot be scheduled because there is no time slot being
+ * long enough.
+ */
+class DoesNotFitException(message: String) : Exception(message)

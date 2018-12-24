@@ -33,7 +33,7 @@ val homeUsedPc = DeviceUsageProfile {
         +readSocialMediaFeeds {
             time { Weekly.workdays { 19[hour]..22[hour] } }
             duration { 30[second] }
-            numberOfTimes { 7 }
+            numberOfTimes { 10 }
         }
         +postOnSocialMediaFeed {
             time { Weekly.workdays { 19[hour]..22[hour] } }
@@ -49,22 +49,22 @@ val mobilePhone = DeviceUsageProfile {
     usages {
         +postOnSocialMediaFeed {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            numberOfTimes { 1 }
+            numberOfTimes { 4 }
             duration { 5[minute] }
         }
         +readSocialMediaFeeds {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            numberOfTimes { 1 }
+            numberOfTimes { 20 }
             duration { 1[minute] }
         }
         +readMessages {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            duration { 2[minute] }
-            numberOfTimes { 20 }
+            duration { 1[minute] }
+            numberOfTimes { 50 }
         }
         +writeMessages {
             time { Weekly.eachDay { 8[hour]..22[hour] } }
-            numberOfTimes { 3 }
+            numberOfTimes { 15 }
             duration { 1[minute] }
         }
     }
@@ -79,12 +79,12 @@ val workPc = DeviceUsageProfile {
         +readMessages {
             time { onlineTimes.values.single() }
             duration { 2[minute] }
-            numberOfTimes { 20 }
+            numberOfTimes { 40 }
         }
         +writeMessages {
             time { onlineTimes.values.single() }
             duration { 10[minute] }
-            numberOfTimes { 2 }
+            numberOfTimes { 15 }
         }
     }
     device { pc }

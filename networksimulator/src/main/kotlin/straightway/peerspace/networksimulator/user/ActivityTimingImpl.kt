@@ -73,7 +73,7 @@ class ActivityTimingImpl(
             if (rest <= startRangeSize) return it.start + rest
             rest -= startRangeSize
         }
-        throw Panic("Activity of duration $duration does not fit into $ranges")
+        throw DoesNotFitException("Activity of duration $duration does not fit into $ranges")
     }
 
     init {

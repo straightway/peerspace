@@ -110,7 +110,7 @@ class ActivityTimingImplTest : KoinLoggingDisabler() {
             listOf(1[hour]..2[hour]).test(3[hour], 0.5) when_ {
                 sut.timeRange
             } then {
-                expect({ it.result } does Throw.type<Panic>())
+                expect({ it.result } does Throw.type<DoesNotFitException>())
             }
 
     private operator fun TimeRange.get(unit: Time) =

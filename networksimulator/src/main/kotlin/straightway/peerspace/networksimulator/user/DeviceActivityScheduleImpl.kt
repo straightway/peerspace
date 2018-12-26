@@ -55,14 +55,19 @@ class DeviceActivityScheduleImpl(val device: Device)
         val timeRanges = TimeRanges(listOf(time.value.hours.value))
         (1..numberOfTimes.value).forEach {
             userSchedule.getBlockedTimes(day).forEach { timeRanges -= it }
-            with(activityTiming(timeRanges)) {
-                try {
-                    userSchedule.block(day, timeRange)
-                    scheduleAt(day.at(timeRange.endInclusive)) {
-                        activity.value.action(device, this@scheduleActivityAt)
-                    }
-                } catch (x: DoesNotFitException) {}
+            day.scheduleActivityWithin(activityTiming(timeRanges).timeRange) {
+                activity.value.action(device, this@scheduleActivityAt)
             }
+        }
+    }
+
+    @Suppress("EmptyCatchBlock", "SwallowedException")
+    private fun LocalDate.scheduleActivityWithin(timeRange: TimeRange, action: () -> Unit) {
+        try {
+            userSchedule.block(this, timeRange)
+            scheduleAt(at(timeRange.endInclusive), action)
+        } catch (x: DoesNotFitException) {
+            // Ignore
         }
     }
 

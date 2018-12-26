@@ -19,4 +19,3 @@ import straightway.units.Time
 import straightway.units.UnitNumber
 
 typealias TimeRange = ClosedRange<UnitNumber<Time>>
-

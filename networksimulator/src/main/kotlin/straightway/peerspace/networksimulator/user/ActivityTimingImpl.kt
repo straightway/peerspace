@@ -52,17 +52,19 @@ class ActivityTimingImpl(
     // region Private
 
     private val startTime: UnitNumber<Time> by lazy {
-        ranges.findRelativeSubRange(relativeStartTime, duration)
+        fittingRanges.findRelativeSubRange(relativeStartTime, duration)
     }
 
     private val relativeStartTime by lazy { activityRange * randomNumberGenerator.next() }
     private val endTime get() = startTime + duration
     private val activityRange: UnitNumber<Time> get() =
-        ranges.fold(0[hour] as UnitNumber<Time>) { acc, range ->
-            acc + range.endInclusive - range.start - duration
-        }
+        fittingRanges.fold(0[hour] as UnitNumber<Time>) { acc, range ->
+                  acc + range.size - duration
+              }
+    private val fittingRanges = ranges.filter { duration <= it.size }
+    private val TimeRange.size get() = endInclusive - start
 
-    private fun TimeRanges.findRelativeSubRange(
+    private fun Iterable<TimeRange>.findRelativeSubRange(
             relativeTimeOverAllRanges: UnitNumber<Time>,
             duration: UnitNumber<Time>
     ): UnitNumber<Time> {

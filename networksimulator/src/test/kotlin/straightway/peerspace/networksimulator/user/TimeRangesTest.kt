@@ -300,4 +300,14 @@ class TimeRangesTest {
             } then {
                 expect(it.result is_ Equal to_ "TimeRanges[9.0 h..12.0 h, 13.0 h..14.0 h]")
             }
+
+    @Test
+    fun `size yields size`() =
+            Given {
+                TimeRanges(9[hour]..12[hour], 13[hour]..14[hour])
+            } when_ {
+                size
+            } then {
+                expect(it.result is_ Equal to_ 2)
+            }
 }

@@ -113,6 +113,14 @@ class ActivityTimingImplTest : KoinLoggingDisabler() {
                 expect({ it.result } does Throw.type<DoesNotFitException>())
             }
 
+    @Test
+    fun `ranges not fitting with duration are ignored`() =
+            listOf(1.0[hour]..1.1[hour], 4.0[hour]..5.0[hour]).test(30[minute], 0.0) when_ {
+                sut.timeRange
+            } then {
+                expect(it.result[hour] is_ Equal to_ 4.0[hour]..4.5[hour])
+            }
+
     private operator fun TimeRange.get(unit: Time) =
             start[unit]..endInclusive[unit]
 

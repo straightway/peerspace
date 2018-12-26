@@ -41,6 +41,8 @@ class TimeRanges(initRanges: Iterable<TimeRange>) : Iterable<TimeRange> {
     override fun toString() =
             "TimeRanges[${map { it.start[hour]..it.endInclusive[hour] }.joinToString(", ")}]"
 
+    val size: Int get() = ranges.size
+
     companion object {
         operator fun <T : Number> invoke(vararg initRanges: ClosedRange<UnitValue<T, Time>>) =
                 TimeRanges(initRanges.map {

@@ -161,6 +161,42 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
             }
 
     @Test
+    fun `if blocking user activity does not work, no exception is thrown`() =
+            test(10[hour]..11[hour]) while_ {
+                environment.activityTiminigFactory = { _, _ ->
+                    mock {
+                        on { timeRange }.thenAnswer { throw DoesNotFitException("") }
+                    }
+                }
+            } when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                expect({ it.result } does Not - Throw.exception)
+            }
+
+    @Test
+    fun `if blocking one user activity does not work, following times are nevertheless blocked`() {
+        var activityTiminigCalls = 0
+        test(10[hour]..11[hour]) while_ {
+            with(environment) {
+                profile.usedDevices.values.single().usages.values.single().numberOfTimes { 2 }
+                activityTiminigFactory = { _, _ ->
+                    mock {
+                        on { timeRange }.thenAnswer {
+                            activityTiminigCalls++
+                            throw DoesNotFitException("")
+                        }
+                    }
+                }
+            }
+        } when_ {
+            sut.scheduleActivities(environment.day)
+        } then {
+            expect(activityTiminigCalls is_ Equal to_ 2)
+        }
+    }
+
+    @Test
     fun `if blocking user time does not work, no exception is thrown`() =
             test(10[hour]..11[hour]) while_ {
                 environment.blockUserAction = { throw DoesNotFitException("test") }

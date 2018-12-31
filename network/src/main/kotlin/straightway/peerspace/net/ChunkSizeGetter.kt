@@ -19,5 +19,5 @@ import straightway.units.AmountOfData
 import straightway.units.UnitValue
 import java.io.Serializable
 
-typealias ChunkSizeGetter = (Serializable) -> UnitValue<Int, AmountOfData>
+typealias ChunkSizeGetter = (Serializable) -> UnitValue<AmountOfData>
 fun chunkSizeGetter(function: ChunkSizeGetter): ChunkSizeGetter = function

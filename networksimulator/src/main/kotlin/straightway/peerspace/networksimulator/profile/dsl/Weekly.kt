@@ -17,7 +17,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.peerspace.networksimulator.user.TimeRange
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.units.get
 import straightway.units.hour
 import straightway.units.nano
@@ -96,9 +96,9 @@ class Weekly(private val weekdayFilterName: String, init: Weekly.() -> Unit) {
         }
     }
 
-    private fun UnitNumber<Time>.toTimeString() =
+    private fun UnitValue<Time>.toTimeString() =
             toLocalTime().format(timeFormatter)
 
-    private fun UnitNumber<Time>.toLocalTime() =
+    private fun UnitValue<Time>.toLocalTime() =
             LocalTime.MIDNIGHT.plusNanos(this[nano(second)].value.toLong() + 1)
 }

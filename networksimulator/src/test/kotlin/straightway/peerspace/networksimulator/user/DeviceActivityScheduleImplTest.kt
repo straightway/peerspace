@@ -34,7 +34,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.units.byte
 import straightway.units.get
 import straightway.units.hour
@@ -47,7 +47,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     private data class ActivityTimingParameters private constructor(
             val ranges: TimeRanges,
-            val duration: UnitNumber<Time>,
+            val duration: UnitValue<Time>,
             val resultRange: TimeRange
     ) {
 
@@ -59,7 +59,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
             @Suppress("LongParameterList")
             operator fun invoke(
                     ranges: TimeRanges,
-                    duration: UnitNumber<Time>,
+                    duration: UnitValue<Time>,
                     resultRange: TimeRange
             ): ActivityTimingParameters {
                 val copyRanges = mutableListOf<TimeRange>()

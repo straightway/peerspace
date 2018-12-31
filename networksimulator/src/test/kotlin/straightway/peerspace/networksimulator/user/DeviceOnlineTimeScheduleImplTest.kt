@@ -36,6 +36,7 @@ import straightway.units.get
 import straightway.units.hour
 import straightway.units.minus
 import straightway.units.second
+import straightway.units.unaryMinus
 import java.time.LocalDate
 
 class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {

@@ -28,6 +28,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.get
 import straightway.units.hour
+import straightway.units.unaryMinus
 import straightway.utils.TimeProvider
 import java.time.LocalDate
 import java.time.LocalDateTime

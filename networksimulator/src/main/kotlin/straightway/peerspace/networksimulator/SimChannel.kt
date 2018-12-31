@@ -31,7 +31,7 @@ import java.io.Serializable
  */
 class SimChannel(
         private val transmissionRequestHandler: TransmissionRequestHandler,
-        private val chunkSizeGetter: (Serializable) -> UnitValue<Int, AmountOfData>,
+        private val chunkSizeGetter: (Serializable) -> UnitValue<AmountOfData>,
         val from: Node,
         val to: Node
 ) : Channel {

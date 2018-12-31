@@ -23,8 +23,6 @@ import straightway.testing.flow.Values
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.units.Time
-import straightway.units.UnitNumber
 import straightway.units.get
 import straightway.units.hour
 
@@ -130,8 +128,7 @@ class TimeRangesTest {
                 minusAssign(8[hour]..12[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values((4[hour] as UnitNumber<Time>)..(7[hour] as UnitNumber<Time>),
-                                (12[hour] as UnitNumber<Time>)..(14[hour] as UnitNumber<Time>)))
+                        Values(4[hour]..7[hour], 12[hour]..14[hour]))
             }
 
     @Test

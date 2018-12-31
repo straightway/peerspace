@@ -28,7 +28,6 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.Time
-import straightway.units.UnitNumber
 import straightway.units.UnitValue
 import straightway.units.get
 import straightway.units.hour
@@ -36,8 +35,8 @@ import straightway.units.minute
 
 class ActivityTimingImplTest : KoinLoggingDisabler() {
 
-    private fun <T : Number> List<ClosedRange<UnitValue<T, Time>>>.test(
-            duration: UnitNumber<Time>,
+    private fun List<ClosedRange<UnitValue<Time>>>.test(
+            duration: UnitValue<Time>,
             vararg randomSource: Double) =
         Given {
             object {
@@ -124,6 +123,6 @@ class ActivityTimingImplTest : KoinLoggingDisabler() {
     private operator fun TimeRange.get(unit: Time) =
             start[unit]..endInclusive[unit]
 
-    private fun <T : Number> ClosedRange<UnitValue<T, Time>>.asTimeRange() =
-            (start as UnitNumber<Time>)..(endInclusive as UnitNumber<Time>)
+    private fun ClosedRange<UnitValue<Time>>.asTimeRange() =
+            start..endInclusive
 }

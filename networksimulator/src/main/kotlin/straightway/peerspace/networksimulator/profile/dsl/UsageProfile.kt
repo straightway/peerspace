@@ -17,7 +17,7 @@ package straightway.peerspace.networksimulator.profile.dsl
 
 import straightway.units.AmountOfData
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.utils.joinMultiLine
 
 /**
@@ -26,9 +26,9 @@ import straightway.utils.joinMultiLine
 class UsageProfile(init: UsageProfile.() -> Unit) {
     val activity = StaticSingleValue<Activity>("activity")
     val numberOfTimes = DynamicSingleValue<Int>("numberOfTimes")
-    val duration = DynamicSingleValue<UnitNumber<Time>>("duration")
+    val duration = DynamicSingleValue<UnitValue<Time>>("duration")
     val time = StaticSingleValue<Weekly>("time")
-    val dataVolume = DynamicSingleValue<UnitNumber<AmountOfData>>("dataVolume")
+    val dataVolume = DynamicSingleValue<UnitValue<AmountOfData>>("dataVolume")
 
     operator fun invoke(update: UsageProfile.() -> Unit): UsageProfile { update(); return this }
 

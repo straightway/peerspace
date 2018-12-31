@@ -30,7 +30,7 @@ import straightway.sim.Scheduler
 import straightway.sim.core.Simulator
 import straightway.testing.flow.expect
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
@@ -71,7 +71,7 @@ open class UserActivitySchedulerTestEnvironment(
 
     var userActivitySchedulerFactory = { mock<UserActivityScheduler>() }
 
-    var activityTiminigFactory: (TimeRanges, UnitNumber<Time>) -> ActivityTiming =
+    var activityTiminigFactory: (TimeRanges, UnitValue<Time>) -> ActivityTiming =
             { _, _ -> mock() }
 
     var deviceActivityScheduleFactory: (Device) -> DeviceActivitySchedule = { mock() }
@@ -88,9 +88,9 @@ open class UserActivitySchedulerTestEnvironment(
     }
     val userActivityScheduler by lazy { context.get<UserActivityScheduler>() }
     val user by lazy { context.get<User>() }
-    fun LocalDate.at(time: UnitNumber<Time>) =
+    fun LocalDate.at(time: UnitValue<Time>) =
             LocalDateTime.of(this, LocalTime.MIDNIGHT) + time
-    fun LocalDate.checkAt(time: UnitNumber<Time>, check: () -> Unit) {
+    fun LocalDate.checkAt(time: UnitValue<Time>, check: () -> Unit) {
         var isCheckExecuted = false
         simulator.schedule(at(time) - simulator.now + 1[milli(second)]) {
             isCheckExecuted = true

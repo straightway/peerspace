@@ -19,6 +19,7 @@ import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.units.get
 import straightway.units.hour
+import straightway.units.unaryPlus
 
 @Suppress("MagicNumber")
 val defaultActivityTimes = listOf(

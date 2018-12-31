@@ -42,7 +42,6 @@ import straightway.peerspace.networksimulator.SimNode
 import straightway.sim.core.Simulator
 import straightway.testing.flow.expect
 import straightway.units.Time
-import straightway.units.UnitNumber
 import straightway.units.UnitValue
 import straightway.units.get
 import straightway.units.milli
@@ -123,9 +122,9 @@ class SimNetwork(
         }
     }
 
-    fun ageOf(time: UnitNumber<Time>) =
+    fun ageOf(time: UnitValue<Time>) =
             (simulator.now - time).unitValue[milli(second)].value.toLong()
-    fun <T : Number> ageOf(range: ClosedRange<UnitValue<T, Time>>) =
+    fun ageOf(range: ClosedRange<UnitValue<Time>>) =
             ageOf(range.start)..ageOf(range.endInclusive)
 
     init {

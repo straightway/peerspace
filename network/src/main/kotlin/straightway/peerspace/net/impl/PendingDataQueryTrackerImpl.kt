@@ -28,13 +28,13 @@ import straightway.peerspace.net.isPending
 import straightway.peerspace.net.timeProvider
 import straightway.units.Time
 import straightway.units.minus
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 
 /**
  * Default implementation of the PendingDataQueryTracker interface.
  */
 class PendingDataQueryTrackerImpl(
-        private val pendingTimeoutConfiguration: Configuration.() -> UnitNumber<Time>
+        private val pendingTimeoutConfiguration: Configuration.() -> UnitValue<Time>
 ) : PendingDataQueryTracker, PeerComponent by PeerComponent() {
 
     override fun setPending(query: Request<DataQuery>) {

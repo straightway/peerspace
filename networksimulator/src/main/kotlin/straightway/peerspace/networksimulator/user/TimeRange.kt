@@ -16,6 +16,6 @@
 package straightway.peerspace.networksimulator.user
 
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 
-typealias TimeRange = ClosedRange<UnitNumber<Time>>
+typealias TimeRange = ClosedRange<UnitValue<Time>>

@@ -23,7 +23,7 @@ import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.configuration
 import straightway.units.AmountOfData
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.units.bit
 import straightway.units.get
 import straightway.units.plus
@@ -66,9 +66,9 @@ class TransientDataChunkStore : DataChunkStore, PeerComponent by PeerComponent()
     private val DataChunk.exceedsCapacity get() =
             configuration.storageCapacity < currentStorageSize + chunkSizeGetter(this)
 
-    private val currentStorageSize: UnitNumber<AmountOfData> get() =
+    private val currentStorageSize: UnitValue<AmountOfData> get() =
             storedData.values.fold(0[bit]) {
-                acc: UnitNumber<AmountOfData>, chunk: DataChunk ->
+                acc: UnitValue<AmountOfData>, chunk: DataChunk ->
                 acc + chunkSizeGetter(chunk)
             }
 

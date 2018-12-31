@@ -18,7 +18,7 @@ package straightway.peerspace.net
 import straightway.peerspace.data.Id
 import straightway.units.AmountOfData
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.units.byte
 import straightway.units.get
 import straightway.units.hour
@@ -34,11 +34,11 @@ data class Configuration(
         val maxPeersToQueryForKnownPeers: Int = 2,
         val maxKnownPeersAnswers: Int = 20,
         val maxKnownPeers: Int = 200,
-        val unreachablePeerSuspendTime: UnitNumber<Time> = 2[hour],
-        val untimedDataQueryTimeout: UnitNumber<Time> = 30[second],
-        val timedDataQueryTimeout: UnitNumber<Time> = 5[minute],
+        val unreachablePeerSuspendTime: UnitValue<Time> = 2[hour],
+        val untimedDataQueryTimeout: UnitValue<Time> = 30[second],
+        val timedDataQueryTimeout: UnitValue<Time> = 5[minute],
         val numberOfForwardPeers: Int = 2,
-        val failedPeerIgnoreTimeout: UnitNumber<Time> = 5[minute],
-        val storageCapacity: UnitNumber<AmountOfData> = 512[mi(byte)],
+        val failedPeerIgnoreTimeout: UnitValue<Time> = 5[minute],
+        val storageCapacity: UnitValue<AmountOfData> = 512[mi(byte)],
         val forwardRetries: Int = 2,
         val seedPeerIds: Set<Id> = setOf(Id("seedNodeId")))

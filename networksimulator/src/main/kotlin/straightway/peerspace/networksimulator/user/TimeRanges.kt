@@ -16,7 +16,6 @@
 package straightway.peerspace.networksimulator.user
 
 import straightway.units.Time
-import straightway.units.UnitNumber
 import straightway.units.UnitValue
 import straightway.units.get
 import straightway.units.hour
@@ -30,9 +29,7 @@ class TimeRanges(initRanges: Iterable<TimeRange>) : Iterable<TimeRange> {
 
     constructor() : this (listOf())
 
-    override fun iterator() = ranges.map {
-        (it.start[second] as UnitNumber<Time>)..(it.endInclusive[second] as UnitNumber<Time>)
-    }.iterator()
+    override fun iterator() = ranges.map { it.start[second]..it.endInclusive[second] }.iterator()
 
     operator fun minusAssign(r: TimeRange) = ranges.minusAssign(r.prim)
 
@@ -44,10 +41,8 @@ class TimeRanges(initRanges: Iterable<TimeRange>) : Iterable<TimeRange> {
     val size: Int get() = ranges.size
 
     companion object {
-        operator fun <T : Number> invoke(vararg initRanges: ClosedRange<UnitValue<T, Time>>) =
-                TimeRanges(initRanges.map {
-                    (it.start as UnitNumber<Time>)..(it.endInclusive as UnitNumber<Time>)
-                })
+        operator fun invoke(vararg initRanges: ClosedRange<UnitValue<Time>>) =
+                TimeRanges(initRanges.map { it.start..it.endInclusive })
         private val TimeRange.prim get() =
             start.baseValue.toDouble()..endInclusive.baseValue.toDouble()
     }

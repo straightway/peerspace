@@ -20,7 +20,7 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.random.UniformDoubleDistribution0to1
 import straightway.units.Time
-import straightway.units.UnitNumber
+import straightway.units.UnitValue
 import straightway.units.get
 import straightway.units.hour
 import straightway.units.minus
@@ -32,7 +32,7 @@ import straightway.units.times
  */
 class ActivityTimingImpl(
         private val ranges: TimeRanges,
-        private val duration: UnitNumber<Time>
+        private val duration: UnitValue<Time>
 ) : ActivityTiming, KoinModuleComponent by KoinModuleComponent() {
 
     // region Component references
@@ -47,27 +47,27 @@ class ActivityTimingImpl(
 
     // endregion
 
-    override val timeRange by lazy { startTime..endTime }
+    override val timeRange: TimeRange by lazy { startTime..endTime }
 
     // region Private
 
-    private val startTime: UnitNumber<Time> by lazy {
+    private val startTime: UnitValue<Time> by lazy {
         fittingRanges.findRelativeSubRange(relativeStartTime, duration)
     }
 
     private val relativeStartTime by lazy { activityRange * randomNumberGenerator.next() }
     private val endTime get() = startTime + duration
-    private val activityRange: UnitNumber<Time> get() =
-        fittingRanges.fold(0[hour] as UnitNumber<Time>) { acc, range ->
+    private val activityRange: UnitValue<Time> get() =
+        fittingRanges.fold(0[hour]) { acc, range ->
                   acc + range.size - duration
               }
     private val fittingRanges = ranges.filter { duration <= it.size }
     private val TimeRange.size get() = endInclusive - start
 
     private fun Iterable<TimeRange>.findRelativeSubRange(
-            relativeTimeOverAllRanges: UnitNumber<Time>,
-            duration: UnitNumber<Time>
-    ): UnitNumber<Time> {
+            relativeTimeOverAllRanges: UnitValue<Time>,
+            duration: UnitValue<Time>
+    ): UnitValue<Time> {
         var rest = relativeTimeOverAllRanges
         forEach {
             val size = it.endInclusive - it.start

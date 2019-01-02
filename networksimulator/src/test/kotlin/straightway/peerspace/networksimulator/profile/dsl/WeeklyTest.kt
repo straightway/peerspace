@@ -42,7 +42,7 @@ class WeeklyTest {
     fun hours() =
             testProfile<Weekly> { Weekly("", it) }
                     .testSingleValueAssignment<Weekly, TimeRange>(
-                            1[hour]..3[hour]) { hours }
+                            1.0[hour]..3.0[hour]) { hours }
 
     @Test
     fun `hours are by default the whole day`() =
@@ -51,7 +51,7 @@ class WeeklyTest {
             } when_ {
                 hours.value
             } then {
-                expect(it.result is_ Equal to_ 0[hour]..24[hour])
+                expect(it.result is_ Equal to_ 0.0[hour]..24.0[hour])
             }
 
     @Test
@@ -59,7 +59,7 @@ class WeeklyTest {
             Given {
                 Weekly("") {}
             } when_ {
-                this { 1[hour]..2[hour] }
+                this { 1.0[hour]..2.0[hour] }
             } then {
                 expect(it.result is_ Same as_ this)
             }
@@ -70,10 +70,10 @@ class WeeklyTest {
                 Weekly("") {}
             } when_ {
                 this {
-                    1[hour]..2[hour]
+                    1.0[hour]..2.0[hour]
                 }
             } then {
-                expect(hours.value is_ Equal to_ 1[hour]..2[hour])
+                expect(hours.value is_ Equal to_ 1.0[hour]..2.0[hour])
             }
 
     @Test
@@ -169,7 +169,7 @@ class WeeklyTest {
     @Test
     fun `toString for mondays`() =
             Given {
-                Weekly.mondays { 8[hour]..13[hour] }
+                Weekly.mondays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -179,7 +179,7 @@ class WeeklyTest {
     @Test
     fun `toString for tuesdays`() =
             Given {
-                Weekly.tuesdays { 8[hour]..13[hour] }
+                Weekly.tuesdays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -189,7 +189,7 @@ class WeeklyTest {
     @Test
     fun `toString for wednesdays`() =
             Given {
-                Weekly.wednesdays { 8[hour]..13[hour] }
+                Weekly.wednesdays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -199,7 +199,7 @@ class WeeklyTest {
     @Test
     fun `toString for thursdays`() =
             Given {
-                Weekly.thursdays { 8[hour]..13[hour] }
+                Weekly.thursdays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -209,7 +209,7 @@ class WeeklyTest {
     @Test
     fun `toString for fridays`() =
             Given {
-                Weekly.fridays { 8[hour]..13[hour] }
+                Weekly.fridays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -219,7 +219,7 @@ class WeeklyTest {
     @Test
     fun `toString for saturdays`() =
             Given {
-                Weekly.saturdays { 8[hour]..13[hour] }
+                Weekly.saturdays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -229,7 +229,7 @@ class WeeklyTest {
     @Test
     fun `toString for sundays`() =
             Given {
-                Weekly.sundays { 8[hour]..13[hour] }
+                Weekly.sundays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -239,7 +239,7 @@ class WeeklyTest {
     @Test
     fun `toString for workdays`() =
             Given {
-                Weekly.workdays { 8[hour]..13[hour] }
+                Weekly.workdays { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -249,7 +249,7 @@ class WeeklyTest {
     @Test
     fun `toString for weekends`() =
             Given {
-                Weekly.weekends { 8[hour]..13[hour] }
+                Weekly.weekends { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {
@@ -259,7 +259,7 @@ class WeeklyTest {
     @Test
     fun `toString for eachDay`() =
             Given {
-                Weekly.eachDay { 8[hour]..13[hour] }
+                Weekly.eachDay { 8.0[hour]..13.0[hour] }
             } when_ {
                 toString()
             } then {

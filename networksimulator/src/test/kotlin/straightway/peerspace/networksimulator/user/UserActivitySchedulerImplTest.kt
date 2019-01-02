@@ -56,12 +56,12 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
                     }
                     profile.usedDevices {
                         +DeviceUsageProfile {
-                            onlineTimes { +Weekly.eachDay { 8[hour]..16[hour] } }
+                            onlineTimes { +Weekly.eachDay { 8.0[hour]..16.0[hour] } }
                             device { pc }
                             usages { }
                         }
                         +DeviceUsageProfile {
-                            onlineTimes { +Weekly.eachDay { 18[hour]..22[hour] } }
+                            onlineTimes { +Weekly.eachDay { 18.0[hour]..22.0[hour] } }
                             device { pc }
                             usages { }
                         }
@@ -78,8 +78,8 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
                 environment.userActivityScheduler.scheduleDay(environment.day)
             } then {
                 with(environment) {
-                    day.checkAt(0[hour]) {
-                        expect(simulator.eventQueue.single().time is_ Equal to_ day.at(24[hour]))
+                    day.checkAt(0.0[hour]) {
+                        expect(simulator.eventQueue.single().time is_ Equal to_ day.at(24.0[hour]))
                     }
                 }
             }
@@ -103,13 +103,13 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
              test while_ {
                  environment.profile = UserProfile {
                      usedDevices { }
-                     activityTimes { +Weekly.eachDay { 8[hour]..16[hour] } }
+                     activityTimes { +Weekly.eachDay { 8.0[hour]..16.0[hour] } }
                  }
              } when_ {
                  environment.userActivityScheduler.scheduleDay(environment.day)
              } then {
                 expect(environment.blockedUserTimes is_ Equal to_
-                        Values(0[hour]..8[hour], 16[hour]..24[hour]))
+                        Values(0.0[hour]..8.0[hour], 16.0[hour]..24.0[hour]))
              }
 
     @Test
@@ -118,15 +118,16 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
                 environment.profile = UserProfile {
                     usedDevices { }
                     activityTimes {
-                        +Weekly.eachDay { 8[hour]..16[hour] }
-                        +Weekly.eachDay { 18[hour]..22[hour] }
+                        +Weekly.eachDay { 8.0[hour]..16.0[hour] }
+                        +Weekly.eachDay { 18.0[hour]..22.0[hour] }
                     }
                 }
             } when_ {
                 environment.userActivityScheduler.scheduleDay(environment.day)
             } then {
                 expect(environment.blockedUserTimes is_ Equal to_
-                        Values(0[hour]..8[hour], 16[hour]..18[hour], 22[hour]..24[hour]))
+                        Values(0.0[hour]..8.0[hour], 16.0[hour]..18.0[hour],
+                                22.0[hour]..24.0[hour]))
             }
 
     @Test
@@ -135,15 +136,15 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
                 environment.profile = UserProfile {
                     usedDevices { }
                     activityTimes {
-                        +Weekly.eachDay { 8[hour]..16[hour] }
+                        +Weekly.eachDay { 8.0[hour]..16.0[hour] }
                         +Weekly("never") { isApplicableTo { { false } } }
-                                .invoke { 18[hour]..22[hour] }
+                                .invoke { 18.0[hour]..22.0[hour] }
                     }
                 }
             } when_ {
                 environment.userActivityScheduler.scheduleDay(environment.day)
             } then {
                 expect(environment.blockedUserTimes is_ Equal to_
-                        Values(0[hour]..8[hour], 16[hour]..24[hour]))
+                        Values(0.0[hour]..8.0[hour], 16.0[hour]..24.0[hour]))
             }
 }

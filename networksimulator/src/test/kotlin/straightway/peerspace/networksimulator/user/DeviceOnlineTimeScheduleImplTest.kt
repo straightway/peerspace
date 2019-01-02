@@ -34,9 +34,7 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.minus
 import straightway.units.second
-import straightway.units.unaryMinus
 import java.time.LocalDate
 
 class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
@@ -60,14 +58,14 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
 
             fun setNegativeOnlineTimeRange() {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { 17[hour]..8[hour] }
+                    +Weekly.eachDay { 17.0[hour]..8.0[hour] }
                 }
             }
 
             fun assertNextOnlinePeriod(day: LocalDate, range: TimeRange) = with(environment) {
                 val checkedScenario =
                         "$device is online from ${range.start} to ${range.endInclusive}"
-                day.checkAt(range.start - 1[second]) {
+                day.checkAt(range.start - 1.0[second]) {
                     expect(!device.isOnline) { "$checkedScenario: offline before ${range.start}" }
                 }
                 day.checkAt(range.start) {
@@ -92,7 +90,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
 
     private val test get() = test(DeviceUsageProfile {
         onlineTimes {
-            +Weekly.eachDay { 8[hour]..17[hour] }
+            +Weekly.eachDay { 8.0[hour]..17.0[hour] }
         }
     })
 
@@ -103,7 +101,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
-                assertNextOnlinePeriod(environment.day, 8[hour]..17[hour])
+                assertNextOnlinePeriod(environment.day, 8.0[hour]..17.0[hour])
             }
 
     @Test
@@ -113,7 +111,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
             } then {
                 with(environment) {
                     expect(simulator.eventQueue.map { event -> event.time } is_ Equal
-                            to_ Values(day.at(8[hour])))
+                            to_ Values(day.at(8.0[hour])))
                 }
             }
 
@@ -125,7 +123,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
                 with(environment) {
-                    day.checkAt(0[hour]) {
+                    day.checkAt(0.0[hour]) {
                         expect(simulator.eventQueue.filter { event ->
                             event.time.toLocalDate() == day
                         } is_ Empty)
@@ -137,7 +135,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
     fun `ignores past time range start`() =
             test while_ {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { -25[hour]..8[hour] }
+                    +Weekly.eachDay { -25.0[hour]..8.0[hour] }
                 }
             } when_ {
                 sut.scheduleOnlineTimes(environment.day)
@@ -157,54 +155,54 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
     fun `schedules multiple online times`() =
             test while_ {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { 6[hour]..8[hour] }
-                    +Weekly.eachDay { 10[hour]..12[hour] }
+                    +Weekly.eachDay { 6.0[hour]..8.0[hour] }
+                    +Weekly.eachDay { 10.0[hour]..12.0[hour] }
                 }
             } when_ {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
-                assertNextOnlinePeriod(environment.day, 6[hour]..8[hour])
-                assertNextOnlinePeriod(environment.day, 10[hour]..12[hour])
+                assertNextOnlinePeriod(environment.day, 6.0[hour]..8.0[hour])
+                assertNextOnlinePeriod(environment.day, 10.0[hour]..12.0[hour])
             }
 
     @Test
     fun `schedules orders online`() =
             test while_ {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { 10[hour]..12[hour] }
-                    +Weekly.eachDay { 6[hour]..8[hour] }
+                    +Weekly.eachDay { 10.0[hour]..12.0[hour] }
+                    +Weekly.eachDay { 6.0[hour]..8.0[hour] }
                 }
             } when_ {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
-                assertNextOnlinePeriod(environment.day, 6[hour]..8[hour])
-                assertNextOnlinePeriod(environment.day, 10[hour]..12[hour])
+                assertNextOnlinePeriod(environment.day, 6.0[hour]..8.0[hour])
+                assertNextOnlinePeriod(environment.day, 10.0[hour]..12.0[hour])
             }
 
     @Test
     fun `merges two overlapping online times`() =
             test while_ {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { 6[hour]..8[hour] }
-                    +Weekly.eachDay { 7[hour]..9[hour] }
+                    +Weekly.eachDay { 6.0[hour]..8.0[hour] }
+                    +Weekly.eachDay { 7.0[hour]..9.0[hour] }
                 }
             } when_ {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
-                assertNextOnlinePeriod(environment.day, 6[hour]..9[hour])
+                assertNextOnlinePeriod(environment.day, 6.0[hour]..9.0[hour])
             }
 
     @Test
     fun `start time after the given day is ignored`() =
             test while_ {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { 25[hour]..27[hour] }
+                    +Weekly.eachDay { 25.0[hour]..27.0[hour] }
                 }
             } when_ {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
                 with(environment) {
-                    day.checkAt(26[hour]) { expect(device.isOnline is_ False) }
+                    day.checkAt(26.0[hour]) { expect(device.isOnline is_ False) }
                 }
             }
 
@@ -214,7 +212,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
                 deviceUsageProfile.onlineTimes {
                     +Weekly("never") {
                         isApplicableTo { { false } }
-                        hours { 1[hour]..6[hour] }
+                        hours { 1.0[hour]..6.0[hour] }
                     }
                 }
                 device.isOnline = false
@@ -222,7 +220,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
                 sut.scheduleOnlineTimes(environment.day)
             } then {
                 with(environment) {
-                    day.checkAt(2[hour]) { expect(device.isOnline is_ False) }
+                    day.checkAt(2.0[hour]) { expect(device.isOnline is_ False) }
                 }
             }
 
@@ -231,7 +229,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
         var onlineTimesHoursCalls = 0
         test while_ {
             deviceUsageProfile.onlineTimes {
-                +Weekly.eachDay { onlineTimesHoursCalls++; 6[hour]..8[hour] }
+                +Weekly.eachDay { onlineTimesHoursCalls++; 6.0[hour]..8.0[hour] }
             }
         } when_ {
             sut.scheduleOnlineTimes(environment.day)
@@ -244,19 +242,19 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
     fun `time range from last day is merged with first one if needed`() =
             test while_ {
                 deviceUsageProfile.onlineTimes {
-                    +Weekly.eachDay { 1[hour]..6[hour] }
-                    +Weekly.eachDay { 22[hour]..26[hour] }
+                    +Weekly.eachDay { 1.0[hour]..6.0[hour] }
+                    +Weekly.eachDay { 22.0[hour]..26.0[hour] }
                 }
             } when_ {
                 with(environment) {
                     sut.scheduleOnlineTimes(day)
-                    day.plusDays(1L).checkAt(0[hour]) {
+                    day.plusDays(1L).checkAt(0.0[hour]) {
                         sut.scheduleOnlineTimes(day.plusDays(1L))
                     }
                 }
             } then {
                 with(environment) {
-                    day.checkAt(27[hour]) { expect(device.isOnline is_ True) }
+                    day.checkAt(27.0[hour]) { expect(device.isOnline is_ True) }
                 }
             }
 }

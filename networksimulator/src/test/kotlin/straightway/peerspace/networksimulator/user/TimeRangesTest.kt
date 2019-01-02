@@ -33,7 +33,7 @@ class TimeRangesTest {
             Given {
                 TimeRanges()
             } when_ {
-                minusAssign(1[hour]..2[hour])
+                minusAssign(1.0[hour]..2.0[hour])
             } then {
                 expect(this is_ Empty)
             }
@@ -43,7 +43,7 @@ class TimeRangesTest {
             Given {
                 TimeRanges()
             } when_ {
-                minusAssign(1[hour]..2[hour])
+                minusAssign(1.0[hour]..2.0[hour])
             } then {
                 expect(this is_ Equal to_ this)
             }
@@ -51,9 +51,9 @@ class TimeRangesTest {
     @Test
     fun `exclude non-intersecting time range after from non-empty list returns receiver`() =
             Given {
-                TimeRanges(4[hour]..5[hour])
+                TimeRanges(4.0[hour]..5.0[hour])
             } when_ {
-                minusAssign(7[hour]..8[hour])
+                minusAssign(7.0[hour]..8.0[hour])
             } then {
                 expect(this is_ Equal to_ this)
             }
@@ -61,29 +61,29 @@ class TimeRangesTest {
     @Test
     fun `exclude intersection at beginning of time range list`() =
             Given {
-                TimeRanges(4[hour]..6[hour])
+                TimeRanges(4.0[hour]..6.0[hour])
             } when_ {
-                minusAssign(1[hour]..5[hour])
+                minusAssign(1.0[hour]..5.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(5[hour]..6[hour]))
+                expect(this is_ Equal to_ Values(5.0[hour]..6.0[hour]))
             }
 
     @Test
     fun `exclude intersection at end of time range list`() =
             Given {
-                TimeRanges(4[hour]..6[hour])
+                TimeRanges(4.0[hour]..6.0[hour])
             } when_ {
-                minusAssign(5[hour]..8[hour])
+                minusAssign(5.0[hour]..8.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(4[hour]..5[hour]))
+                expect(this is_ Equal to_ Values(4.0[hour]..5.0[hour]))
             }
 
     @Test
     fun `negative range is ignored`() =
             Given {
-                TimeRanges(7[hour]..4[hour])
+                TimeRanges(7.0[hour]..4.0[hour])
             } when_ {
-                minusAssign(5[hour]..6[hour])
+                minusAssign(5.0[hour]..6.0[hour])
             } then {
                 expect(this is_ Empty)
             }
@@ -91,63 +91,63 @@ class TimeRangesTest {
     @Test
     fun `exclude intersection in the middle of time range list`() =
             Given {
-                TimeRanges(4[hour]..7[hour])
+                TimeRanges(4.0[hour]..7.0[hour])
             } when_ {
-                minusAssign(5[hour]..6[hour])
+                minusAssign(5.0[hour]..6.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(4[hour]..5[hour], 6[hour]..7[hour]))
+                        Values(4.0[hour]..5.0[hour], 6.0[hour]..7.0[hour]))
             }
 
     @Test
     fun `exclude empty range from beginning is ignored`() =
             Given {
-                TimeRanges(4[hour]..7[hour])
+                TimeRanges(4.0[hour]..7.0[hour])
             } when_ {
-                minusAssign(4[hour]..4[hour])
+                minusAssign(4.0[hour]..4.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(4[hour]..7[hour]))
+                expect(this is_ Equal to_ Values(4.0[hour]..7.0[hour]))
             }
 
     @Test
     fun `exclusion in first time range keeps following ranges`() =
             Given {
-                TimeRanges(4[hour]..7[hour], 9[hour]..14[hour])
+                TimeRanges(4.0[hour]..7.0[hour], 9.0[hour]..14.0[hour])
             } when_ {
-                minusAssign(5[hour]..6[hour])
+                minusAssign(5.0[hour]..6.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(4[hour]..5[hour], 6[hour]..7[hour], 9[hour]..14[hour]))
+                        Values(4.0[hour]..5.0[hour], 6.0[hour]..7.0[hour], 9.0[hour]..14.0[hour]))
             }
 
     @Test
     fun `exclude from second range`() =
             Given {
-                TimeRanges(4[hour]..7[hour], 9[hour]..14[hour])
+                TimeRanges(4.0[hour]..7.0[hour], 9.0[hour]..14.0[hour])
             } when_ {
-                minusAssign(8[hour]..12[hour])
+                minusAssign(8.0[hour]..12.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(4[hour]..7[hour], 12[hour]..14[hour]))
+                        Values(4.0[hour]..7.0[hour], 12.0[hour]..14.0[hour]))
             }
 
     @Test
     fun `exclude beginning of second range`() =
             Given {
-                TimeRanges(4[hour]..7[hour], 9[hour]..14[hour])
+                TimeRanges(4.0[hour]..7.0[hour], 9.0[hour]..14.0[hour])
             } when_ {
-                minusAssign(9[hour]..12[hour])
+                minusAssign(9.0[hour]..12.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(4[hour]..7[hour], 12[hour]..14[hour]))
+                        Values(4.0[hour]..7.0[hour], 12.0[hour]..14.0[hour]))
             }
 
     @Test
     fun `exclude complete range with same end point`() =
             Given {
-                TimeRanges(4[hour]..7[hour])
+                TimeRanges(4.0[hour]..7.0[hour])
             } when_ {
-                minusAssign(3[hour]..7[hour])
+                minusAssign(3.0[hour]..7.0[hour])
             } then {
                 expect(this is_ Empty)
             }
@@ -157,141 +157,143 @@ class TimeRangesTest {
             Given {
                 TimeRanges()
             } when_ {
-                plusAssign(9[hour]..12[hour])
+                plusAssign(9.0[hour]..12.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(9[hour]..12[hour]))
+                expect(this is_ Equal to_ Values(9.0[hour]..12.0[hour]))
             }
 
     @Test
     fun `include overlapping range before`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(7[hour]..10[hour])
+                plusAssign(7.0[hour]..10.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(7[hour]..12[hour]))
+                expect(this is_ Equal to_ Values(7.0[hour]..12.0[hour]))
             }
 
     @Test
     fun `include overlapping range after`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(10[hour]..14[hour])
+                plusAssign(10.0[hour]..14.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(9[hour]..14[hour]))
+                expect(this is_ Equal to_ Values(9.0[hour]..14.0[hour]))
             }
 
     @Test
     fun `include overlapping range on both edges`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(7[hour]..14[hour])
+                plusAssign(7.0[hour]..14.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(7[hour]..14[hour]))
+                expect(this is_ Equal to_ Values(7.0[hour]..14.0[hour]))
             }
 
     @Test
     fun `include not overlapping range in the middle`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(10[hour]..11[hour])
+                plusAssign(10.0[hour]..11.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(9[hour]..12[hour]))
+                expect(this is_ Equal to_ Values(9.0[hour]..12.0[hour]))
             }
 
     @Test
     fun `include adjacent range before`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(8[hour]..9[hour])
+                plusAssign(8.0[hour]..9.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(8[hour]..12[hour]))
+                expect(this is_ Equal to_ Values(8.0[hour]..12.0[hour]))
             }
 
     @Test
     fun `include adjacent range after`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(12[hour]..14[hour])
+                plusAssign(12.0[hour]..14.0[hour])
             } then {
-                expect(this is_ Equal to_ Values(9[hour]..14[hour]))
+                expect(this is_ Equal to_ Values(9.0[hour]..14.0[hour]))
             }
 
     @Test
     fun `include disjoint range before`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(7[hour]..8[hour])
+                plusAssign(7.0[hour]..8.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(7[hour]..8[hour], 9[hour]..12[hour]))
+                        Values(7.0[hour]..8.0[hour], 9.0[hour]..12.0[hour]))
             }
 
     @Test
     fun `include disjoint range after`() =
             Given {
-                TimeRanges(9[hour]..12[hour])
+                TimeRanges(9.0[hour]..12.0[hour])
             } when_ {
-                plusAssign(14[hour]..18[hour])
+                plusAssign(14.0[hour]..18.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(9[hour]..12[hour], 14[hour]..18[hour]))
+                        Values(9.0[hour]..12.0[hour], 14.0[hour]..18.0[hour]))
             }
 
     @Test
     fun `keep tail if adding to first range`() =
             Given {
-                TimeRanges(9[hour]..12[hour], 14[hour]..18[hour])
+                TimeRanges(9.0[hour]..12.0[hour], 14.0[hour]..18.0[hour])
             } when_ {
-                plusAssign(10[hour]..11[hour])
+                plusAssign(10.0[hour]..11.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(9[hour]..12[hour], 14[hour]..18[hour]))
+                        Values(9.0[hour]..12.0[hour], 14.0[hour]..18.0[hour]))
             }
 
     @Test
     fun `add to second range`() =
             Given {
-                TimeRanges(9[hour]..12[hour], 14[hour]..18[hour])
+                TimeRanges(9.0[hour]..12.0[hour], 14.0[hour]..18.0[hour])
             } when_ {
-                plusAssign(15[hour]..19[hour])
+                plusAssign(15.0[hour]..19.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(9[hour]..12[hour], 14[hour]..19[hour]))
+                        Values(9.0[hour]..12.0[hour], 14.0[hour]..19.0[hour]))
             }
 
     @Test
     fun `add before second range`() =
             Given {
-                TimeRanges(9[hour]..12[hour], 15[hour]..18[hour])
+                TimeRanges(9.0[hour]..12.0[hour], 15.0[hour]..18.0[hour])
             } when_ {
-                plusAssign(13[hour]..14[hour])
+                plusAssign(13.0[hour]..14.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(9[hour]..12[hour], 13[hour]..14[hour], 15[hour]..18[hour]))
+                        Values(9.0[hour]..12.0[hour], 13.0[hour]..14.0[hour],
+                                15.0[hour]..18.0[hour]))
             }
 
     @Test
     fun `add after last range`() =
             Given {
-                TimeRanges(9[hour]..12[hour], 13[hour]..14[hour])
+                TimeRanges(9.0[hour]..12.0[hour], 13.0[hour]..14.0[hour])
             } when_ {
-                plusAssign(15[hour]..18[hour])
+                plusAssign(15.0[hour]..18.0[hour])
             } then {
                 expect(this is_ Equal to_
-                        Values(9[hour]..12[hour], 13[hour]..14[hour], 15[hour]..18[hour]))
+                        Values(9.0[hour]..12.0[hour], 13.0[hour]..14.0[hour],
+                                15.0[hour]..18.0[hour]))
             }
 
     @Test
     fun `toString yields proper representation`() =
             Given {
-                TimeRanges(9[hour]..12[hour], 13[hour]..14[hour])
+                TimeRanges(9.0[hour]..12.0[hour], 13.0[hour]..14.0[hour])
             } when_ {
                 toString()
             } then {
@@ -301,7 +303,7 @@ class TimeRangesTest {
     @Test
     fun `size yields size`() =
             Given {
-                TimeRanges(9[hour]..12[hour], 13[hour]..14[hour])
+                TimeRanges(9.0[hour]..12.0[hour], 13.0[hour]..14.0[hour])
             } when_ {
                 size
             } then {

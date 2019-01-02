@@ -82,13 +82,13 @@ class Weekly(private val weekdayFilterName: String, init: Weekly.() -> Unit) {
     }
 
     init {
-        hours { 0[hour]..24[hour] }
+        hours { 0.0[hour]..24.0[hour] }
         @Suppress("UNUSED_EXPRESSION")
         init()
     }
 
     private val hoursString get() = with(hours.value) {
-        if (this == 0[hour]..24[hour]) listOf()
+        if (this == 0.0[hour]..24.0[hour]) listOf()
         else {
             val from = start.toTimeString()
             val to = endInclusive.toTimeString()

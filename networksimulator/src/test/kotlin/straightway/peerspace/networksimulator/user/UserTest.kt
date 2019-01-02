@@ -62,7 +62,7 @@ class UserTest : KoinLoggingDisabler() {
                 val device by lazy {
                     DeviceUsageProfile {
                         device { pc }
-                        onlineTimes { +Weekly.mondays { 8[hour]..12[hour] } }
+                        onlineTimes { +Weekly.mondays { 8.0[hour]..12.0[hour] } }
                         usages { +testUsage }
                     }
                 }

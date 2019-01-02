@@ -38,7 +38,7 @@ class UserActivitySchedulerImpl :
     // region Constants
 
     private companion object {
-        val fullDay = 24[hour]
+        val fullDay = 24.0[hour]
     }
 
     // endregion
@@ -88,7 +88,7 @@ class UserActivitySchedulerImpl :
             getInactivityTimes(day).forEach { userSchedule.block(day, it) }
 
     private fun getInactivityTimes(day: LocalDate): TimeRanges {
-        val inactivityTimes = TimeRanges(0[hour]..fullDay)
+        val inactivityTimes = TimeRanges(0.0[hour]..fullDay)
         getActivityTimesFor(day).forEach { inactivityTimes.minusAssign(it.hours.value) }
         return inactivityTimes
     }

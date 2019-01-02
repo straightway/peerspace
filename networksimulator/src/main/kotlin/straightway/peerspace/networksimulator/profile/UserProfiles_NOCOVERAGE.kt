@@ -19,17 +19,16 @@ import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.unaryPlus
 
 @Suppress("MagicNumber")
 val defaultActivityTimes = listOf(
-        Weekly.mondays { +7[hour]..23[hour] },
-        Weekly.tuesdays { +7[hour]..23[hour] },
-        Weekly.wednesdays { +7[hour]..23[hour] },
-        Weekly.thursdays { +7[hour]..22[hour] },
-        Weekly.fridays { +7[hour]..24[hour] },
-        Weekly.saturdays { +0[hour]..1[hour]; +9[hour]..24[hour] },
-        Weekly.sundays { +0[hour]..2[hour]; +10[hour]..23[hour] }
+        Weekly.mondays { +7.0[hour]..23.0[hour] },
+        Weekly.tuesdays { +7.0[hour]..23.0[hour] },
+        Weekly.wednesdays { +7.0[hour]..23.0[hour] },
+        Weekly.thursdays { +7.0[hour]..22.0[hour] },
+        Weekly.fridays { +7.0[hour]..24.0[hour] },
+        Weekly.saturdays { +0.0[hour]..1.0[hour]; +9.0[hour]..24.0[hour] },
+        Weekly.sundays { +0.0[hour]..2.0[hour]; +10.0[hour]..23.0[hour] }
 )
 
 val officeWorker = UserProfile {

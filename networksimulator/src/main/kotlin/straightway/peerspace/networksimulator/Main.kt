@@ -112,8 +112,8 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
     }
 
     private companion object {
-        val LATENCY = 50[milli(second)]
-        val OFFLINE_DETECTION_TIME = 5[second]
+        val LATENCY = 50.0[milli(second)]
+        val OFFLINE_DETECTION_TIME = 5.0[second]
         val CHUNK_SIZE = 64[ki(byte)]
     }
 }

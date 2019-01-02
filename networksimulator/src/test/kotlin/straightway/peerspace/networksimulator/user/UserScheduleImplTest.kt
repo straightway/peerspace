@@ -67,27 +67,27 @@ class UserScheduleImplTest : KoinLoggingDisabler() {
     @Test
     fun `getBlockedTimes after single block call directly returns blocked range`() =
             test while_ {
-                sut.block(day, 1[hour]..12[hour])
+                sut.block(day, 1.0[hour]..12.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(1[hour]..12[hour]))
+                expect(it.result is_ Equal to_ Values(1.0[hour]..12.0[hour]))
             }
 
     @Test
     fun `blocking a range with negative start time starts the blocked range at 0h`() =
             test while_ {
-                sut.block(day, -1[hour]..1[hour])
+                sut.block(day, -1.0[hour]..1.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(0[hour]..1[hour]))
+                expect(it.result is_ Equal to_ Values(0.0[hour]..1.0[hour]))
             }
 
     @Test
     fun `blocking a range with negative end time is ignored`() =
             test while_ {
-                sut.block(day, -2[hour]..-1[hour])
+                sut.block(day, -2.0[hour]..-1.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
@@ -97,7 +97,7 @@ class UserScheduleImplTest : KoinLoggingDisabler() {
     @Test
     fun `blocking a range with negative span is ignored`() =
             test while_ {
-                sut.block(day, 2[hour]..1[hour])
+                sut.block(day, 2.0[hour]..1.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
@@ -107,30 +107,30 @@ class UserScheduleImplTest : KoinLoggingDisabler() {
     @Test
     fun `second disjoint blocked time is added to existing ones`() =
             test while_ {
-                sut.block(day, 1[hour]..2[hour])
-                sut.block(day, 3[hour]..4[hour])
+                sut.block(day, 1.0[hour]..2.0[hour])
+                sut.block(day, 3.0[hour]..4.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
                 expect(it.result is_ Equal to_
-                        Values(1[hour]..2[hour], 3[hour]..4[hour]))
+                        Values(1.0[hour]..2.0[hour], 3.0[hour]..4.0[hour]))
             }
 
     @Test
     fun `second overlapping blocked time is merged with existing ones`() =
             test while_ {
-                sut.block(day, 1[hour]..3[hour])
-                sut.block(day, 2[hour]..4[hour])
+                sut.block(day, 1.0[hour]..3.0[hour])
+                sut.block(day, 2.0[hour]..4.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(1[hour]..4[hour]))
+                expect(it.result is_ Equal to_ Values(1.0[hour]..4.0[hour]))
             }
 
     @Test
     fun `blocked times is empty if the only time range is for another day`() =
             test while_ {
-                sut.block(day.plusDays(1), 1[hour]..2[hour])
+                sut.block(day.plusDays(1), 1.0[hour]..2.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
@@ -140,58 +140,58 @@ class UserScheduleImplTest : KoinLoggingDisabler() {
     @Test
     fun `blocked time for another day is ignored`() =
             test while_ {
-                sut.block(day, 3[hour]..4[hour])
-                sut.block(day.plusDays(1), 1[hour]..2[hour])
+                sut.block(day, 3.0[hour]..4.0[hour])
+                sut.block(day.plusDays(1), 1.0[hour]..2.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(3[hour]..4[hour]))
+                expect(it.result is_ Equal to_ Values(3.0[hour]..4.0[hour]))
             }
 
     @Test
     fun `a blocked range overlapping two days is fully visible in the first day`() =
             test while_ {
-                sut.block(day, 23[hour]..25[hour])
+                sut.block(day, 23.0[hour]..25.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(23[hour]..25[hour]))
+                expect(it.result is_ Equal to_ Values(23.0[hour]..25.0[hour]))
             }
 
     @Test
     fun `a blocked range overlapping two days is partly visible in the second day`() =
             test while_ {
-                sut.block(day.minusDays(1), 23[hour]..25[hour])
+                sut.block(day.minusDays(1), 23.0[hour]..25.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(0[hour]..1[hour]))
+                expect(it.result is_ Equal to_ Values(0.0[hour]..1.0[hour]))
             }
 
     @Test
     fun `a blocked range within the next day is fully visible in the first day`() =
             test while_ {
-                sut.block(day, 25[hour]..26[hour])
+                sut.block(day, 25.0[hour]..26.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(25[hour]..26[hour]))
+                expect(it.result is_ Equal to_ Values(25.0[hour]..26.0[hour]))
             }
 
     @Test
     fun `a blocked range within the next day is fully visible in the next day`() =
             test while_ {
-                sut.block(day.minusDays(1), 25[hour]..26[hour])
+                sut.block(day.minusDays(1), 25.0[hour]..26.0[hour])
             } when_ {
                 sut.getBlockedTimes(day)
             } then {
-                expect(it.result is_ Equal to_ Values(1[hour]..2[hour]))
+                expect(it.result is_ Equal to_ Values(1.0[hour]..2.0[hour]))
             }
 
     @Test
     fun `blocked days from the past are cleared`() =
             test while_ {
-                sut.block(day, 1[hour]..2[hour])
+                sut.block(day, 1.0[hour]..2.0[hour])
                 now = day.plusDays(1)
             } when_ {
                 sut.getBlockedTimes(day)

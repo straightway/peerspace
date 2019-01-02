@@ -25,19 +25,19 @@ import straightway.units.second
 
 val homeUsedPc = DeviceUsageProfile {
     onlineTimes {
-        +Weekly.workdays { 19[hour]..22[hour] }
-        +Weekly.weekends { 19[hour]..24[hour] }
-        +Weekly.sundays { 0[hour]..2[hour] }
+        +Weekly.workdays { 19.0[hour]..22.0[hour] }
+        +Weekly.weekends { 19.0[hour]..24.0[hour] }
+        +Weekly.sundays { 0.0[hour]..2.0[hour] }
     }
     usages {
         +readSocialMediaFeeds {
-            time { Weekly.workdays { 19[hour]..22[hour] } }
-            duration { 30[second] }
+            time { Weekly.workdays { 19.0[hour]..22.0[hour] } }
+            duration { 30.0[second] }
             numberOfTimes { 10 }
         }
         +postOnSocialMediaFeed {
-            time { Weekly.workdays { 19[hour]..22[hour] } }
-            duration { 2[minute] }
+            time { Weekly.workdays { 19.0[hour]..22.0[hour] } }
+            duration { 2.0[minute] }
             numberOfTimes { 3 }
         }
     }
@@ -45,27 +45,27 @@ val homeUsedPc = DeviceUsageProfile {
 }
 
 val mobilePhone = DeviceUsageProfile {
-    onlineTimes { +Weekly.eachDay { 0[hour]..24[hour] } }
+    onlineTimes { +Weekly.eachDay { 0.0[hour]..24.0[hour] } }
     usages {
         +postOnSocialMediaFeed {
-            time { Weekly.eachDay { 8[hour]..22[hour] } }
+            time { Weekly.eachDay { 8.0[hour]..22.0[hour] } }
             numberOfTimes { 4 }
-            duration { 5[minute] }
+            duration { 5.0[minute] }
         }
         +readSocialMediaFeeds {
-            time { Weekly.eachDay { 8[hour]..22[hour] } }
+            time { Weekly.eachDay { 8.0[hour]..22.0[hour] } }
             numberOfTimes { 20 }
-            duration { 1[minute] }
+            duration { 1.0[minute] }
         }
         +readMessages {
-            time { Weekly.eachDay { 8[hour]..22[hour] } }
-            duration { 1[minute] }
+            time { Weekly.eachDay { 8.0[hour]..22.0[hour] } }
+            duration { 1.0[minute] }
             numberOfTimes { 50 }
         }
         +writeMessages {
-            time { Weekly.eachDay { 8[hour]..22[hour] } }
+            time { Weekly.eachDay { 8.0[hour]..22.0[hour] } }
             numberOfTimes { 15 }
-            duration { 1[minute] }
+            duration { 1.0[minute] }
         }
     }
     device { mobileDevice }
@@ -73,17 +73,17 @@ val mobilePhone = DeviceUsageProfile {
 
 val workPc = DeviceUsageProfile {
     onlineTimes {
-        +Weekly.workdays { 8[hour]..17[hour] }
+        +Weekly.workdays { 8.0[hour]..17.0[hour] }
     }
     usages {
         +readMessages {
             time { onlineTimes.values.single() }
-            duration { 2[minute] }
+            duration { 2.0[minute] }
             numberOfTimes { 40 }
         }
         +writeMessages {
             time { onlineTimes.values.single() }
-            duration { 10[minute] }
+            duration { 10.0[minute] }
             numberOfTimes { 15 }
         }
     }

@@ -19,7 +19,6 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.minus
 import straightway.utils.TimeProvider
 import java.time.LocalDate
 
@@ -45,7 +44,7 @@ class UserScheduleImpl : UserSchedule, KoinModuleComponent by KoinModuleComponen
         when {
             range.endInclusive <= range.start -> Unit
             range.endInclusive < 0[hour] -> Unit
-            range.start < 0[hour] -> block(day, 0[hour]..range.endInclusive)
+            range.start < 0[hour] -> block(day, 0.0[hour]..range.endInclusive)
             else -> blockRangeAtDay(day, range)
         }
 
@@ -74,7 +73,7 @@ class UserScheduleImpl : UserSchedule, KoinModuleComponent by KoinModuleComponen
     private var blocked = mapOf<LocalDate, TimeRanges>()
 
     private companion object {
-        val fullDay = 1[straightway.units.day]
+        val fullDay = 1.0[straightway.units.day]
     }
 
     // endregion

@@ -110,8 +110,8 @@ class SinglePeerEnvironment(
         }
 ) {
     private companion object {
-        val latency = 50[milli(second)]
-        val offlineDetectionTime = 30[second]
+        val latency = 50.0[milli(second)]
+        val offlineDetectionTime = 30.0[second]
         val uploadBandwidth = 1[mi(bit / second)]
         val downloadBandwidth = 2[mi(bit / second)]
     }

@@ -38,7 +38,7 @@ class UsageProfileTest {
     fun numberOfTimes() = sut.testSingleValue(3) { numberOfTimes }
 
     @Test
-    fun duration() = sut.testSingleValue(3[second]) { duration }
+    fun duration() = sut.testSingleValue(3.0[second]) { duration }
 
     @Test
     fun time() = sut.testSingleValue(Weekly.mondays) { time }

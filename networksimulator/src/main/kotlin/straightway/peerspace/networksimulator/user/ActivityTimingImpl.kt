@@ -20,19 +20,16 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.random.UniformDoubleDistribution0to1
 import straightway.units.Time
-import straightway.units.UnitValue
+import straightway.units.UnitDouble
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.minus
-import straightway.units.plus
-import straightway.units.times
 
 /**
  * Timing of an activity within a series of time ranges.
  */
 class ActivityTimingImpl(
         private val ranges: TimeRanges,
-        private val duration: UnitValue<Time>
+        private val duration: UnitDouble<Time>
 ) : ActivityTiming, KoinModuleComponent by KoinModuleComponent() {
 
     // region Component references
@@ -51,23 +48,23 @@ class ActivityTimingImpl(
 
     // region Private
 
-    private val startTime: UnitValue<Time> by lazy {
+    private val startTime: UnitDouble<Time> by lazy {
         fittingRanges.findRelativeSubRange(relativeStartTime, duration)
     }
 
     private val relativeStartTime by lazy { activityRange * randomNumberGenerator.next() }
     private val endTime get() = startTime + duration
-    private val activityRange: UnitValue<Time> get() =
-        fittingRanges.fold(0[hour]) { acc, range ->
+    private val activityRange: UnitDouble<Time> get() =
+        fittingRanges.fold(0.0[hour]) { acc, range ->
                   acc + range.size - duration
               }
     private val fittingRanges = ranges.filter { duration <= it.size }
     private val TimeRange.size get() = endInclusive - start
 
     private fun Iterable<TimeRange>.findRelativeSubRange(
-            relativeTimeOverAllRanges: UnitValue<Time>,
-            duration: UnitValue<Time>
-    ): UnitValue<Time> {
+            relativeTimeOverAllRanges: UnitDouble<Time>,
+            duration: UnitDouble<Time>
+    ): UnitDouble<Time> {
         var rest = relativeTimeOverAllRanges
         forEach {
             val size = it.endInclusive - it.start

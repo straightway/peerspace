@@ -28,22 +28,22 @@ import straightway.units.minute
 
 val readSocialMediaFeeds get() = UsageProfile {
     activity { doReadSocialMediaFeeds }
-    duration { 1[minute] }
+    duration { 1.0[minute] }
 }
 
 val postOnSocialMediaFeed get() = UsageProfile {
     activity { doPostOnSocialMediaFeed }
-    duration { 3[minute] }
+    duration { 3.0[minute] }
     dataVolume { 5[ki(byte)] }
 }
 
 val readMessages get() = UsageProfile {
     activity { doReadMessages }
-    duration { 1[minute] }
+    duration { 1.0[minute] }
 }
 
 val writeMessages get() = UsageProfile {
     activity { doWriteMessage }
-    duration { 10[minute] }
+    duration { 10.0[minute] }
     dataVolume { 5[ki(byte)] }
 }

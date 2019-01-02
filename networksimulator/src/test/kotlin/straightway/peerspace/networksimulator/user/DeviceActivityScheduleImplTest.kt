@@ -34,7 +34,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.units.Time
-import straightway.units.UnitValue
+import straightway.units.UnitDouble
 import straightway.units.byte
 import straightway.units.get
 import straightway.units.hour
@@ -47,7 +47,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     private data class ActivityTimingParameters private constructor(
             val ranges: TimeRanges,
-            val duration: UnitValue<Time>,
+            val duration: UnitDouble<Time>,
             val resultRange: TimeRange
     ) {
 
@@ -59,7 +59,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
             @Suppress("LongParameterList")
             operator fun invoke(
                     ranges: TimeRanges,
-                    duration: UnitValue<Time>,
+                    duration: UnitDouble<Time>,
                     resultRange: TimeRange
             ): ActivityTimingParameters {
                 val copyRanges = mutableListOf<TimeRange>()
@@ -85,8 +85,8 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
                     +UsageProfile {
                         numberOfTimes { 1 }
                         activity { Activity("testActivity") { deviceActivityCalls++ } }
-                        duration { 1[minute] }
-                        time { Weekly.eachDay { 8[hour]..17[hour] } }
+                        duration { 1.0[minute] }
+                        time { Weekly.eachDay { 8.0[hour]..17.0[hour] } }
                         dataVolume { 1[mi(byte)] }
                     }
                 }
@@ -111,16 +111,16 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `activityTiming is initially called with range defined in usage profile`() =
-            test(10[hour]..11[hour]) when_ {
+            test(10.0[hour]..11.0[hour]) when_ {
                 sut.scheduleActivities(environment.day)
             } then {
                 expect(activityTiminigs.single().ranges is_
-                        Equal to_ Values(8[hour]..17[hour]))
+                        Equal to_ Values(8.0[hour]..17.0[hour]))
             }
 
     @Test
     fun `second call to activityTiminig is called with split range due to first activity`() =
-            test(10[hour]..11[hour]) while_ {
+            test(10.0[hour]..11.0[hour]) while_ {
                 environment.profile.usedDevices.values.single()
                         .usages.values.single().numberOfTimes { 2 }
             } when_ {
@@ -128,41 +128,41 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
             } then {
                 expect(activityTiminigs.size is_ Equal to_ 2)
                 expect(activityTiminigs.first().ranges is_
-                        Equal to_ Values(8[hour]..17[hour]))
+                        Equal to_ Values(8.0[hour]..17.0[hour]))
                 expect(activityTiminigs.last().ranges is_
-                        Equal to_ Values(8[hour]..10[hour], 11[hour]..17[hour]))
+                        Equal to_ Values(8.0[hour]..10.0[hour], 11.0[hour]..17.0[hour]))
             }
 
     @Test
     fun `activityTiming is initially called with duration defined in usage profile`() =
-            test(10[hour]..11[hour]) when_ {
+            test(10.0[hour]..11.0[hour]) when_ {
                 sut.scheduleActivities(environment.day)
             } then {
-                expect(activityTiminigs.single().duration is_ Equal to_ 1[minute])
+                expect(activityTiminigs.single().duration is_ Equal to_ 1.0[minute])
             }
 
     @Test
     fun `scheduled activity time is blocked for user`() =
-            test(10[hour]..11[hour]) when_ {
+            test(10.0[hour]..11.0[hour]) when_ {
                 sut.scheduleActivities(environment.day)
             } then {
-                verify(userSchedule).block(environment.day, 10[hour]..11[hour])
+                verify(userSchedule).block(environment.day, 10.0[hour]..11.0[hour])
             }
 
     @Test
     fun `blocked user times are respected`() =
-            test(10[hour]..11[hour]) while_ {
-                environment.blockedUserTimes = TimeRanges(14[hour]..15[hour])
+            test(10.0[hour]..11.0[hour]) while_ {
+                environment.blockedUserTimes = TimeRanges(14.0[hour]..15.0[hour])
             } when_ {
                 sut.scheduleActivities(environment.day)
             } then {
                 expect(activityTiminigs.single().ranges is_
-                        Equal to_ Values(8[hour]..14[hour], 15[hour]..17[hour]))
+                        Equal to_ Values(8.0[hour]..14.0[hour], 15.0[hour]..17.0[hour]))
             }
 
     @Test
     fun `if blocking user activity does not work, no exception is thrown`() =
-            test(10[hour]..11[hour]) while_ {
+            test(10.0[hour]..11.0[hour]) while_ {
                 environment.activityTiminigFactory = { _, _ ->
                     mock {
                         on { timeRange }.thenAnswer { throw DoesNotFitException("") }
@@ -177,7 +177,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
     @Test
     fun `if blocking one user activity does not work, following times are nevertheless blocked`() {
         var activityTiminigCalls = 0
-        test(10[hour]..11[hour]) while_ {
+        test(10.0[hour]..11.0[hour]) while_ {
             with(environment) {
                 profile.usedDevices.values.single().usages.values.single().numberOfTimes { 2 }
                 activityTiminigFactory = { _, _ ->
@@ -198,7 +198,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `if blocking user time does not work, no exception is thrown`() =
-            test(10[hour]..11[hour]) while_ {
+            test(10.0[hour]..11.0[hour]) while_ {
                 environment.blockUserAction = { throw DoesNotFitException("test") }
             } when_ {
                 sut.scheduleActivities(environment.day)
@@ -208,7 +208,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `if blocking one user time does not work, following times are nevertheless blocked`() =
-            test(10[hour]..11[hour]) while_ {
+            test(10.0[hour]..11.0[hour]) while_ {
                 with(environment) {
                     profile.usedDevices.values.single().usages.values.single().numberOfTimes { 2 }
                     blockUserAction = { _ -> throw DoesNotFitException("test") }

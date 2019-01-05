@@ -128,7 +128,7 @@ class SimNetwork(
             ageOf(range.start)..ageOf(range.endInclusive)
 
     init {
-        simulator.schedule(2013.5[year]) {}
+        simulator.schedule(2013.5[year], "Set initial time") {}
         simulator.run()
         this.initializer()
     }

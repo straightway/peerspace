@@ -82,8 +82,8 @@ open class UserActivitySchedulerTestEnvironment(
 
     val simulator = Simulator()
     val simScheduler: Scheduler = mock {
-        on { schedule(any(), any()) }.thenAnswer { args ->
-            simulator.schedule(args.getArgument(0), args.getArgument(1))
+        on { schedule(any(), any(), any()) }.thenAnswer { args ->
+            simulator.schedule(args.getArgument(0), args.getArgument(1), args.getArgument(2))
         }
     }
     val userActivityScheduler by lazy { context.get<UserActivityScheduler>() }
@@ -92,7 +92,7 @@ open class UserActivitySchedulerTestEnvironment(
             LocalDateTime.of(this, LocalTime.MIDNIGHT) + time
     fun LocalDate.checkAt(time: UnitDouble<Time>, check: () -> Unit) {
         var isCheckExecuted = false
-        simulator.schedule(at(time) - simulator.now + 1.0[milli(second)]) {
+        simulator.schedule(at(time) - simulator.now + 1.0[milli(second)], "") {
             isCheckExecuted = true
             simulator.pause()
             check()
@@ -143,7 +143,7 @@ open class UserActivitySchedulerTestEnvironment(
 
     init {
         val now = LocalDateTime.of(day.minusDays(1), LocalTime.MIDNIGHT)
-        simulator.schedule(now - simulator.now) {}
+        simulator.schedule(now - simulator.now, "") {}
         simulator.run()
         init()
     }

@@ -91,7 +91,7 @@ class DeviceOnlineTimeScheduleImpl(val device: Device)
             return
         if (onlineTimeRange.start < timeProvider.now)
             return
-        scheduleAt(onlineTimeRange.start) {
+        onlineTimeRange.start.schedule("device ${device.id} goes online") {
             device.isOnline = true
             setOfflineIfTimeHasCome(onlineTimeRange)
         }
@@ -101,7 +101,7 @@ class DeviceOnlineTimeScheduleImpl(val device: Device)
         if (timeProvider.now == onlineTimeRange.offlineTime) {
             device.isOnline = false
         } else {
-            scheduleAt(onlineTimeRange.offlineTime) {
+            onlineTimeRange.offlineTime.schedule("device ${device.id} goes offline") {
                 setOfflineIfTimeHasCome(onlineTimeRange)
             }
         }
@@ -119,8 +119,8 @@ class DeviceOnlineTimeScheduleImpl(val device: Device)
             other: ClosedRange<T>) =
             min(start, other.start)..max(endInclusive, other.endInclusive)
 
-    private fun scheduleAt(time: LocalDateTime, action: () -> Unit) =
-            simScheduler.schedule(time - timeProvider.now, action)
+    private fun LocalDateTime.schedule(description: String, action: () -> Unit) =
+            simScheduler.schedule(this - timeProvider.now, description, action)
 
     private fun LocalDate.at(range: TimeRange) =
             at(range.start)..at(range.endInclusive)

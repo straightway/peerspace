@@ -108,6 +108,7 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
     init {
         simulator.schedule(
                 LocalDateTime.of(startDate, LocalTime.MIDNIGHT) - simulator.now,
+                "Global initialization",
                 this::initializeSimulation)
     }
 

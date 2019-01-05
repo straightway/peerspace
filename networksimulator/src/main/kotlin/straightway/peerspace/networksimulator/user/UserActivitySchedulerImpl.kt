@@ -69,7 +69,6 @@ class UserActivitySchedulerImpl :
     override fun scheduleDay(day: LocalDate) {
         if (LocalDateTime.of(day, LocalTime.MIDNIGHT) < timeProvider.now)
             return
-        println("scheduling $day for user ${user.hashCode()}")
         blockInactiveTimes(day)
         scheduleActivityEvents(day)
     }
@@ -108,7 +107,10 @@ class UserActivitySchedulerImpl :
             deviceActivitySchedule.forEach { it.scheduleActivities(day) }
 
     private fun scheduleAt(time: LocalDateTime, action: () -> Unit) =
-            simScheduler.schedule(time - timeProvider.now, action)
+            simScheduler.schedule(
+                    time - timeProvider.now,
+                    "scheduling ${time.toLocalDate()} for user ${user.id}",
+                    action)
 
     // endregion
 }

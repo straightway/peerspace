@@ -26,23 +26,23 @@ import straightway.units.get
 import straightway.units.ki
 import straightway.units.minute
 
-val readSocialMediaFeeds get() = UsageProfile {
+val readSocialMediaFeeds get() = UsageProfile("read social media feed") {
     activity { doReadSocialMediaFeeds }
     duration { 1.0[minute] }
 }
 
-val postOnSocialMediaFeed get() = UsageProfile {
+val postOnSocialMediaFeed get() = UsageProfile("post on social media feed") {
     activity { doPostOnSocialMediaFeed }
     duration { 3.0[minute] }
     dataVolume { 5[ki(byte)] }
 }
 
-val readMessages get() = UsageProfile {
+val readMessages get() = UsageProfile("read message") {
     activity { doReadMessages }
     duration { 1.0[minute] }
 }
 
-val writeMessages get() = UsageProfile {
+val writeMessages get() = UsageProfile("write message") {
     activity { doWriteMessage }
     duration { 10.0[minute] }
     dataVolume { 5[ki(byte)] }

@@ -15,6 +15,8 @@
  */
 package straightway.peerspace.networksimulator.user
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -146,5 +148,15 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
             } then {
                 expect(environment.blockedUserTimes is_ Equal to_
                         Values(0.0[hour]..8.0[hour], 16.0[hour]..24.0[hour]))
+            }
+
+    @Test
+    fun `simulation event is scheduled with description`() =
+            test when_ {
+                environment.userActivityScheduler.scheduleDay(environment.day)
+            } then {
+                val expectedDescription =
+                        "scheduling ${environment.day.plusDays(1)} for user ${environment.user.id}"
+                verify(environment.simScheduler).schedule(any(), eq(expectedDescription), any())
             }
 }

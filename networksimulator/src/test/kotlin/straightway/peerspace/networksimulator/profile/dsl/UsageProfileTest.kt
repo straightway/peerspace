@@ -29,7 +29,10 @@ import straightway.units.second
 
 class UsageProfileTest {
 
-    private val sut get() = testProfile<UsageProfile> { UsageProfile(it) }
+    private val sut get() = testProfile<UsageProfile> { UsageProfile("description", it) }
+
+    @Test
+    fun description() = expect(sut {}.description is_ Equal to_ "description")
 
     @Test
     fun activity() = sut.testSingleValue(Activity("activityName") { _ -> }) { activity }
@@ -49,7 +52,7 @@ class UsageProfileTest {
     @Test
     fun `update by invoke yields same instance`() =
             Given {
-                UsageProfile {}
+                UsageProfile("description") {}
             } when_ {
                 this {}
             } then {
@@ -59,7 +62,7 @@ class UsageProfileTest {
     @Test
     fun `update by invoke alters instance`() =
             Given {
-                UsageProfile {}
+                UsageProfile("description") {}
             } when_ {
                 this {
                     numberOfTimes { 3 }
@@ -71,12 +74,12 @@ class UsageProfileTest {
     @Test
     fun `toString without set values`() =
             Given {
-                UsageProfile { }
+                UsageProfile("description") { }
             } when_ {
                 toString()
             } then {
                 expect(it.result is_ Equal to_
-                               "UsageProfile {\n" +
+                               "UsageProfile(description) {\n" +
                                "  activity = <unset>\n" +
                                "  numberOfTimes = <unset>\n" +
                                "  duration = <unset>\n" +

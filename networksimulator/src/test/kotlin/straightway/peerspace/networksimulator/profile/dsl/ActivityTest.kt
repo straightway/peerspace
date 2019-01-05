@@ -43,7 +43,7 @@ class ActivityTest {
         var calledDevice: Device? = null
         var calledProfile: UsageProfile? = null
         val device: Device = mock()
-        val profile = UsageProfile {}
+        val profile = UsageProfile("description") {}
         Given {
             Activity("name") { profile -> calledProfile = profile; calledDevice = this }
         } when_ {

@@ -21,5 +21,5 @@ import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 
 class ReadSocialMediaFeedsTest {
     @Test
-    fun tempAlibi() = doReadSocialMediaFeeds(mock(), UsageProfile {})
+    fun tempAlibi() = doReadSocialMediaFeeds(mock(), UsageProfile("description") {})
 }

@@ -21,5 +21,5 @@ import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 
 class ReadMessagesTest {
     @Test
-    fun tempAlibi() = doReadMessages(mock(), UsageProfile {})
+    fun tempAlibi() = doReadMessages(mock(), UsageProfile("description") {})
 }

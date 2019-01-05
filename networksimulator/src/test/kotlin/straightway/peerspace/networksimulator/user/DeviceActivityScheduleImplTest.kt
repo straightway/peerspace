@@ -15,6 +15,8 @@
  */
 package straightway.peerspace.networksimulator.user
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -82,7 +84,7 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
                     }
                 }
                 profile.usedDevices.values.single().usages {
-                    +UsageProfile {
+                    +UsageProfile("description") {
                         numberOfTimes { 1 }
                         activity { Activity("testActivity") { deviceActivityCalls++ } }
                         duration { 1.0[minute] }
@@ -217,5 +219,13 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
                 sut.scheduleActivities(environment.day)
             } then {
                 expect(activityTiminigs.size is_ Equal to_ 2)
+            }
+
+    @Test
+    fun `usage profile description is passed to simulation scheduler`() =
+            test(10.0[hour]..11.0[hour]) when_ {
+                sut.scheduleActivities(environment.day)
+            } then {
+                verify(environment.simScheduler).schedule(any(), eq("description"), any())
             }
 }

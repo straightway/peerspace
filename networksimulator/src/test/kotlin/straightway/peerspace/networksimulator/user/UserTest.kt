@@ -67,7 +67,7 @@ class UserTest : KoinLoggingDisabler() {
                     }
                 }
                 val testUsage by lazy {
-                    UsageProfile {
+                    UsageProfile("description") {
                         activity { mockedActivity }
                     }
                 }

@@ -16,6 +16,7 @@
 package straightway.peerspace.networksimulator.user
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -148,7 +149,7 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
             test when_ {
                 sut.scheduleOnlineTimes(environment.day.minusDays(2))
             } then {
-                verify(environment.simScheduler, never()).schedule(any(), any())
+                verify(environment.simScheduler, never()).schedule(any(), any(), any())
             }
 
     @Test
@@ -256,5 +257,25 @@ class DeviceOnlineTimeScheduleImplTest : KoinLoggingDisabler() {
                 with(environment) {
                     day.checkAt(27.0[hour]) { expect(device.isOnline is_ True) }
                 }
+            }
+
+    @Test
+    fun `online event is scheduled with description`() =
+            test when_ {
+                sut.scheduleOnlineTimes(environment.day)
+            } then {
+                val expectedDescription = "device ${device.id} goes online"
+                verify(environment.simScheduler).schedule(any(), eq(expectedDescription), any())
+            }
+
+    @Test
+    fun `offline event is scheduled with description`() =
+            test while_ {
+                sut.scheduleOnlineTimes(environment.day)
+            } when_ {
+                environment.simulator.eventQueue.single().action()
+            } then {
+                val expectedDescription = "device ${device.id} goes offline"
+                verify(environment.simScheduler).schedule(any(), eq(expectedDescription), any())
             }
 }

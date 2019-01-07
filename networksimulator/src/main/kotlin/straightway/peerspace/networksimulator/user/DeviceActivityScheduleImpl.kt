@@ -70,7 +70,7 @@ class DeviceActivityScheduleImpl(val device: Device)
         try {
             val timeRange = activityTiminig.timeRange
             userSchedule.block(this, timeRange)
-            at(timeRange.endInclusive).schedule(description, action)
+            at(timeRange.endInclusive).schedule("$description for device ${device.id}", action)
         } catch (x: DoesNotFitException) {
             // Ignore
         }

@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.Id
 import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
@@ -28,7 +29,9 @@ import straightway.peerspace.networksimulator.profile.dsl.Weekly
 import straightway.peerspace.networksimulator.profile.pc
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Throw
 import straightway.testing.flow.Values
+import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -158,5 +161,14 @@ class UserActivitySchedulerImplTest : KoinLoggingDisabler() {
                 val expectedDescription =
                         "scheduling ${environment.day.plusDays(1)} for user ${environment.user.id}"
                 verify(environment.simScheduler).schedule(any(), eq(expectedDescription), any())
+            }
+
+    @Test
+    fun `scheduling past day panics`() =
+            test when_ {
+                val yesterday = environment.simulator.now.toLocalDate().minusDays(1)
+                environment.userActivityScheduler.scheduleDay(yesterday)
+            } then {
+                expect({ it.result } does Throw.type<Panic>())
             }
 }

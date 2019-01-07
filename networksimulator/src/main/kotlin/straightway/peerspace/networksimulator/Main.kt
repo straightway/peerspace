@@ -37,7 +37,7 @@ import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
 import straightway.peerspace.networksimulator.user.UserSchedule
 import straightway.peerspace.networksimulator.user.UserScheduleImpl
 import straightway.random.RandomSource
-import straightway.sim.Scheduler
+import straightway.sim.core.InterceptingScheduler
 import straightway.sim.core.Simulator
 import straightway.units.byte
 import straightway.units.get
@@ -51,9 +51,17 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Random
 
-private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDate) {
+@Suppress("LargeClass")
+private class MainClass(
+        numberOfPeers: Int,
+        randomSeed: Long,
+        startDate: LocalDate,
+        val verbose: Boolean
+) {
 
     val simulator = Simulator()
+
+    var initializationFinished = false
 
     private val simNet = SimNetwork(
             simScheduler = simulator,
@@ -73,7 +81,12 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
                 bean { _ -> officeWorker }
                 bean("randomSource") { _ -> randomSource as Iterator<Byte> }
                 bean { _ -> simulator as TimeProvider }
-                bean { _ -> simulator as Scheduler }
+                bean { _ ->
+                    if (verbose) InterceptingScheduler(simulator).onExecuted {
+                        println("${simulator.now}: $it")
+                    }
+                    else simulator
+                }
                 bean { _ -> chunkSizeGetter }
                 bean { _ -> simNet }
                 bean { _ -> UserActivitySchedulerImpl() as UserActivityScheduler }
@@ -98,11 +111,9 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
 
     fun initializeSimulation() {
         println("Initializing simulation at ${simulator.now}")
-        userContexts.forEach { context ->
-            val userScheduler = context.get<UserActivityScheduler>()
-            userScheduler.scheduleDay(simulator.now.toLocalDate())
-        }
+        scheduleInitialEventsForEachUser()
         println("done.")
+        initializationFinished = true
     }
 
     init {
@@ -110,6 +121,15 @@ private class MainClass(numberOfPeers: Int, randomSeed: Long, startDate: LocalDa
                 LocalDateTime.of(startDate, LocalTime.MIDNIGHT) - simulator.now,
                 "Global initialization",
                 this::initializeSimulation)
+    }
+
+    private fun scheduleInitialEventsForEachUser() {
+        userContexts.forEach { context ->
+            val userScheduler = context.get<UserActivityScheduler>()
+            userScheduler.scheduleDay(simulator.now.toLocalDate())
+            print(".")
+        }
+        println()
     }
 
     private companion object {
@@ -127,7 +147,8 @@ fun main(args: Array<String>) {
         val mainClass = MainClass(
                 numberOfPeers = 100,
                 randomSeed = 1234L,
-                startDate = LocalDate.of(2023, 2, 3))
+                startDate = LocalDate.of(2023, 2, 3),
+                verbose = args.any { it == "-v" })
         println("Created ${mainClass.userContexts.size} userContexts")
         mainClass.simulator.run()
 

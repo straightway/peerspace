@@ -226,6 +226,8 @@ class DeviceActivityScheduleImplTest : KoinLoggingDisabler() {
             test(10.0[hour]..11.0[hour]) when_ {
                 sut.scheduleActivities(environment.day)
             } then {
-                verify(environment.simScheduler).schedule(any(), eq("description"), any())
+                val expectedDesctiption = "description for device ${device.id}"
+                verify(environment.simScheduler)
+                        .schedule(any(), eq(expectedDesctiption), any())
             }
 }

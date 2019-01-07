@@ -16,6 +16,7 @@
  */
 package straightway.peerspace.networksimulator.user
 
+import straightway.error.Panic
 import straightway.koinutils.Bean.get
 import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
@@ -68,7 +69,8 @@ class UserActivitySchedulerImpl :
 
     override fun scheduleDay(day: LocalDate) {
         if (LocalDateTime.of(day, LocalTime.MIDNIGHT) < timeProvider.now)
-            return
+            throw Panic("Scheduling past day $day (current time: ${timeProvider.now}")
+        scheduleNextDay(day)
         blockInactiveTimes(day)
         scheduleActivityEvents(day)
     }
@@ -78,7 +80,6 @@ class UserActivitySchedulerImpl :
     // region Private
 
     private fun scheduleActivityEvents(day: LocalDate) {
-        scheduleNextDay(day)
         scheduleOnlineTimes(day)
         scheduleActivities(day)
     }

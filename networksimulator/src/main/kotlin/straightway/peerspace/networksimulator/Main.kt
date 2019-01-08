@@ -39,8 +39,10 @@ import straightway.peerspace.networksimulator.user.UserScheduleImpl
 import straightway.random.RandomSource
 import straightway.sim.core.InterceptingScheduler
 import straightway.sim.core.Simulator
+import straightway.units.at
 import straightway.units.byte
 import straightway.units.get
+import straightway.units.hour
 import straightway.units.ki
 import straightway.units.milli
 import straightway.units.second
@@ -51,6 +53,8 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Random
 
+private const val FULL_DAY_HOURS = 24.0
+
 @Suppress("LargeClass")
 private class MainClass(
         numberOfPeers: Int,
@@ -60,8 +64,6 @@ private class MainClass(
 ) {
 
     val simulator = Simulator()
-
-    var initializationFinished = false
 
     private val simNet = SimNetwork(
             simScheduler = simulator,
@@ -113,7 +115,7 @@ private class MainClass(
         println("Initializing simulation at ${simulator.now}")
         scheduleInitialEventsForEachUser()
         println("done.")
-        initializationFinished = true
+        if (!verbose) scheduleEndOfDayMessage()
     }
 
     init {
@@ -121,6 +123,14 @@ private class MainClass(
                 LocalDateTime.of(startDate, LocalTime.MIDNIGHT) - simulator.now,
                 "Global initialization",
                 this::initializeSimulation)
+    }
+
+    private fun scheduleEndOfDayMessage() {
+        val endOfDay = simulator.now.toLocalDate().at(FULL_DAY_HOURS[hour])
+        simulator.schedule(endOfDay - simulator.now, "day done") {
+            println("$endOfDay done")
+            scheduleEndOfDayMessage()
+        }
     }
 
     private fun scheduleInitialEventsForEachUser() {

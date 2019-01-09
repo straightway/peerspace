@@ -30,7 +30,6 @@ class User : KoinModuleComponent by KoinModuleComponent() {
     // region Component references
 
     val profile: UserProfile by inject()
-    private val activityScheduler: UserActivityScheduler by inject()
 
     // endregion
 

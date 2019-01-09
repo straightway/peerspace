@@ -31,11 +31,14 @@ import straightway.peerspace.networksimulator.user.DeviceActivityScheduleImpl
 import straightway.peerspace.networksimulator.user.DeviceImpl
 import straightway.peerspace.networksimulator.user.DeviceOnlineTimeSchedule
 import straightway.peerspace.networksimulator.user.DeviceOnlineTimeScheduleImpl
+import straightway.peerspace.networksimulator.user.InterconnectedGroupOfUsers
 import straightway.peerspace.networksimulator.user.User
 import straightway.peerspace.networksimulator.user.UserActivityScheduler
 import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
 import straightway.peerspace.networksimulator.user.UserSchedule
 import straightway.peerspace.networksimulator.user.UserScheduleImpl
+import straightway.random.Chooser
+import straightway.random.RandomChooser
 import straightway.random.RandomSource
 import straightway.sim.core.InterceptingScheduler
 import straightway.sim.core.Simulator
@@ -57,7 +60,7 @@ private const val FULL_DAY_HOURS = 24.0
 
 @Suppress("LargeClass")
 private class MainClass(
-        numberOfPeers: Int,
+        numberOfUsers: Int,
         randomSeed: Long,
         startDate: LocalDate,
         val verbose: Boolean
@@ -75,25 +78,26 @@ private class MainClass(
 
     private val randomSource = RandomSource(Random(randomSeed))
 
-    private val chunkSizeGetter = chunkSizeGetter { _ -> CHUNK_SIZE }
+    private val chunkSizeGetter = chunkSizeGetter { CHUNK_SIZE }
 
-    val userContexts = (1..numberOfPeers).map { _ ->
+    val userContexts = (1..numberOfUsers).map {
             withContext {
                 bean("simNodes") { simNodes }
-                bean { _ -> officeWorker }
-                bean("randomSource") { _ -> randomSource as Iterator<Byte> }
-                bean { _ -> simulator as TimeProvider }
-                bean { _ ->
-                    if (verbose) InterceptingScheduler(simulator).onExecuted {
-                        println("${simulator.now}: $it")
+                bean("knownUsers") { mutableListOf<User>() }
+                bean { officeWorker }
+                bean("randomSource") { randomSource as Iterator<Byte> }
+                bean { simulator as TimeProvider }
+                bean {
+                    if (verbose) InterceptingScheduler(simulator).onExecuted { action ->
+                        println("${simulator.now}: $action")
                     }
                     else simulator
                 }
-                bean { _ -> chunkSizeGetter }
-                bean { _ -> simNet }
-                bean { _ -> UserActivitySchedulerImpl() as UserActivityScheduler }
-                bean { _ -> User() }
-                bean { _ -> UserScheduleImpl() as UserSchedule }
+                bean { chunkSizeGetter }
+                bean { simNet }
+                bean { UserActivitySchedulerImpl() as UserActivityScheduler }
+                bean { User() }
+                bean { UserScheduleImpl() as UserSchedule }
                 factory { args ->
                     DeviceImpl(args["id"], args["profile"]) as Device
                 }
@@ -111,11 +115,13 @@ private class MainClass(
             }
         }
 
+    @Suppress("LongMethod")
     fun initializeSimulation() {
         println("Initializing simulation at ${simulator.now}")
+        introduceUsersToEachOther()
         scheduleInitialEventsForEachUser()
-        println("done.")
         if (!verbose) scheduleEndOfDayMessage()
+        println("done.")
     }
 
     init {
@@ -142,6 +148,35 @@ private class MainClass(
         println()
     }
 
+    private fun introduceUsersToEachOther() {
+        val chooser = RandomChooser(randomSource)
+        val userGroups = userContexts.map {
+            InterconnectedGroupOfUsers(chooser, listOf(it.get()))
+        }
+        unifyAll(chooser, userGroups)
+        printUsersAndFriends()
+    }
+
+    private fun printUsersAndFriends() {
+        if (!verbose) return
+        println("Known users:")
+        userContexts.forEach { ctx ->
+            println("${ctx.get<User>().id} knows " +
+                    ctx.get<List<User>>("knownUsers").map { it.id }.joinToString(", "))
+        }
+    }
+
+    private fun unifyAll(chooser: Chooser, groups: List<InterconnectedGroupOfUsers>) {
+        when (groups.size) {
+            0, 1 -> return
+            else -> {
+                val candidates = chooser.chooseFrom(groups, 2)
+                val unified = candidates.first().unifyWith(candidates.last())
+                unifyAll(chooser, groups - candidates + unified)
+            }
+        }
+    }
+
     private companion object {
         val LATENCY = 50.0[milli(second)]
         val OFFLINE_DETECTION_TIME = 5.0[second]
@@ -155,10 +190,10 @@ fun main(args: Array<String>) {
         println("Starting simulation")
 
         val mainClass = MainClass(
-                numberOfPeers = 100,
+                numberOfUsers = 100,
                 randomSeed = 1234L,
                 startDate = LocalDate.of(2023, 2, 3),
-                verbose = args.any { it == "-v" })
+                verbose = args.any { arg -> arg == "-v" })
         println("Created ${mainClass.userContexts.size} userContexts")
         mainClass.simulator.run()
 

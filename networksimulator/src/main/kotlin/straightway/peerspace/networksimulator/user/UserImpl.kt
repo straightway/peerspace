@@ -30,6 +30,7 @@ class UserImpl : User, KoinModuleComponent by KoinModuleComponent() {
 
     override val profile: UserProfile by inject()
     override val knownUsers = mutableListOf<User>()
+
     // endregion
 
     override val environment: UserEnvironment = Environment()

@@ -106,7 +106,7 @@ open class UserActivitySchedulerTestEnvironment(
             bean { profile }
             bean { simulator as TimeProvider }
             bean { simScheduler }
-            bean { User() }
+            bean { UserImpl() as User }
             bean("randomSource") { randomSource }
             bean { userActivitySchedulerFactory() }
             factory { args ->

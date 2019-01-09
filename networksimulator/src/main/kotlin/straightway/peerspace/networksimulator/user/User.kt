@@ -15,47 +15,15 @@
  */
 package straightway.peerspace.networksimulator.user
 
-import straightway.koinutils.Bean.inject
-import straightway.koinutils.Bean.get
-import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.peerspace.networksimulator.profile.dsl.UserProfile
 
 /**
  * A simulated peerspace user.
  */
-@Suppress("MagicNumber")
-class User : KoinModuleComponent by KoinModuleComponent() {
-
-    // region Component references
-
-    val profile: UserProfile by inject()
-
-    // endregion
-
-    val environment: UserEnvironment = Environment()
-    val id: Id = Id("User_${currentId++}")
-
-    // region Private
-
-    private companion object {
-        var currentId = 0
-    }
-
-    // endregion
-
-    // region Nested class
-
-    private inner class Environment : UserEnvironment {
-        override val devices =
-                profile.usedDevices.values.map {
-                    get<Device> {
-                        mapOf(
-                            "id" to Id("Peer_${currentId++}"),
-                            "profile" to it)
-                    }
-                }
-    }
-
-    // endregion
+interface User {
+    val id: Id
+    val environment: UserEnvironment
+    val profile: UserProfile
+    val knownUsers: MutableList<User>
 }

@@ -42,7 +42,7 @@ class InterconnectedGroupOfUsersTest : KoinLoggingDisabler() {
             bean("knownUsers") { mutableListOf<User>() }
             bean { officeWorker }
             factory { mock<Device>() }
-        } make { User() }
+        } make { UserImpl() as User }
     }
 
     @Test

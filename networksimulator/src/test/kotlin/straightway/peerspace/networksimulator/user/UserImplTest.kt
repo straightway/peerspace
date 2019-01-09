@@ -42,10 +42,10 @@ import straightway.units.hour
 import straightway.units.ki
 import straightway.utils.TimeProvider
 
-class UserTest : KoinLoggingDisabler() {
+class UserImplTest : KoinLoggingDisabler() {
 
     private interface ActivityHandler {
-        fun handleActivity(device: Device, profile: UsageProfile)
+        fun handleActivity(env: ActivityEnvironment)
     }
 
     private val test get() =
@@ -73,8 +73,8 @@ class UserTest : KoinLoggingDisabler() {
                 }
 
                 val mockedActivity get() =
-                    Activity("activityName") { profile: UsageProfile ->
-                        activityHandler.handleActivity(this, profile)
+                    Activity("activityName") {
+                        activityHandler.handleActivity(this)
                     }
 
                 val sut by lazy { createUser(profile) }
@@ -142,6 +142,6 @@ class UserTest : KoinLoggingDisabler() {
                 bean { _ -> mock<UserActivityScheduler>() }
                 factory { args -> mock<Device> { on { id }.thenAnswer { args["id"] } } }
             } make {
-                User()
+                UserImpl()
             }
 }

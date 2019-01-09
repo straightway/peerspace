@@ -18,8 +18,10 @@ package straightway.peerspace.networksimulator.activities
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
+import straightway.peerspace.networksimulator.user.ActivityEnvironment
 
 class ReadMessagesTest {
     @Test
-    fun tempAlibi() = doReadMessages(mock(), UsageProfile("description") {})
+    fun tempAlibi() = doReadMessages(
+            ActivityEnvironment(mock(), mock(), UsageProfile("description") {}))
 }

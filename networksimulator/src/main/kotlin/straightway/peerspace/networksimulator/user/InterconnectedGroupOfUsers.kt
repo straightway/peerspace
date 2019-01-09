@@ -15,8 +15,6 @@
  */
 package straightway.peerspace.networksimulator.user
 
-import straightway.koinutils.Bean.get
-import straightway.koinutils.KoinModuleComponent
 import straightway.random.Chooser
 
 /**
@@ -38,8 +36,4 @@ class InterconnectedGroupOfUsers(private val chooser: Chooser, val members: List
                     otherPeer.knownUsers.add(myPeer)
                 }
             }
-
-    private companion object {
-        val KoinModuleComponent.knownUsers get() = get<MutableList<User>>("knownUsers")
-    }
 }

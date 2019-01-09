@@ -35,7 +35,7 @@ class UsageProfileTest {
     fun description() = expect(sut {}.description is_ Equal to_ "description")
 
     @Test
-    fun activity() = sut.testSingleValue(Activity("activityName") { _ -> }) { activity }
+    fun activity() = sut.testSingleValue(Activity("activityName") {}) { activity }
 
     @Test
     fun numberOfTimes() = sut.testSingleValue(3) { numberOfTimes }

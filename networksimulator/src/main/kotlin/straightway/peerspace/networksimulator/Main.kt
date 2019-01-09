@@ -35,6 +35,7 @@ import straightway.peerspace.networksimulator.user.InterconnectedGroupOfUsers
 import straightway.peerspace.networksimulator.user.User
 import straightway.peerspace.networksimulator.user.UserActivityScheduler
 import straightway.peerspace.networksimulator.user.UserActivitySchedulerImpl
+import straightway.peerspace.networksimulator.user.UserImpl
 import straightway.peerspace.networksimulator.user.UserSchedule
 import straightway.peerspace.networksimulator.user.UserScheduleImpl
 import straightway.random.Chooser
@@ -96,7 +97,7 @@ private class MainClass(
                 bean { chunkSizeGetter }
                 bean { simNet }
                 bean { UserActivitySchedulerImpl() as UserActivityScheduler }
-                bean { User() }
+                bean { UserImpl() as User }
                 bean { UserScheduleImpl() as UserSchedule }
                 factory { args ->
                     DeviceImpl(args["id"], args["profile"]) as Device

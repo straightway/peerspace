@@ -13,16 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.networksimulator.profile.dsl
+package straightway.peerspace.networksimulator.user
 
-import straightway.peerspace.networksimulator.user.ActivityEnvironment
+import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 
 /**
- * A simulated activity by a simulated user on a simulated node.
+ * Environment an activity can use while executing the activity action.
  */
-class Activity(val name: String, val action: ActivityEnvironment.() -> Unit) {
-    operator fun invoke(environment: ActivityEnvironment) =
-            environment.action()
-
-    override fun toString() = name
-}
+data class ActivityEnvironment(
+        val user:
+        User,
+        val device: Device,
+        val usage: UsageProfile)

@@ -15,9 +15,9 @@
  */
 package straightway.peerspace.net
 
-import straightway.units.AmountOfData
-import straightway.units.UnitValue
-import java.io.Serializable
+import straightway.units.byte
+import straightway.units.get
+import straightway.units.ki
 
-typealias ChunkSizeGetter = (Serializable) -> UnitValue<AmountOfData>
-fun chunkSizeGetter(function: ChunkSizeGetter): ChunkSizeGetter = function
+@Suppress("MagicNumber")
+val chunkSize = 64[ki(byte)]

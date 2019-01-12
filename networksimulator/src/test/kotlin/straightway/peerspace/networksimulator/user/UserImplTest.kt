@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.Activity
 import straightway.peerspace.networksimulator.profile.dsl.DeviceUsageProfile
@@ -36,10 +35,8 @@ import straightway.testing.flow.Not
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.units.byte
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.ki
 import straightway.utils.TimeProvider
 
 class UserImplTest : KoinLoggingDisabler() {
@@ -137,7 +134,6 @@ class UserImplTest : KoinLoggingDisabler() {
                 bean { _ -> profile }
                 bean("randomSource") { _ -> mock<Iterator<Byte>>() }
                 bean { _ -> mock<TimeProvider>() }
-                bean { _ -> chunkSizeGetter { 64[ki(byte)] } }
                 bean { _ -> mock<TransmissionRequestHandler>() }
                 bean { _ -> mock<UserActivityScheduler>() }
                 factory { args -> mock<Device> { on { id }.thenAnswer { args["id"] } } }

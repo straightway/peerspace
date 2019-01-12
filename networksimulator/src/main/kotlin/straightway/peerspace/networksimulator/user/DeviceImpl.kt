@@ -21,12 +21,10 @@ import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
-import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.PeerComponent
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwardTargetGetter
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryForwardTargetGetter
@@ -61,9 +59,6 @@ import straightway.random.RandomChooser
 import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
-import straightway.units.byte
-import straightway.units.get
-import straightway.units.ki
 import straightway.utils.Event
 import straightway.utils.TimeProvider
 import straightway.utils.toByteArray
@@ -78,7 +73,6 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
     // region Component references
 
     private val transmissionRequestHandler: TransmissionRequestHandler by inject()
-    private val chunkSizeGetter: ChunkSizeGetter by inject()
     private val simNodes: MutableMap<Any, SimNode> by inject("simNodes")
     private val timeProvider: TimeProvider by inject()
     private val randomSource: Iterator<Byte> by inject("randomSource")
@@ -104,7 +98,6 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
             bean { peer }
             bean("simNodes") { simNodes }
             bean { transmissionRequestHandler }
-            bean { chunkSizeGetter }
             bean("uploadStream") {
                 AsyncSequentialTransmissionStream(device.uploadBandwidth.value, timeProvider)
                         as TransmissionStream
@@ -158,7 +151,6 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
                 { KnownPeersPushTargetImpl() },
                 { KnownPeersQuerySourceImpl() },
                 { KnownPeersGetterImpl() },
-                { chunkSizeGetter { 64[ki(byte)] } },
                 { Event() },
                 { Event() },
                 { PeerClientImpl() },
@@ -180,7 +172,7 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
                 { remoteNodeId ->
                     val from = simNodes[id]!!
                     val to = simNodes[remoteNodeId]!!
-                    SimChannel(transmissionRequestHandler, chunkSizeGetter, from, to)
+                    SimChannel(transmissionRequestHandler, from, to)
                 })
 
         return environment

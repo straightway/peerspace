@@ -25,7 +25,6 @@ import straightway.koinutils.withContext
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.DataQuerySource
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
@@ -35,8 +34,6 @@ import straightway.testing.flow.as_
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
-import straightway.units.byte
-import straightway.units.get
 
 class SimNode_Factory_Test : KoinLoggingDisabler() {
 
@@ -57,7 +54,7 @@ class SimNode_Factory_Test : KoinLoggingDisabler() {
             private fun createSimNode(id: Id): SimNode =
                     withContext {
                         bean {
-                            mock<Peer> { _ ->
+                            mock<Peer> {
                                 on { this.id }.thenReturn(id)
                             }
                         }
@@ -65,7 +62,6 @@ class SimNode_Factory_Test : KoinLoggingDisabler() {
                         bean { peers[it["id"]] as DataQuerySource }
                         bean("simNodes") { nodes }
                         bean { mock<TransmissionRequestHandler>() }
-                        bean { _ -> chunkSizeGetter { 16[byte] } }
                     }.apply {
                         extraProperties["peerId"] = id.identifier
                     } make {

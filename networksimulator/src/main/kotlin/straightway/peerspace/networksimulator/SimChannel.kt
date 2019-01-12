@@ -16,14 +16,13 @@
 
 package straightway.peerspace.networksimulator
 
+import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.sim.net.Message
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.Node
 import straightway.sim.net.Transmission
-import straightway.units.AmountOfData
-import straightway.units.UnitValue
 import java.io.Serializable
 
 /**
@@ -31,7 +30,6 @@ import java.io.Serializable
  */
 class SimChannel(
         private val transmissionRequestHandler: TransmissionRequestHandler,
-        private val chunkSizeGetter: (Serializable) -> UnitValue<AmountOfData>,
         val from: Node,
         val to: Node
 ) : Channel {
@@ -40,7 +38,7 @@ class SimChannel(
         transmissionRequestHandler.transmit(Transmission(
                 from.forwardNotificationsTo(resultListener),
                 to,
-                Message(data, size = chunkSizeGetter(data))))
+                Message(data, size = chunkSize)))
     }
 
     private class NodeNotifier(

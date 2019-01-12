@@ -68,7 +68,6 @@ interface PeerComponent : KoinModuleComponent {
                 knownPeersPushTargetFactory: () -> KnownPeersPushTarget,
                 knownPeersQuerySourceFactory: () -> KnownPeersQuerySource,
                 knownPeersGetterFactory: () -> KnownPeersGetter,
-                chunkSizeGetterFactory: () -> ChunkSizeGetter,
                 localDeliveryEventFactory: () -> Event<Transmittable>,
                 knownPeersReceivedEventFactory: () -> Event<KnownPeers>,
                 peerClientFactory: () -> PeerClient,
@@ -105,7 +104,6 @@ interface PeerComponent : KoinModuleComponent {
                     bean("localKnownPeersPushTarget") { knownPeersPushTargetFactory() }
                     bean("localKnownPeersQuerySource") { knownPeersQuerySourceFactory() }
                     bean { knownPeersGetterFactory() }
-                    bean { chunkSizeGetterFactory() }
                     bean("localDeliveryEvent") { localDeliveryEventFactory() }
                     bean("knownPeersReceivedEvent") { knownPeersReceivedEventFactory() }
                     bean { peerClientFactory() }
@@ -171,8 +169,6 @@ val PeerComponent.knownPeersPushTarget: KnownPeersPushTarget get() =
 val PeerComponent.knownPeersQuerySource: KnownPeersQuerySource get() =
     get("localKnownPeersQuerySource")
 val PeerComponent.knownPeersGetter: KnownPeersGetter get() =
-    get()
-val PeerComponent.chunkSizeGetter: ChunkSizeGetter get() =
     get()
 val PeerComponent.localDeliveryEvent: Event<Transmittable> get() =
     get("localDeliveryEvent")

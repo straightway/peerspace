@@ -20,31 +20,29 @@ import com.nhaarman.mockito_kotlin.argForWhich
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.sim.net.Node
 import straightway.sim.net.Transmission
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
 import straightway.testing.bdd.Given
-import straightway.units.byte
-import straightway.units.get
 
 class SimChannelTest {
 
     private val test get() = Given {
         object {
-            var chunkSize = 16[byte]
             var transmitCallback: Transmission.() -> Unit = {}
             val net = mock<TransmissionRequestHandler> {
-                on { transmit(any()) }.thenAnswer {
-                    (it.arguments[0] as Transmission).transmitCallback()
+                on { transmit(any()) }.thenAnswer { args ->
+                    (args.arguments[0] as Transmission).transmitCallback()
                 }
             }
             val fromUpload = mock<TransmissionStream>()
             val toDownload = mock<TransmissionStream>()
             val fromNode = mock<Node> { on { uploadStream }.thenReturn(fromUpload) }
             val toNode = mock<Node> { on { downloadStream }.thenReturn(toDownload) }
-            val sut = SimChannel(net, { chunkSize }, fromNode, toNode)
+            val sut = SimChannel(net, fromNode, toNode)
         }
     }
 
@@ -76,14 +74,14 @@ class SimChannelTest {
             }
 
     @Test
-    fun `transmit calls chunk size getter to get correct size`() =
+    fun `transmit calls uses fixed chunk size`() =
             test when_ { sut.transmit("Hello") } then {
                 verify(net).transmit(argForWhich { message.size == chunkSize })
             }
 
     @Test
     fun `transmit notifies resultListener of success`() {
-        var resultListener = mock<TransmissionResultListener>()
+        val resultListener = mock<TransmissionResultListener>()
         test while_ {
             transmitCallback = { sender.notifySuccess(receiver) }
         } when_ {
@@ -106,7 +104,7 @@ class SimChannelTest {
 
     @Test
     fun `transmit notifies resultListener of failure`() {
-        var resultListener = mock<TransmissionResultListener>()
+        val resultListener = mock<TransmissionResultListener>()
         test while_ {
             transmitCallback = { sender.notifyFailure(receiver) }
         } when_ {

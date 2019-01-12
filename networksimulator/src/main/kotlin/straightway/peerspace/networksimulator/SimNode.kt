@@ -20,7 +20,6 @@ import straightway.koinutils.Bean.inject
 import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Channel
-import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.handle
@@ -37,7 +36,6 @@ class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
     private val peer: Peer by inject()
     private val simNodes: MutableMap<Id, SimNode> by inject("simNodes")
     private val transmissionRequestHandler: TransmissionRequestHandler by inject()
-    private val chunkSizeGetter: ChunkSizeGetter by inject()
 
     override val id: Id get() = peer.id
     override val uploadStream: TransmissionStream by inject("uploadStream")
@@ -60,7 +58,6 @@ class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
     fun createChannel(id: Id): Channel =
             SimChannel(
                     transmissionRequestHandler,
-                    chunkSizeGetter,
                     from = this,
                     to = simNodes[id]!!)
 

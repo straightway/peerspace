@@ -18,14 +18,13 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Key
+import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.PeerComponent
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.configuration
+import straightway.units.times
 import straightway.units.AmountOfData
 import straightway.units.UnitValue
-import straightway.units.bit
-import straightway.units.get
 import straightway.units.plus
 
 /**
@@ -64,15 +63,12 @@ class TransientDataChunkStore : DataChunkStore, PeerComponent by PeerComponent()
     }
 
     private val DataChunk.exceedsCapacity get() =
-            configuration.storageCapacity < currentStorageSize + chunkSizeGetter(this)
+            configuration.storageCapacity < currentStorageSize + chunkSize
 
     private val currentStorageSize: UnitValue<AmountOfData> get() =
-            storedData.values.fold(0[bit]) {
-                acc: UnitValue<AmountOfData>, chunk: DataChunk ->
-                acc + chunkSizeGetter(chunk)
-            }
+        storedData.values.size * chunkSize
 
-    private infix fun DataChunk.satisfies(queryRequest: DataQuery) =
+                private infix fun DataChunk.satisfies(queryRequest: DataQuery) =
             key.id == queryRequest.chunkId && key.timestamp in queryRequest.timestamps
 
     private val storedData = mutableMapOf<Key, DataChunk>()

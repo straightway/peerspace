@@ -23,11 +23,12 @@ import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
+import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.Configuration
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.dataChunkStore
 import straightway.units.byte
 import straightway.units.get
+import straightway.units.times
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -57,9 +58,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             val environment = PeerTestEnvironment(
                     dataChunkStoreFactory = { TransientDataChunkStore() },
                     configurationFactory = { Configuration(storageCapacity = storageCapacity) }
-            ) {
-                bean { chunkSizeGetter { _ -> 1[byte] } }
-            }
+            )
             val sut = environment.dataChunkStore as TransientDataChunkStore
             val untimedChunk = DataChunk(Key(chunkId), chunkData)
             val timedChunk = DataChunk(Key(chunkId, chunkTimeStamp), chunkData)
@@ -114,7 +113,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     @Test
     fun `if capacity is exceeded, older chunk is removed an new chunk is stored`() =
-            test(storageCapacity = 1[byte]) when_ {
+            test(storageCapacity = chunkSize) when_ {
                 sut.store(untimedChunk)
             } then {
                 expect(sut[untimedChunk.key] is_ Same as_ untimedChunk)
@@ -123,7 +122,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     @Test
     fun `if capacity is not exceeded, new chunk is stored in addition`() =
-            test(storageCapacity = 2[byte]) when_ {
+            test(storageCapacity = 2 * chunkSize) when_ {
                 sut.store(untimedChunk)
             } then {
                 expect(sut[Key(otherChunkId)] is_ Not - Null)
@@ -132,7 +131,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     @Test
     fun `if capacity is exceeded, only one chunk is removed`() =
-            test(storageCapacity = 2[byte]) while_ {
+            test(storageCapacity = 2 * chunkSize) while_ {
                 sut.store(timedChunk)
             } when_ {
                 sut.store(untimedChunk)
@@ -144,7 +143,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     @Test
     fun `if capacity is exceeded, last queried chunks are considered new`() =
-            test(storageCapacity = 2[byte]) while_ {
+            test(storageCapacity = 2 * chunkSize) while_ {
                 sut.store(timedChunk)
                 sut.query(DataQuery(otherChunkId))
             } when_ {
@@ -157,7 +156,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
 
     @Test
     fun `adding the same chunk again changes removal order`() =
-            test(storageCapacity = 2[byte]) while_ {
+            test(storageCapacity = 2 * chunkSize) while_ {
                 sut.store(timedChunk)
                 sut.store(DataChunk(Key(otherChunkId), chunkData))
             } when_ {

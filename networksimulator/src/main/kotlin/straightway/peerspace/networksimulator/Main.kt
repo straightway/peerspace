@@ -21,7 +21,6 @@ import straightway.koinutils.KoinModuleComponent
 import straightway.peerspace.data.Id
 import straightway.koinutils.withContext
 import straightway.sim.net.Network as SimNetwork
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.networksimulator.profile.officeWorker
 import straightway.peerspace.networksimulator.user.ActivityTiming
 import straightway.peerspace.networksimulator.user.ActivityTimingImpl
@@ -44,10 +43,8 @@ import straightway.random.RandomSource
 import straightway.sim.core.InterceptingScheduler
 import straightway.sim.core.Simulator
 import straightway.units.at
-import straightway.units.byte
 import straightway.units.get
 import straightway.units.hour
-import straightway.units.ki
 import straightway.units.milli
 import straightway.units.second
 import straightway.units.minus
@@ -79,8 +76,6 @@ private class MainClass(
 
     private val randomSource = RandomSource(Random(randomSeed))
 
-    private val chunkSizeGetter = chunkSizeGetter { CHUNK_SIZE }
-
     val userContexts = (1..numberOfUsers).map {
             withContext {
                 bean("simNodes") { simNodes }
@@ -94,7 +89,6 @@ private class MainClass(
                     }
                     else simulator
                 }
-                bean { chunkSizeGetter }
                 bean { simNet }
                 bean { UserActivitySchedulerImpl() as UserActivityScheduler }
                 bean { UserImpl() as User }
@@ -181,7 +175,6 @@ private class MainClass(
     private companion object {
         val LATENCY = 50.0[milli(second)]
         val OFFLINE_DETECTION_TIME = 5.0[second]
-        val CHUNK_SIZE = 64[ki(byte)]
     }
 }
 

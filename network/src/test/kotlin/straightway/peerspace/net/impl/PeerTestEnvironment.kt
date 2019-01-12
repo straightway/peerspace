@@ -36,11 +36,7 @@ import straightway.peerspace.net.KnownPeersGetter
 import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.PeerComponent
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.random.Chooser
-import straightway.units.byte
-import straightway.units.get
-import straightway.units.ki
 import straightway.utils.Event
 import straightway.utils.TimeProvider
 import java.time.LocalDateTime
@@ -160,7 +156,6 @@ data class PeerTestEnvironment(
                 { knownPeersPushTargetFactory() },
                 { knownPeersQuerySourceFactory() },
                 { knownPeersGetterFactory() },
-                { chunkSizeGetter { _ -> 64[ki(byte)] } },
                 { Event() },
                 { Event() },
                 { mock() },

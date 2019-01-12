@@ -23,7 +23,6 @@ import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerComponent
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.peer
 import straightway.peerspace.networksimulator.SimNode
 import straightway.peerspace.networksimulator.profile.dsl.DeviceProfile
@@ -43,7 +42,6 @@ import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
 import straightway.units.gi
-import straightway.units.ki
 import straightway.units.mi
 import straightway.units.second
 import straightway.utils.TimeProvider
@@ -70,7 +68,6 @@ class DeviceImplTest : KoinLoggingDisabler() {
                 object {
                     val environment = withContext {
                         bean { mock<TransmissionRequestHandler>() }
-                        bean { chunkSizeGetter { 64[ki(byte)] } }
                         bean("simNodes") { mutableMapOf<Any, SimNode>() }
                         bean { mock<TimeProvider>() }
                         bean { mock<RandomDistribution<Byte>>() }

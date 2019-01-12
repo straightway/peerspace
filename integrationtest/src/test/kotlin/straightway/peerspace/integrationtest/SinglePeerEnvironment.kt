@@ -21,7 +21,6 @@ import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.KeyHasher
-import straightway.peerspace.net.ChunkSizeGetter
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.DataChunkStore
 import straightway.peerspace.net.ForwardStrategy
@@ -33,7 +32,6 @@ import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.PeerComponent
-import straightway.peerspace.net.chunkSizeGetter
 import straightway.peerspace.net.impl.DataPushForwardTargetGetter
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQueryHandlerImpl
@@ -69,10 +67,8 @@ import straightway.sim.net.AsyncSequentialTransmissionStream
 import straightway.sim.net.TransmissionRequestHandler
 import straightway.sim.net.TransmissionStream
 import straightway.units.bit
-import straightway.units.byte
 import straightway.units.div
 import straightway.units.get
-import straightway.units.ki
 import straightway.units.mi
 import straightway.units.milli
 import straightway.units.second
@@ -118,8 +114,6 @@ class SinglePeerEnvironment(
 
     private val simNetwork =
             SimNetwork(simulator, simulator, latency, offlineDetectionTime)
-
-    private val chunkSizeGetter: ChunkSizeGetter = { _: Serializable -> 64[ki(byte)] }
 
     val peer get() = get<Peer>()
     val client get() = get<PeerClient>()
@@ -172,7 +166,6 @@ class SinglePeerEnvironment(
                 { knownPeersPushTargetFactory() },
                 { knownPeersQuerySourceFactory() },
                 { KnownPeersGetterImpl() },
-                { chunkSizeGetter { _ -> 64[ki(byte)] } },
                 { Event() },
                 { Event() },
                 { PeerClientImpl() },
@@ -194,7 +187,7 @@ class SinglePeerEnvironment(
                 { remoteNodeId ->
                 val from = simNodes[peerId]!!
                 val to = simNodes[remoteNodeId]!!
-                SimChannel(simNetwork, chunkSizeGetter, from, to)
+                SimChannel(simNetwork, from, to)
             })
     }
 
@@ -203,7 +196,6 @@ class SinglePeerEnvironment(
                 bean { parentPeer }
                 bean("simNodes") { simNodes }
                 bean { simNetwork as TransmissionRequestHandler }
-                bean { chunkSizeGetter }
                 bean("uploadStream") {
                     AsyncSequentialTransmissionStream(uploadBandwidth, simulator)
                             as TransmissionStream

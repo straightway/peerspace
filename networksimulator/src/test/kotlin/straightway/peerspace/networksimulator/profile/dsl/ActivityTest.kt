@@ -41,7 +41,8 @@ class ActivityTest {
     @Test
     fun `action is invoked with proper arguments`() {
         var calledEnvironment: ActivityEnvironment? = null
-        val environment = ActivityEnvironment(mock(), mock(), UsageProfile("description") {})
+        val environment = ActivityEnvironment(
+                mock(), mock(), mock(), UsageProfile("description") {})
         Given {
             Activity("name") { calledEnvironment = this }
         } when_ {

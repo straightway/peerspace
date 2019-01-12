@@ -16,6 +16,7 @@
 package straightway.peerspace.networksimulator.user
 
 import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
+import straightway.utils.TimeProvider
 
 /**
  * Environment an activity can use while executing the activity action.
@@ -24,4 +25,5 @@ data class ActivityEnvironment(
         val user:
         User,
         val device: Device,
+        val timeProvider: TimeProvider,
         val usage: UsageProfile)

@@ -57,7 +57,8 @@ class DeviceActivityScheduleImpl(val device: Device)
         (1..numberOfTimes.value).forEach {
             userSchedule.getBlockedTimes(day).forEach { timeRanges -= it }
             day.scheduleActivityWithin(activityTiming(timeRanges), description) {
-                activity.value.action(ActivityEnvironment(user, device, this@scheduleActivityAt))
+                activity.value.action(
+                        ActivityEnvironment(user, device, timeProvider, this@scheduleActivityAt))
             }
         }
     }

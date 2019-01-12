@@ -15,6 +15,14 @@
  */
 package straightway.peerspace.networksimulator.activities
 
+import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.Key
 import straightway.peerspace.networksimulator.profile.dsl.Activity
 
-val doWriteMessage = Activity("doWriteMessage") {}
+val doWriteMessage = Activity("doWriteMessage") {
+    val recepient = user.knownUsers.firstOrNull()
+    if (recepient != null) {
+        // val size = usage.dataVolume.value
+        device.peerClient.store(DataChunk(Key(recepient.id), byteArrayOf()))
+    }
+}

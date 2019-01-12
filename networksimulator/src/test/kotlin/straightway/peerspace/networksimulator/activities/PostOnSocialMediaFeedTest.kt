@@ -23,5 +23,5 @@ import straightway.peerspace.networksimulator.user.ActivityEnvironment
 class PostOnSocialMediaFeedTest {
     @Test
     fun tempAlibi() = doPostOnSocialMediaFeed(
-            ActivityEnvironment(mock(), mock(), UsageProfile("description") {}))
+            ActivityEnvironment(mock(), mock(), mock(), UsageProfile("description") {}))
 }

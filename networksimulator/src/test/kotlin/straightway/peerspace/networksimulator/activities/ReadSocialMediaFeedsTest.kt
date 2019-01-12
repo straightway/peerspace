@@ -23,5 +23,5 @@ import straightway.peerspace.networksimulator.user.ActivityEnvironment
 class ReadSocialMediaFeedsTest {
     @Test
     fun tempAlibi() = doReadSocialMediaFeeds(
-            ActivityEnvironment(mock(), mock(), UsageProfile("description") {}))
+            ActivityEnvironment(mock(), mock(), mock(), UsageProfile("description") {}))
 }

@@ -23,5 +23,5 @@ import straightway.peerspace.networksimulator.user.ActivityEnvironment
 class WriteMessageTest {
     @Test
     fun tempAlibi() = doWriteMessage(
-            ActivityEnvironment(mock(), mock(), UsageProfile("description") {}))
+            ActivityEnvironment(mock(), mock(), mock(), UsageProfile("description") {}))
 }

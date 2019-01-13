@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
@@ -27,6 +28,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.dataPushTarget
 import straightway.peerspace.net.dataQueryHandler
@@ -38,6 +40,9 @@ import straightway.testing.flow.Not
 import straightway.testing.flow.Throw
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
+import straightway.units.byte
+import straightway.units.get
+import straightway.units.plus
 
 class DataPushTargetImplTest : KoinLoggingDisabler() {
 
@@ -57,8 +62,8 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
             }
             val environment = PeerTestEnvironment(
                 dataPushTargetFactory = { DataPushTargetImpl() }) {
-                bean { _ ->
-                    mock<EpochAnalyzer> { _ ->
+                bean {
+                    mock<EpochAnalyzer> {
                         on { getEpochs(any()) }.thenAnswer { epochs }
                     }
                 }
@@ -70,10 +75,21 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
     }
 
     @Test
-    fun `push does not throw`() =
+    fun `push by default does not throw`() =
             test when_ { sut.pushDataChunk(Request(originatorId, chunk)) } then {
                 expect({ it.result } does Not - Throw.exception)
             }
+
+    @Test
+    fun `push with too large chunk panics`() =
+            test when_ {
+                val data = ByteArray((chunkSize + 1[byte]).baseValue.toInt())
+                val chunk = DataChunk(Key(originatorId), data)
+                sut.pushDataChunk(Request(originatorId, chunk))
+            } then {
+                expect({ it.result } does Throw.type<Panic>())
+            }
+
 
     @Test
     fun `pushed data is stored`() =

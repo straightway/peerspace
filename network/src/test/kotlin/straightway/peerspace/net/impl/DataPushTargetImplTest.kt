@@ -90,7 +90,6 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
                 expect({ it.result } does Throw.type<Panic>())
             }
 
-
     @Test
     fun `pushed data is stored`() =
             test when_ { sut.pushDataChunk(Request(originatorId, chunk)) } then {

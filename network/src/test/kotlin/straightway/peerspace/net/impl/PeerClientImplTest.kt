@@ -23,7 +23,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import straightway.error.Panic
 import straightway.expr.minus
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
@@ -31,7 +30,6 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.configuration
 import straightway.peerspace.net.dataPushTarget
 import straightway.peerspace.net.dataQuerySource
@@ -45,9 +43,6 @@ import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
-import straightway.units.byte
-import straightway.units.get
-import straightway.units.plus
 import straightway.units.toDuration
 import java.time.LocalDateTime
 

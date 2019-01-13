@@ -72,7 +72,7 @@ class DataChunkTest {
     @Test
     fun `withEpoch yields copy of chunk with given epoch`() =
              Given {
-                 DataChunk(Key(chunkId, 83L), byteArrayOf(1, 2, 3))
+                 DataChunk(Key(chunkId, 83L, 0), byteArrayOf(1, 2, 3))
              } when_ {
                 withEpoch(2)
             } then {
@@ -82,7 +82,7 @@ class DataChunkTest {
     @Test
     fun `withEpoch yields chunk with same id`() =
             Given {
-                DataChunk(Key(chunkId, 83L), byteArrayOf(1, 2, 3))
+                DataChunk(Key(chunkId, 83L, 0), byteArrayOf(1, 2, 3))
             } when_ {
                 withEpoch(2)
             } then {
@@ -92,7 +92,7 @@ class DataChunkTest {
     @Test
     fun `withEpoch yields copy of chunk with same timestamp`() =
             Given {
-                DataChunk(Key(chunkId, 83L), byteArrayOf(1, 2, 3))
+                DataChunk(Key(chunkId, 83L, 0), byteArrayOf(1, 2, 3))
             } when_ {
                 withEpoch(2)
             } then {
@@ -102,7 +102,7 @@ class DataChunkTest {
     @Test
     fun `withEpoch yields copy of push request with identical data`() =
             Given {
-                DataChunk(Key(chunkId, 83L), byteArrayOf(1, 2, 3))
+                DataChunk(Key(chunkId, 83L, 0), byteArrayOf(1, 2, 3))
             } when_ {
                 withEpoch(2)
             } then {

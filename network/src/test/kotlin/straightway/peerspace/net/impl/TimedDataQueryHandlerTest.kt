@@ -47,7 +47,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
     private companion object {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
-        val chunk1 = DataChunk(Key(chunkId, 1), byteArrayOf())
+        val chunk1 = DataChunk(Key(chunkId, 1, 0), byteArrayOf())
         val queryOriginatorId = Id("remotePeerId")
         val matchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..1L))
         val otherMatchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..2L))

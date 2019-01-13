@@ -70,7 +70,7 @@ class DataQueryTest {
     @Test
     fun `matches key with given id and zero timestamp`() =
             Given { DataQuery(matchedId, untimedData) } when_ {
-                isMatching(Key(matchedId, 0))
+                isMatching(Key(matchedId))
             } then {
                 expect(it.result is_ True)
             }
@@ -78,7 +78,7 @@ class DataQueryTest {
     @Test
     fun `does not match key with given id and non-zero timestamp`() =
             Given { DataQuery(matchedId, untimedData) } when_ {
-                isMatching(Key(matchedId, 1))
+                isMatching(Key(matchedId, 1, 0))
             } then {
                 expect(it.result is_ False)
             }
@@ -86,7 +86,7 @@ class DataQueryTest {
     @Test
     fun `does not match key with other id`() =
             Given { DataQuery(matchedId, untimedData) } when_ {
-                isMatching(Key(unmatchedId, 0))
+                isMatching(Key(unmatchedId))
             } then {
                 expect(it.result is_ False)
             }
@@ -94,7 +94,7 @@ class DataQueryTest {
     @Test
     fun `matches timestamp within range`() =
             Given { DataQuery(matchedId, 1L..2L) } when_ {
-                isMatching(Key(matchedId, 1)) && isMatching(Key(matchedId, 2))
+                isMatching(Key(matchedId, 1, 0)) && isMatching(Key(matchedId, 2, 0))
             } then {
                 expect(it.result is_ True)
             }
@@ -102,7 +102,7 @@ class DataQueryTest {
     @Test
     fun `matches not timestamp outside range`() =
             Given { DataQuery(matchedId, 1L..2L) } when_ {
-                isMatching(Key(matchedId, 0)) || isMatching(Key(matchedId, 3))
+                isMatching(Key(matchedId)) || isMatching(Key(matchedId, 3, 0))
             } then {
                 expect(it.result is_ False)
             }

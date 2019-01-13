@@ -15,20 +15,20 @@
  */
 package straightway.peerspace.data
 
+import straightway.error.Panic
 import java.io.Serializable
 
 /**
  * A key for a network data chunk.
  */
-class Key(
-    id: Id,
-    timestamp: Long = 0L,
-    epoch: Int? = null
+class Key private constructor(
+        override val id: Id,
+        val timestamp: Long,
+        override val epoch: Int?
 ) : KeyHashable, Serializable {
 
-    override val id = id
-    override val epoch = if (timestamp == 0L) null else epoch
-    val timestamp = timestamp
+    constructor(id: Id) : this(id, 0L, null)
+    constructor(id: Id, timestamp: Long, epoch: Int) : this(id, timestamp, epoch as Int?)
 
     @Suppress("LongParameterList")
     fun copy(id: Id = this.id, timestamp: Long = this.timestamp, epoch: Int? = this.epoch) =
@@ -51,6 +51,12 @@ class Key(
                 epoch === null -> "Key(${id.identifier}@$timestamp)"
                 else -> "Key(${id.identifier}@$timestamp[$epoch])"
             }
+
+    init {
+        if (timestamp == 0L && epoch !== null)
+            throw Panic("Invalid epoch on key construction " +
+                    "(Key(${id.identifier}@$timestamp[$epoch]))")
+    }
 
     companion object {
         const val serialVersionUID = 1L

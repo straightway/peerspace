@@ -17,12 +17,15 @@
 package straightway.peerspace.data
 
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.expr.minus
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False
 import straightway.testing.flow.Not
 import straightway.testing.flow.Null
+import straightway.testing.flow.Throw
 import straightway.testing.flow.True
+import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -33,17 +36,17 @@ class KeyTest {
 
     private companion object {
         val id = Id("ID")
-        val timestamp = 83L
+        const val timestamp = 83L
         val fullKey = Key(id, timestamp, epoch = 2)
     }
 
     @Test
-    fun `id passed to two argument constructor is returned by according getter`() =
-            expect(Key(id, timestamp).id is_ Equal to_ id)
+    fun `id passed to three argument constructor is returned by according getter`() =
+            expect(Key(id, timestamp, 0).id is_ Equal to_ id)
 
     @Test
-    fun `timestamp passed to two argument constructor is returned by according getter`() =
-            expect(Key(id, timestamp).timestamp is_ Equal to_ timestamp)
+    fun `timestamp passed to three argument constructor is returned by according getter`() =
+            expect(Key(id, timestamp, 0).timestamp is_ Equal to_ timestamp)
 
     @Test
     fun `id passed to one argument constructor is returned by according getter`() =
@@ -55,15 +58,15 @@ class KeyTest {
 
     @Test
     fun `if not specified at construction, epoch is null`() =
-            expect(Key(id, timestamp).epoch is_ Null)
+            expect(Key(id).epoch is_ Null)
 
     @Test
-    fun `id constructor called with timestamp zero and non-null epoch, epoch is null anyway`() =
-            expect(Key(id, 0L, 2).epoch is_ Null)
+    fun `id constructor called with timestamp zero and non-null epoch panics`() =
+            expect({ Key(id, 0L, 2) } does Throw.type<Panic>())
 
     @Test
     fun `copy untimed key with non-null epoch yields exact copy with null epoch`() =
-            expect(Key(id).copy(epoch = 2) is_ Equal to_ Key(id))
+            expect({ Key(id).copy(epoch = 2) } does Throw.type<Panic>())
 
     @Test
     fun `perfect copies are equal`() =
@@ -102,7 +105,7 @@ class KeyTest {
 
     @Test
     fun `Key is serializable`() {
-        val sut = Key(id, timestamp)
+        val sut = Key(id, timestamp, 0)
         val serialized = sut.serializeToByteArray()
         val deserialized = serialized.deserializeTo<Key>()
         expect(deserialized is_ Equal to_ sut)
@@ -114,15 +117,15 @@ class KeyTest {
 
     @Test
     fun `timestamps is a single element range`() =
-            expect(Key(id, timestamp).timestamps is_ Equal to_ LongRange(timestamp, timestamp))
+            expect(Key(id, timestamp, 0).timestamps is_ Equal to_ LongRange(timestamp, timestamp))
 
     @Test
     fun `isUntimed returns true if timestamp is 0`() =
-            expect(Key(id, 0).isUntimed is_ True)
+            expect(Key(id).isUntimed is_ True)
 
     @Test
     fun `isUntimed returns false if timestamp is not 0`() =
-            expect(Key(id, 1).isUntimed is_ False)
+            expect(Key(id, 1, 0).isUntimed is_ False)
 
     @Test
     fun `toString for untimed key returns just the id`() =
@@ -130,8 +133,8 @@ class KeyTest {
 
     @Test
     fun `toString for timed key returns the id and timestamp`() =
-            expect(Key(id, timestamp).toString() is_
-                           Equal to_ "Key(${id.identifier}@$timestamp)")
+            expect(Key(id, timestamp, 277).toString() is_
+                           Equal to_ "Key(${id.identifier}@$timestamp[277])")
 
     @Test
     fun `toString for timed key with epoch returns the id, timestamp and epoch`() =

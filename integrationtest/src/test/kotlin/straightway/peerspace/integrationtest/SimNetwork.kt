@@ -72,9 +72,12 @@ class SimNetwork(
     companion object {
         fun id(id: Int) = Id("#$id")
         fun key(id: Int) = Key(id(id))
-        fun key(id: Int, timestamp: Long) = Key(id(id), timestamp)
+        @Suppress("LongParameterList")
+        fun key(id: Int, timestamp: Long, epoch: Int) = Key(id(id), timestamp, epoch)
         fun dataChunk(id: Int) = DataChunk(key(id), noData)
-        fun dataChunk(id: Int, timestamp: Long) = DataChunk(key(id, timestamp), noData)
+        @Suppress("LongParameterList")
+        fun dataChunk(id: Int, timestamp: Long, epoch: Int) =
+                DataChunk(key(id, timestamp, epoch), noData)
         fun dataQuery(id: Int) = DataQuery(id(id))
         fun dataQuery(id: Int, timestamps: ClosedRange<Long>) = DataQuery(id(id), timestamps)
         private val noData = byteArrayOf()
@@ -177,7 +180,7 @@ class SimNetwork(
             }
 
     private fun wrapLoggingMock(id: Id, wrapped: DataPushTarget) =
-            mock<DataPushTarget> { _ ->
+            mock<DataPushTarget> {
                 on { pushDataChunk(any()) }.thenAnswer {
                     wrapped.handleLogging(id, it.getArgument(0))
                 }
@@ -201,7 +204,7 @@ class SimNetwork(
             }
 
     private fun wrapLoggingMock(id: Id, wrapped: KnownPeersQuerySource) =
-            mock<KnownPeersQuerySource> { _ ->
+            mock<KnownPeersQuerySource> {
                 on { queryKnownPeers(any()) }.thenAnswer {
                     wrapped.handleLogging(id, it.getArgument(0))
                 }

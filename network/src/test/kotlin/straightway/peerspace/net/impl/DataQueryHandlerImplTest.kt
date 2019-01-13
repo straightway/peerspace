@@ -116,7 +116,7 @@ class DataQueryHandlerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `notifyChunkForwarded forwards timedKey only to timed handler`() {
-        val key = Key(Id("0815"), 1L)
+        val key = Key(Id("0815"), 1L, 0)
         test when_ { sut.notifyChunkForwarded(key) } then {
             verify(timedDataQueryHandler).notifyChunkForwarded(key)
             verify(untimedDataQueryHandler, never()).notifyChunkForwarded(any())

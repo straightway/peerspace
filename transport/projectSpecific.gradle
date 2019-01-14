@@ -13,12 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-include 'peerspace'
-include 'peerspace:crypto'
-include 'peerspace:data'
-include 'peerspace:network'
-include 'peerspace:transport'
-include 'peerspace:main'
-include 'peerspace:networksimulator'
-include 'peerspace:integrationtest'
 
+dependencies {
+    compile straightway('network')
+    testCompile straightway('testing')
+    testCompile mockitoKotlin()
+}

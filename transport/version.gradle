@@ -13,12 +13,5 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-include 'peerspace'
-include 'peerspace:crypto'
-include 'peerspace:data'
-include 'peerspace:network'
-include 'peerspace:transport'
-include 'peerspace:main'
-include 'peerspace:networksimulator'
-include 'peerspace:integrationtest'
 
+version '0.4-SNAPSHOT'

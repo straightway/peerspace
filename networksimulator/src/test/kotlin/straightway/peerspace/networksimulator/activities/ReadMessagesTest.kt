@@ -22,6 +22,6 @@ import straightway.peerspace.networksimulator.user.ActivityEnvironment
 
 class ReadMessagesTest {
     @Test
-    fun tempAlibi() = doReadMessages(
+    fun tempAlibi() = doReadMessage(
             ActivityEnvironment(mock(), mock(), mock(), UsageProfile("description") {}))
 }

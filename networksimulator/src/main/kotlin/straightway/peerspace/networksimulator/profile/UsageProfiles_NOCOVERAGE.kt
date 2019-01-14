@@ -19,7 +19,7 @@ package straightway.peerspace.networksimulator.profile
 import straightway.peerspace.networksimulator.profile.dsl.UsageProfile
 import straightway.peerspace.networksimulator.activities.doReadSocialMediaFeeds
 import straightway.peerspace.networksimulator.activities.doPostOnSocialMediaFeed
-import straightway.peerspace.networksimulator.activities.doReadMessages
+import straightway.peerspace.networksimulator.activities.doReadMessage
 import straightway.peerspace.networksimulator.activities.doWriteMessage
 import straightway.units.byte
 import straightway.units.get
@@ -38,7 +38,7 @@ val postOnSocialMediaFeed get() = UsageProfile("post on social media feed") {
 }
 
 val readMessages get() = UsageProfile("read message") {
-    activity { doReadMessages }
+    activity { doReadMessage }
     duration { 1.0[minute] }
 }
 

@@ -4,9 +4,11 @@
 Peerspace messaging is a layer on top of the Peerspace base. It allows users exchanging arbitrary messages.
 
 ## Channels
-A user may establish a writable uni-directional communication _channel_ using a list. Everyone having access to the list's access token can write on that _channel_, so this token can be distributed to other users to grant write access.
+A user may establish a writable uni-directional communication _channel_ using a list. Everyone having access to the list's _access token_ can write on that _channel_, so this token can be distributed to other users to grant write access.
 
-The read access to that _channel_ is controlled by encryption of the content being sent on that _channel_. Everyone who has the decryption key has read access.
+The read access to that _channel_ is controlled by encryption of the content being sent on that _channel_. Everyone who has the _content key_ to decrypt the channel content has read access.
+
+If the encryption key for a channel may be symmetric or asymmetrict. It is called the channel's _content token_. If it is identical to the _access token_, the channel is called _open channel_, because everyone can read it. If a different encryption key is used, the channel is a _closed channel_.
 
 The following setups exist:
 - _Shout setup_

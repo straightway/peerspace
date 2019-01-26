@@ -49,6 +49,8 @@ The same is true for read access to lists. However, to restrict write access to 
 
 Peers ignore all invalid requests they receive.
 
+A list may grant read and write privilege to anyone, then being called an _open list_. In this case, the list is given a name and the list key consists of the hash of that name. The _access token_ is a symmetric key consisting of the hash of a modification of the list name (e.g. plus a fixed suffix). Please notice that _open lists_ may be subject for spamming.  
+
 ## Storage space management
 Since the storage space on each peer is limited. So a peer must free some space from time to time in order to store new data. To have as much information available as possible, this should only be done of there is no space left on the peer's storage.
 

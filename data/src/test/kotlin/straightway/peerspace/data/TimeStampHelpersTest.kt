@@ -54,4 +54,34 @@ class TimeStampHelpersTest {
             } then {
                 expect(it.result is_ Equal to_ 63842641933000L)
             }
+
+    @Test
+    fun `timestamp range`() =
+            Given {
+                LocalDateTime.of(0, 1, 1, 0, 0, 1)..LocalDateTime.of(0, 1, 1, 0, 0, 2)
+            } when_ {
+                toTimestamp()
+            } then {
+                expect(it.result is_ Equal to_ 1000L..2000L)
+            }
+
+    @Test
+    fun `timestampRangeUntil timestamp range`() =
+            Given {
+                LocalDateTime.of(0, 1, 1, 0, 0, 1)
+            } when_ {
+                timestampRangeUntil(this)
+            } then {
+                expect(it.result is_ Equal to_ Long.MIN_VALUE..1000L)
+            }
+
+    @Test
+    fun `timestampRangeFrom timestamp range`() =
+            Given {
+                LocalDateTime.of(0, 1, 1, 0, 0, 1)
+            } when_ {
+                timestampRangeFrom(this)
+            } then {
+                expect(it.result is_ Equal to_ 1000L..Long.MIN_VALUE)
+            }
 }

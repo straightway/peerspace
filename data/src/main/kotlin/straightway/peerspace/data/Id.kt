@@ -16,11 +16,14 @@
 package straightway.peerspace.data
 
 import java.io.Serializable
+import java.util.Base64
 
 /**
  * Identification of an object.
  */
 data class Id(val identifier: String) : Serializable {
+
+    constructor(identifier: ByteArray) : this("#" + Base64.getEncoder().encodeToString(identifier))
 
     override fun toString() = "Id($identifier)"
 

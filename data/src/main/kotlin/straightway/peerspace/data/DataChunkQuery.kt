@@ -21,7 +21,7 @@ val untimedData = LongRange(0L, 0L)
  * Specification of a query for data.
  */
 @Suppress("DataClassPrivateConstructor")
-data class DataQuery private constructor(
+data class DataChunkQuery private constructor(
         val chunkId: Id,
         private val timestampsStart: Long,
         private val timestampsEndInclusive: Long,
@@ -40,7 +40,7 @@ data class DataQuery private constructor(
     constructor(chunkId: Id)
             : this(chunkId, LongRange(0, 0))
 
-    fun withEpoch(epoch: Int) = DataQuery(chunkId, timestamps, epoch)
+    fun withEpoch(epoch: Int) = DataChunkQuery(chunkId, timestamps, epoch)
 
     override val id get() = chunkId
     override val timestamps get() = timestampsStart..timestampsEndInclusive
@@ -51,10 +51,10 @@ data class DataQuery private constructor(
     }
 
     private val timedStringRepresentation get() =
-        "DataQuery(${chunkId.identifier}[$rangeStringRepresentation])"
+        "DataChunkQuery(${chunkId.identifier}[$rangeStringRepresentation])"
 
     private val untimedStringRepresentation get() =
-        "DataQuery(${chunkId.identifier})"
+        "DataChunkQuery(${chunkId.identifier})"
 
     private val rangeStringRepresentation get() =
         "$timestampsStart..$timestampsEndInclusive$epochStringRepresentation"
@@ -67,7 +67,7 @@ data class DataQuery private constructor(
     }
 }
 
-fun DataQuery.isMatching(key: Key) =
+fun DataChunkQuery.isMatching(key: Key) =
         key.timestamp in timestamps && key.id == chunkId
 
-val DataQuery.isUntimed get() = timestamps == untimedData
+val DataChunkQuery.isUntimed get() = timestamps == untimedData

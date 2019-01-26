@@ -13,18 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.crypto
+package straightway.peerspace.crypto.impl
 
-import straightway.utils.toByteArray
-import java.io.Serializable
+import java.security.KeyFactory
+import java.security.PublicKey
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.spec.X509EncodedKeySpec
 
-/**
- * Compute hash codes for data arrays.
- */
-interface Hasher {
-    val algorithm: String
-    val hashBits: Int
-    fun getHash(data: ByteArray): ByteArray
+internal fun publicKeyFrom(rawKey: ByteArray, algorithm: String): PublicKey {
+    val keyFactory = KeyFactory.getInstance(algorithm)
+    return keyFactory.generatePublic(X509EncodedKeySpec(rawKey))
 }
 
-fun Hasher.getHash(obj: Serializable) = getHash(obj.toByteArray())
+internal fun privateKeyFrom(rawKey: ByteArray, algorithm: String) =
+        KeyFactory.getInstance(algorithm)!!.generatePrivate(PKCS8EncodedKeySpec(rawKey))!!

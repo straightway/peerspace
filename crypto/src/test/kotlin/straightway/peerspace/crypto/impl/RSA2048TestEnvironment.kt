@@ -13,18 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.crypto
+package straightway.peerspace.crypto.impl
 
-import straightway.utils.toByteArray
-import java.io.Serializable
+import straightway.peerspace.crypto.CryptoFactory
 
-/**
- * Compute hash codes for data arrays.
- */
-interface Hasher {
-    val algorithm: String
-    val hashBits: Int
-    fun getHash(data: ByteArray): ByteArray
+object RSA2048TestEnvironment {
+    val factory = CryptoFactory()
+    val cryptors by lazy { Array(2) { factory.createCryptoIdentity() as RSA2048Cryptor } }
 }
-
-fun Hasher.getHash(obj: Serializable) = getHash(obj.toByteArray())

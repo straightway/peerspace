@@ -15,16 +15,9 @@
  */
 package straightway.peerspace.crypto
 
-import straightway.utils.toByteArray
-import java.io.Serializable
-
 /**
- * Compute hash codes for data arrays.
+ * Base interface for types holding cryptographic keys.
  */
-interface Hasher {
-    val algorithm: String
-    val hashBits: Int
-    fun getHash(data: ByteArray): ByteArray
+interface KeyHolder {
+    val keyBits: Int
 }
-
-fun Hasher.getHash(obj: Serializable) = getHash(obj.toByteArray())

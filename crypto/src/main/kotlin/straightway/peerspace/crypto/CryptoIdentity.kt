@@ -15,16 +15,8 @@
  */
 package straightway.peerspace.crypto
 
-import straightway.utils.toByteArray
-import java.io.Serializable
-
 /**
- * Compute hash codes for data arrays.
+ * A crypto identity allows signing and verifying of digital signatures, as well as
+ * encrypting and decrypting of data.
  */
-interface Hasher {
-    val algorithm: String
-    val hashBits: Int
-    fun getHash(data: ByteArray): ByteArray
-}
-
-fun Hasher.getHash(obj: Serializable) = getHash(obj.toByteArray())
+interface CryptoIdentity : Signer, SignatureChecker, Cryptor

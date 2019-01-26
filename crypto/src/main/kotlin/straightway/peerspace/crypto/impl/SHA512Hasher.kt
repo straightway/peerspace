@@ -13,18 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.crypto
+package straightway.peerspace.crypto.impl
 
-import straightway.utils.toByteArray
-import java.io.Serializable
+import straightway.peerspace.crypto.Hasher
+import java.security.MessageDigest
 
 /**
- * Compute hash codes for data arrays.
+ * Hasher implementaion using the SHA-512 hashing algorithm.
  */
-interface Hasher {
-    val algorithm: String
-    val hashBits: Int
-    fun getHash(data: ByteArray): ByteArray
-}
+class SHA512Hasher : Hasher {
 
-fun Hasher.getHash(obj: Serializable) = getHash(obj.toByteArray())
+    companion object {
+        const val hashBits = 512
+        const val hashAlgorithm = "SHA-512"
+    }
+
+    override val algorithm = hashAlgorithm.replace("-", "")
+    override val hashBits = SHA512Hasher.hashBits
+
+    override fun getHash(data: ByteArray) =
+        MessageDigest.getInstance(hashAlgorithm).digest(data)
+}

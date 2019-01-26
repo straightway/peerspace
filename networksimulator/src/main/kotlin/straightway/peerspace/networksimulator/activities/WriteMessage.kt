@@ -54,7 +54,7 @@ private fun ActivityEnvironment.sendOnListOf(recipient: User, data: ByteArray) {
 private val ActivityEnvironment.currentTimestamp: Long
     get() = timeProvider.now.toTimestamp()
 
-private fun ActivityEnvironment.getSubChunksForMessageTo(recipient: User, size: UnitValue<AmountOfData>): List<Key> {
+private fun getSubChunksForMessageTo(recipient: User, size: UnitValue<AmountOfData>): List<Key> {
     val numberOfChunks = (size / chunkSize).baseValue.toInt() + 1
     return (1..numberOfChunks).map { Key(Id(recipient.id.identifier + it)) }
 }

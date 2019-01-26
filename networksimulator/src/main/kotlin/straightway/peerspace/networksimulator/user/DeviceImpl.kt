@@ -62,7 +62,7 @@ import straightway.sim.net.TransmissionStream
 import straightway.utils.Event
 import straightway.utils.TimeProvider
 import straightway.utils.toByteArray
-import java.io.Serializable
+import java.util.Arrays
 
 /**
  * Default implementation of the Device interface.
@@ -166,7 +166,9 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
                 },
                 {
                     object : Hasher {
-                        override fun getHash(obj: Serializable) = obj.hashCode().toByteArray()
+                        override val algorithm = "FastTestHasher"
+                        override val hashBits = Int.SIZE_BITS
+                        override fun getHash(data: ByteArray) = Arrays.hashCode(data).toByteArray()
                     }
                 },
                 { remoteNodeId ->

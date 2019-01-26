@@ -28,7 +28,7 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.Request
@@ -69,7 +69,7 @@ class SimNode_Node_Test : KoinLoggingDisabler() {
             val chunk = DataChunk(chunkKey, chunkData)
             val pushRequest = Request(Id("senderId"), chunk)
             val queryRequest = Request(
-                    Id("originId"), DataQuery(Id("chunkId"), untimedData))
+                    Id("originId"), DataChunkQuery(Id("chunkId"), untimedData))
             val peer = mock<Peer>()
             val sut = withContext {
                 bean { peer }

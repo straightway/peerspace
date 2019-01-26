@@ -22,7 +22,7 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.net.KnownPeers
@@ -85,7 +85,7 @@ class SimNodeTest : KoinLoggingDisabler() {
 
     @Test
     fun `notifyReceive forwards query to peer`() =
-            testNotifyReceive(DataQuery(Id("chunk"))) { queryData(it) }
+            testNotifyReceive(DataChunkQuery(Id("chunk"))) { queryData(it) }
 
     @Test
     fun `notifyReceive forwards known peers to peer`() =

@@ -18,7 +18,7 @@ package straightway.peerspace.net.impl
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PeerComponent
@@ -40,7 +40,7 @@ abstract class SpecializedDataQueryHandlerBase(
         DataQueryHandler,
         PeerComponent by PeerComponent() {
 
-    final override fun handle(query: Request<DataQuery>) {
+    final override fun handle(query: Request<DataChunkQuery>) {
         if (!pendingDataQueryTracker.isPending(query.content))
             handleNewQueryRequest(query)
     }
@@ -51,7 +51,7 @@ abstract class SpecializedDataQueryHandlerBase(
                     .map { it.query.remotePeerId }
 
     final override fun notifyChunkForwarded(key: Key) {
-        val matchingChunks = dataChunkStore.query(DataQuery(key.id, key.timestamps))
+        val matchingChunks = dataChunkStore.query(DataChunkQuery(key.id, key.timestamps))
         val matchingQueries = pendingDataQueryTracker.pendingDataQueries.filter {
             it.query.content.isMatching(key)
         }
@@ -65,26 +65,26 @@ abstract class SpecializedDataQueryHandlerBase(
 
     protected abstract val pendingDataQueryTracker: PendingDataQueryTracker
 
-    protected abstract fun splitToEpochs(query: DataQuery): Iterable<DataQuery>
+    protected abstract fun splitToEpochs(query: DataChunkQuery): Iterable<DataChunkQuery>
 
     private fun Key.isAlreadyForwardedFor(it: PendingDataQuery) =
             it.forwardedChunkKeys.contains(this)
 
-    private val DataQuery.result get() = dataChunkStore.query(this)
+    private val DataChunkQuery.result get() = dataChunkStore.query(this)
 
-    private fun handleNewQueryRequest(query: Request<DataQuery>) {
+    private fun handleNewQueryRequest(query: Request<DataChunkQuery>) {
         pendingDataQueryTracker.setPending(query)
         val hasLocalResult = returnLocalResult(query)
         if (hasLocalResult && isLocalResultPreventingForwarding) return
         forward(query)
     }
 
-    private fun forward(request: Request<DataQuery>) =
+    private fun forward(request: Request<DataChunkQuery>) =
             splitToEpochs(request.content).forEach {
                 queryForwarder.forward(Request(request.remotePeerId, it))
             }
 
-    private fun returnLocalResult(query: Request<DataQuery>): Boolean {
+    private fun returnLocalResult(query: Request<DataChunkQuery>): Boolean {
         val localResult = query.content.result.toList()
         localResult forwardTo query.remotePeerId
         return localResult.any()

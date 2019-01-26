@@ -25,7 +25,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.Request
@@ -40,18 +40,18 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import java.time.LocalDateTime
 
-private typealias QueryRequestPredicate = Request<DataQuery>.() -> Boolean
+private typealias QueryRequestPredicate = Request<DataChunkQuery>.() -> Boolean
 
-class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
+class TimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
         val chunk1 = DataChunk(Key(chunkId, 1, 0), byteArrayOf())
         val queryOriginatorId = Id("remotePeerId")
-        val matchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..1L))
-        val otherMatchingQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..2L))
-        val notMatchingQuery = Request(queryOriginatorId, DataQuery(otherChunkId))
+        val matchingQuery = Request(queryOriginatorId, DataChunkQuery(chunkId, 1L..1L))
+        val otherMatchingQuery = Request(queryOriginatorId, DataChunkQuery(chunkId, 1L..2L))
+        val notMatchingQuery = Request(queryOriginatorId, DataChunkQuery(otherChunkId))
     }
 
     private val test get() =
@@ -155,7 +155,7 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
 
     @Test
     fun `query already split into epochsis directly forwarded`() {
-        val epochQuery = Request(queryOriginatorId, DataQuery(chunkId, 1L..1L, 2))
+        val epochQuery = Request(queryOriginatorId, DataChunkQuery(chunkId, 1L..1L, 2))
         test while_ {
             epochs = listOf(0, 1)
         } when_ {
@@ -166,5 +166,5 @@ class TimedDataQueryHandlerTest : KoinLoggingDisabler() {
         }
     }
 
-    private val Request<DataQuery>.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
+    private val Request<DataChunkQuery>.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
 }

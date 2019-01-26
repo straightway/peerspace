@@ -16,7 +16,7 @@
 
 package straightway.peerspace.net
 
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Key
 import java.time.LocalDateTime
 
@@ -24,7 +24,7 @@ import java.time.LocalDateTime
  * A data record for a pending query.
  */
 data class PendingDataQuery(
-        val query: Request<DataQuery>,
+        val query: Request<DataChunkQuery>,
         val receiveTime: LocalDateTime,
         val forwardedChunkKeys: Set<Key> = setOf()) {
 

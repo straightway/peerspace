@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
@@ -76,7 +76,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
     @Test
     fun `query for not existing data is empty`() =
             test() when_ {
-                sut.query(DataQuery(chunkId, untimedData))
+                sut.query(DataChunkQuery(chunkId, untimedData))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -86,7 +86,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             test() while_ {
                 sut.store(untimedChunk)
             } when_ {
-                sut.query(DataQuery(chunkId, untimedData))
+                sut.query(DataChunkQuery(chunkId, untimedData))
             } then {
                 expect(it.result is_ Equal to_ Values(untimedChunk))
             }
@@ -96,7 +96,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             test() while_ {
                 sut.store(timedChunk)
             } when_ {
-                sut.query(DataQuery(chunkId, 0L..(chunkTimeStamp - 1)))
+                sut.query(DataChunkQuery(chunkId, 0L..(chunkTimeStamp - 1)))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -106,7 +106,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             test() while_ {
                 sut.store(timedChunk)
             } when_ {
-                sut.query(DataQuery(chunkId, chunkTimeStamp..chunkTimeStamp))
+                sut.query(DataChunkQuery(chunkId, chunkTimeStamp..chunkTimeStamp))
             } then {
                 expect(it.result is_ Equal to_ Values(timedChunk))
             }
@@ -145,7 +145,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
     fun `if capacity is exceeded, last queried chunks are considered new`() =
             test(storageCapacity = 2 * chunkSize) while_ {
                 sut.store(timedChunk)
-                sut.query(DataQuery(otherChunkId))
+                sut.query(DataChunkQuery(otherChunkId))
             } when_ {
                 sut.store(untimedChunk)
             } then {

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.Request
@@ -40,11 +40,11 @@ import straightway.units.plus
 import straightway.units.second
 import java.time.LocalDateTime
 
-class PendingDataQueryTrackerImplTest : KoinLoggingDisabler() {
+class PendingDataChunkQueryTrackerImplTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest1 = Request(Id("remotePeerId"), DataQuery(Id("chunkId")))
-        val queryRequest2 = Request(Id("remotePeerId"), DataQuery(Id("otherChunkId")))
+        val queryRequest1 = Request(Id("remotePeerId"), DataChunkQuery(Id("chunkId")))
+        val queryRequest2 = Request(Id("remotePeerId"), DataChunkQuery(Id("otherChunkId")))
         val chunkKey1 = Key(Id("chunkKey1"))
         val chunkKey2 = Key(Id("chunkKey2"))
     }

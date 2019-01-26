@@ -18,7 +18,7 @@ package straightway.peerspace.integrationtest
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.integrationtest.SimNetwork.Companion.id
 import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
@@ -29,7 +29,7 @@ import straightway.testing.flow.to_
 import straightway.units.day
 import straightway.units.get
 
-class DataQueryTest : KoinLoggingDisabler() {
+class DataChunkQueryTest : KoinLoggingDisabler() {
 
     private companion object {
         val query = SimNetwork.dataQuery(0)
@@ -122,7 +122,7 @@ class DataQueryTest : KoinLoggingDisabler() {
 
     @Test
     fun `timed query is split into epochs and forwarded multiple hops`() {
-        lateinit var query: DataQuery
+        lateinit var query: DataChunkQuery
         Given {
             SimNetwork {
                 query = SimNetwork.dataQuery(99, ageOf(0[day]..2[day]))

@@ -25,7 +25,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.withContext
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.Request
 import straightway.testing.bdd.Given
@@ -36,7 +36,7 @@ import straightway.testing.flow.has
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class DataQueryHandlerImplTest : KoinLoggingDisabler() {
+class DataChunkQueryHandlerImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkKey = Key(Id("chunkId"))
@@ -58,9 +58,9 @@ class DataQueryHandlerImplTest : KoinLoggingDisabler() {
                                 .thenReturn(listOf(timedId, timedUntimedId))
                     }
                     val untimedQuery = Request(
-                            Id("originator"), DataQuery(Id("untimedQuery")))
+                            Id("originator"), DataChunkQuery(Id("untimedQuery")))
                     val timedQuery = Request(
-                            Id("originator"), DataQuery(Id("timedQuery"), 1L..2L))
+                            Id("originator"), DataChunkQuery(Id("timedQuery"), 1L..2L))
                     val sut = withContext {
                         bean("untimedDataQueryHandler") { untimedDataQueryHandler }
                         bean("timedDataQueryHandler") { timedDataQueryHandler }

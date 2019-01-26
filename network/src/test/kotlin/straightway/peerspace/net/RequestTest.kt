@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.testing.bdd.Given
@@ -63,7 +63,7 @@ class RequestTest {
     @Test
     fun `typeSelector does not match other type`() =
             Given {
-                Request(originatorId, DataQuery(Id("queriedId")))
+                Request(originatorId, DataChunkQuery(Id("queriedId")))
             } when_ {
                 typeSelector
             } then {
@@ -103,7 +103,7 @@ class RequestTest {
     @Test
     fun `typeSelector of createDynamically does not match other type`() =
             Given {
-                Request.createDynamically(originatorId, DataQuery(Id("query")))
+                Request.createDynamically(originatorId, DataChunkQuery(Id("query")))
             } when_ {
                 typeSelector
             } then {
@@ -249,7 +249,7 @@ class RequestTest {
         fun pushDataChunk(req: Request<DataChunk>)
 
         @RequestHandler
-        fun queryData(req: Request<DataQuery>)
+        fun queryData(req: Request<DataChunkQuery>)
     }
 
     private interface TwoHandlers {

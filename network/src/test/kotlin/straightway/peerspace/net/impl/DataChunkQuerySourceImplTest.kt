@@ -17,7 +17,7 @@ package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.dataQueryHandler
@@ -26,11 +26,11 @@ import straightway.peerspace.net.network
 import straightway.peerspace.net.peerDirectory
 import straightway.testing.bdd.Given
 
-class DataQuerySourceImplTest {
+class DataChunkQuerySourceImplTest {
 
     private companion object {
         val id = Id("thePeerId")
-        val dataQuery = Request(Id("queryingPeer"), DataQuery(Id("chunkId")))
+        val dataQuery = Request(Id("queryingPeer"), DataChunkQuery(Id("chunkId")))
     }
 
     private val test get() = Given {

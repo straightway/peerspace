@@ -20,7 +20,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.KeyHashable
@@ -78,8 +78,8 @@ class SimNetwork(
         @Suppress("LongParameterList")
         fun dataChunk(id: Int, timestamp: Long, epoch: Int) =
                 DataChunk(key(id, timestamp, epoch), noData)
-        fun dataQuery(id: Int) = DataQuery(id(id))
-        fun dataQuery(id: Int, timestamps: ClosedRange<Long>) = DataQuery(id(id), timestamps)
+        fun dataQuery(id: Int) = DataChunkQuery(id(id))
+        fun dataQuery(id: Int, timestamps: ClosedRange<Long>) = DataChunkQuery(id(id), timestamps)
         private val noData = byteArrayOf()
     }
 

@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.epochAnalyzer
@@ -40,7 +40,7 @@ class TimedDataQueryHandler :
     override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) =
         pendingDataQueryTracker.removePendingQueriesIf { remotePeerId == targetId }
 
-    override fun splitToEpochs(query: DataQuery) =
+    override fun splitToEpochs(query: DataChunkQuery) =
             if (query.epoch == null)
                 epochAnalyzer.getEpochs(query.timestamps).map { query.withEpoch(it) }
             else listOf(query)

@@ -16,7 +16,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Transmittable
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.data.isUntimed
@@ -45,7 +45,7 @@ class PeerClientImpl : PeerClient, PeerComponent by PeerComponent() {
     }
 
     override fun query(
-            query: DataQuery,
+            query: DataChunkQuery,
             receiveCallback: QueryControl.(DataChunk) -> Unit
     ): QueryControl {
         removeExpiredPendingQueries()
@@ -60,13 +60,13 @@ class PeerClientImpl : PeerClient, PeerComponent by PeerComponent() {
     private var pendingQueries = listOf<PendingQuery>()
 
     private inner class PendingQuery(
-            val query: DataQuery,
+            val query: DataChunkQuery,
             val receiveCallback: QueryControl.(DataChunk) -> Unit
     ) : QueryControl {
 
         private val eventHandlerToken: EventHandlerToken
         private lateinit var expirationTime: LocalDateTime
-        private var expirationCallbacks = listOf<QueryControl.(DataQuery) -> Unit>()
+        private var expirationCallbacks = listOf<QueryControl.(DataChunkQuery) -> Unit>()
 
         init {
             keepAlive()
@@ -87,7 +87,7 @@ class PeerClientImpl : PeerClient, PeerComponent by PeerComponent() {
             dataQuerySource.queryData(Request(localPeerId, query))
         }
 
-        override fun onExpiring(callback: QueryControl.(DataQuery) -> Unit) {
+        override fun onExpiring(callback: QueryControl.(DataChunkQuery) -> Unit) {
             expirationCallbacks += callback
         }
 

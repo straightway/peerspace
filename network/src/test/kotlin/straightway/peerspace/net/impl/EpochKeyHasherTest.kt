@@ -23,12 +23,13 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.untimedData
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.koinutils.withContext
+import straightway.peerspace.crypto.getHash
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
@@ -52,7 +53,7 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
                 val epochAnalyzer = mock<EpochAnalyzer> { _ ->
                     on { getEpochs(any()) }.thenAnswer { epochs }
                 }
-                val hashable = DataQuery(id, 83L..83L)
+                val hashable = DataChunkQuery(id, 83L..83L)
                 var sut = withContext {
                     bean { hasher }
                     bean { epochAnalyzer }
@@ -84,7 +85,7 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
     @Test
     fun `the hashcode of an id with zero timestamp calls hasher with DATA(id)`() =
             test when_ {
-                sut.getHashes(DataQuery(id, untimedData))
+                sut.getHashes(DataChunkQuery(id, untimedData))
             } then {
                 verify(hasher).getHash("DATA($id)")
             }
@@ -194,6 +195,6 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
             test while_ {
                 hashCodes = bytes
             } when_ {
-                sut.getHashes(DataQuery(id, untimedData))
+                sut.getHashes(DataChunkQuery(id, untimedData))
             }
 }

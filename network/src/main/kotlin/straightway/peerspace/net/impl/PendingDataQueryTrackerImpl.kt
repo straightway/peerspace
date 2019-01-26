@@ -17,7 +17,7 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.PendingDataQuery
@@ -37,7 +37,7 @@ class PendingDataQueryTrackerImpl(
         private val pendingTimeoutConfiguration: Configuration.() -> UnitValue<Time>
 ) : PendingDataQueryTracker, PeerComponent by PeerComponent() {
 
-    override fun setPending(query: Request<DataQuery>) {
+    override fun setPending(query: Request<DataChunkQuery>) {
         if (!isPending(query.content))
             _pendingQueries += PendingDataQuery(query, timeProvider.now)
     }
@@ -47,7 +47,7 @@ class PendingDataQueryTrackerImpl(
         return _pendingQueries
     }
 
-    override fun removePendingQueriesIf(predicate: Request<DataQuery>.() -> Boolean) {
+    override fun removePendingQueriesIf(predicate: Request<DataChunkQuery>.() -> Boolean) {
         _pendingQueries = _pendingQueries.filter { !query.predicate() }
     }
 

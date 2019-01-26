@@ -119,7 +119,7 @@ interface PeerComponent : KoinModuleComponent {
 }
 
 val PeerComponent.localPeerId: Id get() =
-    Id(getProperty("peerId"))
+    Id(getProperty<String>("peerId"))
 val PeerComponent.configuration: Configuration get() =
     get()
 val PeerComponent.forwardStrategy: ForwardStrategy get() =

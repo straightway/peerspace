@@ -16,6 +16,7 @@
 
 package straightway.peerspace.net.impl
 
+import straightway.peerspace.crypto.getHash
 import straightway.peerspace.data.KeyHashable
 import straightway.peerspace.data.KeyHasher
 import straightway.peerspace.data.untimedData

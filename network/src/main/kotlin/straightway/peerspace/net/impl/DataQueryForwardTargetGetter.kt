@@ -16,7 +16,7 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.ForwardTargetGetter
 import straightway.peerspace.net.PeerComponent
@@ -31,5 +31,5 @@ class DataQueryForwardTargetGetter :
         PeerComponent by PeerComponent() {
 
     override fun getForwardPeerIdsFor(item: Request<*>, state: ForwardState) =
-            forwardStrategy.getForwardPeerIdsFor(item.content as DataQuery, state)
+            forwardStrategy.getForwardPeerIdsFor(item.content as DataChunkQuery, state)
 }

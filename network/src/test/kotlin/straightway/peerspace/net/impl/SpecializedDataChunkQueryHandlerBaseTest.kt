@@ -27,7 +27,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.PendingDataQuery
 import straightway.peerspace.net.PendingDataQueryTracker
 import straightway.peerspace.net.Request
@@ -44,13 +44,13 @@ import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import java.time.LocalDateTime
 
-class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
+class SpecializedDataChunkQueryHandlerBaseTest : KoinLoggingDisabler() {
 
     private companion object {
         val queryOriginatorId = Id("remotePeerId")
         val queriedChunkId = Id("chunkID")
-        val untimedQueryRequest = Request(queryOriginatorId, DataQuery(queriedChunkId))
-        val timedQueryRequest = Request(queryOriginatorId, DataQuery(queriedChunkId, 2L..7L))
+        val untimedQueryRequest = Request(queryOriginatorId, DataChunkQuery(queriedChunkId))
+        val timedQueryRequest = Request(queryOriginatorId, DataChunkQuery(queriedChunkId, 2L..7L))
         val matchingChunk = DataChunk(Key(queriedChunkId), byteArrayOf())
         val otherChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())
     }
@@ -61,8 +61,8 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
         var notifiedChunkKeys = listOf<Key>()
         var pendingQueries = setOf<PendingDataQuery>()
         var chunkForwardFailure: Pair<Key, Id>? = null
-        var splitRequests: List<DataQuery>? = null
-        var splitSource: DataQuery? = null
+        var splitRequests: List<DataChunkQuery>? = null
+        var splitSource: DataChunkQuery? = null
 
         public override val pendingDataQueryTracker by lazy {
             mock<PendingDataQueryTracker> { _ ->
@@ -78,7 +78,7 @@ class SpecializedDataQueryHandlerBaseTest : KoinLoggingDisabler() {
             chunkForwardFailure = Pair(chunkKey, targetId)
         }
 
-        override fun splitToEpochs(query: DataQuery): List<DataQuery> {
+        override fun splitToEpochs(query: DataChunkQuery): List<DataChunkQuery> {
             splitSource = query
             return splitRequests ?: listOf(query)
         }

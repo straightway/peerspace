@@ -16,7 +16,7 @@
 
 package straightway.peerspace.net.impl
 
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.DataQuerySource
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
@@ -29,7 +29,7 @@ import straightway.peerspace.net.peerDirectory
  */
 class DataQuerySourceImpl : DataQuerySource, PeerComponent by PeerComponent() {
 
-    override fun queryData(request: Request<DataQuery>) {
+    override fun queryData(request: Request<DataChunkQuery>) {
         peerDirectory.add(request.remotePeerId)
         dataQueryHandler.handle(request)
         network.executePendingRequests()

@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.data.Id
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.ForwardState
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.forwardStrategy
@@ -32,10 +32,10 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 
-class DataQueryForwardTargetGetterTest : KoinLoggingDisabler() {
+class DataChunkQueryForwardTargetGetterTest : KoinLoggingDisabler() {
 
     private companion object {
-        val queryRequest = Request(Id("remotePeerId"), DataQuery(Id("chunkId")))
+        val queryRequest = Request(Id("remotePeerId"), DataChunkQuery(Id("chunkId")))
     }
 
     private val test get() =

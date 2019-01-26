@@ -15,7 +15,7 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 
 /**
  * Control if a running timed query should continue yielding values.
@@ -23,5 +23,5 @@ import straightway.peerspace.data.DataQuery
 interface QueryControl {
     fun stopReceiving()
     fun keepAlive()
-    fun onExpiring(callback: QueryControl.(DataQuery) -> Unit)
+    fun onExpiring(callback: QueryControl.(DataChunkQuery) -> Unit)
 }

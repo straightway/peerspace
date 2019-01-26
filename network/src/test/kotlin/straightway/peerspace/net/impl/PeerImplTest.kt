@@ -22,7 +22,7 @@ import straightway.peerspace.data.Id
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.KnownPeers
 import straightway.peerspace.net.KnownPeersQuery
@@ -75,7 +75,7 @@ class PeerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `handle with DataQueryRequest calls according implementation`() {
-        val request = Request(Id("originator"), DataQuery(Id("chunk")))
+        val request = Request(Id("originator"), DataChunkQuery(Id("chunk")))
         test when_ {
             sut.handle(request)
         } then {

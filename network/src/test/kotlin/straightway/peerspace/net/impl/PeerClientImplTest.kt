@@ -27,7 +27,7 @@ import straightway.expr.minus
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.configuration
@@ -50,8 +50,8 @@ class PeerClientImplTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunk")
-        val timedQuery = DataQuery(chunkId, 1L..2L)
-        val untimedQuery = DataQuery(chunkId)
+        val timedQuery = DataChunkQuery(chunkId, 1L..2L)
+        val untimedQuery = DataChunkQuery(chunkId)
         val timedMatchingChunk = DataChunk(Key(chunkId, 1L, 0), byteArrayOf())
         val untimedMatchingChunk = DataChunk(Key(chunkId), byteArrayOf())
         val notMatchingChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())

@@ -75,7 +75,7 @@ import straightway.units.second
 import straightway.utils.Event
 import straightway.sim.net.Network as SimNetwork
 import straightway.utils.toByteArray
-import java.io.Serializable
+import java.util.Arrays
 import java.util.Random
 
 class SinglePeerEnvironment(
@@ -171,17 +171,19 @@ class SinglePeerEnvironment(
                 { PeerClientImpl() },
                 { keyHasherFactory() },
                 {
-                EpochAnalyzerImpl(arrayOf(
-                    LongRange(0L, 86400000L), // epoch 0: 1 day
-                    LongRange(86400001L, 604800000L), // epoch 1: 1 week
-                    LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
-                    LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
-                    LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
-                    LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
-            },
+                    EpochAnalyzerImpl(arrayOf(
+                        LongRange(0L, 86400000L), // epoch 0: 1 day
+                        LongRange(86400001L, 604800000L), // epoch 1: 1 week
+                        LongRange(604800001L, 2419200000L), // epoch 2: 4 weeks
+                        LongRange(2419200001L, 54021600000L), // epoch 3: 1 year
+                        LongRange(54021600001L, 540216000000L), // epoch 4: 10 years
+                        LongRange(540216000001L, Long.MAX_VALUE))) // epoch 5: more than 10 years
+                },
                 {
                 object : Hasher {
-                    override fun getHash(obj: Serializable) = obj.hashCode().toByteArray()
+                    override val algorithm = "FastTestHasher"
+                    override val hashBits = Int.SIZE_BITS
+                    override fun getHash(data: ByteArray) = Arrays.hashCode(data).toByteArray()
                 }
             },
                 { remoteNodeId ->

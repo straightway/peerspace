@@ -18,7 +18,7 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.DataChunkStore
@@ -31,7 +31,7 @@ import straightway.random.Chooser
 fun createPeerMock(
         id: Id,
         pushCallback: (Request<DataChunk>) -> Unit = { _ -> },
-        queryCallback: (Request<DataQuery>) -> Unit = { _ -> }
+        queryCallback: (Request<DataChunkQuery>) -> Unit = { _ -> }
 ) =
         mock<Peer> { _ ->
             on { this.id }.thenReturn(id)
@@ -41,7 +41,7 @@ fun createPeerMock(
             }
             on { queryData(any()) }.thenAnswer {
                 @Suppress("UNCHECKED_CAST")
-                queryCallback(it.arguments[0] as Request<DataQuery>)
+                queryCallback(it.arguments[0] as Request<DataChunkQuery>)
             }
         }
 
@@ -53,7 +53,7 @@ fun createChunkDataStore(initialChunks: () -> List<DataChunk> = { listOf() }): D
         on { store(any()) }.thenAnswer { chunks.add(it.arguments[0] as DataChunk) }
         on { query(any()) }.thenAnswer { args ->
             @Suppress("UNCHECKED_CAST")
-            val query = args.arguments[0] as DataQuery
+            val query = args.arguments[0] as DataChunkQuery
             chunks.filter { query.isMatching(it.key) }
         }
     }

@@ -15,7 +15,7 @@
  */
 package straightway.peerspace.net
 
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 
 /**
  * An entity which can be queried for data.
@@ -23,5 +23,5 @@ import straightway.peerspace.data.DataQuery
 interface DataQuerySource {
 
     @RequestHandler
-    fun queryData(request: Request<DataQuery>)
+    fun queryData(request: Request<DataChunkQuery>)
 }

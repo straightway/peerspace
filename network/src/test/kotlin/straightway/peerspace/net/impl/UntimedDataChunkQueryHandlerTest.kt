@@ -23,7 +23,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.dataQueryHandler
 import straightway.peerspace.net.pendingUntimedDataQueryTracker
@@ -34,7 +34,7 @@ import straightway.testing.flow.True
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 
-class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
+class UntimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
 
     private companion object {
         val chunkId = Id("chunkId")
@@ -45,15 +45,15 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
     private val test get() =
         Given {
             object {
-                val removePredicates = mutableListOf<Request<DataQuery>.() -> Boolean>()
+                val removePredicates = mutableListOf<Request<DataChunkQuery>.() -> Boolean>()
                 val environment = PeerTestEnvironment(
                         dataQueryHandlerFactory = { UntimedDataQueryHandler() },
                         pendingUntimedDataQueryTrackerFactory = {
                             mock { _ ->
                                 on { removePendingQueriesIf(any()) }.thenAnswer {
                                     @Suppress("UNCHECKED_CAST")
-                                    removePredicates.add(
-                                            it.arguments[0] as Request<DataQuery>.() -> Boolean)
+                                    removePredicates.add(it.arguments[0]
+                                            as Request<DataChunkQuery>.() -> Boolean)
                                 }
                             }
                         }
@@ -82,7 +82,7 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                expect(Request(Id("remotePeerId"), DataQuery(chunkId)).predicate()
+                expect(Request(Id("remotePeerId"), DataChunkQuery(chunkId)).predicate()
                                is_ True)
             }
 
@@ -91,13 +91,13 @@ class UntimedDataQueryHandlerTest : KoinLoggingDisabler() {
             test when_ {
                 sut.notifyChunkForwarded(chunk.key)
             } then {
-                expect(Request(Id("remotePeerId"), DataQuery(otherChunkId)).predicate()
+                expect(Request(Id("remotePeerId"), DataChunkQuery(otherChunkId)).predicate()
                         is_ False)
             }
 
     @Test
     fun `splitToEpochs returns list with argument as single element`() {
-        val query = Request(Id("remotePeerId"), DataQuery(Id("ChunkId")))
+        val query = Request(Id("remotePeerId"), DataChunkQuery(Id("ChunkId")))
         test when_ {
             sut.handle(query)
         } then {

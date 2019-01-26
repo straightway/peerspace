@@ -17,7 +17,7 @@ package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.isUntimed
-import straightway.peerspace.data.DataQuery
+import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.net.DataQueryHandler
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
@@ -29,7 +29,7 @@ import straightway.peerspace.net.untimedDataQueryHandler
  */
 class DataQueryHandlerImpl : DataQueryHandler, PeerComponent by PeerComponent() {
 
-    override fun handle(query: Request<DataQuery>) {
+    override fun handle(query: Request<DataChunkQuery>) {
         if (query.content.isUntimed) untimedDataQueryHandler.handle(query)
         else timedDataQueryHandler.handle(query)
     }

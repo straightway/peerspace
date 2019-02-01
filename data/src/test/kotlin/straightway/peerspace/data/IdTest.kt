@@ -52,7 +52,8 @@ class IdTest {
             } when_ {
                 identifier
             } then {
-                expect(it.result is_ Equal to_ "#" + Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3)))
+                expect(it.result is_ Equal to_
+                        "#" + Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3)))
             }
 
     @Test

@@ -21,9 +21,13 @@ import java.time.LocalDateTime
 /**
  * Compute the time stamp for a given LocalDateTime value.
  */
-fun LocalDateTime.toTimestamp() = Duration.between(timeBirthOfChrist, this).toMillis()
-fun ClosedRange<LocalDateTime>.toTimestamp() = start.toTimestamp()..endInclusive.toTimestamp()
-fun timestampRangeUntil(endDate: LocalDateTime): LongRange = Long.MIN_VALUE..endDate.toTimestamp()
-fun timestampRangeFrom(startDate: LocalDateTime): LongRange = startDate.toTimestamp()..Long.MIN_VALUE
+fun LocalDateTime.toTimestamp() =
+        Duration.between(timeBirthOfChrist, this).toMillis()
+fun ClosedRange<LocalDateTime>.toTimestamp() =
+        start.toTimestamp()..endInclusive.toTimestamp()
+fun timestampRangeUntil(endDate: LocalDateTime): LongRange =
+        Long.MIN_VALUE..endDate.toTimestamp()
+fun timestampRangeFrom(startDate: LocalDateTime): LongRange =
+        startDate.toTimestamp()..Long.MIN_VALUE
 
 private val timeBirthOfChrist = LocalDateTime.of(0, 1, 1, 0, 0, 0)

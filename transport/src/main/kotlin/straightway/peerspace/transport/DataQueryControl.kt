@@ -13,9 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.transport
 
-dependencies {
-    compile straightway('peerspace:network')
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
+/**
+ * Control the query in case of timeout or failure.
+ */
+interface DataQueryControl {
+    val numberOfRetries: Int
+    fun retry()
 }

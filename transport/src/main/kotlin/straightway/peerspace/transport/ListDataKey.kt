@@ -13,9 +13,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.transport
 
-dependencies {
-    compile straightway('peerspace:network')
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
-}
+import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
+import straightway.units.absolute
+import straightway.units.get
+import straightway.units.milli
+import straightway.units.second
+import java.time.LocalDateTime
+
+/**
+ * Key for a data item being part of a peerspace list.
+ */
+data class ListDataKey(val listId: Id, val timestamp: LocalDateTime)
+
+fun Key.toListDataKey() = ListDataKey(id, timestamp[milli(second)].absolute)

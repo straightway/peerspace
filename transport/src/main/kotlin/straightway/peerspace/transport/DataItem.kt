@@ -13,9 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.transport
 
-dependencies {
-    compile straightway('peerspace:network')
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
-}
+import straightway.peerspace.data.Id
+
+/**
+ * An absolute data item (i.e. not being part of a list), either mutable or constant.
+ */
+data class DataItem(val id: Id, val data: ByteArray)

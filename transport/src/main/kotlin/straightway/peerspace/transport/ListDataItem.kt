@@ -13,9 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.transport
 
-dependencies {
-    compile straightway('peerspace:network')
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
-}
+/**
+ * Data item being part of a list.
+ */
+data class ListDataItem(val key: ListDataKey, val data: ByteArray)

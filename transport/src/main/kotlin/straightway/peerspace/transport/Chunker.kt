@@ -13,9 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.transport
 
-dependencies {
-    compile straightway('peerspace:network')
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
+import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.Id
+
+/**
+ * Cut data into DataChunks and re-combine them again.
+ */
+interface Chunker {
+    fun chopToChunks(data: ByteArray): List<DataChunk>
+    fun tryCombining(chunks: List<DataChunk>): ByteArray?
+    fun getReferencedChunks(data: ByteArray): List<Id>
 }

@@ -13,9 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.transport
 
-dependencies {
-    compile straightway('peerspace:network')
-    testCompile straightway('testing')
-    testCompile mockitoKotlin()
+import straightway.peerspace.data.DataChunk
+
+/**
+ * Define callbacks for list queries.
+ */
+interface ListQueryCallback {
+    fun onReceived(callback: (ListDataItem) -> Unit)
+    fun onTimeout(callback: DataQueryControl.(ListDataKey) -> Unit)
+    fun onIncomplete(callback: DataQueryControl.(ListDataKey, List<DataChunk>) -> Unit)
+    fun onExpired(callback: ListQueryControl.() -> Unit)
 }

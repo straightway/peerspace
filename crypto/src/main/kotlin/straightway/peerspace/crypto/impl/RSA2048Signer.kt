@@ -17,7 +17,6 @@ package straightway.peerspace.crypto.impl
 
 import straightway.peerspace.crypto.CryptoFactory
 import straightway.peerspace.crypto.Signer
-import straightway.utils.getInt
 import java.io.Serializable
 import java.security.PrivateKey
 import java.security.Signature
@@ -29,7 +28,7 @@ import javax.crypto.Cipher
  */
 class RSA2048Signer(
         val key: PrivateKey,
-        private val factory: CryptoFactory
+        factory: CryptoFactory
 ) : Signer, Serializable {
 
     constructor(rawKey: ByteArray, factory: CryptoFactory) :
@@ -46,7 +45,7 @@ class RSA2048Signer(
             with(rawSigner) { update(toSign); sign()!! }
 
     override fun decrypt(toDecrypt: ByteArray) =
-            with(toDecrypt) { factory.getSymmetricCryptor(payloadKey).decrypt(payload) }
+            decryptCipher.doFinal(toDecrypt)!!
 
     private val rawSigner get() =
             Signature.getInstance(signAlgorithm)!!.apply { initSign(key) }
@@ -54,34 +53,12 @@ class RSA2048Signer(
     private val signAlgorithm =
             "${hashAlgorithm}with${RSA2048Cryptor.keyCipherAlgorithm}"
 
-    private val ByteArray.payload get() =
-            slice(payloadArea).toByteArray()
-
-    private val ByteArray.payloadArea get() =
-            payloadKeyArea.endInclusive + 1 until size
-
-    private val ByteArray.payloadKey get() =
-            decryptCipher.doFinal(encryptedPayloadKey)
-
-    private val ByteArray.encryptedPayloadKey get() =
-            slice(payloadKeyArea).toByteArray()
-
-    private val ByteArray.payloadKeyArea get() =
-            payloadKeyLengthArea.followedBy(payloadKeyLength)
-
-    private val ByteArray.payloadKeyLength get() =
-            slice(payloadKeyLengthArea).toByteArray().getInt()
-
     private val decryptCipher: Cipher get() =
             Cipher.getInstance(RSA2048Cryptor.keyCipherAlgorithm)!!.apply {
                 init(Cipher.DECRYPT_MODE, key)
             }
 
-    private fun IntRange.followedBy(numBytes: Int) =
-            endInclusive + 1..endInclusive + numBytes
-
     companion object {
         const val serialVersionUID = 1L
-        private val payloadKeyLengthArea = 0 until Int.SIZE_BYTES
     }
 }

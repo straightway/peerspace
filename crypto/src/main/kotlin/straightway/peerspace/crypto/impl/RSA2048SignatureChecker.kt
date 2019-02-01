@@ -16,9 +16,7 @@
 package straightway.peerspace.crypto.impl
 
 import straightway.peerspace.crypto.CryptoFactory
-import straightway.peerspace.crypto.Cryptor
 import straightway.peerspace.crypto.SignatureChecker
-import straightway.utils.toByteArray
 import java.io.Serializable
 import java.security.PublicKey
 import java.security.Signature
@@ -30,7 +28,7 @@ import javax.crypto.Cipher
  */
 class RSA2048SignatureChecker(
         val key: PublicKey,
-        private val factory: CryptoFactory
+        factory: CryptoFactory
 ) : SignatureChecker, Serializable {
 
     constructor(rawKey: ByteArray, factory: CryptoFactory) :
@@ -47,7 +45,7 @@ class RSA2048SignatureChecker(
             with(signer) { update(signed); verify(signature) }
 
     override fun encrypt(toEncrypt: ByteArray) =
-            with(factory.createSymmetricCryptor()) { encryptedPayloadKey + encrypt(toEncrypt) }
+            encryptCipher.doFinal(toEncrypt)!!
 
     companion object {
         const val serialVersionUID = 1L
@@ -58,13 +56,6 @@ class RSA2048SignatureChecker(
 
     private val signAlgorithm =
             "${hashAlgorithm}with${RSA2048Cryptor.keyCipherAlgorithm}"
-
-    private val Cryptor.encryptedPayloadKey: ByteArray
-        get() {
-            val encryptedPayloadKey = encryptCipher.doFinal(decryptionKey)!!
-            val encryptedPayloadKeyLength = encryptedPayloadKey.size.toByteArray()
-            return encryptedPayloadKeyLength + encryptedPayloadKey
-        }
 
     private val encryptCipher: Cipher get() =
             Cipher.getInstance(RSA2048Cryptor.keyCipherAlgorithm).apply {

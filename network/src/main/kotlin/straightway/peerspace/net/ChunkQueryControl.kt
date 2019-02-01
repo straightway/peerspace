@@ -20,8 +20,8 @@ import straightway.peerspace.data.DataChunkQuery
 /**
  * Control if a running timed query should continue yielding values.
  */
-interface QueryControl {
+interface ChunkQueryControl {
     fun stopReceiving()
     fun keepAlive()
-    fun onExpiring(callback: QueryControl.(DataChunkQuery) -> Unit)
+    fun onExpiring(callback: ChunkQueryControl.(DataChunkQuery) -> Unit)
 }

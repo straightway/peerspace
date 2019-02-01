@@ -25,5 +25,5 @@ interface PeerClient {
     fun store(data: DataChunk)
     fun query(
             query: DataChunkQuery,
-            receiveCallback: QueryControl.(DataChunk) -> Unit): QueryControl
+            receiveCallback: ChunkQueryControl.(DataChunk) -> Unit): ChunkQueryControl
 }

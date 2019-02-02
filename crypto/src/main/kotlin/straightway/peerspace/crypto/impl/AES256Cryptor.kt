@@ -16,6 +16,8 @@
 package straightway.peerspace.crypto.impl
 
 import straightway.peerspace.crypto.Cryptor
+import straightway.peerspace.crypto.DecryptorProperties
+import straightway.peerspace.crypto.EncryptorProperties
 import java.io.Serializable
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -25,14 +27,26 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * Cryptor implementation for AES256.
  */
-class AES256Cryptor private constructor (val key: SecretKey) : Cryptor, Serializable {
+class AES256Cryptor private constructor (
+        val key: SecretKey
+) : Cryptor, EncryptorProperties, DecryptorProperties, Serializable {
 
     constructor() : this(with(KeyGenerator.getInstance("AES")) {
         init(AES256Cryptor.keyBits); generateKey()
     })
+
     constructor(keyBytes: ByteArray) : this(SecretKeySpec(keyBytes, "AES"))
 
     override val keyBits = AES256Cryptor.keyBits
+
+    override val encryptorProperties get() = this
+    override val decryptorProperties get() = this
+
+    override val maxClearTextBytes = Int.MAX_VALUE
+    override val blockBytes by lazy { encryptCipher.blockSize }
+    override val fixedCipherTextBytes = 0
+    override fun getOutputBytes(inputSize: Int) = encryptCipher.getOutputSize(inputSize)
+
     override val encryptionKey get() = key.encoded
     override val decryptionKey get() = key.encoded
 

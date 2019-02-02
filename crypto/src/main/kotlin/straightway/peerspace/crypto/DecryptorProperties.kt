@@ -16,10 +16,8 @@
 package straightway.peerspace.crypto
 
 /**
- * Decrypt data using a fixed internal key.
+ * Properties of a concrete decryptor instance.
  */
-interface Decryptor : KeyHolder {
-    val decryptorProperties: DecryptorProperties
-    val decryptionKey: ByteArray
-    fun decrypt(toDecrypt: ByteArray): ByteArray
+interface DecryptorProperties {
+    val fixedCipherTextBytes: Int
 }

@@ -23,11 +23,14 @@ import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False
 import straightway.testing.flow.Not
+import straightway.testing.flow.Size
 import straightway.testing.flow.Throw
 import straightway.testing.flow.True
 import straightway.testing.flow.does
 import straightway.testing.flow.expect
+import straightway.testing.flow.has
 import straightway.testing.flow.is_
+import straightway.testing.flow.of
 import straightway.testing.flow.to_
 import straightway.utils.deserializeTo
 import straightway.utils.serializeToByteArray
@@ -158,6 +161,13 @@ class RSA2048CryptorTest {
                 hashAlgorithm
             } then {
                 expect(it.result is_ Equal to_ "SHA512")
+            }
+
+    @Test
+    fun `fixedCipherTextBytes is equal to the size of the cipher text`() =
+            (1..sut.encryptorProperties.maxClearTextBytes).forEach {
+                expect(sut.encrypt(ByteArray(it)) has
+                        Size of sut.decryptorProperties.fixedCipherTextBytes)
             }
 
     @Test

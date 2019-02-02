@@ -16,6 +16,7 @@
 package straightway.peerspace.crypto.impl
 
 import straightway.peerspace.crypto.CryptoFactory
+import straightway.peerspace.crypto.DecryptorProperties
 import straightway.peerspace.crypto.Signer
 import java.io.Serializable
 import java.security.PrivateKey
@@ -29,15 +30,19 @@ import javax.crypto.Cipher
 class RSA2048Signer(
         val key: PrivateKey,
         factory: CryptoFactory
-) : Signer, Serializable {
+) : Signer, DecryptorProperties, Serializable {
 
     constructor(rawKey: ByteArray, factory: CryptoFactory) :
             this(privateKeyFrom(rawKey, RSA2048Cryptor.keyCipherAlgorithm), factory)
 
+    override val keyBits = RSA2048Cryptor.keyBits
+
+    override val decryptorProperties get() = this
+
+    override val fixedCipherTextBytes = (keyBits - 1) / Byte.SIZE_BITS + 1
+
     override val signKey get() = key.encoded!!
     override val decryptionKey get() = key.encoded!!
-
-    override val keyBits = RSA2048Cryptor.keyBits
 
     override val hashAlgorithm: String = factory.hashAlgorithm
 

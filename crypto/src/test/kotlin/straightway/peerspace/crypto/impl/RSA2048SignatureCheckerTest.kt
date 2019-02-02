@@ -16,10 +16,12 @@
 package straightway.peerspace.crypto.impl
 
 import org.junit.jupiter.api.Test
+import straightway.expr.minus
 import straightway.peerspace.crypto.SignatureChecker
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False
+import straightway.testing.flow.Not
 import straightway.testing.flow.Throw
 import straightway.testing.flow.True
 import straightway.testing.flow.does
@@ -141,6 +143,33 @@ class RSA2048SignatureCheckerTest {
             } then {
                 expect(it.result is_ Equal to_ "SHA512")
             }
+
+    @Test
+    fun `block size is 0`() =
+            Given {
+                sut
+            } when_ {
+                encryptorProperties.blockBytes
+            } then {
+                expect(it.result is_ Equal to_ 0)
+            }
+
+    @Test
+    fun `output size is always key size`() =
+        (0..sut.encryptorProperties.maxClearTextBytes).forEach {
+            expect(sut.encryptorProperties.getOutputBytes(it) is_
+                    Equal to_ ((sut.keyBits - 1) / 8) + 1)
+        }
+
+    @Test
+    fun `encryption with max clear text bytes does not throw`() =
+            expect({ sut.encrypt(ByteArray(sut.encryptorProperties.maxClearTextBytes)) } does
+                    Not - Throw.exception)
+
+    @Test
+    fun `encryption with one byte more than max clear text bytes throws`() =
+            expect({ sut.encrypt(ByteArray(sut.encryptorProperties.maxClearTextBytes + 1)) } does
+                    Throw.exception)
 
     @Test
     fun `has serialVersionUID`() =

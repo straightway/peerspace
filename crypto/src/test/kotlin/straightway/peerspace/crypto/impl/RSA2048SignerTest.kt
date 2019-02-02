@@ -145,6 +145,16 @@ class RSA2048SignerTest {
             }
 
     @Test
+    fun `fixedCipherTextBytes is equal to key bytes`() =
+            Given {
+                sut
+            } when_ {
+                decryptorProperties.fixedCipherTextBytes
+            } then {
+                expect(it.result is_ Equal to_ (keyBits - 1) / 8 + 1)
+            }
+
+    @Test
     fun `has serialVersionUID`() =
             expect(RSA2048Cryptor.serialVersionUID is_ Equal to_ 1L)
 }

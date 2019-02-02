@@ -135,6 +135,46 @@ class AES256CryptorTest {
             }
 
     @Test
+    fun `block size is 16`() =
+            Given {
+                AES256Cryptor()
+            } when_ {
+                encryptorProperties.blockBytes
+            } then {
+                expect(it.result is_ Equal to_ 16)
+            }
+
+    @Test
+    fun `max clear text size is unconstrained`() =
+            Given {
+                AES256Cryptor()
+            } when_ {
+                encryptorProperties.maxClearTextBytes
+            } then {
+                expect(it.result is_ Equal to_ Int.MAX_VALUE)
+            }
+
+    @Test
+    fun `output size for input size`() =
+            Given {
+                AES256Cryptor()
+            } when_ {
+                encryptorProperties.getOutputBytes(2 * encryptorProperties.blockBytes)
+            } then {
+                expect(it.result is_ Equal to_ 3 * encryptorProperties.blockBytes)
+            }
+
+    @Test
+    fun `fixedCipherTextSize is zero, because there is no fixed size`() =
+            Given {
+                AES256Cryptor()
+            } when_ {
+                decryptorProperties.fixedCipherTextBytes
+            } then {
+                expect(it.result is_ Equal to_ 0)
+            }
+
+    @Test
     fun `has serialVersionUID`() =
             expect(AES256Cryptor.serialVersionUID is_ Equal to_ 1L)
 }

@@ -19,6 +19,7 @@ package straightway.peerspace.crypto
  * Encrypt data using a fixed internal key.
  */
 interface Encryptor : KeyHolder {
+    val encryptorProperties: EncryptorProperties
     val encryptionKey: ByteArray
     fun encrypt(toEncrypt: ByteArray): ByteArray
 }

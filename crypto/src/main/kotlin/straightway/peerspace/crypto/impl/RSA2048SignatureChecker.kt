@@ -16,6 +16,7 @@
 package straightway.peerspace.crypto.impl
 
 import straightway.peerspace.crypto.CryptoFactory
+import straightway.peerspace.crypto.EncryptorProperties
 import straightway.peerspace.crypto.SignatureChecker
 import java.io.Serializable
 import java.security.PublicKey
@@ -29,15 +30,22 @@ import javax.crypto.Cipher
 class RSA2048SignatureChecker(
         val key: PublicKey,
         factory: CryptoFactory
-) : SignatureChecker, Serializable {
+) : SignatureChecker, EncryptorProperties, Serializable {
 
     constructor(rawKey: ByteArray, factory: CryptoFactory) :
             this(publicKeyFrom(rawKey, RSA2048Cryptor.keyCipherAlgorithm), factory)
 
+    override val keyBits = RSA2048Cryptor.keyBits
+
+    override val encryptorProperties get() = this
+
+    @Suppress("MagicNumber")
+    override val maxClearTextBytes = 245
+    override val blockBytes = 0
+    override fun getOutputBytes(inputSize: Int) = encryptCipher.getOutputSize(inputSize)
+
     override val signatureCheckKey get() = key.encoded!!
     override val encryptionKey get() = key.encoded!!
-
-    override val keyBits = RSA2048Cryptor.keyBits
 
     override val hashAlgorithm = factory.hashAlgorithm
 

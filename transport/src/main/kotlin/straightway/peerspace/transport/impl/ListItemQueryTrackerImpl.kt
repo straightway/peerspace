@@ -16,6 +16,7 @@
 package straightway.peerspace.transport.impl
 
 import straightway.peerspace.data.DataChunk
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListDataItem
 import straightway.peerspace.transport.ListItemQueryTracker
 import straightway.peerspace.transport.toListDataKey
@@ -25,8 +26,9 @@ import straightway.peerspace.transport.toListDataKey
  */
 class ListItemQueryTrackerImpl(
         val initialChunk: DataChunk,
+        crypto: DeChunkerCrypto,
         val callbacks: ListQueryCallbackInstances
-) : QueryTrackerBase(), ListItemQueryTracker {
+) : QueryTrackerBase(crypto), ListItemQueryTracker {
 
     init {
         received(initialChunk, this::onTimeout)

@@ -56,6 +56,5 @@ class Request<T : Transmittable>(
     }
 }
 
-@Suppress("UNUSED_PARAMETER")
 infix fun Any.handle(request: Request<*>) =
     getHandlers<RequestHandler>(request.typeSelector).forEach { it(request) }

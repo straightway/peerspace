@@ -20,14 +20,16 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.transport.DataItem
 import straightway.peerspace.transport.DataQueryCallback
 import straightway.peerspace.transport.DataQueryControl
+import straightway.peerspace.transport.DeChunkerCrypto
 
 /**
  * Track queries for static data in peerspace.
  */
 class DataQueryTracker(
         private val queriedId: Id,
+        crypto: DeChunkerCrypto,
         querySetup: DataQueryCallback.() -> Unit
-) : QueryTrackerBase(), DataQueryCallback {
+) : QueryTrackerBase(crypto), DataQueryCallback {
 
     private var onReceived: (DataItem) -> Unit = {}
     private var onTimeout: DataQueryControl.(Id) -> Unit = {}

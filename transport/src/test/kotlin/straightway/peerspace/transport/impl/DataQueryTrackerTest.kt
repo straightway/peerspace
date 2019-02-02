@@ -15,12 +15,17 @@
  */
 package straightway.peerspace.transport.impl
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.transport.DataItem
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.createDataQueryTracker
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
@@ -37,7 +42,9 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
     private val test get() =
         Given {
             TransportTestEnvironment(
-                    dataQueryTrackerFactory = { query, setup -> DataQueryTracker(query, setup) })
+                    dataQueryTrackerFactory = { query, crypto, setup ->
+                        DataQueryTracker(query, crypto, setup)
+                    })
         }
 
     @Test
@@ -45,7 +52,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
         lateinit var receivedData: DataItem
         val fullData = byteArrayOf(1, 2, 3)
         test when_ {
-            context.createDataQueryTracker(Id("ItemId")) {
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {
                 onReceived { receivedData = it }
             }
             combinedChunks = fullData
@@ -58,7 +65,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
     @Test
     fun `empty default onReceived callback does not throw`() {
         test when_ {
-            context.createDataQueryTracker(Id("ItemId")) {}
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {}
             combinedChunks = byteArrayOf(1, 2, 3)
             networkQueries.single().received(createChunk("chunkId"))
         } then {
@@ -70,7 +77,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
     fun `query calls onTimeout with queried data id`() {
         var timeoutId = Id("")
         test when_ {
-            context.createDataQueryTracker(Id("ItemId")) {
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {
                 onTimeout { timeoutId = it }
             }
             networkQueries.single().timeout(Id("ChunkId"))
@@ -83,7 +90,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
     fun `empty default onTimeout callback stops further receiving`() {
         var received = false
         test when_ {
-            context.createDataQueryTracker(Id("ItemId")) {
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {
                 onReceived { received = true }
             }
             combinedChunks = byteArrayOf(1, 2, 3)
@@ -98,7 +105,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
     fun `query calls onIncomplete with queried data id`() {
         lateinit var incompleteId: Id
         test when_ {
-            context.createDataQueryTracker(Id("ItemId")) {
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {
                 onIncomplete { id, _ -> incompleteId = id }
             }
             combinedChunks = null
@@ -114,7 +121,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
         lateinit var inputChunks: List<DataChunk>
         test when_ {
             inputChunks = listOf(createChunk("otherChunk"), createChunk("ItemId"))
-            context.createDataQueryTracker(Id("ItemId")) {
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {
                 onIncomplete { _, chunks -> signaledChunks = chunks }
             }
             combinedChunks = null
@@ -128,7 +135,7 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
     fun `empty default onIncomplete callback stops further receiving`() {
         var received = false
         test when_ {
-            context.createDataQueryTracker(Id("ItemId")) {
+            context.createDataQueryTracker(Id("ItemId"), DeChunkerCrypto()) {
                 onReceived { received = true }
             }
             val chunk = createChunk("ItemId")
@@ -138,6 +145,17 @@ class DataQueryTrackerTest : KoinLoggingDisabler() {
             networkQueries.single().received(chunk)
         } then {
             expect(received is_ False)
+        }
+    }
+
+    @Test
+    fun `crypto is passed to base class`() {
+        val crypto = DeChunkerCrypto(signatureChecker = mock())
+        test when_ {
+            context.createDataQueryTracker(Id("ItemId"), crypto) {}
+            networkQueries.single().received(createChunk("ItemId"))
+        } then {
+            verify(deChunker).tryCombining(any(), eq(crypto))
         }
     }
 }

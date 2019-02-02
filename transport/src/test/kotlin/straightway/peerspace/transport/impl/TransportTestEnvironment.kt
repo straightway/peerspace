@@ -18,6 +18,7 @@ package straightway.peerspace.transport.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import org.koin.dsl.context.Context
+import straightway.peerspace.crypto.CryptoFactory
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
@@ -28,11 +29,15 @@ import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.ChunkQueryControl
 import straightway.peerspace.transport.Chunker
 import straightway.peerspace.transport.DataQueryCallback
+import straightway.peerspace.transport.DeChunker
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListItemQueryTracker
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.ListQueryCallback
+import straightway.peerspace.transport.Transport
 import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.chunker
+import straightway.peerspace.transport.deChunker
 import straightway.peerspace.transport.peerClient
 import straightway.testing.flow.expect
 import straightway.units.Time
@@ -48,16 +53,23 @@ open class TransportTestEnvironment(
         transportFactory: TransportTestEnvironment.() -> Transport = { mock() },
         peerClientFactory: TransportTestEnvironment.() -> PeerClient = { createPeerClient() },
         chunkerFactory: TransportTestEnvironment.() -> Chunker = { createChunker() },
+        deChunkerFactory: TransportTestEnvironment.() -> DeChunker = { createDeChunker() },
         timeProviderFactory: TransportTestEnvironment.() -> TimeProvider = { createTimeProvider() },
-        listQueryTrackerFactory:
-        TransportTestEnvironment.(ListQuery, ListQueryCallback.() -> Unit) -> ListQueryCallback =
-                { _, _ -> mock() },
-        listItemQueryTrackerFactory:
-        TransportTestEnvironment.(initialChunk: DataChunk, callbacks: ListQueryCallbackInstances) ->
-        ListItemQueryTracker =  { _, _ -> mock() },
-        dataQueryTrackerFactory:
-        TransportTestEnvironment.(queriedId: Id, querySetup: DataQueryCallback.() -> Unit) ->
-        DataQueryCallback = { _, _ -> mock() },
+        listQueryTrackerFactory: TransportTestEnvironment.(
+                ListQuery,
+                crypto: DeChunkerCrypto,
+                ListQueryCallback.() -> Unit) -> ListQueryCallback = { _, _, _ -> mock() },
+        listItemQueryTrackerFactory: TransportTestEnvironment.(
+                initialChunk: DataChunk,
+                crypto: DeChunkerCrypto,
+                callbacks: ListQueryCallbackInstances) -> ListItemQueryTracker =
+                { _, _, _ -> mock() },
+        dataQueryTrackerFactory: TransportTestEnvironment.(
+                queriedId: Id,
+                crypto: DeChunkerCrypto,
+                querySetup: DataQueryCallback.() -> Unit) -> DataQueryCallback =
+                { _, _, _ -> mock() },
+        cryptoFactory: TransportTestEnvironment.() -> CryptoFactory = { mock() },
         additionalInitialization: Context.() -> Unit = {}
 ) {
 
@@ -89,17 +101,20 @@ open class TransportTestEnvironment(
     val networkQueries = mutableListOf<QueryRecord>()
     val peerClient get() = context.peerClient
     val chunker get() = context.chunker
+    val deChunker get() = context.deChunker
     val context = TransportComponent.createEnvironment(
             transportFactory = { transportFactory() },
             peerClientFactory = { peerClientFactory() },
             chunkerFactory = { chunkerFactory() },
+            deChunkerFactory = { deChunkerFactory() },
+            cryptoFactory = { cryptoFactory() },
             timeProviderFactory = { timeProviderFactory() },
-            listQueryTrackerFactory =
-                { listQuery, setup -> listQueryTrackerFactory(listQuery, setup) },
-            listItemQueryTrackerFactory =
-                { initialChunk, callbacks -> listItemQueryTrackerFactory(initialChunk, callbacks) },
-            dataQueryTrackerFactory =
-                { queriedId, setup -> dataQueryTrackerFactory(queriedId, setup) }
+            listQueryTrackerFactory = { listQuery, crypto, setup ->
+                listQueryTrackerFactory(listQuery, crypto, setup) },
+            listItemQueryTrackerFactory = { initialChunk, crypto, callbacks ->
+                listItemQueryTrackerFactory(initialChunk, crypto, callbacks) },
+            dataQueryTrackerFactory = { queriedId, crypto, setup ->
+                dataQueryTrackerFactory(queriedId, crypto, setup) }
     ) {
         additionalInitialization()
     }
@@ -129,11 +144,13 @@ open class TransportTestEnvironment(
     }
 
     private fun createChunker() = mock<Chunker> {
-        on { chopToChunks(any()) }
-                .thenAnswer { choppedChunks }
-        on { getReferencedChunks(any()) }
+        on { chopToChunks(any(), any()) }.thenAnswer { choppedChunks }
+    }
+
+    private fun createDeChunker() = mock<DeChunker> {
+        on { getReferencedChunks(any(), any()) }
                 .thenAnswer { it.getArgument<ByteArray>(0).getReferences() }
-        on { tryCombining(any()) }
+        on { tryCombining(any(), any()) }
                 .thenAnswer { combinedChunks }
     }
 

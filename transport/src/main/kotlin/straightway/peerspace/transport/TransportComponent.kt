@@ -19,11 +19,11 @@ import org.koin.dsl.context.Context
 import straightway.koinutils.Bean.get
 import straightway.koinutils.KoinModuleComponent
 import straightway.koinutils.withContext
+import straightway.peerspace.crypto.CryptoFactory
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.transport.impl.ListQueryCallbackInstances
-import straightway.peerspace.transport.impl.Transport
 import straightway.utils.TimeProvider
 
 /**
@@ -42,23 +42,38 @@ interface TransportComponent : KoinModuleComponent {
                 transportFactory: () -> Transport,
                 peerClientFactory: () -> PeerClient,
                 chunkerFactory: () -> Chunker,
+                deChunkerFactory: () -> DeChunker,
                 timeProviderFactory: () -> TimeProvider,
-                listQueryTrackerFactory:
-                    (ListQuery, ListQueryCallback.() -> Unit) -> ListQueryCallback,
-                listItemQueryTrackerFactory:
-                    (initialChunk: DataChunk, callbacks: ListQueryCallbackInstances) ->
-                    ListItemQueryTracker,
-                dataQueryTrackerFactory:
-                    (queriedId: Id, querySetup: DataQueryCallback.() -> Unit) -> DataQueryCallback,
+                listQueryTrackerFactory: (
+                        ListQuery,
+                        DeChunkerCrypto,
+                        ListQueryCallback.() -> Unit) -> ListQueryCallback,
+                listItemQueryTrackerFactory: (
+                        DataChunk,
+                        DeChunkerCrypto,
+                        ListQueryCallbackInstances) -> ListItemQueryTracker,
+                dataQueryTrackerFactory: (
+                        Id,
+                        DeChunkerCrypto,
+                        DataQueryCallback.() -> Unit) -> DataQueryCallback,
+                cryptoFactory: () -> CryptoFactory,
                 additionalInitialization: Context.() -> Unit = {}
         ) = withContext {
             bean { transportFactory() }
             bean { peerClientFactory() }
             bean { chunkerFactory() }
+            bean { deChunkerFactory() }
             bean { timeProviderFactory() }
-            factory { args -> listQueryTrackerFactory(args["listQuery"], args["querySetup"]) }
-            factory { args -> listItemQueryTrackerFactory(args["initialChunk"], args["callbacks"]) }
-            factory { args -> dataQueryTrackerFactory(args["queriedId"], args["querySetup"]) }
+            bean { cryptoFactory() }
+            factory { args ->
+                listQueryTrackerFactory(args["listQuery"], args["crypto"], args["querySetup"])
+            }
+            factory { args ->
+                listItemQueryTrackerFactory(args["initialChunk"], args["crypto"], args["callbacks"])
+            }
+            factory { args ->
+                dataQueryTrackerFactory(args["queriedId"], args["crypto"], args["querySetup"])
+            }
             additionalInitialization()
         } make { TransportComponent() }
     }
@@ -67,25 +82,33 @@ interface TransportComponent : KoinModuleComponent {
 val TransportComponent.transport get() = get<Transport>()
 val TransportComponent.peerClient get() = get<PeerClient>()
 val TransportComponent.chunker get() = get<Chunker>()
+val TransportComponent.deChunker get() = get<DeChunker>()
+val TransportComponent.cryptoFactory get() = get<CryptoFactory>()
 val TransportComponent.timeProvider get() = get<TimeProvider>()
 
+@Suppress("LongParameterList")
 fun TransportComponent.createListQueryTracker(
         listQuery: ListQuery,
+        crypto: DeChunkerCrypto,
         querySetup: ListQueryCallback.() -> Unit
 ) = get<ListQueryCallback> {
-    mapOf("listQuery" to listQuery, "querySetup" to querySetup)
+    mapOf("listQuery" to listQuery, "crypto" to crypto, "querySetup" to querySetup)
 }
 
+@Suppress("LongParameterList")
 fun TransportComponent.createListItemQueryTracker(
         initialChunk: DataChunk,
+        crypto: DeChunkerCrypto,
         callbacks: ListQueryCallbackInstances
 ) = get<ListItemQueryTracker> {
-    mapOf("initialChunk" to initialChunk, "callbacks" to callbacks)
+    mapOf("initialChunk" to initialChunk, "crypto" to crypto, "callbacks" to callbacks)
 }
 
+@Suppress("LongParameterList")
 fun TransportComponent.createDataQueryTracker(
         queriedId: Id,
+        crypto: DeChunkerCrypto,
         querySetup: DataQueryCallback.() -> Unit
 ) = get<DataQueryCallback> {
-    mapOf("queriedId" to queriedId, "querySetup" to querySetup)
+    mapOf("queriedId" to queriedId, "crypto" to crypto, "querySetup" to querySetup)
 }

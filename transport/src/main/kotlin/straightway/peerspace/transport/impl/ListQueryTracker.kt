@@ -25,6 +25,7 @@ import straightway.peerspace.transport.ListDataKey
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.ListQueryCallback
 import straightway.peerspace.transport.DataQueryControl
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListQueryControl
 import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.createListItemQueryTracker
@@ -34,6 +35,7 @@ import straightway.peerspace.transport.createListItemQueryTracker
  */
 class ListQueryTracker(
         query: ListQuery,
+        crypto: DeChunkerCrypto,
         querySetup: ListQueryCallback.() -> Unit
 ) : ListQueryCallback, TransportComponent by TransportComponent() {
 
@@ -46,7 +48,7 @@ class ListQueryTracker(
     init {
         querySetup()
         peerClient.query(DataChunkQuery(query.listId, query.timestamps.toTimestamp())) {
-            createListItemQueryTracker(it, listQueryCallbackInstances)
+            createListItemQueryTracker(it, crypto, listQueryCallbackInstances)
         }.onExpiring {
             object : ListQueryControl {
                 override fun keepAlive() { this@onExpiring.keepAlive() }

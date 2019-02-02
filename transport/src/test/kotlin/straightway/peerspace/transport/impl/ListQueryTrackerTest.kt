@@ -29,9 +29,12 @@ import straightway.peerspace.transport.ListDataItem
 import straightway.peerspace.transport.ListDataKey
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.DataQueryControl
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.createListQueryTracker
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Same
+import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -46,25 +49,27 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
             object {
                 val environment = TransportTestEnvironment(
                         listQueryTrackerFactory = {
-                            query, setup -> ListQueryTracker(query, setup)
+                            query, crypto, setup -> ListQueryTracker(query, crypto, setup)
                         },
-                        listItemQueryTrackerFactory = { chunk, callbacks ->
+                        listItemQueryTrackerFactory = { chunk, crypto, callbacks ->
                             listItemQueryTrackerInitialChunk = chunk
                             listItemQueryTrackerCallbacks = callbacks
+                            listItemQueryTrackerCrypto = crypto
                             mock()
                         }
                 )
                 lateinit var listItemQueryTrackerInitialChunk: DataChunk
                 lateinit var listItemQueryTrackerCallbacks: ListQueryCallbackInstances
+                lateinit var listItemQueryTrackerCrypto: DeChunkerCrypto
             }
         }
 
     @Test
     fun `query is forwarded to peer client`() =
             test when_ {
-                environment.context.createListQueryTracker(ListQuery(
-                        Id("ListId"),
-                        1[second].absolute..2[second].absolute)) {}
+                environment.context.createListQueryTracker(
+                        ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                        DeChunkerCrypto()) {}
             } then {
                 verify(environment.peerClient)
                         .query(eq(DataChunkQuery(Id("ListId"), 1000L..2000L)), any())
@@ -74,9 +79,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
     fun `onExpired is called when initial query expires`() {
         var onExpiredCalled = false
         test when_ {
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()
             ) {
                 onExpired { onExpiredCalled = true }
             }
@@ -90,9 +95,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
     @Test
     fun `calling keepAlive onExpired keeps the query alive`() {
         test when_ {
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()
             ) {
                 onExpired { keepAlive() }
             }
@@ -106,10 +111,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
     @Test
     fun `not calling keepAlive onExpired does not keep the query alive`() {
         test when_ {
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)
-            ) {}
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()) {}
             environment.networkQueries[0]
                     .timeout(environment.createChunk("ListId", 1.2[second]).key)
         } then {
@@ -122,9 +126,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         lateinit var receivedChunk: DataChunk
         test when_ {
             receivedChunk = environment.createChunk("ListId", 1.2[second])
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)) {}
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()) {}
             environment.networkQueries[0].received(receivedChunk)
         } then {
             expect(listItemQueryTrackerInitialChunk is_ Equal to_ receivedChunk)
@@ -135,9 +139,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
     fun `received callback is forwarded to ListItemQueryTracker`() {
         var receivedCalled = false
         test while_ {
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()
             ) {
                 onReceived { receivedCalled = true }
             }
@@ -154,9 +158,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
     fun `onTimeout callback is forwarded to ListItemQueryTracker`() {
         var timeoutCalled = false
         test while_ {
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()
             ) {
                 onTimeout { timeoutCalled = true }
             }
@@ -173,9 +177,9 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
     fun `onIncomplete callback is forwarded to ListItemQueryTracker`() {
         var incompleteCalled = false
         test while_ {
-            environment.context.createListQueryTracker(ListQuery(
-                    Id("ListId"),
-                    1[second].absolute..2[second].absolute)
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    DeChunkerCrypto()
             ) {
                 onIncomplete { _, _ -> incompleteCalled = true }
             }
@@ -185,6 +189,19 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
                     ListDataKey(Id("Id"), 1[second].absolute), listOf())
         } then {
             expect(incompleteCalled)
+        }
+    }
+
+    @Test
+    fun `crypto is passed to item tracker`() {
+        val crypto = DeChunkerCrypto(signatureChecker = mock())
+        test when_ {
+            environment.context.createListQueryTracker(
+                    ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
+                    crypto) {}
+            environment.networkQueries[0].received(environment.createChunk("ListId", 1.2[second]))
+        } then {
+            expect(listItemQueryTrackerCrypto is_ Same as_ crypto)
         }
     }
 }

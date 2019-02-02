@@ -13,22 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport.impl
+package straightway.peerspace.transport
 
 import straightway.peerspace.crypto.SignatureChecker
 import straightway.peerspace.data.Id
-import straightway.peerspace.transport.DataQueryCallback
-import straightway.peerspace.transport.ListQuery
-import straightway.peerspace.transport.ListQueryCallback
 
 /**
  * Unchunked access to the Peerspace network.
  */
+@Suppress("LongParameterList")
 interface Transport {
-    fun store(data: ByteArray): Id
-    fun post(listId: Id, data: ByteArray)
-    fun query(id: Id, querySetup: DataQueryCallback.() -> Unit)
-    fun query(query: ListQuery, querySetup: ListQueryCallback.() -> Unit)
+    fun store(data: ByteArray, crypto: ChunkerCrypto): Id
+    fun post(listId: Id, data: ByteArray, crypto: ChunkerCrypto)
+    fun query(id: Id, crypto: DeChunkerCrypto, querySetup: DataQueryCallback.() -> Unit)
+    fun query(query: ListQuery, crypto: DeChunkerCrypto, querySetup: ListQueryCallback.() -> Unit)
 }
 
 

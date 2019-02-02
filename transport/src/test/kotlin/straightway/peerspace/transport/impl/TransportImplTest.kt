@@ -15,6 +15,8 @@
  */
 package straightway.peerspace.transport.impl
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -22,7 +24,9 @@ import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.DataQueryCallback
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.ListQueryCallback
 import straightway.peerspace.transport.transport
@@ -53,7 +57,7 @@ class TransportImplTest : KoinLoggingDisabler() {
             test while_ {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3))
+                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
             } then {
                 verify(peerClient).store(choppedChunks.single())
             }
@@ -63,7 +67,7 @@ class TransportImplTest : KoinLoggingDisabler() {
             test while_ {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3))
+                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
             } then {
                 expect(it.result is_ Equal to_ Id("0"))
             }
@@ -74,7 +78,7 @@ class TransportImplTest : KoinLoggingDisabler() {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(1, 2)))
                 choppedChunks.add(DataChunk(Key(Id("1")), byteArrayOf(3, 4)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3))
+                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
             } then {
                 verify(peerClient).store(choppedChunks[0])
                 verify(peerClient).store(choppedChunks[1])
@@ -86,17 +90,29 @@ class TransportImplTest : KoinLoggingDisabler() {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(1, 2)))
                 choppedChunks.add(DataChunk(Key(Id("1")), byteArrayOf(3, 4)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3))
+                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
             } then {
                 expect(it.result is_ Equal to_ Id("0"))
             }
+
+    @Test
+    fun `store passes crypto to chunker`() {
+        val crypto = ChunkerCrypto(signer = mock())
+        test while_ {
+            choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
+        } when_ {
+            sut.store(byteArrayOf(1, 2, 3), crypto)
+        } then {
+            verify(chunker).chopToChunks(any(), eq(crypto))
+        }
+    }
 
     @Test
     fun `post small chunk directly to peer client`() =
             test while_ {
                 choppedChunks.add(DataChunk(Key(Id("hash")), byteArrayOf(1, 2)))
             } when_ {
-                sut.post(Id("list"), byteArrayOf(1, 2, 3))
+                sut.post(Id("list"), byteArrayOf(1, 2, 3), ChunkerCrypto())
             } then {
                 val timestamp =
                         Duration.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime).toMillis()
@@ -110,7 +126,7 @@ class TransportImplTest : KoinLoggingDisabler() {
                 choppedChunks.add(DataChunk(Key(Id("hash0")), byteArrayOf(1, 2)))
                 choppedChunks.add(DataChunk(Key(Id("hash1")), byteArrayOf(3, 4)))
             } when_ {
-                sut.post(Id("list"), byteArrayOf(1, 2, 3))
+                sut.post(Id("list"), byteArrayOf(1, 2, 3), ChunkerCrypto())
             } then {
                 val timestamp =
                         Duration.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime).toMillis()
@@ -121,45 +137,65 @@ class TransportImplTest : KoinLoggingDisabler() {
             }
 
     @Test
+    fun `post passes crypto to chunker`() {
+        val crypto = ChunkerCrypto(signer = mock())
+        test while_ {
+            choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
+        } when_ {
+            sut.post(Id("listId"), byteArrayOf(1, 2, 3), crypto)
+        } then {
+            verify(chunker).chopToChunks(any(), eq(crypto))
+        }
+    }
+
+    @Test
     fun `query data item forwards execution to data query tracker`() {
         val setup: DataQueryCallback.() -> Unit = {}
+        val passedCrypto = DeChunkerCrypto(signatureChecker = mock())
         lateinit var calledId: Id
         lateinit var calledSetup: DataQueryCallback.() -> Unit
+        lateinit var calledCrypto: DeChunkerCrypto
         Given {
             TransportTestEnvironment(
                     transportFactory = { TransportImpl() },
-                    dataQueryTrackerFactory = { id, setup ->
+                    dataQueryTrackerFactory = { id, crypto, setup ->
                         calledId = id
                         calledSetup = setup
+                        calledCrypto = crypto
                         mock()
                     })
         } when_ {
-            sut.query(Id("id"), setup)
+            sut.query(Id("id"), passedCrypto, setup)
         } then {
             expect(calledId is_ Equal to_ Id("id"))
             expect(calledSetup is_ Same as_ setup)
+            expect(calledCrypto is_ Same as_ passedCrypto)
         }
     }
 
     @Test
     fun `query list items forwards execution to list query tracker`() {
         val setup: ListQueryCallback.() -> Unit = {}
+        val passedCrypto = DeChunkerCrypto(signatureChecker = mock())
         val query = ListQuery(Id("id"), 1[second].absolute..2[second].absolute)
         lateinit var calledQuery: ListQuery
         lateinit var calledSetup: ListQueryCallback.() -> Unit
+        lateinit var calledCrypto: DeChunkerCrypto
         Given {
             TransportTestEnvironment(
                     transportFactory = { TransportImpl() },
-                    listQueryTrackerFactory = { query, setup ->
+                    listQueryTrackerFactory = { query, crypto, setup ->
                         calledQuery = query
                         calledSetup = setup
+                        calledCrypto = crypto
                         mock()
                     })
         } when_ {
-            sut.query(query, setup)
+            sut.query(query, passedCrypto, setup)
         } then {
             expect(calledQuery is_ Same as_ query)
             expect(calledSetup is_ Same as_ setup)
+            expect(calledCrypto is_ Same as_ passedCrypto)
         }
     }
 }

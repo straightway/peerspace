@@ -20,9 +20,12 @@ package straightway.peerspace.transport.impl
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.DataQueryCallback
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.ListQueryCallback
+import straightway.peerspace.transport.Transport
 import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.chunker
 import straightway.peerspace.transport.createDataQueryTracker
@@ -38,25 +41,29 @@ import java.time.temporal.ChronoUnit
  */
 class TransportImpl : Transport, TransportComponent by TransportComponent() {
 
-    override fun store(data: ByteArray) =
-            with(chunker.chopToChunks(data)) {
+    override fun store(data: ByteArray, crypto: ChunkerCrypto) =
+            with(chunker.chopToChunks(data, crypto)) {
                 forEach { peerClient.store(it) }
                 first().id.id
             }
 
-    override fun post(listId: Id, data: ByteArray) =
-            with(chunker.chopToChunks(data)) {
+    override fun post(listId: Id, data: ByteArray, crypto: ChunkerCrypto) =
+            with(chunker.chopToChunks(data, crypto)) {
                 val key = Key(listId, currentTimeStamp, 0)
-                peerClient.store(DataChunk(key, chunker.chopToChunks(data).first().data))
+                peerClient.store(DataChunk(key, first().data))
                 drop(1).forEach { peerClient.store(it) }
             }
 
-    override fun query(id: Id, querySetup: DataQueryCallback.() -> Unit) {
-        createDataQueryTracker(id, querySetup)
+    override fun query(id: Id, crypto: DeChunkerCrypto, querySetup: DataQueryCallback.() -> Unit) {
+        createDataQueryTracker(id, crypto, querySetup)
     }
 
-    override fun query(query: ListQuery, querySetup: ListQueryCallback.() -> Unit) {
-        createListQueryTracker(query, querySetup)
+    override fun query(
+            query: ListQuery,
+            crypto: DeChunkerCrypto,
+            querySetup: ListQueryCallback.() -> Unit)
+    {
+        createListQueryTracker(query, crypto, querySetup)
     }
 
     private val currentTimeStamp get() =

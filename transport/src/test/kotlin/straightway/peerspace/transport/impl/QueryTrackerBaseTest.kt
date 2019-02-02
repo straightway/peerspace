@@ -18,6 +18,7 @@ package straightway.peerspace.transport.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
@@ -25,6 +26,7 @@ import straightway.koinutils.Bean.get
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -39,7 +41,7 @@ import straightway.testing.flow.to_
 
 class QueryTrackerBaseTest : KoinLoggingDisabler() {
 
-    private class TestQueryTracker : QueryTrackerBase() {
+    private class TestQueryTracker(crypto: DeChunkerCrypto) : QueryTrackerBase(crypto) {
         val receivedDataItems = mutableListOf<ByteArray>()
         var incompleteCalls = 0
         var timeoutCalls = 0
@@ -54,10 +56,11 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
         fun protectedReceived(chunk: DataChunk, keepAlive: () -> Unit) = received(chunk, keepAlive)
     }
 
-    private val test get() =
+    private val test get() = test(DeChunkerCrypto())
+    private fun test(crypto: DeChunkerCrypto) =
         Given {
             object : TransportTestEnvironment(
-                    additionalInitialization = { bean { TestQueryTracker() } }
+                    additionalInitialization = { bean { TestQueryTracker(crypto) } }
             ) {
                 val sut get() = context.get<TestQueryTracker>()
             }
@@ -116,9 +119,9 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
             combinedChunks = byteArrayOf(1, 2, 3)
             networkQueries[1].received(chunks[1])
         } then {
-            inOrder(chunker) {
-                verify(chunker).tryCombining(chunks.slice(0..0))
-                verify(chunker).tryCombining(chunks.slice(0..1))
+            inOrder(deChunker) {
+                verify(deChunker).tryCombining(eq(chunks.slice(0..0)), any<DeChunkerCrypto>())
+                verify(deChunker).tryCombining(eq(chunks.slice(0..1)), any<DeChunkerCrypto>())
             }
             expect(sut.receivedDataItems.single() is_ Equal to_ byteArrayOf(1, 2, 3))
         }
@@ -303,6 +306,26 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
             networkQueries.single().timeout(Id("ref1"))
         } then {
             expect(sut.timeoutCalls is_ Equal to_ 0)
+        }
+    }
+
+    @Test
+    fun `DeChunkerCrypto is passed to deChunker on trying to combine chunks`() {
+        val deChunkerCrypto = DeChunkerCrypto(signatureChecker = mock())
+        test(deChunkerCrypto) when_ {
+            sut.protectedReceived(createChunk("id")) {}
+        } then {
+            verify(deChunker).tryCombining(any(), eq(deChunkerCrypto))
+        }
+    }
+
+    @Test
+    fun `DeChunkerCrypto is passed to deChunker on trying to get references`() {
+        val deChunkerCrypto = DeChunkerCrypto(signatureChecker = mock())
+        test(deChunkerCrypto) when_ {
+            sut.protectedReceived(createChunk("id")) {}
+        } then {
+            verify(deChunker).getReferencedChunks(any(), eq(deChunkerCrypto))
         }
     }
 }

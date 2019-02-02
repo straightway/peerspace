@@ -19,7 +19,6 @@ import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.SignatureChecker
 import straightway.peerspace.data.Id
-import straightway.peerspace.transport.impl.createList
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_

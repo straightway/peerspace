@@ -16,10 +16,12 @@
 package straightway.peerspace.transport
 
 import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.Id
 
 /**
- * Cut data into DataChunks and re-combine them again.
+ * Combine chunked data from chunks.
  */
-interface Chunker {
-    fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto): List<DataChunk>
+interface DeChunker {
+    fun tryCombining(chunks: List<DataChunk>, deChunkerCrypto: DeChunkerCrypto): ByteArray?
+    fun getReferencedChunks(data: ByteArray, deChunkerCrypto: DeChunkerCrypto): List<Id>
 }

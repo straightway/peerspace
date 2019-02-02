@@ -19,16 +19,19 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.net.ChunkQueryControl as ChunkQueryControl
 import straightway.peerspace.transport.TransportComponent
-import straightway.peerspace.transport.chunker
+import straightway.peerspace.transport.deChunker
 import straightway.peerspace.transport.peerClient
 import straightway.peerspace.transport.DataQueryControl as DataQueryControl
 
 /**
  * Base class for data or list query trackers.
  */
-abstract class QueryTrackerBase : TransportComponent by TransportComponent() {
+abstract class QueryTrackerBase(
+        private val crypto: DeChunkerCrypto
+) : TransportComponent by TransportComponent() {
 
     private var pendingChunks = mutableMapOf<Key, DataChunk?>()
     private var isStopped = false
@@ -60,7 +63,7 @@ abstract class QueryTrackerBase : TransportComponent by TransportComponent() {
     private fun setPending(chunkKey: Key) { pendingChunks[chunkKey] = null }
 
     private fun signalResultDataIfAvailable(keepAlive: () -> Unit) =
-            with (chunker.tryCombining(receivedChunks)) {
+            with (deChunker.tryCombining(receivedChunks, crypto)) {
                 when {
                     this != null -> onReceived(this)
                     areNoChunksPending -> checkForRetry(keepAlive) { onIncomplete() }
@@ -73,7 +76,7 @@ abstract class QueryTrackerBase : TransportComponent by TransportComponent() {
             chunk.newReferences.forEach { query(it) }
 
     private val DataChunk.newReferences get() = references.filter { Key(it) !in pendingChunks }
-    private val DataChunk.references get() = chunker.getReferencedChunks(data)
+    private val DataChunk.references get() = deChunker.getReferencedChunks(data, crypto)
 
     private fun ChunkQueryControl.onChunkTimedOut() =
             checkForRetry(this::keepAlive) { onTimeout() }

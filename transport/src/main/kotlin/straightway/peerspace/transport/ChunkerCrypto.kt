@@ -15,11 +15,12 @@
  */
 package straightway.peerspace.transport
 
-import straightway.peerspace.data.DataChunk
+import straightway.peerspace.crypto.Encryptor
+import straightway.peerspace.crypto.Signer
 
 /**
- * Cut data into DataChunks and re-combine them again.
+ * Crypto entities for chunkers.
  */
-interface Chunker {
-    fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto): List<DataChunk>
-}
+data class ChunkerCrypto(
+        val signer: Signer? = null,
+        val encryptor: Encryptor? = null)

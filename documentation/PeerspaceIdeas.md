@@ -46,7 +46,7 @@ are. Proposal:
 The _distance_ of a list item to a peer's id should be determined from the combined hash code of
 the item's list id and epoch.
 
-This is of course the consequence, that the peer's  _distance_ to an item changes when the item
+This has of course the consequence, that the peer's  _distance_ to an item changes when the item
 enters the next epoch, which in turn may result in forwarding and/or deleting the item.
 
 ### Forwarding and mutable chunks
@@ -58,8 +58,8 @@ the existing one are ignored.
 ### Redundancy vs. capacity
 To be robust against failed queries due to (temporary) offline peers, data must be stored
 redundantly on multiple peers. As the overall storage capacity of the Peerspace network is limited,
-redundancy further reduces this capacity. So a trade-off between redundancy and capacity must made
-by a smart distribution algorithm.
+redundancy further reduces this capacity. So a trade-off between redundancy and capacity must be
+made by a smart distribution algorithm.
 
 ## Privileges
 
@@ -75,14 +75,14 @@ _list access_token_).
 Peers ignore all invalid requests they receive.
 
 A list may grant read and write privilege to anyone, then being called an _open list_. In this
-case, the list is given a name and the list key consists of the hash of that name. The _access
-token_ is a symmetric key consisting of the hash of a modification of the list name (e.g. plus a
-fixed suffix). Please notice that _open lists_ may be subject for spamming.  
+case, the list is given an arbitrary name, and the list key consists of the hash of that name.
+The content is encrypted using a symmetric key consisting of the hash of a modification of the
+list name (e.g. plus a fixed suffix). Please notice that _open lists_ may be subject for spamming.  
 
 ## Storage space management
-Since the storage space on each peer is limited. So a peer must free some space from time to time
+The storage space on each peer is limited. So a peer must free some space from time to time
 in order to store new data. To have as much information available as possible, this should only be
-done of there is no space left on the peer's storage.
+done if there is no space left on the peer's storage.
 
 There are two ways to free space:
 
@@ -123,8 +123,23 @@ It might be worth thinking about signaling back when a query definitely fails (e
 cannot satisfy a query and does not know any peer being closer). In contrast to silently failing,
 this would enhance the responsiveness for the network users in this case.
 
+## Deleting of data
+In order to delete data in the Peerspace network, a special type of request could be used. This
+_delete request_ contains the ID of the chunk to delete, and it is forwarded on the same path as a
+storage request for that chunk would be.
+
+To only allow the "owner" of a piece of data to delete
+this data, the data chunk is decorated with the hash code of a randomly generated _deletion token_
+when it is stored. This _deletion token_ is attached to the _delete request_ to prove the validity
+of that request. A delete request is only executed, if the the hash code _deletion token_ is equal
+to that in the chunk.
+
+Each peer stores _delete requests_ for a certain time. If it receives a data chunk being subject
+to a _delete request_, it is discarded immediately and not forwarded. In addition, the _delete
+request_ is forwarded to the peer which sent that deleted data chunk.     
+
 ## Signing of Requests
-E.g. a query request must contain the id of the peer which issued the request, in order to push
+E.g. a query request must contain the id of the peer it received the request from, in order to push
 query requests back. To make sure malicious peers cannot issue query requests containing the id of
 other peers, query requests must be digitally signed by the issuer. The receiver of the request
 must be able to verify that signature. An easy way to achieve this is to use the public key of the

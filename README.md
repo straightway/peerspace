@@ -8,4 +8,5 @@ See also:
 * [Requirements](documentation/PeerspaceRequirements.md)
 * [Ideas](documentation/PeerspaceIdeas.md)
 * [Messaging](documentation/PeerspaceMessaging.md)
+* [Searching](documentation/PeerspaceSearching.md)
 * [Simulation](documentation/PeerspaceSimulation.md)

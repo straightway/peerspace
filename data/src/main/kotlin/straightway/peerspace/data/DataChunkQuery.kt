@@ -24,23 +24,14 @@ val untimedData = LongRange(0L, 0L)
 data class DataChunkQuery private constructor(
         val chunkId: Id,
         private val timestampsStart: Long,
-        private val timestampsEndInclusive: Long,
-        override val epoch: Int? = null
+        private val timestampsEndInclusive: Long
 ) : KeyHashable, Transmittable {
 
     constructor(chunkId: Id, timestamps: ClosedRange<Long>)
             : this(chunkId, timestamps.start, timestamps.endInclusive)
 
-    constructor(chunkId: Id, timestamps: ClosedRange<Long>, epoch: Int) : this(
-            chunkId,
-            timestamps.start,
-            timestamps.endInclusive,
-            if (timestamps == untimedData) null else epoch)
-
     constructor(chunkId: Id)
             : this(chunkId, LongRange(0, 0))
-
-    fun withEpoch(epoch: Int) = DataChunkQuery(chunkId, timestamps, epoch)
 
     override val id get() = chunkId
     override val timestamps get() = timestampsStart..timestampsEndInclusive
@@ -57,10 +48,7 @@ data class DataChunkQuery private constructor(
         "DataChunkQuery(${chunkId.identifier})"
 
     private val rangeStringRepresentation get() =
-        "$timestampsStart..$timestampsEndInclusive$epochStringRepresentation"
-
-    private val epochStringRepresentation get() =
-        if (epoch === null) "" else "|$epoch"
+        "$timestampsStart..$timestampsEndInclusive"
 
     companion object {
         const val serialVersionUID = 1L

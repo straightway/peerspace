@@ -32,6 +32,7 @@ import straightway.peerspace.net.KnownPeersPushTarget
 import straightway.peerspace.net.KnownPeersQuerySource
 import straightway.peerspace.net.Peer
 import straightway.peerspace.net.Request
+import straightway.peerspace.net.epochAnalyzer
 import straightway.peerspace.net.handle
 import straightway.peerspace.net.impl.DataPushTargetImpl
 import straightway.peerspace.net.impl.DataQuerySourceImpl
@@ -49,20 +50,7 @@ import straightway.units.minus
 import straightway.units.second
 import straightway.units.unitValue
 import straightway.units.year
-
-interface PeerBuilder {
-    val id: Id
-    fun knows(vararg otherPeerIds: Int)
-    fun holdsData(chunk: DataChunk)
-}
-
-interface HashSetter {
-    operator fun set(hashable: KeyHashable, newHashes: List<Number>)
-}
-
-operator fun HashSetter.set(hashable: KeyHashable, newHash: Number) {
-    this[hashable] = listOf(newHash.toLong())
-}
+import straightway.utils.joinMultiLine
 
 class SimNetwork(
         val simulator: Simulator = Simulator(),
@@ -73,11 +61,10 @@ class SimNetwork(
         fun id(id: Int) = Id("#$id")
         fun key(id: Int) = Key(id(id))
         @Suppress("LongParameterList")
-        fun key(id: Int, timestamp: Long, epoch: Int) = Key(id(id), timestamp, epoch)
+        fun key(id: Int, timestamp: Long) = Key(id(id), timestamp)
         fun dataChunk(id: Int) = DataChunk(key(id), noData)
         @Suppress("LongParameterList")
-        fun dataChunk(id: Int, timestamp: Long, epoch: Int) =
-                DataChunk(key(id, timestamp, epoch), noData)
+        fun dataChunk(id: Int, timestamp: Long) = DataChunk(key(id, timestamp), noData)
         fun dataQuery(id: Int) = DataChunkQuery(id(id))
         fun dataQuery(id: Int, timestamps: ClosedRange<Long>) = DataChunkQuery(id(id), timestamps)
         private val noData = byteArrayOf()
@@ -148,11 +135,13 @@ class SimNetwork(
     }
 
     @Suppress("SwallowedException")
-    private val KeyHashable.encodedHash get(): Long? {
+    private val KeyHashable.encodedHashes get(): List<Long>? {
         val idId = id as? Id
         return if (idId != null)
             try {
-                idId.identifier.substring(1).toLong() + if (epoch == null) 0 else epoch!! * 10000
+                val idHash = idId.identifier.substring(1).toLong()
+                if (timestamps == 0L..0L) listOf(idHash)
+                else epochAnalyzer.getEpochs(timestamps).map { idHash + it * 10000 }
             } catch (x: NumberFormatException) {
                 null
             }
@@ -218,9 +207,11 @@ class SimNetwork(
 
     private val _log = mutableListOf<RequestLogEntry>()
 
+    private val epochAnalyzer by lazy { peerEnvironments.values.first().koin.epochAnalyzer }
+
     private inner class SimKeyHasher : KeyHasher {
         override fun getHashes(hashable: KeyHashable): Iterable<Long> =
-                hashes[hashable] ?: listOf(hashable.encodedHash ?: 0)
+                hashes[hashable] ?: hashable.encodedHashes ?: listOf(0L)
     }
 
     private inner class SendPathChecker(val item: Transmittable, path: IntArray) {
@@ -240,7 +231,8 @@ class SimNetwork(
             val newRestLog = restLog.dropWhile { !it.isMatchingCurrentHop }
             expect(newRestLog.any()) {
                 "Could not find " +
-                "${id(currSender!!).identifier} --$item--> ${currReceiver.identifier}"
+                "${id(currSender!!).identifier} --$item--> ${currReceiver.identifier}\n" +
+                        log.joinMultiLine(2)
             }
             restLog = newRestLog.drop(1)
         }
@@ -253,14 +245,16 @@ class SimNetwork(
         private val currReceiver get() = id(restPath.first())
     }
 
-    private inner class PeerBuilderImpl(id: Int) : PeerBuilder {
-        override val id: Id = id(id)
+    private inner class PeerBuilderImpl(idNum: Int) : PeerBuilder {
+        override val id: Id = id(idNum)
         override fun knows(vararg otherPeerIds: Int) {
             knownPeers.addAll(otherPeerIds.map { id(it) })
         }
         override fun holdsData(chunk: DataChunk) {
             heldData.add(chunk)
         }
+        override var hashCode: Long? = null
+
         fun create() = SinglePeerEnvironment(
                 peerId = this.id,
                 simulator = simulator,
@@ -282,6 +276,7 @@ class SimNetwork(
         ).apply {
             knownPeers.forEach { addKnownPeer(it) }
             heldData.forEach { addData(it) }
+            if (hashCode != null) hash[Key(id)] = hashCode!!
         }
         val knownPeers = mutableSetOf<Id>()
         val heldData = mutableListOf<DataChunk>()

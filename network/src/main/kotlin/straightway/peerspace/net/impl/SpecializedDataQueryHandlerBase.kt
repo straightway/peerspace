@@ -65,8 +65,6 @@ abstract class SpecializedDataQueryHandlerBase(
 
     protected abstract val pendingDataQueryTracker: PendingDataQueryTracker
 
-    protected abstract fun splitToEpochs(query: DataChunkQuery): Iterable<DataChunkQuery>
-
     private fun Key.isAlreadyForwardedFor(it: PendingDataQuery) =
             it.forwardedChunkKeys.contains(this)
 
@@ -80,9 +78,7 @@ abstract class SpecializedDataQueryHandlerBase(
     }
 
     private fun forward(request: Request<DataChunkQuery>) =
-            splitToEpochs(request.content).forEach {
-                queryForwarder.forward(Request(request.remotePeerId, it))
-            }
+            queryForwarder.forward(request)
 
     private fun returnLocalResult(query: Request<DataChunkQuery>): Boolean {
         val localResult = query.content.result.toList()

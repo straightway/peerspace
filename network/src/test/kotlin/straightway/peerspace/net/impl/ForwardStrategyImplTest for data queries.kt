@@ -39,20 +39,34 @@ class `ForwardStrategyImplTest for data queries` : KoinLoggingDisabler() {
         val queryRequest = Request(originatorId, DataChunkQuery(chunkId))
     }
 
-    private val test get() = Given {
-        ForwardStrategyTestEnvironment().apply {
-            hashes[queryRequest.content] = listOf(100L)
-            hashes[Key(chunkId)] = listOf(100L)
-        }
-    }
-
     @Test
-    fun `fresh query is forwarded to single known nearer peer`() =
-            test while_ {
+    fun `query is forwarded to single known nearer peer`() =
+            Given {
+                ForwardStrategyTestEnvironment().apply {
+                    hashes[queryRequest.content] = listOf(100L)
+                    hashes[Key(chunkId)] = listOf(100L)
+                }
+            } while_ {
                 addKnownPeerForHash(100)
             } when_ {
                 sut.getForwardPeerIdsFor(queryRequest.content, ForwardState())
             } then {
                 expect(it.result is_ Equal to_ Values(idForHash[100]!!))
+            }
+
+    @Test
+    fun `query is forwarded to multiple nearer peers for several epochs`() =
+            Given {
+                ForwardStrategyTestEnvironment().apply {
+                    hashes[queryRequest.content] = listOf(-100L, 100L)
+                    hashes[Key(chunkId)] = listOf(100L)
+                }
+            } while_ {
+                addKnownPeerForHash(100)
+                addKnownPeerForHash(-100)
+            } when_ {
+                sut.getForwardPeerIdsFor(queryRequest.content, ForwardState())
+            } then {
+                expect(it.result is_ Equal to_ Values(idForHash[100]!!, idForHash[-100]!!))
             }
 }

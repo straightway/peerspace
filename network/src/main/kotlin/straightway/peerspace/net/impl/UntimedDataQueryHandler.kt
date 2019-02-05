@@ -16,7 +16,6 @@
 package straightway.peerspace.net.impl
 
 import straightway.peerspace.data.Key
-import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.isMatching
 import straightway.peerspace.net.pendingUntimedDataQueryTracker
 
@@ -30,6 +29,4 @@ class UntimedDataQueryHandler
 
     override fun onChunkForwarding(key: Key) =
             pendingDataQueryTracker.removePendingQueriesIf { content.isMatching(key) }
-
-    override fun splitToEpochs(query: DataChunkQuery) = listOf(query)
 }

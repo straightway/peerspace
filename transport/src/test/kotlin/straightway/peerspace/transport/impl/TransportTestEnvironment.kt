@@ -125,7 +125,7 @@ open class TransportTestEnvironment(
     @Suppress("LongParameterList")
     fun createChunk(id: String, timestamp: LocalDateTime, vararg ids: String) =
             DataChunk(
-                    Key(Id(id), timestamp.toTimestamp(), 0),
+                    Key(Id(id), timestamp.toTimestamp()),
                     ids.map { it }.serializeToByteArray())
 
     @Suppress("LongParameterList")

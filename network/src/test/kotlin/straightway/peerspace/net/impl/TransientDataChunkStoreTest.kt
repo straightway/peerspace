@@ -61,7 +61,7 @@ class TransientDataChunkStoreTest : KoinLoggingDisabler() {
             )
             val sut = environment.dataChunkStore as TransientDataChunkStore
             val untimedChunk = DataChunk(Key(chunkId), chunkData)
-            val timedChunk = DataChunk(Key(chunkId, chunkTimeStamp, 0), chunkData)
+            val timedChunk = DataChunk(Key(chunkId, chunkTimeStamp), chunkData)
         }
     } while_ {
         sut.store(DataChunk(Key(otherChunkId), chunkData))

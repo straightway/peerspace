@@ -16,9 +16,7 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -36,9 +34,7 @@ import straightway.peerspace.net.network
 import straightway.peerspace.net.queryForwarder
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
-import straightway.testing.flow.Same
 import straightway.testing.flow.Values
-import straightway.testing.flow.as_
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
@@ -50,7 +46,6 @@ class SpecializedDataChunkQueryHandlerBaseTest : KoinLoggingDisabler() {
         val queryOriginatorId = Id("remotePeerId")
         val queriedChunkId = Id("chunkID")
         val untimedQueryRequest = Request(queryOriginatorId, DataChunkQuery(queriedChunkId))
-        val timedQueryRequest = Request(queryOriginatorId, DataChunkQuery(queriedChunkId, 2L..7L))
         val matchingChunk = DataChunk(Key(queriedChunkId), byteArrayOf())
         val otherChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())
     }
@@ -61,26 +56,19 @@ class SpecializedDataChunkQueryHandlerBaseTest : KoinLoggingDisabler() {
         var notifiedChunkKeys = listOf<Key>()
         var pendingQueries = setOf<PendingDataQuery>()
         var chunkForwardFailure: Pair<Key, Id>? = null
-        var splitRequests: List<DataChunkQuery>? = null
-        var splitSource: DataChunkQuery? = null
 
         public override val pendingDataQueryTracker by lazy {
-            mock<PendingDataQueryTracker> { _ ->
+            mock<PendingDataQueryTracker> {
                 on { pendingDataQueries }.thenAnswer { pendingQueries }
             }
         }
 
         override fun onChunkForwarding(key: Key) {
-            notifiedChunkKeys += key
+            notifiedChunkKeys = notifiedChunkKeys + key
         }
 
         override fun onChunkForwardFailed(chunkKey: Key, targetId: Id) {
             chunkForwardFailure = Pair(chunkKey, targetId)
-        }
-
-        override fun splitToEpochs(query: DataChunkQuery): List<DataChunkQuery> {
-            splitSource = query
-            return splitRequests ?: listOf(query)
         }
     }
 
@@ -94,7 +82,7 @@ class SpecializedDataChunkQueryHandlerBaseTest : KoinLoggingDisabler() {
                             DerivedSut(isLocalResultPreventingForwarding)
                         },
                         dataChunkStoreFactory = {
-                            mock { _ ->
+                            mock {
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         })
@@ -144,7 +132,7 @@ class SpecializedDataChunkQueryHandlerBaseTest : KoinLoggingDisabler() {
                 chunkStoreQueryResult = listOf(matchingChunk, otherChunk)
             } when_ {
                 sut.handle(untimedQueryRequest)
-            } then { _ ->
+            } then {
                 chunkStoreQueryResult.forEach {
                     verify(environment.network).scheduleTransmission(
                             eq(Request(untimedQueryRequest.remotePeerId, it)),
@@ -208,29 +196,5 @@ class SpecializedDataChunkQueryHandlerBaseTest : KoinLoggingDisabler() {
             } then {
                 expect(sut.chunkForwardFailure is_ Equal to_
                                Pair(matchingChunk.key, queryOriginatorId))
-            }
-
-    @Test
-    fun `timed query is split`() =
-            test() when_ {
-                sut.handle(timedQueryRequest)
-            } then {
-                expect(sut.splitSource is_ Same as_ timedQueryRequest.content)
-            }
-
-    @Test
-    fun `split epoch results of timed query are forwarded`() =
-            test() while_ {
-                sut.splitRequests = listOf(
-                        timedQueryRequest.content.copy(epoch = 1),
-                        timedQueryRequest.content.copy(epoch = 2))
-            } when_ {
-                sut.handle(timedQueryRequest)
-            } then { _ ->
-                inOrder(environment.queryForwarder) {
-                    sut.splitRequests!!.forEach {
-                        verify(environment.queryForwarder).forward(argThat { content == it })
-                    }
-                }
             }
 }

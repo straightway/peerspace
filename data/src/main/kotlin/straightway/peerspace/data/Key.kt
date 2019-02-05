@@ -15,48 +15,25 @@
  */
 package straightway.peerspace.data
 
-import straightway.error.Panic
 import java.io.Serializable
 
 /**
  * A key for a network data chunk.
  */
-class Key private constructor(
+data class Key constructor(
         override val id: Id,
-        val timestamp: Long,
-        override val epoch: Int?
+        val timestamp: Long
 ) : KeyHashable, Serializable {
 
-    constructor(id: Id) : this(id, 0L, null)
-    constructor(id: Id, timestamp: Long, epoch: Int) : this(id, timestamp, epoch as Int?)
-
-    @Suppress("LongParameterList")
-    fun copy(id: Id = this.id, timestamp: Long = this.timestamp, epoch: Int? = this.epoch) =
-            Key(id, timestamp, epoch)
+    constructor(id: Id) : this(id, 0L)
 
     override val timestamps get() = LongRange(timestamp, timestamp)
-
-    override fun equals(other: Any?) =
-            other is Key &&
-            id == other.id &&
-            timestamp == other.timestamp &&
-            epoch == other.epoch
-
-    override fun hashCode() =
-            id.hashCode() xor timestamp.hashCode() xor (epoch?.hashCode() ?: 0)
 
     override fun toString() =
             when {
                 isUntimed -> "Key(${id.identifier})"
-                epoch === null -> "Key(${id.identifier}@$timestamp)"
-                else -> "Key(${id.identifier}@$timestamp[$epoch])"
+                else -> "Key(${id.identifier}@$timestamp)"
             }
-
-    init {
-        if (timestamp == 0L && epoch !== null)
-            throw Panic("Invalid epoch on key construction " +
-                    "(Key(${id.identifier}@$timestamp[$epoch]))")
-    }
 
     companion object {
         const val serialVersionUID = 1L

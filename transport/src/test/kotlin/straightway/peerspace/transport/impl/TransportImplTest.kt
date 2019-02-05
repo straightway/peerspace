@@ -117,7 +117,7 @@ class TransportImplTest : KoinLoggingDisabler() {
                 val timestamp =
                         Duration.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime).toMillis()
                 verify(peerClient)
-                        .store(DataChunk(Key(Id("list"), timestamp, 0), byteArrayOf(1, 2)))
+                        .store(DataChunk(Key(Id("list"), timestamp), byteArrayOf(1, 2)))
             }
 
     @Test
@@ -131,7 +131,7 @@ class TransportImplTest : KoinLoggingDisabler() {
                 val timestamp =
                         Duration.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime).toMillis()
                 verify(peerClient)
-                        .store(DataChunk(Key(Id("list"), timestamp, 0), byteArrayOf(1, 2)))
+                        .store(DataChunk(Key(Id("list"), timestamp), byteArrayOf(1, 2)))
                 verify(peerClient)
                         .store(choppedChunks.last())
             }

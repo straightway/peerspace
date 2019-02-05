@@ -49,7 +49,7 @@ class DataChunkQueryTest : KoinLoggingDisabler() {
                 peer(1).pushDataChunk(Request(id(2), chunk))
                 peer(1).queryData(Request(id(2), query))
                 simulator.run()
-            } then { _ ->
+            } then {
                 expect(log.filter {
                     it.request.content is DataChunk &&
                     it.request.remotePeerId == id(1)
@@ -102,21 +102,17 @@ class DataChunkQueryTest : KoinLoggingDisabler() {
         val timedQuery = SimNetwork.dataQuery(99, 1L..2L)
         Given {
             SimNetwork {
-                hash[timedQuery.withEpoch(0)] = 1
-                hash[timedQuery.withEpoch(1)] = -1
-                addPeer(0) {
-                    knows(-1, 1)
-                }
+                hash[timedQuery] = listOf(1, -1)
+                addPeer(0) { knows(-1, 1) }
                 addPeer(-1) {}
                 addPeer(1) {}
             }
         } when_ {
-            env(0).client.query(timedQuery.withEpoch(0)) {}
-            env(0).client.query(timedQuery.withEpoch(1)) {}
+            env(0).client.query(timedQuery) {}
             simulator.run()
         } then {
-            assertSendPath(timedQuery.withEpoch(0), 0, 0, 1)
-            assertSendPath(timedQuery.withEpoch(1), 0, 0, -1)
+            assertSendPath(timedQuery, 0, 0, 1)
+            assertSendPath(timedQuery, 0, 0, -1)
         }
     }
 
@@ -126,8 +122,7 @@ class DataChunkQueryTest : KoinLoggingDisabler() {
         Given {
             SimNetwork {
                 query = SimNetwork.dataQuery(99, ageOf(0[day]..2[day]))
-                hash[query.withEpoch(0)] = 2
-                hash[query.withEpoch(1)] = -2
+                hash[query] = listOf(2, -2)
                 addPeer(0) { knows(-1, 1) }
                 addPeer(-1) { knows(0, -2) }
                 addPeer(-2) { knows(0) }
@@ -138,8 +133,8 @@ class DataChunkQueryTest : KoinLoggingDisabler() {
             env(0).client.query(query) {}
             simulator.run()
         } then {
-            assertSendPath(query.withEpoch(0), 0, 1, 2)
-            assertSendPath(query.withEpoch(1), 0, -1, -2)
+            assertSendPath(query, 0, 1, 2)
+            assertSendPath(query, 0, -1, -2)
         }
     }
 

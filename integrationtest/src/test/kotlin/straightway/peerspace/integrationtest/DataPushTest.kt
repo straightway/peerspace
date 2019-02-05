@@ -81,7 +81,7 @@ class DataPushTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `is preferred peer is not reachable, data is forwarded to other peer`() =
+    fun `if preferred peer is not reachable, data is forwarded to other peer`() =
             Given {
                 SimNetwork {
                     addPeer(9) { knows(7, 6, 5) }

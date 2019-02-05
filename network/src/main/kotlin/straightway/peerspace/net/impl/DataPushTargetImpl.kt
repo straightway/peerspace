@@ -18,14 +18,12 @@ package straightway.peerspace.net.impl
 
 import straightway.error.Panic
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.isUntimed
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
 import straightway.peerspace.net.chunkSize
 import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.dataQueryHandler
-import straightway.peerspace.net.epochAnalyzer
 import straightway.peerspace.net.network
 import straightway.peerspace.net.peerDirectory
 import straightway.peerspace.net.pushForwarder
@@ -44,21 +42,10 @@ class DataPushTargetImpl : DataPushTarget, PeerComponent by PeerComponent() {
     }
 
     private fun forward(request: Request<DataChunk>) {
-        if (request.content.key.isUntimed) {
-            pushForwarder.forward(request)
-        } else {
-            request.content.epochs.forEach {
-                pushForwarder.forward(
-                        Request(request.remotePeerId, request.content.withEpoch(it)))
-            }
-        }
-
+        pushForwarder.forward(request)
         notifyForwarded(request.content)
         network.executePendingRequests()
     }
-
-    private val DataChunk.epochs get() =
-        epochAnalyzer.getEpochs(key.timestamps)
 
     private fun notifyForwarded(data: DataChunk) {
         val chunkKey = data.key

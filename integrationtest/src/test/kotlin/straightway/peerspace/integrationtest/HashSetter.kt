@@ -13,13 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.integrationtest
 
-package straightway.peerspace.data
+import straightway.peerspace.data.KeyHashable
 
-/**
- * An object which can be hashed according to its ID and its
- * timestamps.
- */
-interface KeyHashable : Identifyable {
-    val timestamps: ClosedRange<Long>
+interface HashSetter {
+    operator fun set(hashable: KeyHashable, newHashes: List<Number>)
+}
+
+operator fun HashSetter.set(hashable: KeyHashable, newHash: Number) {
+    this[hashable] = listOf(newHash.toLong())
 }

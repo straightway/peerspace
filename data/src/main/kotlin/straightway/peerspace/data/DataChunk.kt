@@ -27,9 +27,6 @@ data class DataChunk(val key: Key, val data: ByteArray) : Transmittable {
         private const val KeyHashFactor = 31
     }
 
-    fun withEpoch(epoch: Int) =
-            DataChunk(key.copy(epoch = epoch), data)
-
     override val id get() = key
 
     override fun equals(other: Any?): Boolean {

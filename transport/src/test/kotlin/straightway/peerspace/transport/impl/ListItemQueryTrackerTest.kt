@@ -38,7 +38,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
 
     private companion object {
         val initialChunkWithoutReferences =
-                DataChunk(Key(Id("Id"), 1200, 0), byteArrayOf())
+                DataChunk(Key(Id("Id"), 1200), byteArrayOf())
     }
 
     private val test get() =

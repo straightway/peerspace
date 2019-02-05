@@ -19,7 +19,6 @@ package straightway.peerspace.net.impl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.Hasher
@@ -46,11 +45,11 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
         get() = Given {
             object {
                 var hashCodes = byteArrayOf(0)
-                val hasher = mock<Hasher> { _ ->
+                val hasher = mock<Hasher> {
                     on { getHash(any()) }.thenAnswer { hashCodes }
                 }
                 var epochs = listOf(0)
-                val epochAnalyzer = mock<EpochAnalyzer> { _ ->
+                val epochAnalyzer = mock<EpochAnalyzer> {
                     on { getEpochs(any()) }.thenAnswer { epochs }
                 }
                 val hashable = DataChunkQuery(id, 83L..83L)
@@ -107,19 +106,6 @@ class EpochKeyHasherTest : KoinLoggingDisabler() {
                     verify(hasher).getHash("EPOCH1($id)")
                     verify(hasher).getHash("EPOCH2($id)")
                 }
-            }
-
-    @Test
-    fun `when epoch is specified, use it and ignore time range`() =
-            test when_ {
-                sut.getHashes(
-                        hashable.copy(
-                            timestampsStart = Long.MIN_VALUE,
-                            timestampsEndInclusive = Long.MAX_VALUE,
-                            epoch = 12345))
-            } then {
-                verify(epochAnalyzer, never()).getEpochs(any())
-                verify(hasher).getHash("EPOCH12345($id)")
             }
 
     @Test

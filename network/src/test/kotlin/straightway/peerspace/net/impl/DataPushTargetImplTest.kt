@@ -16,7 +16,6 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
@@ -126,21 +125,5 @@ class DataPushTargetImplTest : KoinLoggingDisabler() {
                 sut.pushDataChunk(pushRequest)
             } then {
                 verify(dataQueryHandler).notifyChunkForwarded(pushRequest.content.key)
-            }
-
-    @Test
-    fun `data chunks belonging to multiple epochs are split`() =
-            test while_ {
-                epochs = listOf(0, 1)
-                chunkKey = chunkKey.copy(timestamp = 83L)
-            } when_ {
-                sut.pushDataChunk(pushRequest)
-            } then {
-                inOrder(pushForwarder) {
-                    verify(pushForwarder).forward(
-                            Request(pushRequest.remotePeerId, pushRequest.content.withEpoch(0)))
-                    verify(pushForwarder).forward(
-                            Request(pushRequest.remotePeerId, pushRequest.content.withEpoch(1)))
-                }
             }
 }

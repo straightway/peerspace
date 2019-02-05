@@ -41,7 +41,7 @@ class EpochKeyHasher : KeyHasher, PeerComponent by PeerComponent() {
             epochs.map { getLongHash("EPOCH$it") }
 
     private val KeyHashable.epochs get() =
-            if (epoch == null) epochAnalyzer.getEpochs(timestamps) else listOf(epoch)
+            epochAnalyzer.getEpochs(timestamps)
 
     private val KeyHashable.dataHashes get() =
             listOf(getLongHash("DATA"))

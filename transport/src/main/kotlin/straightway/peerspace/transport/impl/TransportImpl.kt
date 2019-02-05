@@ -49,7 +49,7 @@ class TransportImpl : Transport, TransportComponent by TransportComponent() {
 
     override fun post(listId: Id, data: ByteArray, crypto: ChunkerCrypto) =
             with(chunker.chopToChunks(data, crypto)) {
-                val key = Key(listId, currentTimeStamp, 0)
+                val key = Key(listId, currentTimeStamp)
                 peerClient.store(DataChunk(key, first().data))
                 drop(1).forEach { peerClient.store(it) }
             }

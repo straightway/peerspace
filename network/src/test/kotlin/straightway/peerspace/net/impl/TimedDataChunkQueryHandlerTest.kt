@@ -16,7 +16,6 @@
 package straightway.peerspace.net.impl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -47,7 +46,7 @@ class TimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
     private companion object {
         val chunkId = Id("chunkId")
         val otherChunkId = Id("otherChunkId")
-        val chunk1 = DataChunk(Key(chunkId, 1, 0), byteArrayOf())
+        val chunk1 = DataChunk(Key(chunkId, 1), byteArrayOf())
         val queryOriginatorId = Id("remotePeerId")
         val matchingQuery = Request(queryOriginatorId, DataChunkQuery(chunkId, 1L..1L))
         val otherMatchingQuery = Request(queryOriginatorId, DataChunkQuery(chunkId, 1L..2L))
@@ -61,14 +60,14 @@ class TimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
                 var chunkStoreQueryResult = listOf<DataChunk>()
                 var pendingQueries = setOf<PendingDataQuery>()
                 val pendingQueryRemoveDelegates = mutableListOf<QueryRequestPredicate>()
-                val epochAnalyzer: EpochAnalyzer = mock { _ ->
+                val epochAnalyzer: EpochAnalyzer = mock {
                     on { getEpochs(any()) }.thenAnswer { epochs }
                 }
                 val environment = PeerTestEnvironment(
                         knownPeersIds = listOf(queryOriginatorId),
                         dataQueryHandlerFactory = { TimedDataQueryHandler() },
                         pendingTimedDataQueryTrackerFactory = {
-                            mock { _ ->
+                            mock {
                                 on { pendingDataQueries }.thenAnswer { pendingQueries }
                                 on { removePendingQueriesIf(any()) }.thenAnswer {
                                     @Suppress("UNCHECKED_CAST")
@@ -78,7 +77,7 @@ class TimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
                             }
                         },
                         dataChunkStoreFactory = {
-                            mock { _ ->
+                            mock {
                                 on { query(any()) }.thenAnswer { chunkStoreQueryResult }
                             }
                         }
@@ -102,7 +101,7 @@ class TimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
                 pendingQueries = setOf(matchingQuery.pending, otherMatchingQuery.pending)
             } when_ {
                 sut.notifyChunkForwarded(chunk1.key)
-            } then { _ ->
+            } then {
                 pendingQueries.forEach {
                     verify(environment.pendingTimedDataQueryTracker)
                             .addForwardedChunk(it, chunk1.key)
@@ -136,35 +135,14 @@ class TimedDataChunkQueryHandlerTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `query is split by epochs`() =
-            test while_ {
-                epochs = listOf(0, 1)
-            } when_ {
+    fun `query is forwarded`() =
+            test when_ {
                 sut.handle(matchingQuery)
             } then {
-                verify(epochAnalyzer).getEpochs(matchingQuery.content.timestamps)
-                inOrder(environment.queryForwarder) {
-                    verify(environment.queryForwarder)
-                            .forward(Request(matchingQuery.remotePeerId,
-                                             matchingQuery.content.withEpoch(0)))
-                    verify(environment.queryForwarder)
-                            .forward(Request(matchingQuery.remotePeerId,
-                                             matchingQuery.content.withEpoch(1)))
-                }
+                verify(environment.queryForwarder)
+                        .forward(Request(matchingQuery.remotePeerId,
+                                         matchingQuery.content))
             }
-
-    @Test
-    fun `query already split into epochsis directly forwarded`() {
-        val epochQuery = Request(queryOriginatorId, DataChunkQuery(chunkId, 1L..1L, 2))
-        test while_ {
-            epochs = listOf(0, 1)
-        } when_ {
-            sut.handle(epochQuery)
-        } then {
-            verify(epochAnalyzer, never()).getEpochs(any())
-            verify(environment.queryForwarder).forward(epochQuery)
-        }
-    }
 
     private val Request<DataChunkQuery>.pending get() = PendingDataQuery(this, LocalDateTime.MIN)
 }

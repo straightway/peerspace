@@ -47,6 +47,6 @@ class ListDataKeyTest {
 
     @Test
     fun `test toListDataKey`() =
-            expect(Key(Id("Id"), 1000L, 0).toListDataKey()
+            expect(Key(Id("Id"), 1000L).toListDataKey()
                     is_ Equal to_ sut)
 }

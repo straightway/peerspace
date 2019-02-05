@@ -13,13 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package straightway.peerspace.integrationtest
 
-package straightway.peerspace.data
+import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.Id
 
-/**
- * An object which can be hashed according to its ID and its
- * timestamps.
- */
-interface KeyHashable : Identifyable {
-    val timestamps: ClosedRange<Long>
+interface PeerBuilder {
+    val id: Id
+    fun knows(vararg otherPeerIds: Int)
+    fun holdsData(chunk: DataChunk)
+    var hashCode: Long?
 }

@@ -38,10 +38,9 @@ class ForwardStrategyImpl : ForwardStrategy, PeerComponent by PeerComponent() {
 
     override fun getForwardPeerIdsFor(item: KeyHashable, state: ForwardState): Set<Id> {
         handleFailedPeers(state)
-        return peersNearerTo(item.hash)
-                .notCoveredBy(state)
-                .take(state.numberOfReceiversToFillUp)
-                .toSet()
+        return item.hashes.flatMap {
+            peersNearerTo(it).notCoveredBy(state).take(state.numberOfReceiversToFillUp)
+        }.toSet()
     }
 
     private fun handleFailedPeers(state: ForwardState) {
@@ -74,7 +73,6 @@ class ForwardStrategyImpl : ForwardStrategy, PeerComponent by PeerComponent() {
 
     private infix fun Id.distanceTo(chunkHash: Long) = abs(chunkHash - hash)
     private val Id.hash get() = Key(this).hashes.single()
-    private val KeyHashable.hash get() = hashes.single()
     private val KeyHashable.hashes get() = keyHasher.getHashes(this)
     private val ForwardState.allPeerIds get() = pending + successful + failed
     private val ForwardState.nonFailed get() = pending + successful

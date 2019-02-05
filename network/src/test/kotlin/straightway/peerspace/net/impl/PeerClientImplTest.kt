@@ -52,7 +52,7 @@ class PeerClientImplTest : KoinLoggingDisabler() {
         val chunkId = Id("chunk")
         val timedQuery = DataChunkQuery(chunkId, 1L..2L)
         val untimedQuery = DataChunkQuery(chunkId)
-        val timedMatchingChunk = DataChunk(Key(chunkId, 1L, 0), byteArrayOf())
+        val timedMatchingChunk = DataChunk(Key(chunkId, 1L), byteArrayOf())
         val untimedMatchingChunk = DataChunk(Key(chunkId), byteArrayOf())
         val notMatchingChunk = DataChunk(Key(Id("otherChunkId")), byteArrayOf())
     }

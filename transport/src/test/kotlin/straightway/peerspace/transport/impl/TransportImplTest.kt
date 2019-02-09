@@ -48,8 +48,9 @@ class TransportImplTest : KoinLoggingDisabler() {
     private val test get() =
         Given { TransportTestEnvironment(transportFactory = { TransportImpl() }) }
 
-    companion object {
+    private companion object {
         val TransportTestEnvironment.sut get() = context.transport
+        val dummyCrypto = ChunkerCrypto.forPlainChunk(mock())
     }
 
     @Test
@@ -57,7 +58,7 @@ class TransportImplTest : KoinLoggingDisabler() {
             test while_ {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
+                sut.store(byteArrayOf(1, 2, 3), dummyCrypto)
             } then {
                 verify(peerClient).store(choppedChunks.single())
             }
@@ -67,7 +68,7 @@ class TransportImplTest : KoinLoggingDisabler() {
             test while_ {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
+                sut.store(byteArrayOf(1, 2, 3), dummyCrypto)
             } then {
                 expect(it.result is_ Equal to_ Id("0"))
             }
@@ -78,7 +79,7 @@ class TransportImplTest : KoinLoggingDisabler() {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(1, 2)))
                 choppedChunks.add(DataChunk(Key(Id("1")), byteArrayOf(3, 4)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
+                sut.store(byteArrayOf(1, 2, 3), dummyCrypto)
             } then {
                 verify(peerClient).store(choppedChunks[0])
                 verify(peerClient).store(choppedChunks[1])
@@ -90,20 +91,19 @@ class TransportImplTest : KoinLoggingDisabler() {
                 choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(1, 2)))
                 choppedChunks.add(DataChunk(Key(Id("1")), byteArrayOf(3, 4)))
             } when_ {
-                sut.store(byteArrayOf(1, 2, 3), ChunkerCrypto())
+                sut.store(byteArrayOf(1, 2, 3), dummyCrypto)
             } then {
                 expect(it.result is_ Equal to_ Id("0"))
             }
 
     @Test
     fun `store passes crypto to chunker`() {
-        val crypto = ChunkerCrypto(signer = mock())
         test while_ {
             choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
         } when_ {
-            sut.store(byteArrayOf(1, 2, 3), crypto)
+            sut.store(byteArrayOf(1, 2, 3), dummyCrypto)
         } then {
-            verify(chunker).chopToChunks(any(), eq(crypto))
+            verify(chunker).chopToChunks(any(), eq(dummyCrypto))
         }
     }
 
@@ -112,7 +112,7 @@ class TransportImplTest : KoinLoggingDisabler() {
             test while_ {
                 choppedChunks.add(DataChunk(Key(Id("hash")), byteArrayOf(1, 2)))
             } when_ {
-                sut.post(Id("list"), byteArrayOf(1, 2, 3), ChunkerCrypto())
+                sut.post(Id("list"), byteArrayOf(1, 2, 3), dummyCrypto)
             } then {
                 val timestamp =
                         Duration.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime).toMillis()
@@ -126,7 +126,7 @@ class TransportImplTest : KoinLoggingDisabler() {
                 choppedChunks.add(DataChunk(Key(Id("hash0")), byteArrayOf(1, 2)))
                 choppedChunks.add(DataChunk(Key(Id("hash1")), byteArrayOf(3, 4)))
             } when_ {
-                sut.post(Id("list"), byteArrayOf(1, 2, 3), ChunkerCrypto())
+                sut.post(Id("list"), byteArrayOf(1, 2, 3), dummyCrypto)
             } then {
                 val timestamp =
                         Duration.between(LocalDateTime.of(0, 1, 1, 0, 0), currentTime).toMillis()
@@ -138,13 +138,12 @@ class TransportImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `post passes crypto to chunker`() {
-        val crypto = ChunkerCrypto(signer = mock())
         test while_ {
             choppedChunks.add(DataChunk(Key(Id("0")), byteArrayOf(3, 2, 1)))
         } when_ {
-            sut.post(Id("listId"), byteArrayOf(1, 2, 3), crypto)
+            sut.post(Id("listId"), byteArrayOf(1, 2, 3), dummyCrypto)
         } then {
-            verify(chunker).chopToChunks(any(), eq(crypto))
+            verify(chunker).chopToChunks(any(), eq(dummyCrypto))
         }
     }
 

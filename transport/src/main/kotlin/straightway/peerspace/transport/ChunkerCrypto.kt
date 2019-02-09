@@ -15,12 +15,28 @@
  */
 package straightway.peerspace.transport
 
+import straightway.peerspace.crypto.CryptoIdentity
 import straightway.peerspace.crypto.Encryptor
+import straightway.peerspace.crypto.SignatureChecker
 import straightway.peerspace.crypto.Signer
 
 /**
  * Crypto entities for chunkers.
  */
-data class ChunkerCrypto(
+class ChunkerCrypto private constructor(
+        val signMode: DataChunkSignMode = DataChunkSignMode.NoKey,
         val signer: Signer? = null,
-        val encryptor: Encryptor? = null)
+        val signatureChecker: SignatureChecker? = null,
+        val encryptor: Encryptor
+) {
+    companion object {
+        fun forPlainChunk(encryptor: Encryptor) =
+                ChunkerCrypto(encryptor = encryptor)
+        fun forSignedChunkWithEmbeddedPublicKey(signId: CryptoIdentity, encryptor: Encryptor) =
+                ChunkerCrypto(DataChunkSignMode.EmbeddedKey, signId, signId, encryptor)
+        fun forSignedChunk(signer: Signer, encryptor: Encryptor) =
+                ChunkerCrypto(DataChunkSignMode.NoKey, signer, null, encryptor)
+        fun forList(listId: CryptoIdentity, encryptor: Encryptor) =
+                ChunkerCrypto(DataChunkSignMode.ListIdKey, listId, listId, encryptor)
+    }
+}

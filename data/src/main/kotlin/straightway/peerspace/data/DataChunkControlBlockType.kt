@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
+package straightway.peerspace.data
 
 /**
  * Enumeration of all control block types which may occur in version 1

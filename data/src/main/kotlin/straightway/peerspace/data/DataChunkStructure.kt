@@ -13,10 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
-
-import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.Key
+package straightway.peerspace.data
 
 /**
  * Representation of the internal structure of a data chunk.

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import straightway.peerspace.crypto.CryptoIdentity
 import straightway.peerspace.crypto.Encryptor
 import straightway.peerspace.crypto.Signer
+import straightway.peerspace.data.DataChunkSignMode
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Null
 import straightway.testing.flow.Same

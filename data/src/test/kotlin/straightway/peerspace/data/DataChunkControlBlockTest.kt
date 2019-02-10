@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
+package straightway.peerspace.data
 
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
@@ -72,20 +72,26 @@ class DataChunkControlBlockTest {
 
     @Test
     fun `too big cpls panics`() =
-            expect({ DataChunkControlBlock(
-                    DataChunkControlBlockType.ReferencedChunk, 0x10, byteArrayOf()) }
+            expect({
+                DataChunkControlBlock(
+                        DataChunkControlBlockType.ReferencedChunk, 0x10, byteArrayOf())
+            }
                     does Throw.type<Panic>())
 
     @Test
     fun `negative cpls panics`() =
-            expect({ DataChunkControlBlock(
-                    DataChunkControlBlockType.ReferencedChunk, -1, byteArrayOf()) }
+            expect({
+                DataChunkControlBlock(
+                        DataChunkControlBlockType.ReferencedChunk, -1, byteArrayOf())
+            }
                     does Throw.type<Panic>())
 
     @Test
     fun `too big data panics`() =
-            expect({ DataChunkControlBlock(
-                    DataChunkControlBlockType.ReferencedChunk, 0, ByteArray(4097)) }
+            expect({
+                DataChunkControlBlock(
+                        DataChunkControlBlockType.ReferencedChunk, 0, ByteArray(4097))
+            }
                     does Throw.type<Panic>())
 
     @Test

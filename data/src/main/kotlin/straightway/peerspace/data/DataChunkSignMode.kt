@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
+package straightway.peerspace.data
 
 /**
  * The mode how to sign a chunk of data.

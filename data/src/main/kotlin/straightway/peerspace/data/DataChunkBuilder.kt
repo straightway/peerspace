@@ -13,9 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
-
-import straightway.peerspace.data.Key
+package straightway.peerspace.data
 
 /**
  * Builder class for data chunks (via DataChunkStructure).

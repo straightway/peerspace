@@ -19,6 +19,7 @@ import straightway.peerspace.crypto.CryptoIdentity
 import straightway.peerspace.crypto.Encryptor
 import straightway.peerspace.crypto.SignatureChecker
 import straightway.peerspace.crypto.Signer
+import straightway.peerspace.data.DataChunkSignMode
 
 /**
  * Crypto entities for chunkers.

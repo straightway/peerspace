@@ -13,11 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
+package straightway.peerspace.data
 
 import org.junit.jupiter.api.Test
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal

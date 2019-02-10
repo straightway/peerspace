@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport
+package straightway.peerspace.data
 
 import straightway.error.Panic
 import straightway.utils.getInt
@@ -74,7 +74,8 @@ class DataChunkControlBlock(
         private const val TYPE_BYTE = 0
         private const val CPLS_SIZE_BYTE1 = 1
         private const val SIZE_BYTE0 = CPLS_SIZE_BYTE1 + 1
-        private val ByteArray.type: DataChunkControlBlockType get() =
+        private val ByteArray.type: DataChunkControlBlockType
+            get() =
             DataChunkControlBlockType.values().single { it.id == this[TYPE_BYTE] }
         private val ByteArray.cpls: Byte get() =
             ((this[1].toInt() and CPLS_MASK) shr (Byte.SIZE_BITS - CPLS_BITS)).toByte()

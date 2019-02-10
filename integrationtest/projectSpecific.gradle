@@ -19,7 +19,7 @@ dependencies {
     compile mockitoKotlin()
     compile project(":peerspace:data")
     compile project(":peerspace:network")
-    testCompile project(":sim")
-    testCompile project(":peerspace:networksimulator")
+    testCompile straightway('sim')
     testCompile straightway('testing')
+    testCompile project(":peerspace:networksimulator")
 }

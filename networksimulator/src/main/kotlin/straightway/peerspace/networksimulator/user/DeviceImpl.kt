@@ -113,7 +113,7 @@ class DeviceImpl(override val id: Id, override val usage: DeviceUsageProfile) :
         }
     }
 
-    @Suppress("MagicNumber")
+    @Suppress("MagicNumber", "LongMethod")
     private fun createPeerEnvironment(): PeerComponent {
         lateinit var environment: PeerComponent
         environment = PeerComponent.createEnvironment(

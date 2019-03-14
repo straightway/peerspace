@@ -56,7 +56,6 @@ import java.util.Random
 
 private const val FULL_DAY_HOURS = 24.0
 
-@Suppress("LargeClass")
 private class MainClass(
         numberOfUsers: Int,
         randomSeed: Long,
@@ -110,7 +109,6 @@ private class MainClass(
             }
         }
 
-    @Suppress("LongMethod")
     fun initializeSimulation() {
         println("Initializing simulation at ${simulator.now}")
         introduceUsersToEachOther()

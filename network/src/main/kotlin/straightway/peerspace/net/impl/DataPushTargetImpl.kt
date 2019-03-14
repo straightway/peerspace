@@ -21,7 +21,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.chunkSize
+import straightway.peerspace.data.chunkSize
 import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.dataQueryHandler
 import straightway.peerspace.net.network

@@ -20,7 +20,7 @@ import com.nhaarman.mockito_kotlin.argForWhich
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
-import straightway.peerspace.net.chunkSize
+import straightway.peerspace.data.chunkSize
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.sim.net.Node
 import straightway.sim.net.Transmission

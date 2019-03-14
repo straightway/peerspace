@@ -15,65 +15,158 @@
  */
 package straightway.peerspace.data
 
+import straightway.error.Panic
+import straightway.utils.getUnsignedShort
+import straightway.utils.indent
+import straightway.utils.joinMultiLine
+import straightway.utils.toByteArray
+import straightway.utils.toHexBlocks
+import straightway.utils.toIntUnsigned
+
 /**
  * Representation of the internal structure of a data chunk.
  */
-class DataChunkStructure(
+class DataChunkStructure private constructor(
+        val version: Byte,
         val controlBlocks: List<DataChunkControlBlock>,
-        val payload: ByteArray)
+        val payload: ByteArray,
+        private val additionalBytes: Int = 0)
 {
-    val version: Byte get() = if (controlBlocks.isEmpty()) 0x00 else 0x01
-    val binary get() = byteArrayOf(version) + controlBlockBinaries + payload
+    val binary get() = when (version.toIntUnsigned()) {
+        0 -> byteArrayOf(version) + payload
+        1 -> byteArrayOf(version) + payload + ByteArray(additionalBytes) { 0 }
+        2 -> byteArrayOf(version) + controlBlockBinaries + payloadMarker + payload
+        else -> throw Panic("Invalid chunk version: $this")
+    }
+
     fun createChunk(key: Key) = DataChunk(key, binary)
 
+    @Suppress("MagicNumber")
+    override fun toString() = "DataChunkStructure " + listOf(
+            "version: $version",
+            "control blocks " + controlBlocks.joinMultiLine(2),
+            "payload (size: ${payload.size}):\n" +
+                    payload.toHexBlocks(32).indent(2)).joinMultiLine(2)
+
+    override fun equals(other: Any?) =
+            other is DataChunkStructure && binary.contentEquals(other.binary)
+
+    override fun hashCode() = binary.contentHashCode()
+
+    object Header {
+        const val MAX_SUPPORTED_VERSION: Byte = 2
+        const val VERSION_FIELD_SIZE = Byte.SIZE_BYTES
+
+        object Version0 {
+            const val SIZE = VERSION_FIELD_SIZE
+        }
+
+        object Version1 {
+            const val ADDITIONAL_BYTES_FIELD_SIZE = Byte.SIZE_BYTES
+            const val SIZE = VERSION_FIELD_SIZE + ADDITIONAL_BYTES_FIELD_SIZE
+        }
+
+        object Version2 {
+            const val CEND_FIELD_SIZE = Byte.SIZE_BYTES
+            const val CEND: Byte = 0x00
+            const val PAYLOAD_SIZE_FIELD_SIZE = Short.SIZE_BYTES
+            const val MIN_SIZE = VERSION_FIELD_SIZE + CEND_FIELD_SIZE + PAYLOAD_SIZE_FIELD_SIZE
+        }
+    }
+
     companion object {
-        operator fun invoke(binaryData: ByteArray) = BinaryAnalyzer(binaryData).result
+        fun fromBinary(binaryData: ByteArray) = when (binaryData.version) {
+            0 -> version0(binaryData.sliceArray(1..binaryData.lastIndex))
+            1 -> analyzeBinaryVersion1(binaryData)
+            2 -> BinaryAnalyzerVersion2(binaryData).result
+            else -> throw Panic("Invalid data chunk version: ${binaryData.version}")
+        }
+
+        fun version0(payload: ByteArray) =
+                DataChunkStructure(0, listOf(), payload)
+        fun version1(payload: ByteArray, additionalBytes: Int) =
+                DataChunkStructure(1, listOf(), payload, additionalBytes)
+        fun version2(controlBlocks: List<DataChunkControlBlock>, payload: ByteArray) =
+                DataChunkStructure(2, controlBlocks, payload)
 
         // region Private companion
 
-        private class BinaryAnalyzer(binaryData: ByteArray) {
+        private val shortBytesInIntBinary = 2..3
+        private val payloadSizeBytes = 1..2
+        private const val payloadStartIndex = 3
+        private const val BINARY_AS_STRING_BLOCK_SIZE = 16
 
-            val result get() = DataChunkStructure(controlBlocks, payload)
+        private val ByteArray.version get() = when (size) {
+            0 -> throw Panic("Empty binary")
+            else -> get(0).toIntUnsigned()
+        }
+
+        private fun analyzeBinaryVersion1(binaryData: ByteArray): DataChunkStructure {
+            val additionalBytes = binaryData[1].toIntUnsigned()
+            return version1(
+                    binaryData.sliceArray(2..(binaryData.lastIndex - additionalBytes)),
+                    additionalBytes)
+        }
+
+        private class BinaryAnalyzerVersion2(binaryData: ByteArray) {
+
+            val result get() = DataChunkStructure.version2(controlBlocks, payload)
 
             private val controlBlocks = mutableListOf<DataChunkControlBlock>()
             private var payload = byteArrayOf()
 
-            private fun parseChunkStructureVersion1(binaryData: ByteArray) {
-                when (binaryData[0].toInt()) {
-                    0 -> payload = binaryData.sliceArray(1..binaryData.lastIndex)
-                    else -> {
-                        val newControlBlock = DataChunkControlBlock(binaryData)
-                        controlBlocks.add(newControlBlock)
-                        val restIndexRange = newControlBlock.binarySize..binaryData.lastIndex
-                        parseChunkStructureVersion1(binaryData.sliceArray(restIndexRange))
-                    }
+            private fun parseChunkStructure(binaryData: ByteArray) {
+                var rest = binaryData
+                while (rest.readControlBlock() || rest.readPayload())
+                    rest = rest.sliceArray(controlBlocks.last().binarySize..rest.lastIndex)
+            }
+            private fun ByteArray.readPayload() = false.also {
+                checkConsistentPayloadSize()
+                payloadRange.also {
+                    checkConsistentPayloadRange(it)
+                    payload = sliceArray(it)
                 }
             }
+
+            private fun ByteArray.checkConsistentPayloadRange(payloadRange: IntRange) {
+                if (size <= payloadRange.endInclusive)
+                    throw Panic("Data chunk has invalid payload size: $payloadRange vs. $size")
+            }
+
+            private fun ByteArray.checkConsistentPayloadSize() {
+                if (size <= payloadSizeBytes.endInclusive)
+                    throw Panic("Data chunk has invalid payload: " +
+                            toHexBlocks(BINARY_AS_STRING_BLOCK_SIZE))
+            }
+
+            private val ByteArray.payloadRange
+                get() = payloadStartIndex until (payloadStartIndex + payloadSize)
+            private val ByteArray.payloadSize
+                get() = sliceArray(payloadSizeBytes).getUnsignedShort()
+            private fun ByteArray.readControlBlock(): Boolean =
+                    (controlBlockType != Header.Version2.CEND).also {
+                        if (it) controlBlocks.add(DataChunkControlBlock(this))
+                    }
+            private val ByteArray.controlBlockType get() =
+                firstOrNull() ?: throw Panic("Data chunk control block type or " +
+                        "CEND marker not found")
 
             init {
-                val version = binaryData[0].toInt()
-                val rest = binaryData.sliceArray(1..binaryData.lastIndex)
-                when (version) {
-                    0 -> payload = rest
-                    1 -> parseChunkStructureVersion1(rest)
-                }
+                parseChunkStructure(binaryData.sliceArray(1..binaryData.lastIndex))
             }
         }
-
-        private val CEND = byteArrayOf(0x00)
 
         // endregion
     }
 
     // region Private
 
-    private val controlBlockBinaries: ByteArray get() {
-        var result = byteArrayOf()
-        controlBlocks.forEach { result += it.binary }
-        if (result.any()) result += CEND
-        return result
-    }
+    private val controlBlockBinaries: ByteArray get() =
+            controlBlocks.fold(byteArrayOf()) { acc, it -> acc + it.binary }
+
+    private val payloadMarker: ByteArray get() =
+            byteArrayOf(Header.Version2.CEND) +
+            payload.size.toByteArray().sliceArray(shortBytesInIntBinary)
 
     // endregion
 }
-

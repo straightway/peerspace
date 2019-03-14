@@ -19,7 +19,7 @@ package straightway.peerspace.networksimulator.activities
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.toTimestamp
-import straightway.peerspace.net.chunkSize*/
+import straightway.peerspace.data.getChunkSize*/
 import straightway.peerspace.networksimulator.profile.dsl.Activity
 /*import straightway.peerspace.networksimulator.user.ActivityEnvironment
 import straightway.peerspace.networksimulator.user.User

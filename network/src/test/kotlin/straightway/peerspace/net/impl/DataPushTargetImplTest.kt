@@ -27,7 +27,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.net.EpochAnalyzer
 import straightway.peerspace.net.Request
-import straightway.peerspace.net.chunkSize
+import straightway.peerspace.data.chunkSize
 import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.dataPushTarget
 import straightway.peerspace.net.dataQueryHandler

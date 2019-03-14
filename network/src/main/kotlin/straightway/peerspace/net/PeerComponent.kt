@@ -34,13 +34,12 @@ import straightway.utils.TimeProvider
  */
 interface PeerComponent : KoinModuleComponent {
 
-    @Suppress("LargeClass")
     companion object {
         operator fun invoke() = Impl()
 
         class Impl : PeerComponent, KoinModuleComponent by KoinModuleComponent()
 
-        @Suppress("LongParameterList")
+        @Suppress("LongParameterList", "LongMethod")
         fun createEnvironment(
                 peerId: Id,
                 configurationFactory: () -> Configuration,

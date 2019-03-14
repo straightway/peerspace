@@ -21,5 +21,5 @@ import straightway.peerspace.data.DataChunk
  * Cut data into DataChunks and re-combine them again.
  */
 interface Chunker {
-    fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto): List<DataChunk>
+    fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto): Set<DataChunk>
 }

@@ -83,16 +83,22 @@ class DataChunkControlBlockTest {
             expect({
                 DataChunkControlBlock(
                         DataChunkControlBlockType.ReferencedChunk, -1, byteArrayOf())
-            }
-                    does Throw.type<Panic>())
+            } does Throw.type<Panic>())
+
+    @Test
+    fun `signature with invalid sign mode panics`() =
+            expect({ DataChunkControlBlock(
+                            DataChunkControlBlockType.Signature,
+                            (DataChunkSignMode.values().map { it.id }.max()!! + 1).toByte(),
+                            byteArrayOf(1, 2, 3))
+            } does Throw.type<Panic>())
 
     @Test
     fun `too big data panics`() =
             expect({
                 DataChunkControlBlock(
                         DataChunkControlBlockType.ReferencedChunk, 0, ByteArray(4097))
-            }
-                    does Throw.type<Panic>())
+            } does Throw.type<Panic>())
 
     @Test
     fun `construction from binary`() {
@@ -103,20 +109,24 @@ class DataChunkControlBlockTest {
     }
 
     @Test
-    fun `construction from binary with offset`() {
-        val sut = DataChunkControlBlock(ByteArray(1) + binarySut, 1)
-        expect(sut.type is_ Equal to_ DataChunkControlBlockType.ReferencedChunk)
-        expect(sut.cpls is_ Equal to_ 0xA)
-        expect(sut.content is_ Equal to_ content)
-    }
+    fun `toString yields proper string for anything but a reference`() =
+            Given {
+                DataChunkControlBlock(
+                        DataChunkControlBlockType.PublicKey, 0xA, content)
+            } when_ {
+                toString()
+            } then {
+                expect(it.result is_ Equal to_
+                        "DataChunkControlBlock(PublicKey, 0xa, (3 bytes)[a1 02 03])")
+            }
 
     @Test
-    fun `toString yields proper string`() =
+    fun `toString yields proper string for a reference`() =
             test when_ {
                 toString()
             } then {
                 expect(it.result is_ Equal to_
-                        "DataChunkControlBlock(ReferencedChunk, 0xa, [a1 02 03])")
+                        "DataChunkControlBlock(ReferencedChunk, 0xa, ${Id(content)})")
             }
 
     @Test
@@ -203,4 +213,23 @@ class DataChunkControlBlockTest {
             } then {
                 expect(it.result is_ Equal to_ 6)
             }
+
+    @Test
+    fun `binary control block with invalid type panics`() =
+            expect({ DataChunkControlBlock(byteArrayOf(0xff.toByte(), 0x00, 0x00))}
+                    does Throw.type<Panic>())
+
+    @Test
+    fun `binary control block with too large size panics`() =
+            expect({ DataChunkControlBlock(byteArrayOf(0x01, 0x00, 0x01))}
+                    does Throw.type<Panic>())
+
+    @Test
+    fun `binary signature control block with invalid sign mode panics`() =
+            expect({ DataChunkControlBlock(
+                    byteArrayOf(
+                            DataChunkControlBlockType.Signature.id,
+                            ((DataChunkSignMode.values().map { it.id }.max()!! + 1) shl 4).toByte(),
+                            0x00))}
+                    does Throw.type<Panic>())
 }

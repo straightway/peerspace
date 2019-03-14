@@ -15,17 +15,15 @@
  */
 package straightway.peerspace.data
 
+import kotlin.math.min
+
 /**
- * Builder class for data chunks (via DataChunkStructure).
+ * Builder class for data chunks (via DataChunkStructure) of version 1.
  */
-class DataChunkBuilder private constructor() {
+class DataChunkVersion2Builder(val chunkSize: Int) {
 
     companion object {
-        operator fun invoke(init: DataChunkBuilder.() -> Unit) =
-                DataChunkBuilder().run {
-                    init()
-                    getDataChunkStructure(controlBlocks)
-                }
+        const val VERSION: Byte = 2
     }
 
     var signMode: DataChunkSignMode = DataChunkSignMode.NoKey
@@ -34,16 +32,32 @@ class DataChunkBuilder private constructor() {
     var contentKey: ByteArray? = null
     var references = listOf<ByteArray>()
     var payload = byteArrayOf()
-    val signablePart get() = getDataChunkStructure(signableBlocks).binary.allBytesExceptVersion
+
+    fun setPayloadPart(fullPayload: ByteArray): ByteArray {
+        payload = fullPayload.sliceArray(0 until min(fullPayload.size, availablePayloadBytes))
+        return fullPayload.sliceArray(payload.size..fullPayload.lastIndex)
+    }
+
+    val signablePart get() =
+        getDataChunkStructure(signableBlocks).binary.allBytesExceptVersion
+
+    val availableBytes get() =
+        availablePayloadBytes - payload.size
+    val availablePayloadBytes get() =
+        chunkSize - controlBlocksSize - DataChunkStructure.Header.Version2.MIN_SIZE
+
+    val chunkStructure get() = getDataChunkStructure(controlBlocks)
 
     // region Private
 
+    private val controlBlocksSize get() =
+        controlBlocks.fold(0) { acc, block -> acc + block.binarySize }
     private fun getDataChunkStructure(blocks: List<DataChunkControlBlock>) =
-            DataChunkStructure(blocks, payload)
+            DataChunkStructure.version2(blocks, payload)
     private val controlBlocks get() = signatureBlock + signableBlocks
     private val signableBlocks get() = publicKeyBlock + contentKeyBlock + referenceBlocks
     private val signatureBlock get() =
-        createControlBlock(DataChunkControlBlockType.Signature, signature, signMode.id)
+            createControlBlock(DataChunkControlBlockType.Signature, signature, signMode.id)
     private val publicKeyBlock get() =
             createControlBlock(DataChunkControlBlockType.PublicKey, publicKey)
     private val contentKeyBlock get() =
@@ -60,6 +74,3 @@ class DataChunkBuilder private constructor() {
 
     // endregion
 }
-
-fun createDataChunk(key: Key, init: DataChunkBuilder.() -> Unit) =
-        DataChunkBuilder(init).createChunk(key)

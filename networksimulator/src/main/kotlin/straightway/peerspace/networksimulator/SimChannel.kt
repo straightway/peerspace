@@ -16,7 +16,7 @@
 
 package straightway.peerspace.networksimulator
 
-import straightway.peerspace.net.chunkSize
+import straightway.peerspace.data.chunkSize
 import straightway.peerspace.net.Channel
 import straightway.peerspace.net.TransmissionResultListener
 import straightway.sim.net.Message

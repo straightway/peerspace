@@ -31,7 +31,6 @@ import straightway.utils.TimeProvider
  */
 interface TransportComponent : KoinModuleComponent {
 
-    @Suppress("LargeClass")
     companion object {
         operator fun invoke() = Impl()
 

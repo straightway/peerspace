@@ -16,38 +16,45 @@
 package straightway.peerspace.data
 
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.testing.bdd.Given
-import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
-import straightway.testing.flow.Values
+import straightway.testing.flow.False
+import straightway.testing.flow.Throw
+import straightway.testing.flow.True
+import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.joinMultiLine
 
+@Suppress("ReplaceCallWithBinaryOperator")
 class DataChunkStructureTest {
 
     private companion object {
+        const val VERSION2 = 2.toByte()
         val payload = byteArrayOf(4, 5, 6)
         val controlBlock = DataChunkControlBlock(
                 DataChunkControlBlockType.ReferencedChunk,
                 0xA,
                 byteArrayOf(1, 2, 3))
-        val binaryChunk =
-                byteArrayOf(
-                        0x01,                                // version
-                        // Begin referenced chunk control block
-                        DataChunkControlBlockType.ReferencedChunk.id, // type
-                        0xA0.toByte(), 0x03,                 // cpls and content size
-                        1, 2, 3,                             // reference content
-                        // End referenced chunk control block
-                        0,                                   // CEND
-                        4, 5, 6)                             // payload
 
+        fun createArbitraryStructure() = DataChunkStructure.version2(
+                listOf(
+                        DataChunkControlBlock(
+                                DataChunkControlBlockType.Signature,
+                                DataChunkSignMode.EmbeddedKey.id,
+                                byteArrayOf(1, 2, 3)),
+                        DataChunkControlBlock(
+                                DataChunkControlBlockType.PublicKey,
+                                0x00,
+                                byteArrayOf(4, 5, 6))),
+                ByteArray(33) { it.toByte() })
     }
 
     private val test get() =
         Given {
-            DataChunkStructure(listOf(controlBlock), payload)
+            DataChunkStructure.version2(listOf(controlBlock), payload)
         }
 
     @Test
@@ -55,7 +62,7 @@ class DataChunkStructureTest {
             test when_ {
                 version
             } then {
-                expect(it.result is_ Equal to_ 0x01)
+                expect(it.result is_ Equal to_ VERSION2)
             }
 
     @Test
@@ -91,125 +98,103 @@ class DataChunkStructureTest {
             }
 
     @Test
-    fun `binary has specified version`() =
-            test when_ {
-                binary[0]
-            } then {
-                expect(it.result is_ Equal to_ 0x01)
-            }
+    fun `data chunk from empty binary panics`() =
+            expect({ DataChunkStructure.fromBinary(byteArrayOf()) } does Throw.type<Panic>())
 
     @Test
-    fun `binary has specified chunk control block`() =
-            test when_ {
-                binary
-            } then {
-                expect(DataChunkControlBlock(it.result, 1) is_ Equal to_ controlBlock)
-            }
+    fun `data chunk from binary with a future version panics`() =
+            expect({
+                DataChunkStructure.fromBinary(
+                        byteArrayOf((DataChunkStructure.Header.MAX_SUPPORTED_VERSION + 1).toByte()))
+            } does Throw.type<Panic>())
 
     @Test
-    fun `binary has specified payload`() =
-            test  when_ {
-                binary
-            } then {
-                expect(it.result.sliceArray((it.result.lastIndex - 2)..it.result.lastIndex) is_
-                        Equal to_ payload)
-            }
-
-    @Test
-    fun `structure without control block has version 0`() =
+    fun `toString yields proper result`() =
             Given {
-                DataChunkStructure(listOf(), payload)
+                createArbitraryStructure()
             } when_ {
-                version
+                toString()
             } then {
-                expect(it.result is_ Equal to_ 0)
+                expect(it.result is_ Equal to_ "DataChunkStructure " +
+                        listOf(
+                                "version: $VERSION2",
+                                "control blocks ${this.controlBlocks.joinMultiLine(2)}\n" +
+                                        "payload (size: 33):\n" +
+                                        "  00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f " +
+                                        "10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f\n" +
+                                        "  20").joinMultiLine(2))
             }
 
     @Test
-    fun `version 0 chunk has no CEND marker`() =
+    fun `two equal chunks equal`() =
             Given {
-                DataChunkStructure(listOf(), payload)
+                object {
+                    val a = createArbitraryStructure()
+                    val b = createArbitraryStructure()
+                }
             } when_ {
-                binary
+                a.equals(b)
             } then {
-                expect(it.result is_ Equal to_ byteArrayOf(0x00) + payload)
+                expect(it.result is_ True)
             }
 
     @Test
-    fun `version from binary version 0`() =
+    fun `two different chunks differ`() =
             Given {
-                DataChunkStructure(byteArrayOf(0x00, 1, 2, 3))
+                object {
+                    val a = DataChunkStructure.version2(listOf(), byteArrayOf())
+                    val b = createArbitraryStructure()
+                }
             } when_ {
-                version
+                a.equals(b)
             } then {
-                expect(it.result is_ Equal to_ 0)
+                expect(it.result is_ False)
             }
 
     @Test
-    fun `payload from binary version 0`() =
+    fun `DataChunkStructure is not equal to other class instances`() =
             Given {
-                DataChunkStructure(byteArrayOf(0x00, 1, 2, 3))
+                object {
+                    val a = DataChunkStructure.version2(listOf(), byteArrayOf())
+                    val b = 83
+                }
             } when_ {
-                payload
+                a.equals(b)
             } then {
-                expect(it.result is_ Equal to_ byteArrayOf(1, 2, 3))
+                expect(it.result is_ False)
             }
 
     @Test
-    fun `control blocks from binary version 0 is empty`() =
+    fun `two equal blocks have equal hash codes`() =
             Given {
-                DataChunkStructure(byteArrayOf(0x00, 1, 2, 3))
+                object {
+                    val a = createArbitraryStructure()
+                    val b = createArbitraryStructure()
+                }
             } when_ {
-                controlBlocks
+                a.hashCode() == b.hashCode()
             } then {
-                expect(it.result is_ Empty)
+                expect(it.result is_ True)
             }
 
     @Test
-    fun `version from binary version 1`() =
+    fun `two different blocks have different hash codes`() =
             Given {
-                DataChunkStructure(binaryChunk)
+                object {
+                    val a = DataChunkStructure.version2(listOf(), byteArrayOf())
+                    val b = createArbitraryStructure()
+                }
             } when_ {
-                version
+                a.hashCode() == b.hashCode()
             } then {
-                expect(it.result is_ Equal to_ 1)
+                expect(it.result is_ False)
             }
 
     @Test
-    fun `payload from binary version 1`() =
-            Given {
-                DataChunkStructure(binaryChunk)
-            } when_ {
-                payload
-            } then {
-                expect(it.result is_ Equal to_ byteArrayOf(4, 5, 6))
-            }
+    fun `MAX_SUPPORTED_VERSION is 2`() =
+            expect(DataChunkStructure.Header.MAX_SUPPORTED_VERSION is_ Equal to_ 2)
 
     @Test
-    fun `control block from binary version 1`() =
-            Given {
-                DataChunkStructure(binaryChunk)
-            } when_ {
-                controlBlocks
-            } then {
-                expect(it.result is_ Equal to_ Values(controlBlock))
-            }
-
-    @Test
-    fun `multiple control block from binary version 1`() {
-        val chunkStructure = DataChunkBuilder {
-            signMode = DataChunkSignMode.ListIdKey
-            signature = byteArrayOf(1, 2, 3)
-            contentKey = byteArrayOf(4, 5, 6)
-            payload = byteArrayOf(7, 8, 9)
-        }
-
-        Given {
-            DataChunkStructure(chunkStructure.binary)
-        } when_ {
-            controlBlocks
-        } then {
-            expect(it.result is_ Equal to_ chunkStructure.controlBlocks)
-        }
-    }
+    fun `VERSION_FIELD_SIZE is 1`() =
+            expect(DataChunkStructure.Header.VERSION_FIELD_SIZE is_ Equal to_ 1)
 }

@@ -13,11 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.net
+@file:Suppress("MagicNumber")
+package straightway.peerspace.data
 
 import straightway.units.byte
 import straightway.units.get
-import straightway.units.ki
 
-@Suppress("MagicNumber")
-val chunkSize = 64[ki(byte)]
+const val CHUNK_SIZE_BYTES = 0xffff
+val chunkSize = CHUNK_SIZE_BYTES[byte]

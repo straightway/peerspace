@@ -18,6 +18,7 @@ package straightway.peerspace.data
 import straightway.error.Panic
 import straightway.utils.getInt
 import straightway.utils.toByteArray
+import straightway.utils.toHex
 import kotlin.experimental.and
 
 /**
@@ -28,18 +29,19 @@ class DataChunkControlBlock(
         val cpls: Byte,
         val content: ByteArray
 ) {
-
     constructor(binary: ByteArray) : this(binary.type, binary.cpls, binary.content)
-    constructor(binary: ByteArray, offset: Int) : this(binary.sliceArray(offset..binary.lastIndex))
 
     val binary get() = byteArrayOf(type.id) + bytes + content
     val binarySize get() = content.size + NON_CONTENT_SIZE
 
     init {
         if (cpls !in 0..MAX_CPLS)
-            throw Panic("Control block type $type: Invalid CPLS ($cpls)" )
+            throw Panic("Control block type $type: Invalid CPLS ($cpls)")
         if (MAX_CONTENT_SIZE < content.size)
-            throw Panic("Control block type $type: Too much data (${content.size})" )
+            throw Panic("Control block type $type: Too much data (${content.size})")
+        if (type == DataChunkControlBlockType.Signature &&
+                cpls !in DataChunkSignMode.values().map { it.id })
+            throw Panic("Control block type $type: Invalid sign mode 0x${cpls.toString(HEX)}")
     }
 
     override fun equals(other: Any?) =
@@ -55,28 +57,33 @@ class DataChunkControlBlock(
             "DataChunkControlBlock(" +
                     "$type, " +
                     "0x${cpls.toString(HEX)}, " +
-                    "[${content.joinToString(" ") {
-                        ((it.toInt() and CPLS_MASK) shr CPLS_BITS).toString(HEX) +
-                                (it and CONTENT_SIZE_HI_MASK).toString(HEX)
-                    }}])"
+                    when (type) {
+                        DataChunkControlBlockType.ReferencedChunk ->
+                            "${Id(content)})"
+                        else ->
+                            "(${content.size} bytes)" +
+                                    "[${content.map { it.toHex() }.joinToString(" ")}])"
+                    }
 
     // region Private
 
     companion object {
-        private const val NON_CONTENT_SIZE = Byte.SIZE_BYTES + Short.SIZE_BYTES
+        private const val TYPE_SIZE = Byte.SIZE_BYTES
+        private const val CPLS_SIZE = 2 * Byte.SIZE_BYTES
+        const val NON_CONTENT_SIZE = TYPE_SIZE + CPLS_SIZE
+        private const val HEX = 16
         private const val MAX_CPLS = 0xF
         private const val MAX_CONTENT_SIZE = 0xFFF
         private const val CPLS_MASK = 0xF0
         private const val CONTENT_SIZE_HI_MASK: Byte = 0x0F
-        private const val HEX = 16
         private const val CPLS_BITS = 4
         private const val SIZE_BITS = 12
         private const val TYPE_BYTE = 0
         private const val CPLS_SIZE_BYTE1 = 1
         private const val SIZE_BYTE0 = CPLS_SIZE_BYTE1 + 1
         private val ByteArray.type: DataChunkControlBlockType
-            get() =
-            DataChunkControlBlockType.values().single { it.id == this[TYPE_BYTE] }
+            get() = DataChunkControlBlockType.values().singleOrNull { it.id == this[TYPE_BYTE] }
+                    ?: throw Panic("Control block type: 0x${this[TYPE_BYTE].toString(16)}: Invalid")
         private val ByteArray.cpls: Byte get() =
             ((this[1].toInt() and CPLS_MASK) shr (Byte.SIZE_BITS - CPLS_BITS)).toByte()
         private val ByteArray.contentSize: Int
@@ -85,9 +92,12 @@ class DataChunkControlBlock(
                     0,
                     this[CPLS_SIZE_BYTE1] and CONTENT_SIZE_HI_MASK,
                     this[SIZE_BYTE0]).getInt()
-        private val ByteArray.content: ByteArray get() {
-            return sliceArray(NON_CONTENT_SIZE..(NON_CONTENT_SIZE + contentSize - 1))
-        }
+        private val ByteArray.content: ByteArray get() =
+            if (size <= NON_CONTENT_SIZE + contentSize - 1)
+                throw Panic("Control block type $type: Not enough content " +
+                        "(encoded content size: $contentSize, " +
+                        "actual content size: ${size - NON_CONTENT_SIZE})")
+            else sliceArray(NON_CONTENT_SIZE..(NON_CONTENT_SIZE + contentSize - 1))
     }
 
     private val bytes = sizeAndCPLSCombined.toByteArray().takeLast(2)

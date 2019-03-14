@@ -144,7 +144,7 @@ open class TransportTestEnvironment(
     }
 
     private fun createChunker() = mock<Chunker> {
-        on { chopToChunks(any(), any()) }.thenAnswer { choppedChunks }
+        on { chopToChunks(any(), any()) }.thenAnswer { choppedChunks.toSet() }
     }
 
     private fun createDeChunker() = mock<DeChunker> {

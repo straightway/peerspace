@@ -23,7 +23,7 @@ import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.data.untimedData
-import straightway.peerspace.net.chunkSize
+import straightway.peerspace.data.chunkSize
 import straightway.peerspace.net.Configuration
 import straightway.peerspace.net.dataChunkStore
 import straightway.units.byte

@@ -19,10 +19,13 @@ It may be necessary in the future to enhance the header structure. This may be r
 defining a new header version. Since chunks with all previous header version still may be
 around, always all header versions must be supported by the software.
 
+Integer values are always encoded in big endian byte order.
+
 ### Version 0
 
-A version 0 chunk header only consists of the first version byte, which must be 0x00, the
-complete rest of the chunk is the payload.
+A version 0 chunk contains a header only consisting of the version number. The rest
+of the chunk os the payload.
+
 
                  Header||
                 Version||Payload
@@ -34,21 +37,49 @@ complete rest of the chunk is the payload.
 
 ### Version 1
 
-A version 1 chunk contains a header starting with a verson byte of 0x01 and a series of
-variable size _control blocks_, terminated by the CEND marker (0x00). The the payload follows
-and takes the rest of the chunk. 
+A version 1 chunk contains a header consisting of the version number and a field
+MSZE (Minus SiZE), which contains the difference of the chunk size and the payload size in bytes.
+The rest of the chunk os the payload.
+
+
+                      Header||
+                Version|    ||Payload
+                  +----+----++----+
+    Size in Bytes |   1|   1||   *|
+                  +----+----++----+
+          Meaning |0x01|MSZE||PYLD|
+                  +----+----++----+
+
+A version 1 chunk can be used for "almost full" payload. If you have a payload of
+e.g. the _CHUNK_SIZE_ - 3, then it is impossible to encode this using a version 0
+or version 2 chunk: The first one has a fixed payload size of _CHUNK_SIZE_ - 2, the
+second one a maximum payload size óf _CHUNK_SIZE_ - 4. In this case, a version 1
+chunk can do the job with a MSZE value of 1, meaning the actual payload size is the
+maximum payload size - 1, which is equal to _CHUNK_SIZE_ - 3.
+
+The minimum payload size for version 1 chunks is _CHUNK_SIZE_ - 257.
+
+
+### Version 2
+
+A version 2 chunk contains a header starting with a verson byte of 0x01 and a series of
+variable size _control blocks_, terminated by the CEND marker (0x00). The the payload size
+and the payload content follow. If the payload does not take the whole size of the chunk,
+it is filled up with zeros. If the chunk does not contain a CEND marker, the payload is
+empty by definition.
+
 
                                          Header||
                 Version||ControlBlock* ||*|CEND||Payload
-                  +----++----+----+----++ +----++----+
-    Size in Bytes |   1||   1|   2|CSZE||*|   1||   *|
-                  +----++----+----+----++ +----++----+
-          Meaning |0x01||TYPE|SZE+|CONT||*|0x00||PYLD|
-                  +----++----+----+----++ +----||----+
+                  +----++----+----+----++ +----++----+----+----+
+    Size in Bytes |   1||   1|   2|CSZE||*|   1||   2|PSZE|   *|
+                  +----++----+----+----++ +----++----+----+----+
+          Meaning |0x02||TYPE|SZE+|CONT||*|0x00||PSZE|PYLD|0x00|
+                  +----++----+----+----++ +----||----+----+----+
 
 Each _control block_ has the following fields:
 * TYPE: The type of _control block_. Must not be 0x00. For possible types see below. In the future,
-  more types of _control blocks_ may be defined for the version 1 chunk header.
+  more types of _control blocks_ may be defined for the version 2 chunk header.
 * SZE+: This field has two sub fields:
   * CSZE: Bits 0-11: The size of the _control block_ content (CONT), in bytes.
   * CPLS: Bits 12-16: Can be used to store additional info defined by the block type. 
@@ -91,11 +122,27 @@ Each _control block_ has the following fields:
 * CPLS: Unused 
 * Multiplicity: 0..*
 * Contains a reference to another data chunk. The combined payloads of all directly and indirectly
-  referenced chunks, plus the own payload of the referencing chunk, is called the
-  _aggregated payload_.
+  referenced chunks (in depth-first order) plus the own payload of the referencing chunk is called
+  the _aggregated payload_.
   * The payloads must be concatenated in the order defined by the sequence of _referenced chunk
     control blocks_, the payload of the referencing chunk is added as last part.
   * This also recursively applies to referenced chunks which in turn reference other chunks.
   * To prevent infinitely large _aggregated chunks_, it is not allowed to create reference
     cycles. Chunks containing reference cycles shall be regarded as corrupt and be ignored.
   * Only untimed data chunks can be referenced, i.e. no data chunks being list items.
+
+#### Redundancy Chunk Control Block (0x05)
+
+* Type ID: 0x05
+* CPLS: Unised
+* Multiplicity: 0..*, only once after a Referenced Chunk Control Block
+* Contains a reference to a redundant data chunk, allowing to reconstruct any
+  other of the referenced chunks, if n-1 chunks referenced before this block are
+  available. To achieve this, the redundant data chunk contains the bitwise xor
+  combination of all referenced chunks. To also cover the control blocks of referenced
+  chunks, the redundancy chunk is an unversioned chunk, which uses all bytes for the
+  xor combination.
+  
+  A chunk may contain more than one Redundancy Chunk Control Block. Each of these
+  blocks refers to the references before it, either to the beginning of the chunk
+  or until the previous Redundancy Chunk Control Block.

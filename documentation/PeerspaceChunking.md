@@ -82,7 +82,7 @@ Each _control block_ has the following fields:
   more types of _control blocks_ may be defined for the version 2 chunk header.
 * SZE+: This field has two sub fields:
   * CSZE: Bits 0-11: The size of the _control block_ content (CONT), in bytes.
-  * CPLS: Bits 12-16: Can be used to store additional info defined by the block type. 
+  * CPLS: Bits 12-15: Can be used to store additional info defined by the block type. 
 * CONT: The content of the _control block_, length as specified by CSZE
 
 #### Signature Control Block (0x01)

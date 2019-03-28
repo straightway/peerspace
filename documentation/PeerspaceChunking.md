@@ -121,12 +121,12 @@ Each _control block_ has the following fields:
 * Type ID: 0x04
 * CPLS: Unused 
 * Multiplicity: 0..*
-* Contains a reference to another data chunk. The combined payloads of all directly and indirectly
-  referenced chunks (in depth-first order) plus the own payload of the referencing chunk is called
-  the _aggregated payload_.
-  * The payloads must be concatenated in the order defined by the sequence of _referenced chunk
-    control blocks_, the payload of the referencing chunk is added as last part.
-  * This also recursively applies to referenced chunks which in turn reference other chunks.
+* Contains a reference to another data chunk. The own payload of the referencing chunk plus the
+  combined payloads of all directly and indirectly referenced chunks (in depth-first order) is
+  called the _aggregated payload_.
+  * The payload of the referencing chunk is the first part, the _aggregated payloads_ of the
+    referenced chunks are added in the order of occurance of their _referenced chunk control
+    blocks_.
   * To prevent infinitely large _aggregated chunks_, it is not allowed to create reference
     cycles. Chunks containing reference cycles shall be regarded as corrupt and be ignored.
   * Only untimed data chunks can be referenced, i.e. no data chunks being list items.

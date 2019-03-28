@@ -298,14 +298,13 @@ class DataChunkVersion2BuilderTest {
     }
 
     @Test
-    fun `setPayloadPart for partly fitting payload adds fitting part`() {
+    fun `setPayloadPart for partly fitting payload adds fitting part from end`() {
         val fullPayload = ByteArray(testChunkSize) { it.toByte() }
         DataChunkVersion2Builder(testChunkSize).apply {
             val rest = setPayloadPart(fullPayload)
             expect(payload is_ Equal
-                    to_ fullPayload.sliceArray(0 until (testChunkSize - 4)))
-            expect(rest is_ Equal to_
-                    fullPayload.sliceArray((testChunkSize - 4) until testChunkSize))
+                    to_ fullPayload.sliceArray(4..(fullPayload.lastIndex)))
+            expect(rest is_ Equal to_ fullPayload.sliceArray(0..3))
         }
     }
 
@@ -317,10 +316,11 @@ class DataChunkVersion2BuilderTest {
             references += byteArrayOf(4, 5, 6)
             val rest = setPayloadPart(fullPayload)
             expect(availableBytes is_ Equal to_ 0)
+            val payloadStartIndex = fullPayload.size - availablePayloadBytes
             expect(payload is_ Equal
-                    to_ fullPayload.sliceArray(0 until availablePayloadBytes))
+                    to_ fullPayload.sliceArray(payloadStartIndex..fullPayload.lastIndex))
             expect(rest is_ Equal to_
-                    fullPayload.sliceArray(availablePayloadBytes..fullPayload.lastIndex))
+                    fullPayload.sliceArray(0 until payloadStartIndex))
         }
     }
 

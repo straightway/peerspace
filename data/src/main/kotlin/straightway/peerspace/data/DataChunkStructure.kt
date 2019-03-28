@@ -34,7 +34,7 @@ class DataChunkStructure private constructor(
 {
     val binary get() = when (version.toIntUnsigned()) {
         0 -> byteArrayOf(version) + payload
-        1 -> byteArrayOf(version) + payload + ByteArray(additionalBytes) { 0 }
+        1 -> byteArrayOf(version) + version1AdditionalBytes + payload + version1FilledBytes
         2 -> byteArrayOf(version) + controlBlockBinaries + payloadMarker + payload
         else -> throw Panic("Invalid chunk version: $this")
     }
@@ -45,8 +45,11 @@ class DataChunkStructure private constructor(
     override fun toString() = "DataChunkStructure " + listOf(
             "version: $version",
             "control blocks " + controlBlocks.joinMultiLine(2),
-            "payload (size: ${payload.size}):\n" +
+            "payload (size: ${payload.size}$additionalBytesString):\n" +
                     payload.toHexBlocks(32).indent(2)).joinMultiLine(2)
+
+    private val additionalBytesString get() =
+        if (version == 1.toByte()) " + $additionalBytes" else ""
 
     override fun equals(other: Any?) =
             other is DataChunkStructure && binary.contentEquals(other.binary)
@@ -64,6 +67,8 @@ class DataChunkStructure private constructor(
         object Version1 {
             const val ADDITIONAL_BYTES_FIELD_SIZE = Byte.SIZE_BYTES
             const val SIZE = VERSION_FIELD_SIZE + ADDITIONAL_BYTES_FIELD_SIZE
+            const val MAX_ADDITIONAL_BYTES =
+                    (1 shl (ADDITIONAL_BYTES_FIELD_SIZE * Byte.SIZE_BITS)) - 1
         }
 
         object Version2 {
@@ -104,7 +109,8 @@ class DataChunkStructure private constructor(
         private fun analyzeBinaryVersion1(binaryData: ByteArray): DataChunkStructure {
             val additionalBytes = binaryData[1].toIntUnsigned()
             return version1(
-                    binaryData.sliceArray(2..(binaryData.lastIndex - additionalBytes)),
+                    binaryData.sliceArray(
+                            Header.Version1.SIZE..(binaryData.lastIndex - additionalBytes)),
                     additionalBytes)
         }
 
@@ -160,6 +166,10 @@ class DataChunkStructure private constructor(
     }
 
     // region Private
+
+    private val version1AdditionalBytes get() = additionalBytes.toByteArray().last()
+
+    private val version1FilledBytes get() = ByteArray(additionalBytes) { 0 }
 
     private val controlBlockBinaries: ByteArray get() =
             controlBlocks.fold(byteArrayOf()) { acc, it -> acc + it.binary }

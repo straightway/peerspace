@@ -18,6 +18,7 @@ package straightway.peerspace.transport.impl
 import straightway.koinutils.Bean.get
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.DataChunkControlBlock
 import straightway.peerspace.data.DataChunkVersion2Builder
 import straightway.peerspace.data.DataChunkStructure
 import straightway.peerspace.data.Id
@@ -25,6 +26,7 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.transport.Chunker
 import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.TransportComponent
+import straightway.utils.toChunksOfSize
 
 /**
  * Default implementation of the Chunker interface.
@@ -37,113 +39,83 @@ class ChunkerImpl(
     private val hasher get() = get<Hasher>()
 
     override fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto): Set<DataChunk> {
-        return when {
-            data.size == version0PayloadSize ->
-                singleChunk(DataChunkStructure.version0(data))
-            data.size <= maxVersion1PayloadSize ->
-                singleChunk(DataChunkVersion2Builder(chunkSizeBytes)
-                        .apply { payload = data }.chunkStructure)
-            else -> Chopper(data).chunks
+        val result = mutableSetOf<DataChunk>()
+        chopToChunks(data, result)
+        return result
+    }
+
+    private fun chopToChunks(data: ByteArray, chunks: MutableSet<DataChunk>): DataChunk {
+        val treeDepthInfo = getTreeDepthInfoForSize(data.size)
+        if (treeDepthInfo.depth == 0) {
+            val result = data.createPlainChunkStructure().createChunk()
+            chunks.add(result)
+            return result
+        } else {
+            val directoryDataSize = maxChunkVersion2PayloadSizeWithReferences(
+                    treeDepthInfo.getNumberOfReferencesForSize(data.size))
+            val subChunks = data.sliceArray(directoryDataSize..data.lastIndex)
+                    .toChunksOfSize(treeDepthInfo.subSize)
+                    .map { chopToChunks(it, chunks) }
+            val result = DataChunkVersion2Builder(chunkSizeBytes).apply {
+                references = subChunks.map { hasher.getHash(it.data) }
+                payload = data.sliceArray(0 until directoryDataSize)
+            }.chunkStructure.createChunk()
+            chunks.add(result)
+            return result
         }
     }
 
-    private fun singleChunk(chunk: DataChunkStructure): Set<DataChunk> {
-        val chunkBinarayData = chunk.binary
-        val dataHash = hasher.getHash(chunkBinarayData)
-        return setOf(DataChunk(Key(Id(dataHash)), chunkBinarayData))
-    }
-
-    private inner class Chopper(data: ByteArray) {
-
-        private var rest = data
-        private val result = mutableSetOf<DataChunk>()
-
-        val chunks get() = result
-
-        private fun chop(maxDepth: Int, dirBuilder: DataChunkVersion2Builder): DataChunk {
-            return when {
-                maxDepth == 0 || dirBuilder.isFittingCompletely ->
-                    createPlainChunkStructure()
-                else -> {
-                    println("creating directory of depth $maxDepth")
-                    createDirectoryOfDepth(maxDepth, dirBuilder)
+    private fun ByteArray.createPlainChunkStructure() =
+            when {
+                version0PayloadSize == size ->
+                    DataChunkStructure.version0(this)
+                maxVersion2PayloadSize < size -> {
+                    val additionalBytes = chunkSizeBytes -
+                            DataChunkStructure.Header.Version1.SIZE - size
+                    DataChunkStructure.version1(this, additionalBytes)
                 }
-            }.createChunk().apply {
-                result.add(this)
-            }
-        }
-
-        private fun createPlainChunkStructure(): DataChunkStructure {
-            println("creating plain chunk")
-            return if (version0PayloadSize <= rest.size)
-                DataChunkStructure.version0(consume(version0PayloadSize))
-            else
-                DataChunkVersion2Builder(chunkSizeBytes)
-                        .apply { payload = consume(chunkSizeBytes) }.chunkStructure
-        }
-
-        private val DataChunkVersion2Builder.isFittingCompletely get() =
-            rest.size <= (version0PayloadSize + availablePayloadBytes)
-
-        private fun createDirectoryOfDepth(
-                maxDepth: Int,
-                dirBuilder: DataChunkVersion2Builder
-        ): DataChunkStructure {
-            val directory = DataChunkVersion2Builder(chunkSizeBytes)
-            while (directory.needsAnotherReference) {
-                directory.references += hasher.getHash(chop(maxDepth - 1, dirBuilder).data)
-                println("adding reference ${Id(directory.references.last())}")
-            }
-            rest = directory.setPayloadPart(rest)
-            return directory.chunkStructure
-        }
-
-        private val DataChunkVersion2Builder.needsAnotherReference get() =
-            availablePayloadBytes < rest.size && references.size < maxReferences
-
-        private fun consume(numberOfBytes: Int): ByteArray =
-                if (numberOfBytes <= rest.size)
-                    rest.sliceArray(0 until numberOfBytes).apply {
-                        rest = rest.sliceArray(numberOfBytes..rest.lastIndex)
-                    }
-                else rest.clone().apply { rest = byteArrayOf() }
-
-        private fun DataChunkStructure.createChunk() =
-                createChunk(Key(Id(hasher.getHash(binary)))).apply {
-                    println("created chunk $key: ${this@createChunk}")
-                }
-
-        init {
-            var currentDepth = 0
-            var rootDirectory = DataChunkVersion2Builder(chunkSizeBytes)
-            while (true) {
-                while (rootDirectory.needsAnotherReference) {
-                    rootDirectory.references +=
-                            hasher.getHash(chop(currentDepth, rootDirectory).data)
-                    println("ctor: adding reference ${Id(rootDirectory.references.last())}")
-                }
-                rest = rootDirectory.setPayloadPart(rest)
-                val rootDirChunk = rootDirectory.chunkStructure.createChunk()
-                result.add(rootDirChunk)
-                if (rest.any()) {
-                    rootDirectory = DataChunkVersion2Builder(chunkSizeBytes)
-                    rootDirectory.references += hasher.getHash(rootDirChunk.data)
-                    ++currentDepth
-                    println("new root, depth = $currentDepth")
-                } else {
-                    println("finished")
-                    break
-                }
+                else ->
+                    DataChunkVersion2Builder(chunkSizeBytes)
+                            .apply { payload = this@createPlainChunkStructure }.chunkStructure
             }
 
-            val rootDirBinary = rootDirectory.chunkStructure.binary
-            val rootDirHash = hasher.getHash(rootDirBinary)
-            chunks.add(rootDirectory.chunkStructure.createChunk(Key(Id(rootDirHash))))
-        }
-    }
+    private fun DataChunkStructure.createChunk() =
+            createChunk(Key(Id(hasher.getHash(binary))))
 
-    private val maxVersion1PayloadSize =
+    private val maxVersion2PayloadSize =
             chunkSizeBytes - DataChunkStructure.Header.Version2.MIN_SIZE
+
+    private fun getTreeDepthInfoForSize(dataSize: Int) =
+            TreeDepthInfo().getMinimumForSize(dataSize)
+
+    private fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
+            chunkSizeBytes -
+                    DataChunkStructure.Header.Version2.MIN_SIZE -
+                    numberOfReferences * referenceBlockSize
+
+    val referenceBlockSize get() = DataChunkControlBlock.NON_CONTENT_SIZE +
+            (hasher.hashBits - 1) / Byte.SIZE_BITS + 1
+
     private val version0PayloadSize =
             chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+
+    private inner class TreeDepthInfo private constructor(
+            val depth: Int,
+            val subSize: Int
+    ) {
+        constructor() : this(0, 0)
+
+        fun getMinimumForSize(dataSize: Int): TreeDepthInfo =
+                if (dataSize <= maxSize) this
+                else TreeDepthInfo(depth + 1, maxSize).getMinimumForSize(dataSize)
+
+        fun getNumberOfReferencesForSize(dataSize: Int) =
+                (0..maxReferences).first { dataSize <= getSizeForReferences(it) }
+
+        private val maxSize =
+                if (depth <= 0) version0PayloadSize else getSizeForReferences(maxReferences)
+
+        private fun getSizeForReferences(references: Int) =
+                references * subSize + maxChunkVersion2PayloadSizeWithReferences(references)
+    }
 }

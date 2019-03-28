@@ -22,6 +22,7 @@ import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.toByteArray
 
 @Suppress("ReplaceCallWithBinaryOperator")
 class DataChunkStructure_Version1_Test {
@@ -46,11 +47,12 @@ class DataChunkStructure_Version1_Test {
             }
 
     @Test
-    fun `binary of version 1 has only payload after version and filled nulls`() =
+    fun `binary of version 1 has after version additional bytes, payload and filled nulls`() =
             test when_ {
-                binary.sliceArray(1..binary.lastIndex)
+                binary.sliceArray(DataChunkStructure.Header.VERSION_FIELD_SIZE..binary.lastIndex)
             } then {
-                expect(it.result is_ Equal to_ PAYLOAD + ByteArray(ADDITIONAL_BYTES) { 0 })
+                expect(it.result is_ Equal to_ ADDITIONAL_BYTES.toByteArray().sliceArray(3..3) +
+                        PAYLOAD + ByteArray(ADDITIONAL_BYTES) { 0 })
             }
 
     @Test
@@ -136,4 +138,8 @@ class DataChunkStructure_Version1_Test {
     @Test
     fun `additional bytes field size is 1`() =
             expect(DataChunkStructure.Header.Version1.ADDITIONAL_BYTES_FIELD_SIZE is_ Equal to_ 1)
+
+    @Test
+    fun `max additional bytes is 255`() =
+            expect(DataChunkStructure.Header.Version1.MAX_ADDITIONAL_BYTES is_ Equal to_ 0xff)
 }

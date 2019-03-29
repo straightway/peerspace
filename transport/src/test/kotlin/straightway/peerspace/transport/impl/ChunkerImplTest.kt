@@ -227,9 +227,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
         val env = TransportTestEnvironment(
                 chunkerFactory = { ChunkerImpl(chunkSizeBytes, maxReferences) },
-                cryptoFactory = { cryptoFactory }) {
-            bean { hasher }
-        }
+                cryptoFactory = { cryptoFactory })
 
         val sut get() = env.context.chunker
 

@@ -15,7 +15,7 @@
  */
 package straightway.peerspace.data
 
-import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Builder class for data chunks (via DataChunkStructure) of version 1.
@@ -34,9 +34,8 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
     var payload = byteArrayOf()
 
     fun setPayloadPart(fullPayload: ByteArray): ByteArray {
-        val startIndex = max(0, fullPayload.size - availablePayloadBytes)
-        payload = fullPayload.sliceArray(startIndex..fullPayload.lastIndex)
-        return fullPayload.sliceArray(0 until startIndex)
+        payload = fullPayload.sliceArray(0 until min(availablePayloadBytes, fullPayload.size))
+        return fullPayload.sliceArray(availablePayloadBytes..fullPayload.lastIndex)
     }
 
     val signablePart get() =

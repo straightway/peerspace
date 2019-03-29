@@ -15,8 +15,6 @@
  */
 package straightway.peerspace.transport.impl
 
-import straightway.koinutils.Bean.get
-import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.DataChunkControlBlock
 import straightway.peerspace.data.DataChunkVersion2Builder
@@ -26,6 +24,7 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.transport.Chunker
 import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.TransportComponent
+import straightway.peerspace.transport.createHasher
 import straightway.utils.toChunksOfSize
 
 /**
@@ -36,48 +35,56 @@ class ChunkerImpl(
         private val maxReferences: Int
 ) : Chunker, TransportComponent by TransportComponent() {
 
-    private val hasher get() = get<Hasher>()
+    private val hasher = createHasher()
 
-    override fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto): Set<DataChunk> {
-        val result = mutableSetOf<DataChunk>()
-        chopToChunks(data, result)
-        return result
-    }
+    override fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto) =
+            mutableSetOf<DataChunk>().also { data.chopToChunks(it) }
 
-    private fun chopToChunks(data: ByteArray, chunks: MutableSet<DataChunk>): DataChunk {
-        val treeDepthInfo = getTreeDepthInfoForSize(data.size)
-        if (treeDepthInfo.depth == 0) {
-            val result = data.createPlainChunkStructure().createChunk()
-            chunks.add(result)
-            return result
-        } else {
-            val directoryDataSize = maxChunkVersion2PayloadSizeWithReferences(
-                    treeDepthInfo.getNumberOfReferencesForSize(data.size))
-            val subChunks = data.sliceArray(directoryDataSize..data.lastIndex)
-                    .toChunksOfSize(treeDepthInfo.subSize)
-                    .map { chopToChunks(it, chunks) }
-            val result = DataChunkVersion2Builder(chunkSizeBytes).apply {
-                references = subChunks.map { hasher.getHash(it.data) }
-                payload = data.sliceArray(0 until directoryDataSize)
-            }.chunkStructure.createChunk()
-            chunks.add(result)
-            return result
-        }
-    }
+    private fun ByteArray.chopToChunks(resultCollector: MutableSet<DataChunk>) =
+            chopToChunkStructure(resultCollector).createChunk().also { resultCollector.add(it) }
+
+    private fun ByteArray.chopToChunkStructure(resultCollector: MutableSet<DataChunk>) =
+            if (size <= version0PayloadSize) createPlainChunkStructure()
+            else createChunkTree(resultCollector)
 
     private fun ByteArray.createPlainChunkStructure() =
             when {
-                version0PayloadSize == size ->
-                    DataChunkStructure.version0(this)
-                maxVersion2PayloadSize < size -> {
-                    val additionalBytes = chunkSizeBytes -
-                            DataChunkStructure.Header.Version1.SIZE - size
-                    DataChunkStructure.version1(this, additionalBytes)
-                }
-                else ->
-                    DataChunkVersion2Builder(chunkSizeBytes)
-                            .apply { payload = this@createPlainChunkStructure }.chunkStructure
+                version0PayloadSize == size -> createPlainVersion0Chunk()
+                maxVersion2PayloadSize < size -> createPlainVersion1Chunk()
+                else -> createPlainVersion2Chunk()
             }
+
+    private fun ByteArray.createPlainVersion0Chunk() =
+            DataChunkStructure.version0(this)
+
+    private fun ByteArray.createPlainVersion1Chunk() =
+            DataChunkStructure.version1(this, additionalVersion1PayloadBytes)
+
+    private fun ByteArray.createPlainVersion2Chunk() =
+            DataChunkVersion2Builder(chunkSizeBytes).also { it.payload = this }.chunkStructure
+
+    private val ByteArray.additionalVersion1PayloadBytes get() =
+        chunkSizeBytes - DataChunkStructure.Header.Version1.SIZE - size
+
+    private fun ByteArray.createChunkTree(resultCollector: MutableSet<DataChunk>) =
+            DataChunkVersion2Builder(chunkSizeBytes).apply {
+                references = createSubChunks(resultCollector).hashes
+                setPayloadPart(this@createChunkTree)
+            }.chunkStructure
+
+    private val Iterable<DataChunk>.hashes get() =
+            map { hasher.getHash(it.data) }
+
+    private fun ByteArray.createSubChunks(resultCollector: MutableSet<DataChunk>): List<DataChunk> =
+            toSubTreeChunks().map { it.chopToChunks(resultCollector) }
+
+    private fun ByteArray.toSubTreeChunks() =
+            with(treeDepthInfo) {
+                sliceArray(getTopLevelDirectoryPayloadSize(size)..lastIndex)
+                        .toChunksOfSize(subSize)
+            }
+
+    private val ByteArray.treeDepthInfo get() = getTreeDepthInfoForSize(size)
 
     private fun DataChunkStructure.createChunk() =
             createChunk(Key(Id(hasher.getHash(binary))))
@@ -93,7 +100,7 @@ class ChunkerImpl(
                     DataChunkStructure.Header.Version2.MIN_SIZE -
                     numberOfReferences * referenceBlockSize
 
-    val referenceBlockSize get() = DataChunkControlBlock.NON_CONTENT_SIZE +
+    private val referenceBlockSize get() = DataChunkControlBlock.NON_CONTENT_SIZE +
             (hasher.hashBits - 1) / Byte.SIZE_BITS + 1
 
     private val version0PayloadSize =
@@ -109,7 +116,11 @@ class ChunkerImpl(
                 if (dataSize <= maxSize) this
                 else TreeDepthInfo(depth + 1, maxSize).getMinimumForSize(dataSize)
 
-        fun getNumberOfReferencesForSize(dataSize: Int) =
+        fun getTopLevelDirectoryPayloadSize(aggregatedPayloadSize: Int) =
+                maxChunkVersion2PayloadSizeWithReferences(
+                        getNumberOfReferencesForSize(aggregatedPayloadSize))
+
+        private fun getNumberOfReferencesForSize(dataSize: Int) =
                 (0..maxReferences).first { dataSize <= getSizeForReferences(it) }
 
         private val maxSize =

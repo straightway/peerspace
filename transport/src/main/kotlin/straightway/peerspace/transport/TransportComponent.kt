@@ -83,6 +83,7 @@ val TransportComponent.peerClient get() = get<PeerClient>()
 val TransportComponent.chunker get() = get<Chunker>()
 val TransportComponent.deChunker get() = get<DeChunker>()
 val TransportComponent.cryptoFactory get() = get<CryptoFactory>()
+fun TransportComponent.createHasher() = cryptoFactory.createHasher()
 val TransportComponent.timeProvider get() = get<TimeProvider>()
 
 @Suppress("LongParameterList")

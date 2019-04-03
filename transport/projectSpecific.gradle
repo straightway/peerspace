@@ -18,4 +18,5 @@ dependencies {
     compile straightway('peerspace:network')
     testCompile straightway('testing')
     testCompile mockitoKotlin()
+    testCompile junit5("params")
 }

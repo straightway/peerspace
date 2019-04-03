@@ -24,6 +24,8 @@ import straightway.peerspace.crypto.Encryptor
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.DataChunkStructure
 import straightway.peerspace.data.DataChunkVersion2Builder
+import straightway.peerspace.data.Id
+import straightway.peerspace.data.Key
 import straightway.testing.flow.Less
 import straightway.testing.flow.Not
 import straightway.testing.flow.expect
@@ -33,13 +35,20 @@ import straightway.utils.toByteArray
 import java.util.Base64
 
 class ChunkingTestEnvironment(
-        val chunkSizeBytes: Int,
-        private val maxReferences: Int,
+        chunkSizeBytes: Int,
+        maxReferences: Int,
         val data: ByteArray
-) {
+) : ChunkEnvironmentValues(chunkSizeBytes, maxReferences) {
+
+    constructor(chunkSizeBytes: Int,
+                maxReferences: Int,
+                dataGetter: ChunkEnvironmentValues.() -> ByteArray)
+            : this(
+                chunkSizeBytes,
+                maxReferences,
+                ChunkEnvironmentValues(chunkSizeBytes, maxReferences).dataGetter())
 
     companion object {
-        const val HASH_BITS = Int.SIZE_BITS
         private fun asBase64(data: ByteArray) = base64Encoder.encodeToString(data)
         private val base64Encoder = Base64.getEncoder()
         private fun firstRange(sz: Int) = 0 until sz
@@ -48,6 +57,7 @@ class ChunkingTestEnvironment(
 
     val env = TransportTestEnvironment(
             chunkerFactory = { ChunkerImpl(chunkSizeBytes, maxReferences) },
+            deChunkerFactory = { DeChunkerImpl() },
             cryptoFactory = { cryptoFactory })
 
     val setUpChunks: Set<DataChunkStructure> get() = _setUpChunks
@@ -55,6 +65,9 @@ class ChunkingTestEnvironment(
     val notEncryptor = mock<Encryptor> {
         on { encrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0) }
     }
+
+    fun DataChunkStructure.createChunk() =
+            createChunk(Key(Id(getHash(binary))))
 
     fun ByteArray.reserveForDirectory(numberOfBytes: Int): ByteArray {
         directoryReservations.add(sliceArray(0 until numberOfBytes))
@@ -68,19 +81,6 @@ class ChunkingTestEnvironment(
                     addSetUpChunk(chunkStructure)
                     this@createDirectoryDataChunkWithNumberOfReferences
                 }
-
-    private fun DataChunkVersion2Builder.addDirectoryPayload() {
-        payload = directoryReservations.last()
-        directoryReservations.removeAt(directoryReservations.lastIndex)
-    }
-
-    private fun DataChunkVersion2Builder.addReferences(numberOfReferences: Int) =
-        (0 until numberOfReferences).forEach { _ -> addLastReference() }
-
-    private fun DataChunkVersion2Builder.addLastReference() = with(chunksToAddToDirectory) {
-        references = listOf(getHash(last().binary)) + references
-        chunksToAddToDirectory.removeAt(lastIndex)
-    }
 
     fun ByteArray.createPlainDataChunkVersion0(): ByteArray {
         expect(size is_ Not - Less than payloadBytesVersion0)
@@ -108,22 +108,39 @@ class ChunkingTestEnvironment(
 
     fun ByteArray.end() = expect(isEmpty() && chunksToAddToDirectory.size == 1)
 
+    fun addHash(data: ByteArray) = nextHashValue++.toByteArray().also {
+        hashes[asBase64(data)] = it
+    }
+
+    fun setHash(data: ByteArray, hash: ByteArray) {
+        hashes[asBase64(data)] = hash
+    }
+
+    fun getHash(data: ByteArray) =
+            hashes[asBase64(data)] ?: throw Panic("Hash not found for " +
+                    "${DataChunkStructure.fromBinary(data)}")
+
     private var hashes = mutableMapOf<String, ByteArray>()
     private var nextHashValue = 1
     private val _setUpChunks = mutableSetOf<DataChunkStructure>()
     private val chunksToAddToDirectory = mutableListOf<DataChunkStructure>()
     private val directoryReservations = mutableListOf<ByteArray>()
 
-    private fun createChunkVersion2(action: DataChunkVersion2Builder.() -> ByteArray): ByteArray =
-            with(DataChunkVersion2Builder(chunkSizeBytes), action)
-
-    private fun addHash(data: ByteArray) = nextHashValue++.toByteArray().also {
-        hashes[asBase64(data)] = it
+    private fun DataChunkVersion2Builder.addDirectoryPayload() {
+        payload = directoryReservations.last()
+        directoryReservations.removeAt(directoryReservations.lastIndex)
     }
 
-    private fun getHash(data: ByteArray) =
-            hashes[asBase64(data)] ?: throw Panic("Hash not found for " +
-                    "${DataChunkStructure.fromBinary(data)}")
+    private fun DataChunkVersion2Builder.addReferences(numberOfReferences: Int) =
+            (0 until numberOfReferences).forEach { _ -> addLastReference() }
+
+    private fun DataChunkVersion2Builder.addLastReference() = with(chunksToAddToDirectory) {
+        references = listOf(getHash(last().binary)) + references
+        chunksToAddToDirectory.removeAt(lastIndex)
+    }
+
+    private fun createChunkVersion2(action: DataChunkVersion2Builder.() -> ByteArray): ByteArray =
+            with(DataChunkVersion2Builder(chunkSizeBytes), action)
 
     private val hasher = mock<Hasher> {
         on { getHash(any()) }.thenAnswer { getHash(it.getArgument<ByteArray>(0)) }
@@ -139,12 +156,6 @@ class ChunkingTestEnvironment(
         _setUpChunks += chunk
         chunksToAddToDirectory += chunk
     }
-
-    private val payloadBytesVersion0 =
-            chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
-
-    private val maxPayloadBytesVersion1 =
-            chunkSizeBytes - DataChunkStructure.Header.Version1.SIZE
 
     private val minPayloadBytesVersion1 =
             maxPayloadBytesVersion1 - DataChunkStructure.Header.Version1.MAX_ADDITIONAL_BYTES

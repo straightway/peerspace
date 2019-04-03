@@ -18,7 +18,6 @@ package straightway.peerspace.transport.impl
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataChunkControlBlock
 import straightway.peerspace.data.DataChunkStructure
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -39,12 +38,14 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         const val version0PayloadSize = chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
     }
 
-    private fun test(dataToChopToChunk: ByteArray) =
-            Given { ChunkingTestEnvironment(chunkSizeBytes, maxReferences, dataToChopToChunk) }
+    private fun test(dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray) =
+            Given {
+                ChunkingTestEnvironment(chunkSizeBytes, maxReferences, dataToChopToChunkGetter)
+            }
 
     @Test
     fun `small plain data results in single chunk version 1`() {
-        test(byteArrayOf(1, 2, 3)) while_ {
+        test { byteArrayOf() } while_ {
             data.createPlainDataChunkVersion2().end()
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
@@ -56,7 +57,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data of exact version 0 payload size produces version 0 chunk`() {
-        test(ByteArray(version0PayloadSize) { it.toByte() }) while_ {
+        test { ByteArray(version0PayloadSize) { it.toByte() } } while_ {
             data.createPlainDataChunkVersion0().end()
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
@@ -68,7 +69,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data between version 0 and version 2 payload size produces version 1 chunk`() {
-        test(ByteArray(version0PayloadSize - 2) { it.toByte() }) while_ {
+        test { ByteArray(version0PayloadSize - 2) { it.toByte() } } while_ {
             data.createPlainDataChunkVersion1(1).end()
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
@@ -80,7 +81,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data chunk id is equal to hash of chunk's binary data`() =
-            test(byteArrayOf(1, 2, 3)) while_ {
+            test { byteArrayOf(1, 2, 3) } while_ {
                 data.createPlainDataChunkVersion2().end()
             } when_ {
                 chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
@@ -90,11 +91,11 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data larger than chunk size results in two chunks`() =
-            test(ByteArray(version0PayloadSize + 1) { it.toByte() }) while_ {
+            test { ByteArray(version0PayloadSize + 1) { it.toByte() } } while_ {
                 data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(1))
-                    .createPlainDataChunkVersion2()
-                    .createDirectoryDataChunkWithNumberOfReferences(1)
-                    .end()
+                        .createPlainDataChunkVersion2()
+                        .createDirectoryDataChunkWithNumberOfReferences(1)
+                        .end()
             } when_ {
                 chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
             } then {
@@ -103,12 +104,12 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data larger than twice the chunk size results in three chunks`() =
-            test(ByteArray(2 * version0PayloadSize + 1) { it.toByte() }) while_ {
+            test { ByteArray(2 * version0PayloadSize + 1) { it.toByte() } } while_ {
                 data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
-                    .createPlainDataChunkVersion0()
-                    .createPlainDataChunkVersion2()
-                    .createDirectoryDataChunkWithNumberOfReferences(2)
-                    .end()
+                        .createPlainDataChunkVersion0()
+                        .createPlainDataChunkVersion2()
+                        .createDirectoryDataChunkWithNumberOfReferences(2)
+                        .end()
             } when_ {
                 chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
             } then {
@@ -117,15 +118,17 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data larger than three times the chunk size results in hierarchical chunks`() =
-            test(ByteArray(3 * version0PayloadSize + chunkSizeBytes / 2) { it.toByte() }) while_ {
+            test {
+                ByteArray(3 * version0PayloadSize + chunkSizeBytes / 2) { it.toByte() }
+            } while_ {
                 data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
-                    .reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
-                    .createPlainDataChunkVersion0()
-                    .createPlainDataChunkVersion0()
-                    .createDirectoryDataChunkWithNumberOfReferences(2)
-                    .createPlainDataChunkVersion2()
-                    .createDirectoryDataChunkWithNumberOfReferences(2)
-                    .end()
+                        .reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
+                        .createPlainDataChunkVersion0()
+                        .createPlainDataChunkVersion0()
+                        .createDirectoryDataChunkWithNumberOfReferences(2)
+                        .createPlainDataChunkVersion2()
+                        .createDirectoryDataChunkWithNumberOfReferences(2)
+                        .end()
             } when_ {
                 chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
             } then {
@@ -134,13 +137,14 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data rest just fits into directory chunk`() =
-            test(ByteArray(version0PayloadSize +
-                    maxChunkVersion2PayloadSizeWithReferences(1)) { it.toByte() }
-            ) while_ {
+            test {
+                ByteArray(version0PayloadSize +
+                        maxChunkVersion2PayloadSizeWithReferences(1)) { it.toByte() }
+            } while_ {
                 data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(1))
-                    .createPlainDataChunkVersion0()
-                    .createDirectoryDataChunkWithNumberOfReferences(1)
-                    .end()
+                        .createPlainDataChunkVersion0()
+                        .createDirectoryDataChunkWithNumberOfReferences(1)
+                        .end()
             } when_ {
                 chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
             } then {
@@ -149,13 +153,13 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `plain data rest is less than version 0 size but does not fit into version 2`() {
-        val directoryPayloadSize = maxChunkVersion2PayloadSizeWithReferences(2)
         val secondChunkPayloadSize =
                 chunkSizeBytes - DataChunkStructure.Header.Version2.MIN_SIZE + 1
-
-        test(ByteArray(directoryPayloadSize +
-                version0PayloadSize + secondChunkPayloadSize) { it.toByte() }
-        ) while_ {
+        test {
+            val directoryPayloadSize = maxChunkVersion2PayloadSizeWithReferences(2)
+            ByteArray(directoryPayloadSize +
+                    version0PayloadSize + secondChunkPayloadSize) { it.toByte() }
+        } while_ {
             data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
                     .createPlainDataChunkVersion0()
                     .createPlainDataChunkVersion1(chunkSizeBytes -
@@ -169,17 +173,8 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         }
     }
 
-    val ChunkingTestEnvironment.chunker get() = env.context.chunker
-    val ChunkingTestEnvironment.hasher get() = env.context.createHasher()
-
-    fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
-            chunkSizeBytes -
-                    DataChunkStructure.Header.Version2.MIN_SIZE -
-                    numberOfReferences * referenceBlockSize
-
-    private val referenceBlockSize get() =
-            DataChunkControlBlock.NON_CONTENT_SIZE + (ChunkingTestEnvironment.HASH_BITS - 1) /
-                    Byte.SIZE_BITS + 1
+    private val ChunkingTestEnvironment.chunker get() = env.context.chunker
+    private val ChunkingTestEnvironment.hasher get() = env.context.createHasher()
 
     private fun ChunkingTestEnvironment.keys(chunks: Iterable<DataChunkStructure>) =
             chunks.map { hashKey(it) }.toSet()

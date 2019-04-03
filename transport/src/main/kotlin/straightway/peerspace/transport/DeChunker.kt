@@ -19,7 +19,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 
 /**
- * Combine chunked data from chunks.
+ * Combine data from chunks.
  */
 interface DeChunker {
     fun tryCombining(chunks: List<DataChunk>, deChunkerCrypto: DeChunkerCrypto): ByteArray?

@@ -30,14 +30,14 @@ import straightway.peerspace.transport.DeChunkerCrypto
 class DeChunkerImpl : DeChunker {
 
     override fun tryCombining(
-            chunks: List<DataChunk>,
+            chunks: Collection<DataChunk>,
             deChunkerCrypto: DeChunkerCrypto) = ChunkSetAnalyzer(chunks).aggregatedPayload
 
     override fun getReferencedChunks(
             data: ByteArray,
             deChunkerCrypto: DeChunkerCrypto) = DataChunkStructure.fromBinary(data).references
 
-    private class ChunkSetAnalyzer(rawChunks: List<DataChunk>) {
+    private class ChunkSetAnalyzer(rawChunks: Collection<DataChunk>) {
         val aggregatedPayload: ByteArray? get() = rootKey?.aggregatedPayload
 
         private val Key.aggregatedPayload: ByteArray? get() = preventLoops {

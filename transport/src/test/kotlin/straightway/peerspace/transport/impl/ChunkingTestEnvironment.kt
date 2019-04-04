@@ -116,9 +116,12 @@ class ChunkingTestEnvironment(
         hashes[asBase64(data)] = hash
     }
 
+    var isCreatingHashOnTheFly = false
+
     fun getHash(data: ByteArray) =
-            hashes[asBase64(data)] ?: throw Panic("Hash not found for " +
-                    "${DataChunkStructure.fromBinary(data)}")
+            hashes[asBase64(data)] ?:
+            if (isCreatingHashOnTheFly) addHash(data)
+            else throw Panic("Hash not found for ${DataChunkStructure.fromBinary(data)}")
 
     private var hashes = mutableMapOf<String, ByteArray>()
     private var nextHashValue = 1

@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.transport.impl
 
+import straightway.peerspace.transport.DataChunkSignMode
 import kotlin.math.min
 
 /**

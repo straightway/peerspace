@@ -17,6 +17,7 @@ package straightway.peerspace.transport.impl
 
 import straightway.error.Panic
 import straightway.peerspace.data.Id
+import straightway.peerspace.transport.DataChunkSignMode
 import straightway.utils.getInt
 import straightway.utils.toByteArray
 import straightway.utils.toHex

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.peerspace.transport.DataChunkSignMode
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False

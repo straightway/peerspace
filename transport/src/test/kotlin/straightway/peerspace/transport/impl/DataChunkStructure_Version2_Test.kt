@@ -17,6 +17,7 @@ package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
+import straightway.peerspace.transport.DataChunkSignMode
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal

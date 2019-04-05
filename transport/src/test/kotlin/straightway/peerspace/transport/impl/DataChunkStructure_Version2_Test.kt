@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
@@ -80,10 +80,10 @@ class DataChunkStructure_Version2_Test {
             } then {
                 expect(it.result.sliceArray(
                         (it.result.lastIndex - 2)..it.result.lastIndex) is_
-                        Equal to_ payload)
+                        Equal to_ Companion.payload)
                 expect(it.result.sliceArray(
                         (it.result.lastIndex - 4)..(it.result.lastIndex - 3))
-                        .getUnsignedShort() is_ Equal to_ payload.size)
+                        .getUnsignedShort() is_ Equal to_ Companion.payload.size)
             }
 
     @Test
@@ -97,8 +97,8 @@ class DataChunkStructure_Version2_Test {
                         byteArrayOf(
                                 VERSION2,
                                 DataChunkStructure.Header.Version2.CEND,
-                                0x00, payload.size.toByte()) +
-                        payload)
+                                0x00, Companion.payload.size.toByte()) +
+                        Companion.payload)
             }
 
     @Test
@@ -148,7 +148,7 @@ class DataChunkStructure_Version2_Test {
             Given {
                 DataChunkStructure.fromBinary(binaryChunk)
             } when_ {
-                payload
+                Companion.payload
             } then {
                 expect(it.result is_ Equal to_ byteArrayOf(4, 5, 6))
             }

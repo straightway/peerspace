@@ -22,8 +22,6 @@ import straightway.expr.minus
 import straightway.peerspace.crypto.CryptoFactory
 import straightway.peerspace.crypto.Encryptor
 import straightway.peerspace.crypto.Hasher
-import straightway.peerspace.data.DataChunkStructure
-import straightway.peerspace.data.DataChunkVersion2Builder
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.testing.flow.Less

@@ -15,9 +15,6 @@
  */
 package straightway.peerspace.transport.impl
 
-import straightway.peerspace.data.DataChunkControlBlock
-import straightway.peerspace.data.DataChunkStructure
-
 open class ChunkEnvironmentValues(
         val chunkSizeBytes: Int,
         val maxReferences: Int)

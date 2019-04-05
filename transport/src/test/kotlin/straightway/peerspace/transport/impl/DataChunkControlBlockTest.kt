@@ -13,11 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.expr.minus
+import straightway.peerspace.data.Id
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -57,9 +58,9 @@ class DataChunkControlBlockTest {
     @Test
     fun `content is accessible`() =
             test when_ {
-                content
+                Companion.content
             } then {
-                expect(it.result is_ Equal to_ content)
+                expect(it.result is_ Equal to_ Companion.content)
             }
 
     @Test
@@ -126,7 +127,7 @@ class DataChunkControlBlockTest {
                 toString()
             } then {
                 expect(it.result is_ Equal to_
-                        "DataChunkControlBlock(ReferencedChunk, 0xa, ${Id(content)})")
+                        "DataChunkControlBlock(ReferencedChunk, 0xa, ${Id(Companion.content)})")
             }
 
     @Test

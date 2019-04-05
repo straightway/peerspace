@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
 import straightway.testing.flow.Empty
@@ -79,7 +79,7 @@ class DataChunkVersion2BuilderTest {
 
     @Test
     fun `chunk data structure of contains set payload`() {
-        val fullPayload = ByteArray(CHUNK_SIZE_BYTES - 5) { it.toByte() }
+        val fullPayload = ByteArray(testChunkSize - 5) { it.toByte() }
         val result = DataChunkVersion2Builder(testChunkSize).apply {
             payload = fullPayload
         }
@@ -355,8 +355,8 @@ class DataChunkVersion2BuilderTest {
     fun `availableBytes considers size of payload`() {
         DataChunkVersion2Builder(testChunkSize).apply {
             payload = byteArrayOf(1, 2, 3)
-            expect(availableBytes is_ Equal
-                    to_ chunkSize - payload.size - DataChunkStructure.Header.Version2.MIN_SIZE)
+            expect(availableBytes is_ Equal to_
+                    chunkSize - payload.size - DataChunkStructure.Header.Version2.MIN_SIZE)
         }
     }
 

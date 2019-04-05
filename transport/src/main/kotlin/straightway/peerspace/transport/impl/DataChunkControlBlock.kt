@@ -13,9 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.transport.impl
 
 import straightway.error.Panic
+import straightway.peerspace.data.Id
 import straightway.utils.getInt
 import straightway.utils.toByteArray
 import straightway.utils.toHex

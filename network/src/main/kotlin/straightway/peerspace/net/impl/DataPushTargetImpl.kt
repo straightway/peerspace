@@ -17,11 +17,11 @@
 package straightway.peerspace.net.impl
 
 import straightway.error.Panic
+import straightway.peerspace.data.CHUNK_SIZE_BYTES
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.net.DataPushTarget
 import straightway.peerspace.net.PeerComponent
 import straightway.peerspace.net.Request
-import straightway.peerspace.data.chunkSize
 import straightway.peerspace.net.dataChunkStore
 import straightway.peerspace.net.dataQueryHandler
 import straightway.peerspace.net.network
@@ -34,7 +34,7 @@ import straightway.peerspace.net.pushForwarder
 class DataPushTargetImpl : DataPushTarget, PeerComponent by PeerComponent() {
 
     override fun pushDataChunk(request: Request<DataChunk>) {
-        if (chunkSizeBytes < request.content.data.size)
+        if (CHUNK_SIZE_BYTES < request.content.data.size)
             throw Panic("Chunk too big: $request")
         peerDirectory.add(request.remotePeerId)
         dataChunkStore.store(request.content)
@@ -50,9 +50,5 @@ class DataPushTargetImpl : DataPushTarget, PeerComponent by PeerComponent() {
     private fun notifyForwarded(data: DataChunk) {
         val chunkKey = data.key
         dataQueryHandler.notifyChunkForwarded(chunkKey)
-    }
-
-    private companion object {
-        val chunkSizeBytes = chunkSize.baseValue.toInt()
     }
 }

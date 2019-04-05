@@ -17,8 +17,6 @@ package straightway.peerspace.transport.impl
 
 import straightway.error.Panic
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataChunkControlBlockType
-import straightway.peerspace.data.DataChunkStructure
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.transport.DeChunker

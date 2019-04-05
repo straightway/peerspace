@@ -16,9 +16,6 @@
 package straightway.peerspace.transport.impl
 
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataChunkControlBlock
-import straightway.peerspace.data.DataChunkVersion2Builder
-import straightway.peerspace.data.DataChunkStructure
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.transport.Chunker

@@ -13,9 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.transport.impl
 
 import straightway.error.Panic
+import straightway.peerspace.data.DataChunk
+import straightway.peerspace.data.Key
 import straightway.utils.getUnsignedShort
 import straightway.utils.indent
 import straightway.utils.joinMultiLine
@@ -116,7 +118,7 @@ class DataChunkStructure private constructor(
 
         private class BinaryAnalyzerVersion2(binaryData: ByteArray) {
 
-            val result get() = DataChunkStructure.version2(controlBlocks, payload)
+            val result get() = version2(controlBlocks, payload)
 
             private val controlBlocks = mutableListOf<DataChunkControlBlock>()
             private var payload = byteArrayOf()

@@ -18,7 +18,6 @@ package straightway.peerspace.transport.impl
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.DataChunkStructure
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.transport.ChunkerCrypto

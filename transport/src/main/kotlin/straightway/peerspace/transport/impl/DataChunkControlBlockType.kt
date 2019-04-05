@@ -13,13 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.data
+package straightway.peerspace.transport.impl
 
 /**
- * The mode how to sign a chunk of data.
+ * Enumeration of all control block types which may occur in version 1
+ * data chunks.
  */
-enum class DataChunkSignMode(val id: Byte) {
-    NoKey(0x0),
-    ListIdKey(0x1),
-    EmbeddedKey(0x2)
+@Suppress("MagicNumber")
+enum class DataChunkControlBlockType(val id: Byte) {
+    Signature(0x01),
+    PublicKey(0x02),
+    ContentKey(0x03),
+    ReferencedChunk(0x04)
 }

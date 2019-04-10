@@ -15,11 +15,8 @@
  */
 package straightway.peerspace.transport.impl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.crypto.Cryptor
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key

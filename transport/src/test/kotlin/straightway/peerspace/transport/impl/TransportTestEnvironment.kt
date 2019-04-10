@@ -39,7 +39,6 @@ import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.chunker
 import straightway.peerspace.transport.deChunker
 import straightway.peerspace.transport.peerClient
-import straightway.random.RandomDistribution
 import straightway.testing.flow.expect
 import straightway.units.Time
 import straightway.units.UnitValue

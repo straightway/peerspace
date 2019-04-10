@@ -103,7 +103,6 @@ class ChunkerImpl(
         return crytoContainerChunk.createChunk(Key(Id(hasher.getHash(crytoContainerChunk.binary))))
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun DataChunkStructure.encryptedChunk(crypto: ChunkerCrypto) =
             crypto.encryptor.encrypt(binary.filled)
 

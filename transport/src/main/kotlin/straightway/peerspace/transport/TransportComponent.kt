@@ -24,7 +24,6 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.transport.impl.ListQueryCallbackInstances
-import straightway.random.RandomDistribution
 import straightway.utils.TimeProvider
 
 /**

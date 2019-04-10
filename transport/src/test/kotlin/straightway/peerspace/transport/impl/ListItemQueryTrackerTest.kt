@@ -68,7 +68,9 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
                 val callbacks = ListQueryCallbackInstances()
                 combinedChunks = byteArrayOf(1, 2, 3)
                 context.createListItemQueryTracker(
-                        initialChunkWithoutReferences, DeChunkerCrypto(decryptor = mock()), callbacks)
+                        initialChunkWithoutReferences,
+                        DeChunkerCrypto(decryptor = mock()),
+                        callbacks)
             } then {
                 verify(peerClient, never()).query(any(), any())
             }

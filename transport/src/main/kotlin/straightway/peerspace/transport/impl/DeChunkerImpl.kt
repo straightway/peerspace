@@ -39,7 +39,6 @@ class DeChunkerImpl : DeChunker {
     private fun DataChunk.decryptWith(deChunkerCrypto: DeChunkerCrypto) =
             DataChunk(key, decryptPayloadWith(deChunkerCrypto))
 
-    @Suppress("UNUSED_PARAMETER")
     private fun DataChunk.decryptPayloadWith(deChunkerCrypto: DeChunkerCrypto) =
             deChunkerCrypto.decryptor.decrypt(DataChunkStructure.fromBinary(data).payload)
 

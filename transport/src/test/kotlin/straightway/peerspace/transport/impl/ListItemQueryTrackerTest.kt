@@ -56,7 +56,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
                     onReceived = { isReceived = true })
             combinedChunks = byteArrayOf(1, 2, 3)
             context.createListItemQueryTracker(
-                    initialChunkWithoutReferences, DeChunkerCrypto(), callbacks)
+                    initialChunkWithoutReferences, DeChunkerCrypto(decryptor = mock()), callbacks)
         } then {
             expect(isReceived)
         }
@@ -68,7 +68,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
                 val callbacks = ListQueryCallbackInstances()
                 combinedChunks = byteArrayOf(1, 2, 3)
                 context.createListItemQueryTracker(
-                        initialChunkWithoutReferences, DeChunkerCrypto(), callbacks)
+                        initialChunkWithoutReferences, DeChunkerCrypto(decryptor = mock()), callbacks)
             } then {
                 verify(peerClient, never()).query(any(), any())
             }
@@ -81,7 +81,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
                         createChunk("ListId", 1.2[second], "ReferencedId"),
                         createChunk("ReferencedId"))
                 context.createListItemQueryTracker(
-                        chunks[0], DeChunkerCrypto(), callbacks)
+                        chunks[0], DeChunkerCrypto(decryptor = mock()), callbacks)
             } then {
                 verify(peerClient).query(eq(DataChunkQuery(Id("ReferencedId"))), any())
             }
@@ -95,7 +95,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
                     createChunk("ListId", 1.2[second], "ReferencedId"),
                     createChunk("ReferencedId"))
             context.createListItemQueryTracker(
-                    chunks[0], DeChunkerCrypto(), callbacks)
+                    chunks[0], DeChunkerCrypto(decryptor = mock()), callbacks)
             networkQueries.single().timeout(Id("ReferencedId"))
         } then {
             expect(isTimedOut)
@@ -111,7 +111,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
             })
             combinedChunks = null
             context.createListItemQueryTracker(
-                    initialChunkWithoutReferences, DeChunkerCrypto(), callbacks)
+                    initialChunkWithoutReferences, DeChunkerCrypto(decryptor = mock()), callbacks)
         } then {
             expect(isIncomplete)
         }
@@ -119,7 +119,7 @@ class ListItemQueryTrackerTest : KoinLoggingDisabler() {
 
     @Test
     fun `crypto is passed to base class`() {
-        val crypto = DeChunkerCrypto(signatureChecker = mock())
+        val crypto = DeChunkerCrypto(signatureChecker = mock(), decryptor = mock())
         test when_ {
             context.createListItemQueryTracker(
                     createChunk("ListId", 1.2[second], "ReferencedId"),

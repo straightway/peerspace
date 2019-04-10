@@ -23,4 +23,4 @@ import straightway.peerspace.crypto.SignatureChecker
  */
 data class DeChunkerCrypto(
         val signatureChecker: SignatureChecker? = null,
-        val decryptor: Decryptor? = null)
+        val decryptor: Decryptor)

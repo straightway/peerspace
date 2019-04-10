@@ -56,7 +56,7 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
         fun protectedReceived(chunk: DataChunk, keepAlive: () -> Unit) = received(chunk, keepAlive)
     }
 
-    private val test get() = test(DeChunkerCrypto())
+    private val test get() = test(DeChunkerCrypto(decryptor = mock()))
     private fun test(crypto: DeChunkerCrypto) =
         Given {
             object : TransportTestEnvironment(
@@ -120,8 +120,8 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
             networkQueries[1].received(chunks[1])
         } then {
             inOrder(deChunker) {
-                verify(deChunker).tryCombining(eq(chunks.slice(0..0)), any<DeChunkerCrypto>())
-                verify(deChunker).tryCombining(eq(chunks.slice(0..1)), any<DeChunkerCrypto>())
+                verify(deChunker).tryCombining(eq(chunks.slice(0..0)), any())
+                verify(deChunker).tryCombining(eq(chunks.slice(0..1)), any())
             }
             expect(sut.receivedDataItems.single() is_ Equal to_ byteArrayOf(1, 2, 3))
         }
@@ -311,7 +311,7 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
 
     @Test
     fun `DeChunkerCrypto is passed to deChunker on trying to combine chunks`() {
-        val deChunkerCrypto = DeChunkerCrypto(signatureChecker = mock())
+        val deChunkerCrypto = DeChunkerCrypto(signatureChecker = mock(), decryptor = mock())
         test(deChunkerCrypto) when_ {
             sut.protectedReceived(createChunk("id")) {}
         } then {
@@ -321,7 +321,7 @@ class QueryTrackerBaseTest : KoinLoggingDisabler() {
 
     @Test
     fun `DeChunkerCrypto is passed to deChunker on trying to get references`() {
-        val deChunkerCrypto = DeChunkerCrypto(signatureChecker = mock())
+        val deChunkerCrypto = DeChunkerCrypto(signatureChecker = mock(), decryptor = mock())
         test(deChunkerCrypto) when_ {
             sut.protectedReceived(createChunk("id")) {}
         } then {

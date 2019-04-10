@@ -29,11 +29,19 @@ class DeChunkerImpl : DeChunker {
 
     override fun tryCombining(
             chunks: Collection<DataChunk>,
-            deChunkerCrypto: DeChunkerCrypto) = ChunkSetAnalyzer(chunks).aggregatedPayload
+            deChunkerCrypto: DeChunkerCrypto) =
+            ChunkSetAnalyzer(chunks.map { it.decryptWith(deChunkerCrypto) }).aggregatedPayload
 
     override fun getReferencedChunks(
             data: ByteArray,
             deChunkerCrypto: DeChunkerCrypto) = DataChunkStructure.fromBinary(data).references
+
+    private fun DataChunk.decryptWith(deChunkerCrypto: DeChunkerCrypto) =
+            DataChunk(key, decryptPayloadWith(deChunkerCrypto))
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun DataChunk.decryptPayloadWith(deChunkerCrypto: DeChunkerCrypto) =
+            deChunkerCrypto.decryptor.decrypt(DataChunkStructure.fromBinary(data).payload)
 
     private class ChunkSetAnalyzer(rawChunks: Collection<DataChunk>) {
         val aggregatedPayload: ByteArray? get() = rootKey?.aggregatedPayload

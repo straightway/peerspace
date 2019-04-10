@@ -150,7 +150,7 @@ class TransportImplTest : KoinLoggingDisabler() {
     @Test
     fun `query data item forwards execution to data query tracker`() {
         val setup: DataQueryCallback.() -> Unit = {}
-        val passedCrypto = DeChunkerCrypto(signatureChecker = mock())
+        val passedCrypto = DeChunkerCrypto(signatureChecker = mock(), decryptor = mock())
         lateinit var calledId: Id
         lateinit var calledSetup: DataQueryCallback.() -> Unit
         lateinit var calledCrypto: DeChunkerCrypto
@@ -175,7 +175,7 @@ class TransportImplTest : KoinLoggingDisabler() {
     @Test
     fun `query list items forwards execution to list query tracker`() {
         val setup: ListQueryCallback.() -> Unit = {}
-        val passedCrypto = DeChunkerCrypto(signatureChecker = mock())
+        val passedCrypto = DeChunkerCrypto(signatureChecker = mock(), decryptor = mock())
         val query = ListQuery(Id("id"), 1[second].absolute..2[second].absolute)
         lateinit var calledQuery: ListQuery
         lateinit var calledSetup: ListQueryCallback.() -> Unit

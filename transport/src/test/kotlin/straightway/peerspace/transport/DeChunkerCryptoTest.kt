@@ -36,7 +36,7 @@ class DeChunkerCryptoTest {
     fun `signatureChecker is accessible`() {
         val signatureCheckerIn: SignatureChecker = mock()
         Given {
-            DeChunkerCrypto(signatureChecker = signatureCheckerIn)
+            DeChunkerCrypto(signatureChecker = signatureCheckerIn, decryptor = mock())
         } when_ {
             signatureChecker
         } then {

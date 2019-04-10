@@ -39,6 +39,7 @@ import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.chunker
 import straightway.peerspace.transport.deChunker
 import straightway.peerspace.transport.peerClient
+import straightway.random.RandomDistribution
 import straightway.testing.flow.expect
 import straightway.units.Time
 import straightway.units.UnitValue
@@ -70,6 +71,7 @@ open class TransportTestEnvironment(
                 querySetup: DataQueryCallback.() -> Unit) -> DataQueryCallback =
                 { _, _, _ -> mock() },
         cryptoFactory: TransportTestEnvironment.() -> CryptoFactory = { mock() },
+        randomBytesFactory: TransportTestEnvironment.() -> Iterator<Byte> = { mock() },
         additionalInitialization: Context.() -> Unit = {}
 ) {
 
@@ -114,7 +116,8 @@ open class TransportTestEnvironment(
             listItemQueryTrackerFactory = { initialChunk, crypto, callbacks ->
                 listItemQueryTrackerFactory(initialChunk, crypto, callbacks) },
             dataQueryTrackerFactory = { queriedId, crypto, setup ->
-                dataQueryTrackerFactory(queriedId, crypto, setup) }
+                dataQueryTrackerFactory(queriedId, crypto, setup) },
+            randomBytesFactory = { randomBytesFactory() }
     ) {
         additionalInitialization()
     }

@@ -15,26 +15,26 @@
  */
 package straightway.peerspace.transport.impl
 
-open class ChunkEnvironmentValues(
-        val chunkSizeBytes: Int,
-        val maxReferences: Int)
+open class ChunkEnvironmentValues(val chunkSizeBytes: Int)
 {
     companion object {
         const val HASH_BITS = Int.SIZE_BITS
     }
 
-    val payloadBytesVersion0 =
+    val unencryptedChunkSizeBytes get() =
             chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
 
+    val payloadBytesVersion0 =
+            unencryptedChunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+
     val maxPayloadBytesVersion1 =
-            chunkSizeBytes - DataChunkStructure.Header.Version1.SIZE
+            unencryptedChunkSizeBytes - DataChunkStructure.Header.Version1.SIZE
 
     fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
-            chunkSizeBytes -
+            unencryptedChunkSizeBytes -
                     DataChunkStructure.Header.Version2.MIN_SIZE -
                     numberOfReferences * referenceBlockSize
 
     private val referenceBlockSize get() =
-        DataChunkControlBlock.NON_CONTENT_SIZE + (HASH_BITS - 1) /
-                Byte.SIZE_BITS + 1
+            DataChunkControlBlock.NON_CONTENT_SIZE + (HASH_BITS - 1) / Byte.SIZE_BITS + 1
 }

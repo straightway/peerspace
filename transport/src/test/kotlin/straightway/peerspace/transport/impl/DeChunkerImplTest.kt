@@ -49,7 +49,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
             test when_ {
                 deChunker.getReferencedChunks(
                         DataChunkStructure.version0(byteArrayOf(1, 2, 3)).binary,
-                        DeChunkerCrypto())
+                        DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -59,7 +59,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
             test when_ {
                 deChunker.getReferencedChunks(
                         DataChunkStructure.version1(byteArrayOf(1, 2, 3), 2).binary,
-                        DeChunkerCrypto())
+                        DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Empty)
             }
@@ -67,10 +67,10 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `getReferencedChunks yields references for version 2 chunk data`() =
             test when_ {
-                val chunk = DataChunkVersion2Builder(chunkSizeBytes).apply {
+                val chunk = DataChunkVersion2Builder(unencryptedChunkSizeBytes).apply {
                     references = listOf(byteArrayOf(1, 2, 3))
                 }.chunkStructure.binary
-                deChunker.getReferencedChunks(chunk, DeChunkerCrypto())
+                deChunker.getReferencedChunks(chunk, DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ listOf(Id(byteArrayOf(1, 2, 3))))
             }
@@ -78,7 +78,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `tryCombining of no chunks is null`() =
             test when_ {
-                deChunker.tryCombining(listOf(), DeChunkerCrypto())
+                deChunker.tryCombining(listOf(), DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.nullableResult is_ Null)
             }
@@ -87,7 +87,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     fun `tryCombining of single chunk without references returns payload`() =
             test { byteArrayOf(1, 2, 3) } when_ {
                 data.createPlainDataChunkVersion2().end()
-                deChunker.tryCombining(chunks, DeChunkerCrypto())
+                deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }
@@ -99,7 +99,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                     .createPlainDataChunkVersion2()
                     .createDirectoryDataChunkWithNumberOfReferences(1)
                     .end()
-                deChunker.tryCombining(chunks, DeChunkerCrypto())
+                deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }
@@ -111,7 +111,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                     .createPlainDataChunkVersion2()
                     .createDirectoryDataChunkWithNumberOfReferences(1)
                     .end()
-                deChunker.tryCombining(chunks.reversed(), DeChunkerCrypto())
+                deChunker.tryCombining(chunks.reversed(), DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }
@@ -124,7 +124,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                     .createPlainDataChunkVersion2()
                     .createDirectoryDataChunkWithNumberOfReferences(2)
                     .end()
-                deChunker.tryCombining(chunks, DeChunkerCrypto())
+                deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }
@@ -137,7 +137,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                     .createPlainDataChunkVersion2()
                     .createDirectoryDataChunkWithNumberOfReferences(2)
                     .end()
-                deChunker.tryCombining(chunks.reversed(), DeChunkerCrypto())
+                deChunker.tryCombining(chunks.reversed(), DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }
@@ -150,14 +150,14 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                     it.toByte()
                 }
             } when_ {
-                data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(1))
+                data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
                     .reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(1))
                     .createPlainDataChunkVersion0()
                     .createDirectoryDataChunkWithNumberOfReferences(1)
                     .createPlainDataChunkVersion2()
                     .createDirectoryDataChunkWithNumberOfReferences(2)
                     .end()
-                deChunker.tryCombining(chunks, DeChunkerCrypto())
+                deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }
@@ -167,7 +167,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
             test { ByteArray(2 * payloadBytesVersion0) { it.toByte() } } when_ {
                 data.createPlainDataChunkVersion0()
                     .createPlainDataChunkVersion0()
-                deChunker.tryCombining(chunks, DeChunkerCrypto())
+                deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.nullableResult is_ Null)
             }
@@ -175,7 +175,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `tryCombining with multiply referenced chunk`() =
             test { byteArrayOf() } when_ {
-                val plainChunk = DataChunkStructure.version2(listOf(), byteArrayOf(1))
+                val plainChunk = DataChunkStructure.version2(listOf(), byteArrayOf(1)).encrypted
                 val plainChunkHash = addHash(plainChunk.binary)
                 val directory = DataChunkStructure.version2(
                         listOf(
@@ -187,12 +187,12 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                                         DataChunkControlBlockType.ReferencedChunk,
                                         0x0,
                                         plainChunkHash)),
-                        byteArrayOf(2))
+                        byteArrayOf(2)).encrypted
                 addHash(directory.binary)
 
                 deChunker.tryCombining(
                         listOf(directory.createChunk(), plainChunk.createChunk()),
-                        DeChunkerCrypto())
+                        DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Equal to_ byteArrayOf(2, 1, 1))
             }
@@ -218,7 +218,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
 
                 deChunker.tryCombining(
                         listOf(directory.createChunk(), loop.createChunk()),
-                        DeChunkerCrypto())
+                        DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect({ it.result } does Throw.type<Panic>())
             }
@@ -252,7 +252,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
 
                 deChunker.tryCombining(
                         listOf(directory.createChunk(), loop2.createChunk(), loop1.createChunk()),
-                        DeChunkerCrypto())
+                        DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect({ it.result } does Throw.type<Panic>())
             }
@@ -265,11 +265,23 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
                                 byteArrayOf(1, 2, 3))),
-                        byteArrayOf(7, 8, 9))
+                        byteArrayOf(7, 8, 9)).encrypted
                 addHash(directory.binary)
-                deChunker.tryCombining(listOf(directory.createChunk()), DeChunkerCrypto())
+                deChunker.tryCombining(
+                        listOf(directory.createChunk()),
+                        DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.nullableResult is_ Null)
+            }
+
+    @Test
+    fun `tryCombining decrypts chunks`() =
+            test { byteArrayOf(1, 2, 3) } when_ {
+                cryptor = negatingEncryptor
+                data.createPlainDataChunkVersion2().end()
+                deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = cryptor))
+            } then {
+                expect(it.result is_ Equal to_ data)
             }
 
     private val ChunkingTestEnvironment.deChunker get() = env.context.deChunker

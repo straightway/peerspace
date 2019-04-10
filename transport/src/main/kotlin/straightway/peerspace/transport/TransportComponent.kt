@@ -24,6 +24,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.transport.impl.ListQueryCallbackInstances
+import straightway.random.RandomDistribution
 import straightway.utils.TimeProvider
 
 /**
@@ -56,6 +57,7 @@ interface TransportComponent : KoinModuleComponent {
                         DeChunkerCrypto,
                         DataQueryCallback.() -> Unit) -> DataQueryCallback,
                 cryptoFactory: () -> CryptoFactory,
+                randomBytesFactory: () -> Iterator<Byte>,
                 additionalInitialization: Context.() -> Unit = {}
         ) = withContext {
             bean { transportFactory() }
@@ -64,6 +66,7 @@ interface TransportComponent : KoinModuleComponent {
             bean { deChunkerFactory() }
             bean { timeProviderFactory() }
             bean { cryptoFactory() }
+            bean { randomBytesFactory() }
             factory { args ->
                 listQueryTrackerFactory(args["listQuery"], args["crypto"], args["querySetup"])
             }
@@ -85,6 +88,7 @@ val TransportComponent.deChunker get() = get<DeChunker>()
 val TransportComponent.cryptoFactory get() = get<CryptoFactory>()
 fun TransportComponent.createHasher() = cryptoFactory.createHasher()
 val TransportComponent.timeProvider get() = get<TimeProvider>()
+val TransportComponent.randomBytes get() = get<Iterator<Byte>>()
 
 @Suppress("LongParameterList")
 fun TransportComponent.createListQueryTracker(

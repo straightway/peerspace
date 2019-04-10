@@ -56,7 +56,7 @@ class ChunkDeChunkTest : KoinLoggingDisabler() {
             test { size } when_ {
                 val chunks =
                         env.chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
-                env.deChunker.tryCombining(chunks, DeChunkerCrypto())
+                env.deChunker.tryCombining(chunks, DeChunkerCrypto(decryptor = notEncryptor))
             } then {
                 expect(it.result is_ Equal to_ data)
             }

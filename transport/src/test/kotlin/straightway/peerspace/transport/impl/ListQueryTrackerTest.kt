@@ -69,7 +69,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
             test when_ {
                 environment.context.createListQueryTracker(
                         ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                        DeChunkerCrypto()) {}
+                        DeChunkerCrypto(decryptor = mock())) {}
             } then {
                 verify(environment.peerClient)
                         .query(eq(DataChunkQuery(Id("ListId"), 1000L..2000L)), any())
@@ -81,7 +81,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         test when_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()
+                    DeChunkerCrypto(decryptor = mock())
             ) {
                 onExpired { onExpiredCalled = true }
             }
@@ -97,7 +97,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         test when_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()
+                    DeChunkerCrypto(decryptor = mock())
             ) {
                 onExpired { keepAlive() }
             }
@@ -113,7 +113,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         test when_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()) {}
+                    DeChunkerCrypto(decryptor = mock())) {}
             environment.networkQueries[0]
                     .timeout(environment.createChunk("ListId", 1.2[second]).key)
         } then {
@@ -128,7 +128,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
             receivedChunk = environment.createChunk("ListId", 1.2[second])
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()) {}
+                    DeChunkerCrypto(decryptor = mock())) {}
             environment.networkQueries[0].received(receivedChunk)
         } then {
             expect(listItemQueryTrackerInitialChunk is_ Equal to_ receivedChunk)
@@ -141,7 +141,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         test while_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()
+                    DeChunkerCrypto(decryptor = mock())
             ) {
                 onReceived { receivedCalled = true }
             }
@@ -160,7 +160,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         test while_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()
+                    DeChunkerCrypto(decryptor = mock())
             ) {
                 onTimeout { timeoutCalled = true }
             }
@@ -179,7 +179,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
         test while_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),
-                    DeChunkerCrypto()
+                    DeChunkerCrypto(decryptor = mock())
             ) {
                 onIncomplete { _, _ -> incompleteCalled = true }
             }
@@ -194,7 +194,7 @@ class ListQueryTrackerTest : KoinLoggingDisabler() {
 
     @Test
     fun `crypto is passed to item tracker`() {
-        val crypto = DeChunkerCrypto(signatureChecker = mock())
+        val crypto = DeChunkerCrypto(signatureChecker = mock(), decryptor = mock())
         test when_ {
             environment.context.createListQueryTracker(
                     ListQuery(Id("ListId"), 1[second].absolute..2[second].absolute),

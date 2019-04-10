@@ -15,8 +15,11 @@
  */
 package straightway.peerspace.transport.impl
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.koinutils.KoinLoggingDisabler
+import straightway.peerspace.crypto.Cryptor
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -34,7 +37,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
     private companion object {
         const val chunkSizeBytes = 0x20
         const val maxReferences = 2
-        const val version0PayloadSize = chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+        const val version0PayloadSize = chunkSizeBytes - 2 * DataChunkStructure.Header.Version0.SIZE
     }
 
     private fun test(dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray) =
@@ -43,14 +46,25 @@ class ChunkerImplTest : KoinLoggingDisabler() {
             }
 
     @Test
-    fun `small plain data results in single chunk version 1`() {
+    fun `small plain data results in single chunk version 2`() {
         test { byteArrayOf() } while_ {
             data.createPlainDataChunkVersion2().end()
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
         } then {
-            expect(DataChunkStructure.fromBinary(it.result.single().data) is_ Equal
-                    to_ setUpChunks.single())
+            assertExpectedChunks(it.result)
+        }
+    }
+
+    @Test
+    fun `data is encrypted using passed encryptor`() {
+        test { byteArrayOf() } while_ {
+            cryptor = negatingEncryptor
+            data.createPlainDataChunkVersion2().end()
+        } when_ {
+            chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(cryptor))
+        } then {
+            assertExpectedChunks(it.result)
         }
     }
 
@@ -61,8 +75,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
         } then {
-            expect(DataChunkStructure.fromBinary(it.result.single().data) is_ Equal
-                    to_ setUpChunks.single())
+            assertExpectedChunks(it.result)
         }
     }
 
@@ -73,8 +86,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
         } then {
-            expect(DataChunkStructure.fromBinary(it.result.single().data) is_ Equal
-                    to_ setUpChunks.single())
+            assertExpectedChunks(it.result)
         }
     }
 
@@ -85,7 +97,8 @@ class ChunkerImplTest : KoinLoggingDisabler() {
             } when_ {
                 chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
             } then {
-                expect(it.result.single().key is_ Equal to_ hashKey(setUpChunks.single()))
+                expect(it.result.single().key is_ Equal
+                        to_ hashKey(setUpChunks.single()))
             }
 
     @Test
@@ -118,7 +131,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `plain data larger than three times the chunk size results in hierarchical chunks`() =
             test {
-                ByteArray(3 * version0PayloadSize + chunkSizeBytes / 2) { it.toByte() }
+                ByteArray(3 * version0PayloadSize + unencryptedChunkSizeBytes / 2) { it.toByte() }
             } while_ {
                 data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
                         .reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
@@ -161,7 +174,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         } while_ {
             data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
                     .createPlainDataChunkVersion0()
-                    .createPlainDataChunkVersion1(chunkSizeBytes -
+                    .createPlainDataChunkVersion1(unencryptedChunkSizeBytes -
                             DataChunkStructure.Header.Version1.SIZE - secondChunkPayloadSize)
                     .createDirectoryDataChunkWithNumberOfReferences(2)
                     .end()
@@ -178,7 +191,8 @@ class ChunkerImplTest : KoinLoggingDisabler() {
     private fun ChunkingTestEnvironment.keys(chunks: Iterable<DataChunkStructure>) =
             chunks.map { hashKey(it) }.toSet()
 
-    private fun ChunkingTestEnvironment.hashKey(chunk: DataChunkStructure) = Key(Id(hash(chunk)))
+    private fun ChunkingTestEnvironment.hashKey(chunk: DataChunkStructure) =
+            Key(Id(hash(chunk)))
 
     private fun ChunkingTestEnvironment.hash(chunk: DataChunkStructure) =
             hasher.getHash(chunk.binary)

@@ -20,7 +20,7 @@ import com.nhaarman.mockito_kotlin.mock
 import straightway.error.Panic
 import straightway.expr.minus
 import straightway.peerspace.crypto.CryptoFactory
-import straightway.peerspace.crypto.Encryptor
+import straightway.peerspace.crypto.Cryptor
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
@@ -36,7 +36,7 @@ class ChunkingTestEnvironment(
         chunkSizeBytes: Int,
         maxReferences: Int,
         val data: ByteArray
-) : ChunkEnvironmentValues(chunkSizeBytes, maxReferences) {
+) : ChunkEnvironmentValues(chunkSizeBytes) {
 
     constructor(chunkSizeBytes: Int,
                 maxReferences: Int,
@@ -44,7 +44,7 @@ class ChunkingTestEnvironment(
             : this(
                 chunkSizeBytes,
                 maxReferences,
-                ChunkEnvironmentValues(chunkSizeBytes, maxReferences).dataGetter())
+                ChunkEnvironmentValues(chunkSizeBytes).dataGetter())
 
     companion object {
         private fun asBase64(data: ByteArray) = base64Encoder.encodeToString(data)
@@ -56,12 +56,40 @@ class ChunkingTestEnvironment(
     val env = TransportTestEnvironment(
             chunkerFactory = { ChunkerImpl(chunkSizeBytes, maxReferences) },
             deChunkerFactory = { DeChunkerImpl() },
-            cryptoFactory = { cryptoFactory })
+            cryptoFactory = { cryptoFactory },
+            randomBytesFactory = {
+                mock {
+                    onGeneric { next() }.thenAnswer { randomBytes.next() }
+                    on { hasNext() }.thenAnswer { randomBytes.hasNext() }
+                }
+            })
 
     val setUpChunks: Set<DataChunkStructure> get() = _setUpChunks
 
-    val notEncryptor = mock<Encryptor> {
+    val notEncryptor = mock<Cryptor> {
         on { encrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0) }
+        on { decrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0) }
+    }
+
+    val negatingEncryptor = mock<Cryptor> {
+        on { encrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0).negatedElements }
+        on { decrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0).negatedElements }
+    }
+
+    var cryptor = notEncryptor
+
+    val DataChunkStructure.encrypted get() =
+        asBase64(binary).let {
+            val cachedStructure = encryptedChunks[it]
+                    ?: DataChunkStructure.version0(cryptor.encrypt(binary.filled))
+            encryptedChunks[it] = cachedStructure
+            cachedStructure
+        }
+
+    val randomStream = ByteArray(1000) { (-it).toByte() }
+
+    fun resetRandomStream() {
+        randomBytes = randomStream.iterator()
     }
 
     fun DataChunkStructure.createChunk() =
@@ -104,7 +132,10 @@ class ChunkingTestEnvironment(
                 sliceArray(payload.size..lastIndex)
             }
 
-    fun ByteArray.end() = expect(isEmpty() && chunksToAddToDirectory.size == 1)
+    fun ByteArray.end() {
+        expect(isEmpty() && chunksReferencesToAddToDirectory.size == 1)
+        resetRandomStream()
+    }
 
     fun addHash(data: ByteArray) = nextHashValue++.toByteArray().also {
         hashes[asBase64(data)] = it
@@ -116,15 +147,25 @@ class ChunkingTestEnvironment(
 
     var isCreatingHashOnTheFly = false
 
-    fun getHash(data: ByteArray) =
+    private val ByteArray.negatedElements get() =
+        ByteArray(size) { (-this[it]).toByte() }
+
+    private fun getHash(data: ByteArray) =
             hashes[asBase64(data)] ?:
             if (isCreatingHashOnTheFly) addHash(data)
-            else throw Panic("Hash not found for ${DataChunkStructure.fromBinary(data)}")
+            else throw Panic("Hash not found for ${DataChunkStructure.fromBinary(data)}, " +
+                "hashable chunks: ${hashes.keys.map {
+                    DataChunkStructure.fromBinary(Base64.getDecoder().decode(it))
+                }}")
 
+    private val encryptedChunks = mutableMapOf<String, DataChunkStructure>()
+    private var randomBytes = randomStream.iterator()
+    private val ByteArray.filled get() =
+        this + ByteArray(unencryptedChunkSizeBytes - size) { randomBytes.next() }
     private var hashes = mutableMapOf<String, ByteArray>()
     private var nextHashValue = 1
     private val _setUpChunks = mutableSetOf<DataChunkStructure>()
-    private val chunksToAddToDirectory = mutableListOf<DataChunkStructure>()
+    private val chunksReferencesToAddToDirectory = mutableListOf<ByteArray>()
     private val directoryReservations = mutableListOf<ByteArray>()
 
     private fun DataChunkVersion2Builder.addDirectoryPayload() {
@@ -135,13 +176,14 @@ class ChunkingTestEnvironment(
     private fun DataChunkVersion2Builder.addReferences(numberOfReferences: Int) =
             (0 until numberOfReferences).forEach { _ -> addLastReference() }
 
-    private fun DataChunkVersion2Builder.addLastReference() = with(chunksToAddToDirectory) {
-        references = listOf(getHash(last().binary)) + references
-        chunksToAddToDirectory.removeAt(lastIndex)
-    }
+    private fun DataChunkVersion2Builder.addLastReference() =
+            with(chunksReferencesToAddToDirectory) {
+                references = listOf(last()) + references
+                chunksReferencesToAddToDirectory.removeAt(lastIndex)
+            }
 
     private fun createChunkVersion2(action: DataChunkVersion2Builder.() -> ByteArray): ByteArray =
-            with(DataChunkVersion2Builder(chunkSizeBytes), action)
+            with(DataChunkVersion2Builder(unencryptedChunkSizeBytes), action)
 
     private val hasher = mock<Hasher> {
         on { getHash(any()) }.thenAnswer { getHash(it.getArgument<ByteArray>(0)) }
@@ -153,9 +195,10 @@ class ChunkingTestEnvironment(
     }
 
     private fun addSetUpChunk(chunk: DataChunkStructure) {
-        addHash(chunk.binary)
-        _setUpChunks += chunk
-        chunksToAddToDirectory += chunk
+        val encrypted = chunk.encrypted
+        val hash = addHash(encrypted.binary)
+        _setUpChunks += encrypted
+        chunksReferencesToAddToDirectory += hash
     }
 
     private val minPayloadBytesVersion1 =

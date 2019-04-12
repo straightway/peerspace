@@ -29,127 +29,155 @@ import straightway.utils.toChunksOfSize
  * Default implementation of the Chunker interface.
  */
 class ChunkerImpl(
-        chunkSizeBytes: Int,
+        private val chunkSizeBytes: Int,
         private val maxReferences: Int
 ) : Chunker, TransportComponent by TransportComponent() {
 
     override fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto) =
-            mutableSetOf<DataChunk>().also { data.chopToChunks(crypto, it) }
+            Chopper(data, crypto).chunks
 
     // region Private
 
-    private val unencryptedChunkSizeBytes =
-            chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
-
-    private fun ByteArray.chopToChunks(
-            crypto: ChunkerCrypto,
-            resultCollector: MutableSet<DataChunk>
-    ) =
-            chopToChunkStructure(crypto, resultCollector).createChunk(crypto)
-                    .also { resultCollector.add(it) }
-
-    private fun ByteArray.chopToChunkStructure(
-            crypto: ChunkerCrypto, resultCollector: MutableSet<DataChunk>
-    ) =
-            if (size <= version0PayloadSize) createPlainChunkStructure()
-            else createChunkTree(crypto, resultCollector)
-
-    private fun ByteArray.createPlainChunkStructure() =
-            when {
-                version0PayloadSize == size -> createPlainVersion0Chunk()
-                maxVersion2PayloadSize < size -> createPlainVersion1Chunk()
-                else -> createPlainVersion2Chunk()
-            }
-
-    private fun ByteArray.createPlainVersion0Chunk() =
-            DataChunkStructure.version0(this)
-
-    private fun ByteArray.createPlainVersion1Chunk() =
-            DataChunkStructure.version1(this, additionalVersion1PayloadBytes)
-
-    private fun ByteArray.createPlainVersion2Chunk() =
-            DataChunkVersion2Builder(unencryptedChunkSizeBytes)
-                    .also { it.payload = this }.chunkStructure
-
-    private val ByteArray.additionalVersion1PayloadBytes get() =
-        unencryptedChunkSizeBytes - DataChunkStructure.Header.Version1.SIZE - size
-
-    private fun ByteArray.createChunkTree(
-            crypto: ChunkerCrypto, resultCollector: MutableSet<DataChunk>
-    ) =
-            DataChunkVersion2Builder(unencryptedChunkSizeBytes).apply {
-                references = createSubChunks(crypto, resultCollector).hashes
-                setPayloadPart(this@createChunkTree)
-            }.chunkStructure
-
-    private val Iterable<DataChunk>.hashes get() =
-            map { hasher.getHash(it.data) }
-
-    private fun ByteArray.createSubChunks(
-            crypto: ChunkerCrypto, resultCollector: MutableSet<DataChunk>
-    ): List<DataChunk> =
-            toSubTreeChunks().map { it.chopToChunks(crypto, resultCollector) }
-
-    private fun ByteArray.toSubTreeChunks() =
-            with(treeDepthInfo) {
-                sliceArray(getDirectoryPayloadSize(size)..lastIndex).toChunksOfSize(maxSubTreeSize)
-            }
-
-    private val ByteArray.treeDepthInfo get() = getTreeDepthInfoForSize(size)
-
-    private fun DataChunkStructure.createChunk(crypto: ChunkerCrypto): DataChunk {
-        val encryptedChunk = encryptedChunk(crypto)
-        val crytoContainerChunk = DataChunkStructure.version0(encryptedChunk)
-        return crytoContainerChunk.createChunk(Key(Id(hasher.getHash(crytoContainerChunk.binary))))
-    }
-
-    private fun DataChunkStructure.encryptedChunk(crypto: ChunkerCrypto) =
-            crypto.encryptor.encrypt(binary.filled)
-
-    private val ByteArray.filled get() =
-            (this + ByteArray(unencryptedChunkSizeBytes - size) { randomBytes.next() })
-
-    private val maxVersion2PayloadSize =
-            unencryptedChunkSizeBytes - DataChunkStructure.Header.Version2.MIN_SIZE
-
-    private fun getTreeDepthInfoForSize(dataSize: Int) =
-            TreeDepthInfo().getMinimumForSize(dataSize)
-
-    private fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
-            unencryptedChunkSizeBytes -
-                    DataChunkStructure.Header.Version2.MIN_SIZE -
-                    numberOfReferences * referenceBlockSize
-
-    private val referenceBlockSize get() = DataChunkControlBlock.NON_CONTENT_SIZE +
-            (hasher.hashBits - 1) / Byte.SIZE_BITS + 1
-
-    private val version0PayloadSize =
-            unencryptedChunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
-
-    private val hasher = createHasher()
-
-    private inner class TreeDepthInfo private constructor(
-            val depth: Int,
-            val maxSubTreeSize: Int
+    private inner class Chopper(
+            data: ByteArray,
+            val crypto: ChunkerCrypto
     ) {
-        constructor() : this(0, 0)
+        val chunks: Set<DataChunk> get() = resultCollector
 
-        fun getMinimumForSize(dataSize: Int): TreeDepthInfo =
-                if (dataSize <= maxSize) this
-                else TreeDepthInfo(depth + 1, maxSize).getMinimumForSize(dataSize)
+        val rootChunk: DataChunk
 
-        fun getDirectoryPayloadSize(aggregatedPayloadSize: Int) =
-                maxChunkVersion2PayloadSizeWithReferences(
-                        getNumberOfReferencesForSize(aggregatedPayloadSize))
+        // region private
 
-        private fun getNumberOfReferencesForSize(dataSize: Int) =
-                (0..maxReferences).first { dataSize <= getSizeForReferences(it) }
+        private fun ByteArray.chopToChunkStructure() =
+                if (size <= version0PayloadSize) createPlainChunkStructure()
+                else createChunkTree()
 
-        private val maxSize =
-                if (depth <= 0) version0PayloadSize else getSizeForReferences(maxReferences)
+        private fun ByteArray.createPlainChunkStructure() =
+                when {
+                    version0PayloadSize == size -> createPlainVersion0Chunk()
+                    maxVersion2PayloadSize < size -> createPlainVersion1Chunk()
+                    else -> createPlainVersion2Chunk()
+                }
 
-        private fun getSizeForReferences(references: Int) =
-                references * maxSubTreeSize + maxChunkVersion2PayloadSizeWithReferences(references)
+        private fun ByteArray.createPlainVersion0Chunk() =
+                DataChunkStructure.version0(this)
+
+        private fun ByteArray.createPlainVersion1Chunk() =
+                DataChunkStructure.version1(this, additionalVersion1PayloadBytes)
+
+        private fun ByteArray.createPlainVersion2Chunk() =
+                DataChunkVersion2Builder(unencryptedChunkSizeBytes)
+                        .also { it.payload = this }.chunkStructure
+
+        private val ByteArray.additionalVersion1PayloadBytes
+            get() =
+                unencryptedChunkSizeBytes - DataChunkStructure.Header.Version1.SIZE - size
+
+        private fun ByteArray.createChunkTree() =
+                DataChunkVersion2Builder(unencryptedChunkSizeBytes).apply {
+                    references = createSubChunks().hashes
+                    setPayloadPart(this@createChunkTree)
+                }.chunkStructure
+
+        private val Iterable<DataChunk>.hashes get() =
+                map { hasher.getHash(it.data) }
+
+        private fun ByteArray.createSubChunks(): List<DataChunk> =
+                toSubTreeChunks().map {
+                    val chopper = Chopper(it, crypto)
+                    resultCollector.addAll(chopper.chunks)
+                    chopper.rootChunk
+                }
+
+        private fun ByteArray.toSubTreeChunks() =
+                with(treeDepthInfo) {
+                    sliceArray(getDirectoryPayloadSize(size)..lastIndex)
+                            .toChunksOfSize(maxSubTreeSize)
+                }
+
+        private val ByteArray.treeDepthInfo get() = getTreeDepthInfoForSize(size)
+
+        private fun DataChunkStructure.createChunk(): DataChunk {
+            val encryptedChunk = encryptedChunk(crypto)
+            val crytoContainerChunk = encryptedChunk.inCryptoContainer
+            return crytoContainerChunk
+                    .createChunk(Key(Id(hasher.getHash(crytoContainerChunk.binary))))
+        }
+
+        private val ByteArray.inCryptoContainer get() =
+                DataChunkStructure.version0(filledForCryptoContainer)
+
+        private val ByteArray.filledForCryptoContainer get() =
+            this + ByteArray(cryptoContainerPayloadSizeBytes - unencryptedChunkSizeBytes) {
+                randomBytes.next()
+            }
+
+        private fun DataChunkStructure.encryptedChunk(crypto: ChunkerCrypto) =
+                crypto.encryptor.encrypt(binary.filled)
+
+        private val ByteArray.filled get() =
+                (this + ByteArray(unencryptedChunkSizeBytes - size) { randomBytes.next() })
+
+        private fun getTreeDepthInfoForSize(dataSize: Int) =
+                TreeDepthInfo().getMinimumForSize(dataSize)
+
+        private fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
+                unencryptedChunkSizeBytes -
+                        DataChunkStructure.Header.Version2.MIN_SIZE -
+                        numberOfReferences * referenceBlockSize
+
+        private val referenceBlockSize get() =
+                DataChunkControlBlock.NON_CONTENT_SIZE +
+                    (hasher.hashBits - 1) / Byte.SIZE_BITS + 1
+
+        private val hasher = createHasher()
+
+        private val cryptoContainerPayloadSizeBytes =
+                chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+
+        private val blockSizeBytes = crypto.encryptor.encryptorProperties.blockBytes
+
+        private val unencryptedChunkSizeBytes =
+                (cryptoContainerPayloadSizeBytes / blockSizeBytes) * blockSizeBytes
+
+        private val version0PayloadSize =
+                unencryptedChunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+
+        private val maxVersion2PayloadSize =
+                unencryptedChunkSizeBytes - DataChunkStructure.Header.Version2.MIN_SIZE
+
+        private val resultCollector: MutableSet<DataChunk> = mutableSetOf()
+
+        init {
+            rootChunk = data.chopToChunkStructure().createChunk().also { resultCollector.add(it) }
+        }
+
+        private inner class TreeDepthInfo private constructor(
+                val depth: Int,
+                val maxSubTreeSize: Int
+        ) {
+            constructor() : this(0, 0)
+
+            fun getMinimumForSize(dataSize: Int): TreeDepthInfo =
+                    if (dataSize <= maxSize) this
+                    else TreeDepthInfo(depth + 1, maxSize).getMinimumForSize(dataSize)
+
+            fun getDirectoryPayloadSize(aggregatedPayloadSize: Int) =
+                    maxChunkVersion2PayloadSizeWithReferences(
+                            getNumberOfReferencesForSize(aggregatedPayloadSize))
+
+            private fun getNumberOfReferencesForSize(dataSize: Int) =
+                    (0..maxReferences).first { dataSize <= getSizeForReferences(it) }
+
+            private val maxSize =
+                    if (depth <= 0) version0PayloadSize else getSizeForReferences(maxReferences)
+
+            private fun getSizeForReferences(references: Int) =
+                    references * maxSubTreeSize +
+                            maxChunkVersion2PayloadSizeWithReferences(references)
+        }
+
+        // endregion
     }
 
     // endregion

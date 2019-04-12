@@ -21,30 +21,37 @@ import straightway.error.Panic
 import straightway.expr.minus
 import straightway.peerspace.crypto.CryptoFactory
 import straightway.peerspace.crypto.Cryptor
+import straightway.peerspace.crypto.DecryptorProperties
+import straightway.peerspace.crypto.EncryptorProperties
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
+import straightway.testing.flow.Equal
 import straightway.testing.flow.Less
 import straightway.testing.flow.Not
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.than
+import straightway.testing.flow.to_
 import straightway.utils.toByteArray
 import java.util.Base64
 
 class ChunkingTestEnvironment(
         chunkSizeBytes: Int,
         maxReferences: Int,
+        cryptoBlockSize: Int,
         val data: ByteArray
-) : ChunkEnvironmentValues(chunkSizeBytes) {
+) : ChunkEnvironmentValues(chunkSizeBytes, cryptoBlockSize) {
 
     constructor(chunkSizeBytes: Int,
                 maxReferences: Int,
+                cryptoBlockSize: Int,
                 dataGetter: ChunkEnvironmentValues.() -> ByteArray)
             : this(
                 chunkSizeBytes,
                 maxReferences,
-                ChunkEnvironmentValues(chunkSizeBytes).dataGetter())
+                cryptoBlockSize,
+                ChunkEnvironmentValues(chunkSizeBytes, cryptoBlockSize).dataGetter())
 
     companion object {
         private fun asBase64(data: ByteArray) = base64Encoder.encodeToString(data)
@@ -66,31 +73,60 @@ class ChunkingTestEnvironment(
 
     val setUpChunks: Set<DataChunkStructure> get() = _setUpChunks
 
+    data class TestEncryptorProperties(
+            override var maxClearTextBytes: Int = Int.MAX_VALUE,
+            override val blockBytes: Int = 1,
+            var outputBytesForInputSize: (Int) -> Int = { it }
+    ) : EncryptorProperties {
+        override fun getOutputBytes(inputSize: Int) =
+                getFullBlockSize(outputBytesForInputSize(inputSize))
+        fun getFullBlockSize(size: Int) =
+                getNumberOfBlocksForSize(size) * blockBytes
+        private fun getNumberOfBlocksForSize(size: Int) =
+                ((size - 1) / blockBytes + 1)
+    }
+
+    val encryptorProperties = TestEncryptorProperties(blockBytes = cryptoBlockSize)
+
+    data class TestDecryptorProperties(
+            override var fixedCipherTextBytes: Int = 0
+    ) : DecryptorProperties
+
+    val decryptorProperties = TestDecryptorProperties()
+
     val notEncryptor = mock<Cryptor> {
-        on { encrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0) }
-        on { decrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0) }
+        on { encrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0).filledToBlockSize }
+        on { decrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0).cutToBlockSize }
+        on { encryptorProperties }.thenAnswer { encryptorProperties }
+        on { decryptorProperties }.thenAnswer { decryptorProperties }
     }
 
     val negatingEncryptor = mock<Cryptor> {
-        on { encrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0).negatedElements }
-        on { decrypt(any()) }.thenAnswer { it.getArgument<ByteArray>(0).negatedElements }
+        on { encrypt(any()) }.thenAnswer {
+            it.getArgument<ByteArray>(0).filledToBlockSize.negatedElements
+        }
+        on { decrypt(any()) }.thenAnswer {
+            it.getArgument<ByteArray>(0).cutToBlockSize.negatedElements
+        }
+        on { encryptorProperties }.thenAnswer { encryptorProperties }
+        on { decryptorProperties }.thenAnswer { decryptorProperties }
     }
 
     var cryptor = notEncryptor
 
     val DataChunkStructure.encrypted get() =
         asBase64(binary).let {
-            val cachedStructure = encryptedChunks[it]
-                    ?: DataChunkStructure.version0(cryptor.encrypt(binary.filled))
+            val cachedStructure = encryptedChunks[it] ?: encrypt()
             encryptedChunks[it] = cachedStructure
             cachedStructure
         }
 
-    val randomStream = ByteArray(1000) { (-it).toByte() }
-
-    fun resetRandomStream() {
-        randomBytes = randomStream.iterator()
-    }
+    private fun DataChunkStructure.encrypt() =
+            cryptor.encrypt(binary.filled).let {
+                DataChunkStructure.version0(it + ByteArray(encryptedPayloadSizeBytes - it.size) {
+                    randomBytes.next()
+                })
+            }
 
     fun DataChunkStructure.createChunk() =
             createChunk(Key(Id(getHash(binary))))
@@ -147,8 +183,21 @@ class ChunkingTestEnvironment(
 
     var isCreatingHashOnTheFly = false
 
+    private fun resetRandomStream() {
+        randomBytes = randomStream.iterator()
+    }
+
+    private val randomStream = ByteArray(1000) { (-it).toByte() }
+
+    private val ByteArray.filledToBlockSize get() =
+            this + ByteArray(encryptorProperties.getFullBlockSize(size) - size)
+
+    private val ByteArray.cutToBlockSize get() =
+            this.sliceArray(0 until
+                    (size / encryptorProperties.blockBytes) * encryptorProperties.blockBytes)
+
     private val ByteArray.negatedElements get() =
-        ByteArray(size) { (-this[it]).toByte() }
+            ByteArray(size) { (-this[it]).toByte() }
 
     private fun getHash(data: ByteArray) =
             hashes[asBase64(data)] ?:
@@ -196,6 +245,7 @@ class ChunkingTestEnvironment(
 
     private fun addSetUpChunk(chunk: DataChunkStructure) {
         val encrypted = chunk.encrypted
+        expect(encrypted.binary.size is_ Equal to_ chunkSizeBytes)
         val hash = addHash(encrypted.binary)
         _setUpChunks += encrypted
         chunksReferencesToAddToDirectory += hash

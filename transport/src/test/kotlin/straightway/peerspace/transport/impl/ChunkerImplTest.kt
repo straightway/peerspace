@@ -37,9 +37,16 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         const val version0PayloadSize = chunkSizeBytes - 2 * DataChunkStructure.Header.Version0.SIZE
     }
 
-    private fun test(dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray) =
+    private fun test(
+            cryproBlockSize: Int = 1,
+            dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray
+    ) =
             Given {
-                ChunkingTestEnvironment(chunkSizeBytes, maxReferences, dataToChopToChunkGetter)
+                ChunkingTestEnvironment(
+                        chunkSizeBytes,
+                        maxReferences,
+                        cryproBlockSize,
+                        dataToChopToChunkGetter)
             }
 
     @Test
@@ -181,6 +188,18 @@ class ChunkerImplTest : KoinLoggingDisabler() {
             assertExpectedChunks(it.result)
         }
     }
+
+    @Test
+    fun `encryption respects data block size`() =
+            test(cryproBlockSize = 0x08) {
+                byteArrayOf(1, 2, 3)
+            } while_ {
+                data.createPlainDataChunkVersion2().end()
+            } when_ {
+                chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(notEncryptor))
+            } then {
+                assertExpectedChunks(it.result)
+            }
 
     private val ChunkingTestEnvironment.chunker get() = env.context.chunker
     private val ChunkingTestEnvironment.hasher get() = env.context.createHasher()

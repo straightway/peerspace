@@ -43,7 +43,7 @@ class ChunkDeChunkTest : KoinLoggingDisabler() {
 
     private fun test(dataToChopSizeGetter: ChunkEnvironmentValues.() -> Int) =
             Given {
-                ChunkingTestEnvironment(chunkSizeBytes, maxReferences) {
+                ChunkingTestEnvironment(chunkSizeBytes, maxReferences, 1) {
                     ByteArray(dataToChopSizeGetter()) { it.toByte() }
                 }.apply {
                     isCreatingHashOnTheFly = true

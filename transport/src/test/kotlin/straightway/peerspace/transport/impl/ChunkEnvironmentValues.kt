@@ -15,14 +15,19 @@
  */
 package straightway.peerspace.transport.impl
 
-open class ChunkEnvironmentValues(val chunkSizeBytes: Int)
-{
+open class ChunkEnvironmentValues(
+        val chunkSizeBytes: Int,
+        val cryptoBlockSize: Int) {
+
     companion object {
         const val HASH_BITS = Int.SIZE_BITS
     }
 
-    val unencryptedChunkSizeBytes get() =
+    val encryptedPayloadSizeBytes get() =
             chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+
+    val unencryptedChunkSizeBytes get() =
+            (encryptedPayloadSizeBytes / cryptoBlockSize) * cryptoBlockSize
 
     val payloadBytesVersion0 =
             unencryptedChunkSizeBytes - DataChunkStructure.Header.Version0.SIZE

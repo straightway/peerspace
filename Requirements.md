@@ -1,18 +1,18 @@
-# Peerspace Requirements
+# Straightway.Peerspace Requirements
 
 ## Participation of peers
 **L001** For any computer connected to the internet, it shall be possible to participate in the
-Peerspace network as a peer by just running the software. No sign in is required.
+Straightway.Peerspace network as a peer by just running the software. No sign in is required.
 
 ## Privacy
-**P001** It shall be highly improbable for any observer of a part of the Peerspace network to
-gather information about communications it does not take part in. This includes:
+**P001** It shall be highly improbable for any observer of a part of the Straightway.Peerspace
+network to gather information about communications it does not take part in. This includes:
 
 - **P002** Content
 - **P003** Meta data
 
 ## Storage
-**S001** It shall be possible for peers to store data within the Peerspace network.
+**S001** It shall be possible for peers to store data within the Straightway.Peerspace network.
 
 - **S002** Data shall be stored anonymously.
 - **S003** Data shall be stored encrypted. _Note: Thus the nodes generally cannot know which data
@@ -26,7 +26,7 @@ generally visible._
   - **S007** mutable chunk id. _Note: This identifies a chunk who's content may be changed._ 
 
 ## Query
-It shall be possible for peers to query the Peerspace network for stored data by:
+It shall be possible for peers to query the Straightway.Peerspace network for stored data by:
 
   - **Q001** content hash, or
   - **Q002** list id, or
@@ -44,7 +44,7 @@ the peer is connected to the internet with at least 1 mbit/s upload and download
 **C002** Peers may delete data they stored to free space for new data.
 
 _Note: As the peers do not know which data they store, data may silently disappear from the
-Peerspace network when the last peer storing the data deletes it._
+Straightway.Peerspace network when the last peer storing the data deletes it._
 
 ## Robustness
 The protocol driven by the peers shall be robust against:

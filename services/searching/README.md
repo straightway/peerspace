@@ -1,6 +1,5 @@
-Peerspace Searching
-
 # Peerspace Searching
+
 It may be possible to set up an announce and search service using Peerspace _open lists_:
 
 - Each user may announce information under a certain _search specification_ by posting it to an

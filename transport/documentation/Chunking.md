@@ -1,8 +1,8 @@
-# Peerspace Chunking
+# Straightway.Peerspace Chunking
 
-In peerspace, data on the [network layer](PeerspaceSoftwareLayers.md#Network Layer)
+In Straightway.Peerspace, data on the [network layer](../../network/README.md)
 is is transmitted in data chunks of fixed size. It is the responisbility of
-the [transport layer](PeerspaceSoftwareLayers.md#Transport Layer) to cut the data
+the [transport layer](../README.md) to cut the data
 into chunks of this size and encrypt the chunks properly. This document describes
 the data format of the chunks.
 
@@ -134,7 +134,7 @@ Each _control block_ has the following fields:
 #### Redundancy Chunk Control Block (0x05)
 
 * Type ID: 0x05
-* CPLS: Unised
+* CPLS: Unused
 * Multiplicity: 0..*, only once after a Referenced Chunk Control Block
 * Contains a reference to a redundant data chunk, allowing to reconstruct any
   other of the referenced chunks, if n-1 chunks referenced before this block are

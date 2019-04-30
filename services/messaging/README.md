@@ -1,10 +1,11 @@
+# Straightway.Peerspace Messaging
 
-
-# Messaging
-Peerspace messaging is a layer on top of the Peerspace base. It allows users exchanging arbitrary
+Peerspace messaging is a layer on top of the [transport layer](../../transport/README.md). It allows users exchanging arbitrary
 messages.
 
+
 ## Channels
+
 A user may establish a writable uni-directional communication _channel_ using a list. Everyone
 having access to the list's _access token_ can write on that _channel_, so this token can be
 distributed to other users to grant write access.
@@ -31,7 +32,9 @@ The following setups exist:
   - The readers have the private part of the _content key_ and can read the content of the list.
   - Typical scenario: Mail box
 
+
 ## Exchanging messages
+
 To implement a spam-safe distributed message exchange service using Peerspace, each participant
 creates a _whisper channel_ to receive initial _contact requests_. This is called his _contact
 channel_.
@@ -58,7 +61,9 @@ contact request_ into Bob's _contact channel_, containing Alice's _send channel_
 and Bob start querying their mutual _send channels_ and can post messages to each other using their
 own _send channel_ for that contact.
 
+
 ## Social networking
+
 It is possible to build up a social network with the usual features using the channels described
 above.
 

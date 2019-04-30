@@ -29,5 +29,4 @@ interface Transport {
     fun query(query: ListQuery, crypto: DeChunkerCrypto, querySetup: ListQueryCallback.() -> Unit)
 }
 
-
 fun createList(signatureChecker: SignatureChecker) = Id(signatureChecker.signatureCheckKey)

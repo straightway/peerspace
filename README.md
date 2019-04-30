@@ -12,7 +12,7 @@ The software architecture roughly follows the [OSI model](https://en.wikipedia.o
  * [Data Link Layer](datalink/README.md)
  * [Network Layer](network/README.md)
  * [Transport Layer](transport/README.md)
- * [Service layer](services/RADME.md)
+ * [Service layer](services/README.md)
  * Application Layer (application specific, currently only in
    [networksimulator](networksimulator/src/main/kotlin/straightway/peerspace/networksimulator/activities))
 

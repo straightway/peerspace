@@ -17,7 +17,6 @@ package straightway.peerspace.transport.impl
 
 import straightway.error.Panic
 import straightway.peerspace.data.Id
-import straightway.peerspace.transport.DataChunkSignMode
 import straightway.utils.getInt
 import straightway.utils.toByteArray
 import straightway.utils.toHex
@@ -41,9 +40,6 @@ class DataChunkControlBlock(
             throw Panic("Control block type $type: Invalid CPLS ($cpls)")
         if (MAX_CONTENT_SIZE < content.size)
             throw Panic("Control block type $type: Too much data (${content.size})")
-        if (type == DataChunkControlBlockType.Signature &&
-                cpls !in DataChunkSignMode.values().map { it.id })
-            throw Panic("Control block type $type: Invalid sign mode 0x${cpls.toString(HEX)}")
     }
 
     override fun equals(other: Any?) =
@@ -64,7 +60,7 @@ class DataChunkControlBlock(
                             "${Id(content)})"
                         else ->
                             "(${content.size} bytes)" +
-                                    "[${content.map { it.toHex() }.joinToString(" ")}])"
+                                    "[${content.joinToString(" ") { it.toHex() }}])"
                     }
 
     // region Private
@@ -99,7 +95,7 @@ class DataChunkControlBlock(
                 throw Panic("Control block type $type: Not enough content " +
                         "(encoded content size: $contentSize, " +
                         "actual content size: ${size - NON_CONTENT_SIZE})")
-            else sliceArray(NON_CONTENT_SIZE..(NON_CONTENT_SIZE + contentSize - 1))
+            else sliceArray(NON_CONTENT_SIZE until NON_CONTENT_SIZE + contentSize)
     }
 
     private val bytes = sizeAndCPLSCombined.toByteArray().takeLast(2)

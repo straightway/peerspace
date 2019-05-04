@@ -38,14 +38,14 @@ class ChunkerImplTest : KoinLoggingDisabler() {
     }
 
     private fun test(
-            cryproBlockSize: Int = 1,
+            cryptoBlockSize: Int = 1,
             dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray
     ) =
             Given {
                 ChunkingTestEnvironment(
                         chunkSizeBytes,
                         maxReferences,
-                        cryproBlockSize,
+                        cryptoBlockSize,
                         dataToChopToChunkGetter)
             }
 
@@ -191,7 +191,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
 
     @Test
     fun `encryption respects data block size`() =
-            test(cryproBlockSize = 0x08) {
+            test(cryptoBlockSize = 0x08) {
                 byteArrayOf(1, 2, 3)
             } while_ {
                 data.createPlainDataChunkVersion2().end()
@@ -200,6 +200,8 @@ class ChunkerImplTest : KoinLoggingDisabler() {
             } then {
                 assertExpectedChunks(it.result)
             }
+
+    //region Private
 
     private val ChunkingTestEnvironment.chunker get() = env.context.chunker
     private val ChunkingTestEnvironment.hasher get() = env.context.createHasher()
@@ -218,4 +220,6 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         expect(actualChunks.map { DataChunkStructure.fromBinary(it.data) } is_ Equal
                 to_ setUpChunks)
     }
+
+    //endregion
 }

@@ -27,10 +27,7 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
         const val VERSION: Byte = 2
     }
 
-    var signMode: DataChunkSignMode = DataChunkSignMode.NoKey
-    var signature: ByteArray? = null
     var publicKey: ByteArray? = null
-    var contentKey: ByteArray? = null
     var references = listOf<ByteArray>()
     var payload = byteArrayOf()
 
@@ -38,9 +35,6 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
         payload = fullPayload.sliceArray(0 until min(availablePayloadBytes, fullPayload.size))
         return fullPayload.sliceArray(availablePayloadBytes..fullPayload.lastIndex)
     }
-
-    val signablePart get() =
-        getDataChunkStructure(signableBlocks).binary.allBytesExceptVersion
 
     val availableBytes get() =
         availablePayloadBytes - payload.size
@@ -55,14 +49,9 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
         controlBlocks.fold(0) { acc, block -> acc + block.binarySize }
     private fun getDataChunkStructure(blocks: List<DataChunkControlBlock>) =
             DataChunkStructure.version2(blocks, payload)
-    private val controlBlocks get() = signatureBlock + signableBlocks
-    private val signableBlocks get() = publicKeyBlock + contentKeyBlock + referenceBlocks
-    private val signatureBlock get() =
-            createControlBlock(DataChunkControlBlockType.Signature, signature, signMode.id)
+    private val controlBlocks get() = publicKeyBlock + referenceBlocks
     private val publicKeyBlock get() =
             createControlBlock(DataChunkControlBlockType.PublicKey, publicKey)
-    private val contentKeyBlock get() =
-            createControlBlock(DataChunkControlBlockType.ContentKey, contentKey)
     private val referenceBlocks get() = references.map {
         DataChunkControlBlock(DataChunkControlBlockType.ReferencedChunk, 0, it)
     }
@@ -71,7 +60,6 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
             type: DataChunkControlBlockType, content: ByteArray?, cpls: Byte = 0
     ) =
             if (content == null) listOf() else listOf(DataChunkControlBlock(type, cpls, content))
-    private val ByteArray.allBytesExceptVersion get() = sliceArray(1..lastIndex)
 
     // endregion
 }

@@ -39,6 +39,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     }
 
     private val test get() = test { byteArrayOf() }
+
     private fun test(dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray) =
             Given {
                 ChunkingTestEnvironment(chunkSizeBytes, maxReferences, 1, dataToChopToChunkGetter)

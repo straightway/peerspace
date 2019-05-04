@@ -16,7 +16,6 @@
 package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
-import straightway.peerspace.transport.DataChunkSignMode
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Null
@@ -35,25 +34,8 @@ class DataChunkVersion2BuilderTest {
             expect(DataChunkVersion2Builder.VERSION is_ Equal to_ 2)
 
     @Test
-    fun `signMode is initially NoKey`() {
-        DataChunkVersion2Builder(testChunkSize).apply {
-            expect(signMode is_ Equal to_ DataChunkSignMode.NoKey)
-        }
-    }
-
-    @Test
-    fun `initial signature is null`() {
-        DataChunkVersion2Builder(testChunkSize).apply { expect(signature is_ Null) }
-    }
-
-    @Test
     fun `initial publicKey is not accessible`() {
         DataChunkVersion2Builder(testChunkSize).apply { expect(publicKey is_ Null) }
-    }
-
-    @Test
-    fun `initial contentKey is not accessible`() {
-        DataChunkVersion2Builder(testChunkSize).apply { expect(contentKey is_ Null) }
     }
 
     @Test
@@ -85,56 +67,6 @@ class DataChunkVersion2BuilderTest {
             payload = fullPayload
         }
         expect(result.payload is_ Equal to_ fullPayload)
-    }
-
-    @Test
-    fun `set signature is accessible`() {
-        DataChunkVersion2Builder(testChunkSize).apply {
-            signature = byteArrayOf(1, 2, 3)
-            expect(signature is_ Equal to_ byteArrayOf(1, 2, 3))
-        }
-    }
-
-    @Test
-    fun `set signature results in signature control block`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            signature = byteArrayOf(1, 2, 3)
-        }.chunkStructure
-        expect(result.controlBlocks.first().type is_ Equal to_ DataChunkControlBlockType.Signature)
-    }
-
-    @Test
-    fun `set signature results in control block with signature as content`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            signature = byteArrayOf(1, 2, 3)
-        }.chunkStructure
-        expect(result.controlBlocks.first().content is_ Equal to_ byteArrayOf(1, 2, 3))
-    }
-
-    @Test
-    fun `set signature after signMode results in control block with signMode as cpls`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            signMode = DataChunkSignMode.EmbeddedKey
-            signature = byteArrayOf(1, 2, 3)
-        }.chunkStructure
-        expect(result.controlBlocks.first().cpls is_ Equal to_ DataChunkSignMode.EmbeddedKey.id)
-    }
-
-    @Test
-    fun `set signMode after signature results in control block with signMode as cpls`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            signature = byteArrayOf(1, 2, 3)
-            signMode = DataChunkSignMode.EmbeddedKey
-        }.chunkStructure
-        expect(result.controlBlocks.first().cpls is_ Equal to_ DataChunkSignMode.EmbeddedKey.id)
-    }
-
-    @Test
-    fun `set signature null does not throw`() {
-        DataChunkVersion2Builder(testChunkSize).apply {
-            signature = null
-            expect(signature is_ Null)
-        }
     }
 
     @Test
@@ -178,47 +110,6 @@ class DataChunkVersion2BuilderTest {
     }
 
     @Test
-    fun `set contentKey is accessible`() {
-        DataChunkVersion2Builder(testChunkSize).apply {
-            contentKey = byteArrayOf(1, 2, 3)
-            expect(contentKey is_ Equal to_ byteArrayOf(1, 2, 3))
-        }
-    }
-
-    @Test
-    fun `set contentKey null does not throw`() {
-        DataChunkVersion2Builder(testChunkSize).apply {
-            contentKey = null
-            expect(publicKey is_ Null)
-        }
-    }
-
-    @Test
-    fun `set contentKey results in content key control block`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            contentKey = byteArrayOf(1, 2, 3)
-        }.chunkStructure
-        expect(result.controlBlocks.first().type is_ Equal
-                to_ DataChunkControlBlockType.ContentKey)
-    }
-
-    @Test
-    fun `set contentKey results in control block with contentKey as content`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            contentKey = byteArrayOf(1, 2, 3)
-        }.chunkStructure
-        expect(result.controlBlocks.first().content is_ Equal to_ byteArrayOf(1, 2, 3))
-    }
-
-    @Test
-    fun `set contentKey results in control block with cpls 0`() {
-        val result = DataChunkVersion2Builder(testChunkSize).apply {
-            contentKey = byteArrayOf(1, 2, 3)
-        }.chunkStructure
-        expect(result.controlBlocks.first().cpls is_ Equal to_ 0)
-    }
-
-    @Test
     fun `added reference is accessible`() {
         DataChunkVersion2Builder(testChunkSize).apply {
             references += byteArrayOf(1, 2, 3)
@@ -255,38 +146,13 @@ class DataChunkVersion2BuilderTest {
     fun `order of control blocks is as expected`() {
         val result = DataChunkVersion2Builder(testChunkSize).apply {
             references += byteArrayOf(1, 2, 3)
-            contentKey = byteArrayOf(1, 2, 3)
-            signature = byteArrayOf(1, 2, 3)
             publicKey = byteArrayOf(1, 2, 3)
             references += byteArrayOf(1, 2, 3)
         }.chunkStructure
         expect(result.controlBlocks.map { it.type } is_ Equal to_ listOf(
-                DataChunkControlBlockType.Signature,
                 DataChunkControlBlockType.PublicKey,
-                DataChunkControlBlockType.ContentKey,
                 DataChunkControlBlockType.ReferencedChunk,
                 DataChunkControlBlockType.ReferencedChunk))
-    }
-
-    @Test
-    fun `signablePart contains everything after the signature`() {
-        DataChunkVersion2Builder(testChunkSize).apply {
-            signMode = DataChunkSignMode.EmbeddedKey
-            signature = byteArrayOf(1)
-            publicKey = byteArrayOf(2)
-            contentKey = byteArrayOf(3)
-            references += byteArrayOf(4)
-            references += byteArrayOf(5)
-            payload = byteArrayOf(6)
-            expect(signablePart is_ Equal to_ byteArrayOf(
-                    0x02, 0x00, 0x01, 0x02, // public key
-                    0x03, 0x00, 0x01, 0x03, // content key
-                    0x04, 0x00, 0x01, 0x04, // reference to 4
-                    0x04, 0x00, 0x01, 0x05, // reference to 5
-                    DataChunkStructure.Header.Version2.CEND,
-                    0x00, 0x01,             // payload size
-                    6))                     // payload
-        }
     }
 
     @Test
@@ -315,7 +181,7 @@ class DataChunkVersion2BuilderTest {
     fun `setPayloadPart for partly fitting payload with control blocks`() {
         val fullPayload = ByteArray(testChunkSize) { it.toByte() }
         DataChunkVersion2Builder(testChunkSize).apply {
-            contentKey = byteArrayOf(1, 2, 3)
+            publicKey = byteArrayOf(1, 2, 3)
             references += byteArrayOf(4, 5, 6)
             val rest = setPayloadPart(fullPayload)
             expect(availableBytes is_ Equal to_ 0)

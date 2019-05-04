@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.transport.DataChunkSignMode
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.False
@@ -36,7 +35,7 @@ class DataChunkStructureTest {
 
     private companion object {
         const val VERSION2 = 2.toByte()
-        val payload = byteArrayOf(4, 5, 6)
+        val testPayload = byteArrayOf(4, 5, 6)
         val controlBlock = DataChunkControlBlock(
                 DataChunkControlBlockType.ReferencedChunk,
                 0xA,
@@ -45,8 +44,8 @@ class DataChunkStructureTest {
         fun createArbitraryStructure() = DataChunkStructure.version2(
                 listOf(
                         DataChunkControlBlock(
-                                DataChunkControlBlockType.Signature,
-                                DataChunkSignMode.EmbeddedKey.id,
+                                DataChunkControlBlockType.ReferencedChunk,
+                                0x00,
                                 byteArrayOf(1, 2, 3)),
                         DataChunkControlBlock(
                                 DataChunkControlBlockType.PublicKey,
@@ -57,7 +56,7 @@ class DataChunkStructureTest {
 
     private val test get() =
         Given {
-            DataChunkStructure.version2(listOf(controlBlock), payload)
+            DataChunkStructure.version2(listOf(controlBlock), testPayload)
         }
 
     @Test
@@ -79,9 +78,9 @@ class DataChunkStructureTest {
     @Test
     fun `payload is accessible`() =
             test when_ {
-                Companion.payload
+                payload
             } then {
-                expect(it.result is_ Equal to_ Companion.payload)
+                expect(it.result is_ Equal to_ testPayload)
             }
 
     @Test

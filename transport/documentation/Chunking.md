@@ -24,7 +24,7 @@ Integer values are always encoded in big endian byte order.
 ### Version 0
 
 A version 0 chunk contains a header only consisting of the version number. The rest
-of the chunk os the payload.
+of the chunk is the payload.
 
 
                  Header||
@@ -53,7 +53,7 @@ The rest of the chunk os the payload.
 A version 1 chunk can be used for "almost full" payload. If you have a payload of
 e.g. the _CHUNK_SIZE_ - 3, then it is impossible to encode this using a version 0
 or version 2 chunk: The first one has a fixed payload size of _CHUNK_SIZE_ - 2, the
-second one a maximum payload size óf _CHUNK_SIZE_ - 4. In this case, a version 1
+second one a maximum payload size of _CHUNK_SIZE_ - 4. In this case, a version 1
 chunk can do the job with a MSZE value of 1, meaning the actual payload size is the
 maximum payload size - 1, which is equal to _CHUNK_SIZE_ - 3.
 
@@ -85,38 +85,17 @@ Each _control block_ has the following fields:
   * CPLS: Bits 12-15: Can be used to store additional info defined by the block type. 
 * CONT: The content of the _control block_, length as specified by CSZE
 
-#### Signature Control Block (0x01)
+#### Public Key Control Block (0x01)
 
 * Type ID: 0x01
-* CPLS: The signature type. Defines how the signature can be verified.
-  * 0x0: Signature is verifyable with a public key which must be known otherwise to the recepient
-  * 0x1: Signature is verifyable with public key extracted from chunk key
-  * 0x2: Signature is verifyable with the key stored in the _public key control block_ (0x02)
-  * More signature types may be added in the future.
-* Multiplicity: 0..1
-* Contains a digital signature for the chunk. All data immediately after this block is signed. The
-  signature may be verified as specified in the CPLS subfield of the _control block's_ SIZE+
-  field. 
-
-#### Public Key Control Block (0x02)
-
-* Type ID: 0x02
-* CPLS: Unused 
+* CPLS: The cipher algorithm of the public key. The following values are defined (may be
+  extended later):
+  * 0x000: RSA2048 
 * Multiplicity: 0..1
 * Contains the public key used to create a signature. May refer to a _signature control block_
   (0x01) or to something completely different.
   
-#### Content Key Control Block (0x03)
-
-* Type ID: 0x03
-* CPLS: Unused 
-* Multiplicity: 0..1
-* Contains a symmetric content key which is by itself encrypted, normally with the public part
-  of an asymmetric key pair. The recepient must know how to decrypt the content key. All data
-  immediately after this block is encrypted using the content key, including any following _control
-  blocks_.
-  
-#### Referenced Chunk Control Block (0x04)
+#### Referenced Chunk Control Block (0x02)
 
 * Type ID: 0x04
 * CPLS: Unused 
@@ -131,7 +110,7 @@ Each _control block_ has the following fields:
     cycles. Chunks containing reference cycles shall be regarded as corrupt and be ignored.
   * Only untimed data chunks can be referenced, i.e. no data chunks being list items.
 
-#### Redundancy Chunk Control Block (0x05)
+#### Redundancy Chunk Control Block (0x03)
 
 * Type ID: 0x05
 * CPLS: Unused
@@ -146,3 +125,62 @@ Each _control block_ has the following fields:
   A chunk may contain more than one Redundancy Chunk Control Block. Each of these
   blocks refers to the references before it, either to the beginning of the chunk
   or until the previous Redundancy Chunk Control Block.
+  
+### Version 3
+
+A version 3 chunk contains a symmetric content key and a payload.
+
+                                Header||
+                Version|   Content Key||Payload
+                  +----+----+----+----++----+
+    Size in Bytes |   1|   1|   2|KYZE||   *|
+                  +----+----+----+----++----+
+          Meaning |0x03|CALG|KYSZ|CKEY||PYLD|
+                  +----+----+----+----++----+
+
+Following the version byte, it has the following fields:
+* CALG: The symmetric cipher algorithm used for encryption. The following values are defined:
+  * 0x00: AES256
+  * More algorithms may be added in the future.
+* KYSZ: The size of the following asymmetric key in bytes.
+* CKEY: The asymmetric content key, normally by itself encrypted, e.g. with the public part of an
+  asymmetric key pair.
+* PYLD: The payload of the chunk, encrypted with CKEY.
+
+The recepient must know how to decrypt the content key. The payload starts with the next byte
+after the key and is encrypted using that content key. The payload will usually (but not
+necessarily) contain the largest fitting encrypted chunk, so that it fits into the size of
+_FULL_PAYLOAD_SIZE_ = _CHUNK_SIZE_ - _KYSZ_ - 4. The _BLOCK_SIZE_ of the ciper algorithm may cause
+that the effective payload size is _FULL_PAYLOAD_SIZE_ - _FULL_PAYLOAD_SIZE_ % _BLOCK_SIZE_.
+  
+### Version 4
+
+A version 4 chunk contains a digital signature and the signed payload.
+
+                                          Header||
+                Version|               Hash Code||Payload
+                  +----+----+----+----+----+----++----+
+    Size in Bytes |   1|   1|   1|   1|   2|KYZE||   *|
+                  +----+----+----+----+----+----++----+
+          Meaning |0x03|SMOD|SHAL|SCAL|SGSZ|SIGN||PYLD|
+                  +----+----+----+----+----+----++----+
+
+Following the version byte, it has the following fields:
+* SMOD: The mode for verifying the signature:
+  * 0x0: Signature is verifyable with a public key which must be known otherwise to the recepient
+  * 0x1: Signature is verifyable with public key extracted from chunk key
+  * 0x2: Signature is verifyable with a key which can be extracted from the payload (e.g.
+    from an embedded version 2 chunk's _public key control block_ (0x01)
+  * More signature types may be added in the future.
+* SHAL: The hash algorithm used for signing. The following values are defined:
+  * 0x00: SHA512
+  * More algorithms may be added in the future.
+* SCAL: The asymmetric cipher algorithm used for signing. The following values are defined:
+  * 0x00: RSA2048
+  * More algorithms may be added in the future.
+* SGSZ: The size of the following digital signature in bytes.
+* SIGN: The digital siganture of the payload.
+* PYLD: The payload of the chunk.
+
+The payload starts with the next byte after the signature. The payload has a size of
+_FULL_PAYLOAD_SIZE_ = _CHUNK_SIZE_ - _SGSZ_ - 6. It may contain a sub chunk of that size.

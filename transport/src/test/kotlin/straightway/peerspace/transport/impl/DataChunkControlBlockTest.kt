@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import straightway.error.Panic
 import straightway.expr.minus
 import straightway.peerspace.data.Id
-import straightway.peerspace.transport.DataChunkSignMode
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Not
@@ -32,10 +31,10 @@ import straightway.testing.flow.to_
 class DataChunkControlBlockTest {
 
     private companion object {
-        val content = byteArrayOf(0xA1.toByte(), 2, 3)
+        val testContent = byteArrayOf(0xA1.toByte(), 2, 3)
         val sut = DataChunkControlBlock(
-                DataChunkControlBlockType.ReferencedChunk, 0xA, content)
-        val binarySut = byteArrayOf(0x04, 0xA0.toByte(), 0x03) + content
+                DataChunkControlBlockType.ReferencedChunk, 0xA, testContent)
+        val binarySut = byteArrayOf(0x02, 0xA0.toByte(), 0x03) + testContent
     }
 
     private val test = Given { sut }
@@ -59,9 +58,9 @@ class DataChunkControlBlockTest {
     @Test
     fun `content is accessible`() =
             test when_ {
-                Companion.content
+                content
             } then {
-                expect(it.result is_ Equal to_ Companion.content)
+                expect(it.result is_ Equal to_ testContent)
             }
 
     @Test
@@ -88,14 +87,6 @@ class DataChunkControlBlockTest {
             } does Throw.type<Panic>())
 
     @Test
-    fun `signature with invalid sign mode panics`() =
-            expect({ DataChunkControlBlock(
-                            DataChunkControlBlockType.Signature,
-                            (DataChunkSignMode.values().map { it.id }.max()!! + 1).toByte(),
-                            byteArrayOf(1, 2, 3))
-            } does Throw.type<Panic>())
-
-    @Test
     fun `too big data panics`() =
             expect({
                 DataChunkControlBlock(
@@ -107,14 +98,14 @@ class DataChunkControlBlockTest {
         val sut = DataChunkControlBlock(binarySut)
         expect(sut.type is_ Equal to_ DataChunkControlBlockType.ReferencedChunk)
         expect(sut.cpls is_ Equal to_ 0xA)
-        expect(sut.content is_ Equal to_ content)
+        expect(sut.content is_ Equal to_ testContent)
     }
 
     @Test
     fun `toString yields proper string for anything but a reference`() =
             Given {
                 DataChunkControlBlock(
-                        DataChunkControlBlockType.PublicKey, 0xA, content)
+                        DataChunkControlBlockType.PublicKey, 0xA, testContent)
             } when_ {
                 toString()
             } then {
@@ -128,15 +119,15 @@ class DataChunkControlBlockTest {
                 toString()
             } then {
                 expect(it.result is_ Equal to_
-                        "DataChunkControlBlock(ReferencedChunk, 0xa, ${Id(Companion.content)})")
+                        "DataChunkControlBlock(ReferencedChunk, 0xa, ${Id(testContent)})")
             }
 
     @Test
     fun `equals for two equal blocks is true`() {
         expect(DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()) is_ Equal
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()) is_ Equal
                 to_ DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()))
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()))
     }
 
     @Test
@@ -144,23 +135,23 @@ class DataChunkControlBlockTest {
         expect(DataChunkControlBlock(
                 DataChunkControlBlockType.PublicKey, 0x00, byteArrayOf()) is_ Not - Equal
                 to_ DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()))
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()))
     }
 
     @Test
     fun `two block with different cpls differ`() {
         expect(DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x01, byteArrayOf()) is_ Not - Equal
+                DataChunkControlBlockType.ReferencedChunk, 0x01, byteArrayOf()) is_ Not - Equal
                 to_ DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()))
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()))
     }
 
     @Test
     fun `two block with different content differ`() {
         expect(DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()) is_ Not - Equal
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()) is_ Not - Equal
                 to_ DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf(1)))
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf(1)))
     }
 
     @Test
@@ -172,10 +163,10 @@ class DataChunkControlBlockTest {
     @Test
     fun `hash codes for two equal blocks are Equal`() {
         expect(DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()).hashCode() is_
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()).hashCode() is_
                 Equal to_
                 DataChunkControlBlock(
-                        DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()).hashCode())
+                        DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()).hashCode())
     }
 
     @Test
@@ -184,32 +175,32 @@ class DataChunkControlBlockTest {
                 DataChunkControlBlockType.PublicKey, 0x00, byteArrayOf()).hashCode() is_
                 Not - Equal to_
                 DataChunkControlBlock(
-                        DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()).hashCode())
+                        DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()).hashCode())
     }
 
     @Test
     fun `two block with different cpls have different hash codes`() {
         expect(DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x01, byteArrayOf()).hashCode() is_
+                DataChunkControlBlockType.ReferencedChunk, 0x01, byteArrayOf()).hashCode() is_
                 Not - Equal to_
                 DataChunkControlBlock(
-                        DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()).hashCode())
+                        DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()).hashCode())
     }
 
     @Test
     fun `two block with different content have different hash code`() {
         expect(DataChunkControlBlock(
-                DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf()).hashCode() is_
+                DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf()).hashCode() is_
                 Not - Equal to_
                 DataChunkControlBlock(
-                        DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf(1)).hashCode())
+                        DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf(1)).hashCode())
     }
 
     @Test
     fun `binary size is equal to size of binary`() =
             Given {
                 DataChunkControlBlock(
-                        DataChunkControlBlockType.ContentKey, 0x00, byteArrayOf(1, 2, 3))
+                        DataChunkControlBlockType.ReferencedChunk, 0x00, byteArrayOf(1, 2, 3))
             } when_ {
                 binarySize
             } then {
@@ -224,14 +215,5 @@ class DataChunkControlBlockTest {
     @Test
     fun `binary control block with too large size panics`() =
             expect({ DataChunkControlBlock(byteArrayOf(0x01, 0x00, 0x01))}
-                    does Throw.type<Panic>())
-
-    @Test
-    fun `binary signature control block with invalid sign mode panics`() =
-            expect({ DataChunkControlBlock(
-                    byteArrayOf(
-                            DataChunkControlBlockType.Signature.id,
-                            ((DataChunkSignMode.values().map { it.id }.max()!! + 1) shl 4).toByte(),
-                            0x00))}
                     does Throw.type<Panic>())
 }

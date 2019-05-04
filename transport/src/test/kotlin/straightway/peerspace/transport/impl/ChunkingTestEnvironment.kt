@@ -121,13 +121,6 @@ class ChunkingTestEnvironment(
             cachedStructure
         }
 
-    private fun DataChunkStructure.encrypt() =
-            cryptor.encrypt(binary.filled).let {
-                DataChunkStructure.version0(it + ByteArray(encryptedPayloadSizeBytes - it.size) {
-                    randomBytes.next()
-                })
-            }
-
     fun DataChunkStructure.createChunk() =
             createChunk(Key(Id(getHash(binary))))
 
@@ -183,6 +176,15 @@ class ChunkingTestEnvironment(
 
     var isCreatingHashOnTheFly = false
 
+    //region Private
+
+    private fun DataChunkStructure.encrypt() =
+            cryptor.encrypt(binary.filled).let {
+                DataChunkStructure.version0(it + ByteArray(encryptedPayloadSizeBytes - it.size) {
+                    randomBytes.next()
+                })
+            }
+
     private fun resetRandomStream() {
         randomBytes = randomStream.iterator()
     }
@@ -197,7 +199,7 @@ class ChunkingTestEnvironment(
                     (size / encryptorProperties.blockBytes) * encryptorProperties.blockBytes)
 
     private val ByteArray.negatedElements get() =
-            ByteArray(size) { (-this[it]).toByte() }
+            ByteArray(size) { (this[it].toInt().inv()).toByte() }
 
     private fun getHash(data: ByteArray) =
             hashes[asBase64(data)] ?:
@@ -253,4 +255,6 @@ class ChunkingTestEnvironment(
 
     private val minPayloadBytesVersion1 =
             maxPayloadBytesVersion1 - DataChunkStructure.Header.Version1.MAX_ADDITIONAL_BYTES
+
+    //endregion
 }

@@ -17,7 +17,6 @@ package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
 import straightway.error.Panic
-import straightway.peerspace.transport.DataChunkSignMode
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
@@ -34,7 +33,7 @@ class DataChunkStructure_Version2_Test {
 
     private companion object {
         const val VERSION2 = 2.toByte()
-        val payload = byteArrayOf(4, 5, 6)
+        val testPayload = byteArrayOf(4, 5, 6)
         val controlBlock = DataChunkControlBlock(
                 DataChunkControlBlockType.ReferencedChunk,
                 0xA,
@@ -54,7 +53,7 @@ class DataChunkStructure_Version2_Test {
 
     private val test get() =
         Given {
-            DataChunkStructure.version2(listOf(controlBlock), payload)
+            DataChunkStructure.version2(listOf(controlBlock), testPayload)
         }
 
     @Test
@@ -81,16 +80,16 @@ class DataChunkStructure_Version2_Test {
             } then {
                 expect(it.result.sliceArray(
                         (it.result.lastIndex - 2)..it.result.lastIndex) is_
-                        Equal to_ Companion.payload)
+                        Equal to_ testPayload)
                 expect(it.result.sliceArray(
                         (it.result.lastIndex - 4)..(it.result.lastIndex - 3))
-                        .getUnsignedShort() is_ Equal to_ Companion.payload.size)
+                        .getUnsignedShort() is_ Equal to_ testPayload.size)
             }
 
     @Test
     fun `payload smaller than max payload size`() =
             Given {
-                DataChunkStructure.version2(listOf(), payload)
+                DataChunkStructure.version2(listOf(), testPayload)
             } when_ {
                 binary
             } then {
@@ -98,8 +97,8 @@ class DataChunkStructure_Version2_Test {
                         byteArrayOf(
                                 VERSION2,
                                 DataChunkStructure.Header.Version2.CEND,
-                                0x00, Companion.payload.size.toByte()) +
-                        Companion.payload)
+                                0x00, testPayload.size.toByte()) +
+                        testPayload)
             }
 
     @Test
@@ -149,7 +148,7 @@ class DataChunkStructure_Version2_Test {
             Given {
                 DataChunkStructure.fromBinary(binaryChunk)
             } when_ {
-                Companion.payload
+                payload
             } then {
                 expect(it.result is_ Equal to_ byteArrayOf(4, 5, 6))
             }
@@ -167,9 +166,8 @@ class DataChunkStructure_Version2_Test {
     @Test
     fun `multiple control block from version 2 binary`() {
         val chunkStructure = DataChunkVersion2Builder(0xff).apply {
-            signMode = DataChunkSignMode.ListIdKey
-            signature = byteArrayOf(1, 2, 3)
-            contentKey = byteArrayOf(4, 5, 6)
+            publicKey = byteArrayOf(1, 2, 3)
+            references += byteArrayOf(4, 5, 6)
             payload = byteArrayOf(7, 8, 9)
         }.chunkStructure
 

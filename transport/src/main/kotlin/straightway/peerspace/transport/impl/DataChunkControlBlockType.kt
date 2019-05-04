@@ -21,8 +21,7 @@ package straightway.peerspace.transport.impl
  */
 @Suppress("MagicNumber")
 enum class DataChunkControlBlockType(val id: Byte) {
-    Signature(0x01),
-    PublicKey(0x02),
-    ContentKey(0x03),
-    ReferencedChunk(0x04)
+    PublicKey(0x01),
+    ReferencedChunk(0x02),
+    Redundancy(0x03)
 }

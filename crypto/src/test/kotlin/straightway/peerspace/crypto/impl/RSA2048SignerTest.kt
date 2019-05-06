@@ -35,6 +35,7 @@ class RSA2048SignerTest {
         val sut = with(RSA2048TestEnvironment) {
             RSA2048Signer(cryptors[0].keyPair.private, factory)
         }
+
         val matchingCryptor = RSA2048TestEnvironment.cryptors[0]
         val notMatchingCryptor = RSA2048TestEnvironment.cryptors[1]
     }
@@ -43,6 +44,7 @@ class RSA2048SignerTest {
     fun `can be created using raw key bytes`() =
             Given {
                 RSA2048Signer(
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) +
                         matchingCryptor.keyPair.private.encoded,
                         RSA2048TestEnvironment.factory)
             } when_ {
@@ -99,7 +101,9 @@ class RSA2048SignerTest {
             } when_ {
                 signKey
             } then {
-                expect(it.result is_ Equal to_ matchingCryptor.keyPair.private.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) +
+                        matchingCryptor.keyPair.private.encoded)
             }
 
     @Test
@@ -109,7 +113,9 @@ class RSA2048SignerTest {
             } when_ {
                 decryptionKey
             } then {
-                expect(it.result is_ Equal to_ matchingCryptor.keyPair.private.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) +
+                        matchingCryptor.keyPair.private.encoded)
             }
 
     @Test
@@ -152,6 +158,16 @@ class RSA2048SignerTest {
                 decryptorProperties.fixedCipherTextBytes
             } then {
                 expect(it.result is_ Equal to_ (keyBits - 1) / 8 + 1)
+            }
+
+    @Test
+    fun `algorithm is RSA2048`() =
+            Given {
+                sut
+            } when_ {
+                algorithm
+            } then {
+                expect(it.result is_ Equal to_ "RSA2048")
             }
 
     @Test

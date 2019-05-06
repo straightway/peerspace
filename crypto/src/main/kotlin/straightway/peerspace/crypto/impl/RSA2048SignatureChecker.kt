@@ -33,8 +33,12 @@ class RSA2048SignatureChecker(
 ) : SignatureChecker, EncryptorProperties, Serializable {
 
     constructor(rawKey: ByteArray, factory: CryptoFactory) :
-            this(publicKeyFrom(rawKey, RSA2048Cryptor.keyCipherAlgorithm), factory)
+            this(publicKeyFrom(
+                    rawKey.stripAndCheckAlgorithmType(CipherAlgorithm.RSA2048),
+                    RSA2048Cryptor.keyCipherAlgorithm),
+                factory)
 
+    override val algorithm = "RSA2048"
     override val keyBits = RSA2048Cryptor.keyBits
 
     override val encryptorProperties get() = this
@@ -44,8 +48,8 @@ class RSA2048SignatureChecker(
     override val blockBytes = 0
     override fun getOutputBytes(inputSize: Int) = encryptCipher.getOutputSize(inputSize)
 
-    override val signatureCheckKey get() = key.encoded!!
-    override val encryptionKey get() = key.encoded!!
+    override val signatureCheckKey get() = key.encoded!!.with(CipherAlgorithm.RSA2048)
+    override val encryptionKey get() = key.encoded!!.with(CipherAlgorithm.RSA2048)
 
     override val hashAlgorithm = factory.hashAlgorithm
 

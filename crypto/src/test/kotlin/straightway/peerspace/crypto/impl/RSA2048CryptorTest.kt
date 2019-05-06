@@ -110,7 +110,8 @@ class RSA2048CryptorTest {
             } when_ {
                 signKey
             } then {
-                expect(it.result is_ Equal to_ keyPair.private.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) + keyPair.private.encoded)
             }
 
     @Test
@@ -120,7 +121,8 @@ class RSA2048CryptorTest {
             } when_ {
                 decryptionKey
             } then {
-                expect(it.result is_ Equal to_ keyPair.private.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) + keyPair.private.encoded)
             }
 
     @Test
@@ -130,7 +132,8 @@ class RSA2048CryptorTest {
             } when_ {
                 encryptionKey
             } then {
-                expect(it.result is_ Equal to_ keyPair.public.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) + keyPair.public.encoded)
             }
 
     @Test
@@ -140,7 +143,8 @@ class RSA2048CryptorTest {
             } when_ {
                 signatureCheckKey
             } then {
-                expect(it.result is_ Equal to_ keyPair.public.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) + keyPair.public.encoded)
             }
 
     @Test
@@ -180,6 +184,16 @@ class RSA2048CryptorTest {
                 val deserialzed = it.result.deserializeTo<CryptoIdentity>()
                 val signature = sign(byteArrayOf(1, 2, 3))
                 expect(deserialzed.isSignatureValid(byteArrayOf(1, 2, 3), signature) is_ True)
+            }
+
+    @Test
+    fun `algorithm is RSA2048`() =
+            Given {
+                sut
+            } when_ {
+                algorithm
+            } then {
+                expect(it.result is_ Equal to_ "RSA2048")
             }
 
     @Test

@@ -33,16 +33,20 @@ class RSA2048Signer(
 ) : Signer, DecryptorProperties, Serializable {
 
     constructor(rawKey: ByteArray, factory: CryptoFactory) :
-            this(privateKeyFrom(rawKey, RSA2048Cryptor.keyCipherAlgorithm), factory)
+            this(privateKeyFrom(
+                    rawKey.stripAndCheckAlgorithmType(CipherAlgorithm.RSA2048),
+                    RSA2048Cryptor.keyCipherAlgorithm),
+                factory)
 
     override val keyBits = RSA2048Cryptor.keyBits
+    override val algorithm = "RSA$keyBits"
 
     override val decryptorProperties get() = this
 
     override val fixedCipherTextBytes = (keyBits - 1) / Byte.SIZE_BITS + 1
 
-    override val signKey get() = key.encoded!!
-    override val decryptionKey get() = key.encoded!!
+    override val signKey get() = key.encoded!!.with(CipherAlgorithm.RSA2048)
+    override val decryptionKey get() = key.encoded!!.with(CipherAlgorithm.RSA2048)
 
     override val hashAlgorithm: String = factory.hashAlgorithm
 

@@ -16,6 +16,7 @@
 package straightway.peerspace.crypto.impl
 
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.expr.minus
 import straightway.peerspace.crypto.SignatureChecker
 import straightway.testing.bdd.Given
@@ -34,9 +35,12 @@ import straightway.utils.serializeToByteArray
 class RSA2048SignatureCheckerTest {
 
     companion object {
-        val sut = with(RSA2048TestEnvironment) {
-            RSA2048SignatureChecker(cryptors[0].keyPair.public, factory)
+        val sut by lazy {
+            with(RSA2048TestEnvironment) {
+                RSA2048SignatureChecker(cryptors[0].keyPair.public, factory)
+            }
         }
+
         val matchingCryptor = RSA2048TestEnvironment.cryptors[0]
         val notMatchingCryptor = RSA2048TestEnvironment.cryptors[1]
     }
@@ -45,11 +49,23 @@ class RSA2048SignatureCheckerTest {
     fun `can be created using raw key bytes`() =
             Given {
                 RSA2048SignatureChecker(
-                        matchingCryptor.keyPair.public.encoded, RSA2048TestEnvironment.factory)
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) +
+                                matchingCryptor.keyPair.public.encoded,
+                        RSA2048TestEnvironment.factory)
             } when_ {
                 matchingCryptor.sign(byteArrayOf(1, 2, 3))
             } then {
                 expect(isSignatureValid(byteArrayOf(1, 2, 3), it.result) is_ True)
+            }
+
+    @Test
+    fun `creation with invalid type in raw key bytes panics`() =
+            Given {
+                byteArrayOf(Byte.MIN_VALUE) + matchingCryptor.keyPair.public.encoded
+            } when_ {
+                RSA2048SignatureChecker(this, RSA2048TestEnvironment.factory)
+            } then {
+                expect({ it.result } does Throw.type<Panic>())
             }
 
     @Test
@@ -99,7 +115,9 @@ class RSA2048SignatureCheckerTest {
             } when_ {
                 encryptionKey
             } then {
-                expect(it.result is_ Equal to_ matchingCryptor.keyPair.public.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) +
+                        matchingCryptor.keyPair.public.encoded)
             }
 
     @Test
@@ -109,7 +127,9 @@ class RSA2048SignatureCheckerTest {
             } when_ {
                 signatureCheckKey
             } then {
-                expect(it.result is_ Equal to_ matchingCryptor.keyPair.public.encoded)
+                expect(it.result is_ Equal to_
+                        byteArrayOf(CipherAlgorithm.RSA2048.encoded) +
+                        matchingCryptor.keyPair.public.encoded)
             }
 
     @Test
@@ -170,6 +190,16 @@ class RSA2048SignatureCheckerTest {
     fun `encryption with one byte more than max clear text bytes throws`() =
             expect({ sut.encrypt(ByteArray(sut.encryptorProperties.maxClearTextBytes + 1)) } does
                     Throw.exception)
+
+    @Test
+    fun `algorithm is RSA2048`() =
+            Given {
+                sut
+            } when_ {
+                algorithm
+            } then {
+                expect(it.result is_ Equal to_ "RSA2048")
+            }
 
     @Test
     fun `has serialVersionUID`() =

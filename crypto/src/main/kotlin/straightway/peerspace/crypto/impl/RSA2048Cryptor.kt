@@ -41,6 +41,7 @@ class RSA2048Cryptor private constructor(
             factory)
 
     override val keyBits = RSA2048Cryptor.keyBits
+    override val algorithm = "$keyCipherAlgorithm$keyBits"
     override val hashAlgorithm = factory.hashAlgorithm
 
     companion object {

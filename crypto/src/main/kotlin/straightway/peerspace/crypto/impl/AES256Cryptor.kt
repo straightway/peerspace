@@ -35,9 +35,11 @@ class AES256Cryptor private constructor (
         init(AES256Cryptor.keyBits); generateKey()
     })
 
-    constructor(keyBytes: ByteArray) : this(SecretKeySpec(keyBytes, "AES"))
+    constructor(keyBytes: ByteArray) :
+            this(SecretKeySpec(keyBytes.stripAndCheckAlgorithmType(CipherAlgorithm.AES256), "AES"))
 
     override val keyBits = AES256Cryptor.keyBits
+    override val algorithm = "AES$keyBits"
 
     override val encryptorProperties get() = this
     override val decryptorProperties get() = this
@@ -47,8 +49,8 @@ class AES256Cryptor private constructor (
     override val fixedCipherTextBytes = 0
     override fun getOutputBytes(inputSize: Int) = encryptCipher.getOutputSize(inputSize)
 
-    override val encryptionKey get() = key.encoded
-    override val decryptionKey get() = key.encoded
+    override val encryptionKey get() = key.encoded.with(CipherAlgorithm.AES256)
+    override val decryptionKey get() = encryptionKey
 
     override fun encrypt(toEncrypt: ByteArray) = encryptCipher.doFinal(toEncrypt)
     override fun decrypt(toDecrypt: ByteArray) = decryptCipher.doFinal(toDecrypt)
@@ -61,5 +63,6 @@ class AES256Cryptor private constructor (
 
     private val decryptCipher: Cipher get() = getCipher(Cipher.DECRYPT_MODE)
     private val encryptCipher: Cipher get() = getCipher(Cipher.ENCRYPT_MODE)
-    private fun getCipher(mode: Int) = Cipher.getInstance(algorithm).apply { init(mode, key) }
+    private fun getCipher(mode: Int) =
+            Cipher.getInstance(Companion.algorithm).apply { init(mode, key) }
 }

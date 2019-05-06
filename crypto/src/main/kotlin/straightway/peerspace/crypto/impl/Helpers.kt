@@ -15,10 +15,20 @@
  */
 package straightway.peerspace.crypto.impl
 
+import straightway.error.Panic
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
+
+internal fun ByteArray.stripAndCheckAlgorithmType(expectedAlgorithm: CipherAlgorithm) =
+        sliceArray(1..lastIndex).also {
+            if (this[0] != expectedAlgorithm.encoded)
+                throw Panic("Invalid algorithm type for $expectedAlgorithm: ${this[0]}")
+        }
+
+internal fun ByteArray.with(algorithm: CipherAlgorithm) =
+        byteArrayOf(algorithm.encoded) + this
 
 internal fun publicKeyFrom(rawKey: ByteArray, algorithm: String): PublicKey {
     val keyFactory = KeyFactory.getInstance(algorithm)

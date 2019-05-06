@@ -16,6 +16,7 @@
 package straightway.peerspace.crypto.impl
 
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.expr.minus
 import straightway.peerspace.crypto.Cryptor
 import straightway.testing.bdd.Given
@@ -74,7 +75,8 @@ class AES256CryptorTest {
 
     @Test
     fun `two cryptor instances with the same key passed can decrypt encrypted text`() {
-        val keyBytes = ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
+        val keyBytes = byteArrayOf(CipherAlgorithm.AES256.encoded) +
+                ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
         Given {
             AES256Cryptor(keyBytes)
         } when_ {
@@ -87,7 +89,8 @@ class AES256CryptorTest {
 
     @Test
     fun `encryption key is the key bytes`() {
-        val keyBytes = ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
+        val keyBytes = byteArrayOf(CipherAlgorithm.AES256.encoded) +
+                ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
         Given {
             AES256Cryptor(keyBytes)
         } when_ {
@@ -98,8 +101,9 @@ class AES256CryptorTest {
     }
 
     @Test
-    fun `decryption key is the key bytes`() {
-        val keyBytes = ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
+    fun `decryption key is the algorithm type plus key bytes`() {
+        val keyBytes = byteArrayOf(CipherAlgorithm.AES256.encoded) +
+                ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
         Given {
             AES256Cryptor(keyBytes)
         } when_ {
@@ -108,6 +112,17 @@ class AES256CryptorTest {
             expect(it.result is_ Equal to_ keyBytes)
         }
     }
+
+    @Test
+    fun `initialization with invalid algorithm type panics`() =
+            Given {
+                byteArrayOf(Byte.MIN_VALUE) +
+                ByteArray(AES256Cryptor.keyBits / Byte.SIZE_BITS) { it.toByte() }
+            } when_ {
+                AES256Cryptor(this)
+            } then {
+                expect({ it.result } does Throw.type<Panic>())
+            }
 
     @Test
     fun `cryptor is serializable`() {
@@ -172,6 +187,16 @@ class AES256CryptorTest {
                 decryptorProperties.fixedCipherTextBytes
             } then {
                 expect(it.result is_ Equal to_ 0)
+            }
+
+    @Test
+    fun `algorithm is AES256`() =
+            Given {
+                AES256Cryptor()
+            } when_ {
+                algorithm
+            } then {
+                expect(it.result is_ Equal to_ "AES256")
             }
 
     @Test

@@ -13,12 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.crypto
+package straightway.peerspace.crypto.impl
 
 /**
- * Base interface for types holding cryptographic keys.
+ * An enumeration of all supported cipher algorithms
  */
-interface KeyHolder {
-    val algorithm: String
-    val keyBits: Int
+enum class CipherAlgorithm(val encoded: Byte) {
+    AES256(0),
+    RSA2048(1)
 }

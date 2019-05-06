@@ -12,8 +12,14 @@ Each data chunk has a fixed size of _CHUNK_SIZE_. It is subdivided into a header
 the payload.
 
 The content encoding must follow one of the encoding versions defined below. Which encoding
-version is used, is defined by the first byte of the data chunk header. The further header
-structure is defined by the encoding version.
+version is used, is defined by the first byte of the data chunk header.
+* Bit 7:
+  - 0: Bits 0-6 contain the version number
+  - 1: Bits 0-6 are free chunk content. This is especially useful for redundancy chunks, which
+    can use the bits 0-6 for the combined xor of the chunk version. 
+* Bits 0-6: Version number or free chunk content 
+
+The further header structure is defined by the encoding version.
 
 It may be necessary in the future to enhance the header structure. This may be realized by
 defining a new header version. Since chunks with all previous header version still may be
@@ -119,8 +125,9 @@ Each _control block_ has the following fields:
   other of the referenced chunks, if n-1 chunks referenced before this block are
   available. To achieve this, the redundant data chunk contains the bitwise xor
   combination of all referenced chunks. To also cover the control blocks of referenced
-  chunks, the redundancy chunk is an unversioned chunk, which uses all bytes for the
-  xor combination.
+  chunks, the redundancy chunk is an unversioned chunk with bit 7 of the fist byte set to 1.
+  It uses all bytes of the chunk for the xor combination, including the first 6 bits of the
+  first byte.
   
   A chunk may contain more than one Redundancy Chunk Control Block. Each of these
   blocks refers to the references before it, either to the beginning of the chunk

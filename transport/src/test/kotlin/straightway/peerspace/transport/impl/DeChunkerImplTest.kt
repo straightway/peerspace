@@ -49,7 +49,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     fun `getReferencedChunks yields no references for version 0 chunk data`() =
             test when_ {
                 deChunker.getReferencedChunks(
-                        DataChunkStructure.version0(byteArrayOf(1, 2, 3)).binary,
+                        DataChunkVersion0(byteArrayOf(1, 2, 3)).binary,
                         DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Empty)
@@ -59,7 +59,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     fun `getReferencedChunks yields no references for version 1 chunk data`() =
             test when_ {
                 deChunker.getReferencedChunks(
-                        DataChunkStructure.version1(byteArrayOf(1, 2, 3), 2).binary,
+                        DataChunkVersion1(byteArrayOf(1, 2, 3), 2).binary,
                         DeChunkerCrypto(decryptor = cryptor))
             } then {
                 expect(it.result is_ Empty)
@@ -176,9 +176,9 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `tryCombining with multiply referenced chunk`() =
             test { byteArrayOf() } when_ {
-                val plainChunk = DataChunkStructure.version2(listOf(), byteArrayOf(1)).encrypted
+                val plainChunk = DataChunkVersion2(listOf(), byteArrayOf(1)).encrypted
                 val plainChunkHash = addHash(plainChunk.binary)
-                val directory = DataChunkStructure.version2(
+                val directory = DataChunkVersion2(
                         listOf(
                                 DataChunkControlBlock(
                                         DataChunkControlBlockType.ReferencedChunk,
@@ -202,14 +202,14 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     fun `tryCombining with reference loop`() =
             test { byteArrayOf() } when_ {
                 val loopHash = byteArrayOf(1, 2, 3)
-                val loop = DataChunkStructure.version2(
+                val loop = DataChunkVersion2(
                         listOf(DataChunkControlBlock(
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
                                 loopHash)),
                         byteArrayOf(4, 5, 6))
                 setHash(loop.binary, loopHash)
-                val directory = DataChunkStructure.version2(
+                val directory = DataChunkVersion2(
                         listOf(DataChunkControlBlock(
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
@@ -229,21 +229,21 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
             test { byteArrayOf() } when_ {
                 val loop1Hash = byteArrayOf(1, 2, 3)
                 val loop2Hash = byteArrayOf(2, 3, 4)
-                val loop1 = DataChunkStructure.version2(
+                val loop1 = DataChunkVersion2(
                         listOf(DataChunkControlBlock(
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
                                 loop2Hash)),
                         byteArrayOf(4, 5, 6))
                 setHash(loop1.binary, loop1Hash)
-                val loop2 = DataChunkStructure.version2(
+                val loop2 = DataChunkVersion2(
                         listOf(DataChunkControlBlock(
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
                                 loop1Hash)),
                         byteArrayOf(5, 6, 7))
                 setHash(loop2.binary, loop2Hash)
-                val directory = DataChunkStructure.version2(
+                val directory = DataChunkVersion2(
                         listOf(DataChunkControlBlock(
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
@@ -261,7 +261,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `tryCombining of directory with missing referenced chunk is null`() =
             test { ByteArray(payloadBytesVersion0 + 3) { it.toByte() } } when_ {
-                val directory = DataChunkStructure.version2(
+                val directory = DataChunkVersion2(
                         listOf(DataChunkControlBlock(
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,

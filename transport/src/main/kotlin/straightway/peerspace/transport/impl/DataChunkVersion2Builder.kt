@@ -15,7 +15,6 @@
  */
 package straightway.peerspace.transport.impl
 
-import straightway.peerspace.transport.DataChunkSignMode
 import kotlin.math.min
 
 /**
@@ -39,7 +38,7 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
     val availableBytes get() =
         availablePayloadBytes - payload.size
     val availablePayloadBytes get() =
-        chunkSize - controlBlocksSize - DataChunkStructure.Header.Version2.MIN_SIZE
+        chunkSize - controlBlocksSize - DataChunkVersion2.Header.MIN_SIZE
 
     val chunkStructure get() = getDataChunkStructure(controlBlocks)
 
@@ -48,7 +47,7 @@ class DataChunkVersion2Builder(val chunkSize: Int) {
     private val controlBlocksSize get() =
         controlBlocks.fold(0) { acc, block -> acc + block.binarySize }
     private fun getDataChunkStructure(blocks: List<DataChunkControlBlock>) =
-            DataChunkStructure.version2(blocks, payload)
+            DataChunkVersion2(blocks, payload)
     private val controlBlocks get() = publicKeyBlock + referenceBlocks
     private val publicKeyBlock get() =
             createControlBlock(DataChunkControlBlockType.PublicKey, publicKey)

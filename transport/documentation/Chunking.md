@@ -94,12 +94,11 @@ Each _control block_ has the following fields:
 #### Public Key Control Block (0x01)
 
 * Type ID: 0x01
-* CPLS: The cipher algorithm of the public key. The following values are defined (may be
-  extended later):
-  * 0x000: RSA2048 
+* CPLS: Unused 
 * Multiplicity: 0..1
-* Contains the public key used to create a signature. May refer to a _signature control block_
-  (0x01) or to something completely different.
+* Contains the public key (including an encoding of the algorithm type) used to create a
+  signature. May refer to signature encoded in a warpping version3 chunk or to something
+  completely different.
   
 #### Referenced Chunk Control Block (0x02)
 
@@ -137,21 +136,18 @@ Each _control block_ has the following fields:
 
 A version 3 chunk contains a symmetric content key and a payload.
 
-                                Header||
-                Version|   Content Key||Payload
-                  +----+----+----+----++----+
-    Size in Bytes |   1|   1|   2|KYZE||   *|
-                  +----+----+----+----++----+
-          Meaning |0x03|CALG|KYSZ|CKEY||PYLD|
-                  +----+----+----+----++----+
+                           Header||
+                Version|Cont. Key||Payload
+                  +----+----+----++----+
+    Size in Bytes |   1|   2|KYZE||   *|
+                  +----+----+----++----+
+          Meaning |0x03|KYSZ|CKEY||PYLD|
+                  +----+----+----++----+
 
 Following the version byte, it has the following fields:
-* CALG: The symmetric cipher algorithm used for encryption. The following values are defined:
-  * 0x00: AES256
-  * More algorithms may be added in the future.
 * KYSZ: The size of the following asymmetric key in bytes.
-* CKEY: The asymmetric content key, normally by itself encrypted, e.g. with the public part of an
-  asymmetric key pair.
+* CKEY: The asymmetric content key, including an identification of the algorith,, normally by
+  itself encrypted, e.g. with the public part of an asymmetric key pair.
 * PYLD: The payload of the chunk, encrypted with CKEY.
 
 The recepient must know how to decrypt the content key. The payload starts with the next byte
@@ -164,13 +160,13 @@ that the effective payload size is _FULL_PAYLOAD_SIZE_ - _FULL_PAYLOAD_SIZE_ % _
 
 A version 4 chunk contains a digital signature and the signed payload.
 
-                                          Header||
-                Version|               Hash Code||Payload
-                  +----+----+----+----+----+----++----+
-    Size in Bytes |   1|   1|   1|   1|   2|KYZE||   *|
-                  +----+----+----+----+----+----++----+
-          Meaning |0x03|SMOD|SHAL|SCAL|SGSZ|SIGN||PYLD|
-                  +----+----+----+----+----+----++----+
+                                     Header||
+                Version|          Hash Code||Payload
+                  +----+----+----+----++----+
+    Size in Bytes |   1|   1|   2|KYZE||   *|
+                  +----+----+----+----++----+
+          Meaning |0x03|SMOD|SGSZ|SIGN||PYLD|
+                  +----+----+----+----++----+
 
 Following the version byte, it has the following fields:
 * SMOD: The mode for verifying the signature:
@@ -179,14 +175,8 @@ Following the version byte, it has the following fields:
   * 0x2: Signature is verifyable with a key which can be extracted from the payload (e.g.
     from an embedded version 2 chunk's _public key control block_ (0x01)
   * More signature types may be added in the future.
-* SHAL: The hash algorithm used for signing. The following values are defined:
-  * 0x00: SHA512
-  * More algorithms may be added in the future.
-* SCAL: The asymmetric cipher algorithm used for signing. The following values are defined:
-  * 0x00: RSA2048
-  * More algorithms may be added in the future.
 * SGSZ: The size of the following digital signature in bytes.
-* SIGN: The digital siganture of the payload.
+* SIGN: The digital siganture of the payload, including an identification of the hashing algorithm.
 * PYLD: The payload of the chunk.
 
 The payload starts with the next byte after the signature. The payload has a size of

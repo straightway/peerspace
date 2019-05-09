@@ -140,7 +140,7 @@ class ChunkingTestEnvironment(
     fun ByteArray.createPlainDataChunkVersion0(): ByteArray {
         expect(size is_ Not - Less than payloadBytesVersion0)
         val chunkStructure =
-                DataChunkStructure.version0(sliceArray(firstRange(payloadBytesVersion0)))
+                DataChunkVersion0(sliceArray(firstRange(payloadBytesVersion0)))
         addSetUpChunk(chunkStructure)
         return sliceArray(rest(payloadBytesVersion0))
     }
@@ -148,7 +148,7 @@ class ChunkingTestEnvironment(
     fun ByteArray.createPlainDataChunkVersion1(additionalBytes: Int): ByteArray {
         expect(size is_ Not - Less than minPayloadBytesVersion1)
         val numPayloadBytes = maxPayloadBytesVersion1 - additionalBytes
-        val chunkStructure = DataChunkStructure.version1(
+        val chunkStructure = DataChunkVersion1(
                 sliceArray(firstRange(numPayloadBytes)), additionalBytes)
         addSetUpChunk(chunkStructure)
         return sliceArray(rest(numPayloadBytes))
@@ -180,7 +180,7 @@ class ChunkingTestEnvironment(
 
     private fun DataChunkStructure.encrypt() =
             cryptor.encrypt(binary.filled).let {
-                DataChunkStructure.version0(it + ByteArray(encryptedPayloadSizeBytes - it.size) {
+                DataChunkVersion0(it + ByteArray(encryptedPayloadSizeBytes - it.size) {
                     randomBytes.next()
                 })
             }
@@ -204,9 +204,9 @@ class ChunkingTestEnvironment(
     private fun getHash(data: ByteArray) =
             hashes[asBase64(data)] ?:
             if (isCreatingHashOnTheFly) addHash(data)
-            else throw Panic("Hash not found for ${DataChunkStructure.fromBinary(data)}, " +
+            else throw Panic("Hash not found for ${DataChunkVersion2.fromBinary(data)}, " +
                 "hashable chunks: ${hashes.keys.map {
-                    DataChunkStructure.fromBinary(Base64.getDecoder().decode(it))
+                    DataChunkVersion2.fromBinary(Base64.getDecoder().decode(it))
                 }}")
 
     private val encryptedChunks = mutableMapOf<String, DataChunkStructure>()
@@ -254,7 +254,7 @@ class ChunkingTestEnvironment(
     }
 
     private val minPayloadBytesVersion1 =
-            maxPayloadBytesVersion1 - DataChunkStructure.Header.Version1.MAX_ADDITIONAL_BYTES
+            maxPayloadBytesVersion1 - DataChunkVersion1.Header.MAX_ADDITIONAL_BYTES
 
     //endregion
 }

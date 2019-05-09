@@ -32,9 +32,10 @@ class DeChunkerImpl : DeChunker {
             deChunkerCrypto: DeChunkerCrypto) =
             ChunkSetAnalyzer(chunks.map { it.decryptWith(deChunkerCrypto) }).aggregatedPayload
 
-    override fun getReferencedChunks(
-            data: ByteArray,
-            deChunkerCrypto: DeChunkerCrypto) = DataChunkStructure.fromBinary(data).references
+    override fun getReferencedChunks(data: ByteArray, deChunkerCrypto: DeChunkerCrypto) =
+            DataChunkStructure.fromBinary(data).let {
+                if (it is DataChunkVersion2) it.references else listOf()
+            }
 
     private fun DataChunk.decryptWith(deChunkerCrypto: DeChunkerCrypto) =
             DataChunk(key, decryptPayloadWith(deChunkerCrypto))
@@ -65,7 +66,7 @@ class DeChunkerImpl : DeChunker {
 
         private val Key?.payload get() = allChunks[this]?.payload
 
-        private fun addReferencesFromChunk(chunkKey: Key, chunk: DataChunkStructure) =
+        private fun addReferencesFromChunk(chunkKey: Key, chunk: DataChunkVersion2) =
                 chunk.references.keys.forEach { chunkKey references it }
 
         private val List<Id>.keys get() = map { Key(it) }
@@ -93,12 +94,16 @@ class DeChunkerImpl : DeChunker {
         private val referenceParents = mutableSetOf<Key>()
 
         init {
-            allChunks.forEach(::addReferencesFromChunk)
+            allChunks
+                    .filter { it.value is DataChunkVersion2 }
+                    .map { it.key to it.value as DataChunkVersion2 }
+                    .toMap()
+                    .forEach(::addReferencesFromChunk)
         }
     }
 }
 
-private val DataChunkStructure.references get() =
+private val DataChunkVersion2.references get() =
         controlBlocks
                 .filter { it.type == DataChunkControlBlockType.ReferencedChunk }
                 .map { Id(it.content) }

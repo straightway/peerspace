@@ -34,7 +34,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
     private companion object {
         const val chunkSizeBytes = 0x20
         const val maxReferences = 2
-        const val version0PayloadSize = chunkSizeBytes - 2 * DataChunkStructure.Header.Version0.SIZE
+        const val version0PayloadSize = chunkSizeBytes - 2 * DataChunkVersion0.Header.SIZE
     }
 
     private fun test(
@@ -170,7 +170,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `plain data rest is less than version 0 size but does not fit into version 2`() {
         val secondChunkPayloadSize =
-                chunkSizeBytes - DataChunkStructure.Header.Version2.MIN_SIZE + 1
+                chunkSizeBytes - DataChunkVersion2.Header.MIN_SIZE + 1
         test {
             val directoryPayloadSize = maxChunkVersion2PayloadSizeWithReferences(2)
             ByteArray(directoryPayloadSize +
@@ -179,7 +179,7 @@ class ChunkerImplTest : KoinLoggingDisabler() {
             data.reserveForDirectory(maxChunkVersion2PayloadSizeWithReferences(2))
                     .createPlainDataChunkVersion0()
                     .createPlainDataChunkVersion1(unencryptedChunkSizeBytes -
-                            DataChunkStructure.Header.Version1.SIZE - secondChunkPayloadSize)
+                            DataChunkVersion1.Header.SIZE - secondChunkPayloadSize)
                     .createDirectoryDataChunkWithNumberOfReferences(2)
                     .end()
         } when_ {
@@ -200,6 +200,16 @@ class ChunkerImplTest : KoinLoggingDisabler() {
             } then {
                 assertExpectedChunks(it.result)
             }
+
+    /*@Test
+    fun `asymmetric encryption creates content key`() =
+            test{
+                byteArrayOf(1, 2, 3)
+            } when_ {
+
+            } then {
+
+            }*/
 
     //region Private
 

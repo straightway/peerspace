@@ -60,10 +60,10 @@ class ChunkerImpl(
                 }
 
         private fun ByteArray.createPlainVersion0Chunk() =
-                DataChunkStructure.version0(this)
+                DataChunkVersion0(this)
 
         private fun ByteArray.createPlainVersion1Chunk() =
-                DataChunkStructure.version1(this, additionalVersion1PayloadBytes)
+                DataChunkVersion1(this, additionalVersion1PayloadBytes)
 
         private fun ByteArray.createPlainVersion2Chunk() =
                 DataChunkVersion2Builder(unencryptedChunkSizeBytes)
@@ -71,7 +71,7 @@ class ChunkerImpl(
 
         private val ByteArray.additionalVersion1PayloadBytes
             get() =
-                unencryptedChunkSizeBytes - DataChunkStructure.Header.Version1.SIZE - size
+                unencryptedChunkSizeBytes - DataChunkVersion1.Header.SIZE - size
 
         private fun ByteArray.createChunkTree() =
                 DataChunkVersion2Builder(unencryptedChunkSizeBytes).apply {
@@ -105,7 +105,7 @@ class ChunkerImpl(
         }
 
         private val ByteArray.inCryptoContainer get() =
-                DataChunkStructure.version0(filledForCryptoContainer)
+                DataChunkVersion0(filledForCryptoContainer)
 
         private val ByteArray.filledForCryptoContainer get() =
             this + ByteArray(cryptoContainerPayloadSizeBytes - unencryptedChunkSizeBytes) {
@@ -123,7 +123,7 @@ class ChunkerImpl(
 
         private fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
                 unencryptedChunkSizeBytes -
-                        DataChunkStructure.Header.Version2.MIN_SIZE -
+                        DataChunkVersion2.Header.MIN_SIZE -
                         numberOfReferences * referenceBlockSize
 
         private val referenceBlockSize get() =
@@ -133,7 +133,7 @@ class ChunkerImpl(
         private val hasher = createHasher()
 
         private val cryptoContainerPayloadSizeBytes =
-                chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+                chunkSizeBytes - DataChunkVersion0.Header.SIZE
 
         private val blockSizeBytes = crypto.encryptor.encryptorProperties.blockBytes
 
@@ -141,10 +141,10 @@ class ChunkerImpl(
                 (cryptoContainerPayloadSizeBytes / blockSizeBytes) * blockSizeBytes
 
         private val version0PayloadSize =
-                unencryptedChunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+                unencryptedChunkSizeBytes - DataChunkVersion0.Header.SIZE
 
         private val maxVersion2PayloadSize =
-                unencryptedChunkSizeBytes - DataChunkStructure.Header.Version2.MIN_SIZE
+                unencryptedChunkSizeBytes - DataChunkVersion2.Header.MIN_SIZE
 
         private val resultCollector: MutableSet<DataChunk> = mutableSetOf()
 

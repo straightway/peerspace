@@ -169,7 +169,7 @@ class DataChunkVersion2BuilderTest {
         val fullPayload = ByteArray(testChunkSize) { it.toByte() }
         DataChunkVersion2Builder(testChunkSize).apply {
             val rest = setPayloadPart(fullPayload)
-            val expectedPayloadSize = fullPayload.size - DataChunkStructure.Header.Version2.MIN_SIZE
+            val expectedPayloadSize = fullPayload.size - DataChunkVersion2.Header.MIN_SIZE
             expect(payload is_ Equal
                     to_ fullPayload.sliceArray(0 until expectedPayloadSize))
             expect(rest is_ Equal
@@ -202,7 +202,7 @@ class DataChunkVersion2BuilderTest {
     fun `availableBytes of empty chunk is chunkSize without header`() {
         DataChunkVersion2Builder(testChunkSize).apply {
             expect(availableBytes is_ Equal
-                    to_ chunkSize - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    to_ chunkSize - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -214,7 +214,7 @@ class DataChunkVersion2BuilderTest {
             references += referenceBlock.content
             expect(availableBytes is_ Equal
                     to_ chunkSize - referenceBlock.binarySize
-                    - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -223,7 +223,7 @@ class DataChunkVersion2BuilderTest {
         DataChunkVersion2Builder(testChunkSize).apply {
             payload = byteArrayOf(1, 2, 3)
             expect(availableBytes is_ Equal to_
-                    chunkSize - payload.size - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    chunkSize - payload.size - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -231,7 +231,7 @@ class DataChunkVersion2BuilderTest {
     fun `availableBytes changes with the chunk size`() {
         DataChunkVersion2Builder(16).apply {
             expect(availableBytes is_ Equal
-                    to_ chunkSize - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    to_ chunkSize - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -239,7 +239,7 @@ class DataChunkVersion2BuilderTest {
     fun `availablePayloadBytes of empty chunk is chunkSize without header`() {
         DataChunkVersion2Builder(testChunkSize).apply {
             expect(availablePayloadBytes is_ Equal
-                    to_ chunkSize - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    to_ chunkSize - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -251,7 +251,7 @@ class DataChunkVersion2BuilderTest {
             references += referenceBlock.content
             expect(availablePayloadBytes is_ Equal
                     to_ chunkSize - referenceBlock.binarySize
-                    - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -260,7 +260,7 @@ class DataChunkVersion2BuilderTest {
         DataChunkVersion2Builder(testChunkSize).apply {
             payload = byteArrayOf(1, 2, 3)
             expect(availablePayloadBytes is_ Equal
-                    to_ chunkSize - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    to_ chunkSize - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 
@@ -268,7 +268,7 @@ class DataChunkVersion2BuilderTest {
     fun `availablePayloadBytes changes with the chunk size`() {
         DataChunkVersion2Builder(16).apply {
             expect(availablePayloadBytes is_ Equal
-                    to_ chunkSize - DataChunkStructure.Header.Version2.MIN_SIZE)
+                    to_ chunkSize - DataChunkVersion2.Header.MIN_SIZE)
         }
     }
 }

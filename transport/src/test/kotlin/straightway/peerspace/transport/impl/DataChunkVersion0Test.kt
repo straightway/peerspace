@@ -16,25 +16,25 @@
 package straightway.peerspace.transport.impl
 
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.testing.bdd.Given
-import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
+import straightway.testing.flow.Throw
+import straightway.testing.flow.does
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.indent
+import straightway.utils.toHexBlocks
 
-@Suppress("ReplaceCallWithBinaryOperator")
-class DataChunkStructure_Version0_Test {
+class DataChunkVersion0Test : DataChunkStructureBaseTest<DataChunkVersion0>() {
 
     private companion object {
         const val VERSION0 = 0.toByte()
-        val PAYLOAD = byteArrayOf(1, 2, 3)
+        const val INVALID_VERSION = 1.toByte()
     }
 
-    private val test get() =
-        Given {
-            DataChunkStructure.version0(PAYLOAD)
-        }
+    override fun createSut(payload: ByteArray) = DataChunkVersion0(payload)
 
     @Test
     fun `binary of version 0 has version 0`() =
@@ -49,11 +49,11 @@ class DataChunkStructure_Version0_Test {
             test when_ {
                 binary.sliceArray(1..binary.lastIndex)
             } then {
-                expect(it.result is_ Equal to_ PAYLOAD)
+                expect(it.result is_ Equal to_ testPayload)
             }
 
     @Test
-    fun `version0 creates a chunk structure with version 0`() =
+    fun `constructor creates a chunk structure with version 0`() =
             test when_ {
                 version
             } then {
@@ -61,25 +61,17 @@ class DataChunkStructure_Version0_Test {
             }
 
     @Test
-    fun `version0 creates a chunk structure without control blocks`() =
-            test when_ {
-                controlBlocks
-            } then {
-                expect(it.result is_ Empty)
-            }
-
-    @Test
-    fun `version0 creates a chunk structure with given payload`() =
+    fun `constructor creates a chunk structure with given payload`() =
             test when_ {
                 payload
             } then {
-                expect(it.result is_ Equal to_ PAYLOAD)
+                expect(it.result is_ Equal to_ testPayload)
             }
 
     @Test
     fun `version from version 0 binary is 0`() =
             Given {
-                DataChunkStructure.fromBinary(byteArrayOf(VERSION0))
+                DataChunkVersion0.fromBinary(byteArrayOf(VERSION0))
             } when_ {
                 version
             } then {
@@ -89,24 +81,32 @@ class DataChunkStructure_Version0_Test {
     @Test
     fun `version 0 binary payload`() =
             Given {
-                DataChunkStructure.fromBinary(byteArrayOf(VERSION0) + PAYLOAD)
+                DataChunkVersion0.fromBinary(byteArrayOf(VERSION0) + testPayload)
             } when_ {
                 payload
             } then {
-                expect(it.result is_ Equal to_ PAYLOAD)
+                expect(it.result is_ Equal to_ testPayload)
             }
 
     @Test
-    fun `version 0 binary control blocks is empty`() =
+    fun `fromBinary with invalid chunk version panics`() =
+            expect({ DataChunkVersion0.fromBinary(byteArrayOf(INVALID_VERSION) + testPayload) }
+                    does Throw.type<Panic>())
+
+    @Test
+    fun `toString yields proper string representation`() =
             Given {
-                DataChunkStructure.fromBinary(byteArrayOf(VERSION0) + PAYLOAD)
+                DataChunkVersion0(ByteArray(33) { it.toByte() })
             } when_ {
-                controlBlocks
+                toString()
             } then {
-                expect(it.result is_ Empty)
+                expect(it.result is_ Equal to_ "DataChunkVersion0 {\n" +
+                        "  payload (size: 33):\n" +
+                        payload.toHexBlocks(32).indent(4) + "\n" +
+                        "}")
             }
 
     @Test
     fun `header size is 1`() =
-            expect(DataChunkStructure.Header.Version0.SIZE is_ Equal to_ 1)
+            expect(DataChunkVersion0.Header.SIZE is_ Equal to_ 1)
 }

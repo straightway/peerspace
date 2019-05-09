@@ -24,20 +24,20 @@ open class ChunkEnvironmentValues(
     }
 
     val encryptedPayloadSizeBytes get() =
-            chunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+            chunkSizeBytes - DataChunkVersion0.Header.SIZE
 
     val unencryptedChunkSizeBytes get() =
             (encryptedPayloadSizeBytes / cryptoBlockSize) * cryptoBlockSize
 
     val payloadBytesVersion0 =
-            unencryptedChunkSizeBytes - DataChunkStructure.Header.Version0.SIZE
+            unencryptedChunkSizeBytes - DataChunkVersion0.Header.SIZE
 
     val maxPayloadBytesVersion1 =
-            unencryptedChunkSizeBytes - DataChunkStructure.Header.Version1.SIZE
+            unencryptedChunkSizeBytes - DataChunkVersion1.Header.SIZE
 
     fun maxChunkVersion2PayloadSizeWithReferences(numberOfReferences: Int) =
             unencryptedChunkSizeBytes -
-                    DataChunkStructure.Header.Version2.MIN_SIZE -
+                    DataChunkVersion2.Header.MIN_SIZE -
                     numberOfReferences * referenceBlockSize
 
     private val referenceBlockSize get() =

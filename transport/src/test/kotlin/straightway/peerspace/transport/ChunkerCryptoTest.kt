@@ -17,22 +17,16 @@ package straightway.peerspace.transport
 
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
+import straightway.expr.minus
 import straightway.peerspace.crypto.CryptoIdentity
 import straightway.peerspace.crypto.Encryptor
 import straightway.peerspace.crypto.Signer
-import straightway.testing.flow.Equal
-import straightway.testing.flow.Null
-import straightway.testing.flow.Same
-import straightway.testing.flow.as_
-import straightway.testing.flow.expect
-import straightway.testing.flow.is_
-import straightway.testing.flow.to_
+import straightway.testing.flow.*
 
 class ChunkerCryptoTest {
 
     @Test
     fun `forPlainChunk only has encryptor`() {
-        val encryptor = mock<Encryptor>()
         val sut = ChunkerCrypto.forPlainChunk(encryptor)
         expect(sut.encryptor is_ Same as_ encryptor)
         expect(sut.signMode is_ Equal to_ DataChunkSignMode.NoKey)
@@ -42,8 +36,6 @@ class ChunkerCryptoTest {
 
     @Test
     fun `forList has list indentity as signer and checker and encryptor`() {
-        val encryptor = mock<Encryptor>()
-        val listId = mock<CryptoIdentity>()
         val sut = ChunkerCrypto.forList(listId, encryptor)
         expect(sut.encryptor is_ Same as_ encryptor)
         expect(sut.signMode is_ Equal to_ DataChunkSignMode.ListIdKey)
@@ -53,8 +45,6 @@ class ChunkerCryptoTest {
 
     @Test
     fun `forSignedChunk has signer and encryptor but no checker`() {
-        val encryptor = mock<Encryptor>()
-        val signer = mock<Signer>()
         val sut = ChunkerCrypto.forSignedChunk(signer, encryptor)
         expect(sut.encryptor is_ Same as_ encryptor)
         expect(sut.signMode is_ Equal to_ DataChunkSignMode.NoKey)
@@ -64,12 +54,51 @@ class ChunkerCryptoTest {
 
     @Test
     fun `forSignedChunkWithEmbeddedPublicKey has signer and encryptor but no checker`() {
-        val encryptor = mock<Encryptor>()
-        val cryptoId = mock<CryptoIdentity>()
         val sut = ChunkerCrypto.forSignedChunkWithEmbeddedPublicKey(cryptoId, encryptor)
         expect(sut.encryptor is_ Same as_ encryptor)
         expect(sut.signMode is_ Equal to_ DataChunkSignMode.EmbeddedKey)
         expect(sut.signer is_ Same as_ cryptoId)
         expect(sut.signatureChecker is_ Same as_ cryptoId)
     }
+
+    @Test
+    fun `withContentCryptor creates copy`() {
+        val original = ChunkerCrypto.forList(listId, encryptor)
+        val sut = original.withContentCryptor(newEcryptor)
+        expect(sut is_ Not - Same as_ original)
+    }
+
+    @Test
+    fun `withContentCryptor returns copy with same sign mode`() {
+        val sut = ChunkerCrypto.forList(listId, encryptor).withContentCryptor(newEcryptor)
+        expect(sut.signMode is_ Equal to_ DataChunkSignMode.ListIdKey)
+    }
+
+    @Test
+    fun `withContentCryptor returns copy with same signer`() {
+        val sut = ChunkerCrypto.forSignedChunk(signer, encryptor).withContentCryptor(newEcryptor)
+        expect(sut.signer is_ Same as_ signer)
+    }
+
+    @Test
+    fun `withContentCryptor returns copy with same signatureChecker`() {
+        val sut = ChunkerCrypto.forSignedChunkWithEmbeddedPublicKey(cryptoId, encryptor).withContentCryptor(newEcryptor)
+        expect(sut.signatureChecker is_ Same as_ cryptoId)
+    }
+
+    @Test
+    fun `withContentCryptor returns copy with given encryptor`() {
+        val sut = ChunkerCrypto.forList(listId, encryptor).withContentCryptor(newEcryptor)
+        expect(sut.encryptor is_ Same as_ newEcryptor)
+    }
+
+    // region Private
+
+    private val encryptor = mock<Encryptor>()
+    private val newEcryptor = mock<Encryptor>()
+    private val signer = mock<Signer>()
+    private val cryptoId = mock<CryptoIdentity>()
+    private val listId = mock<CryptoIdentity>()
+
+    // endregion
 }

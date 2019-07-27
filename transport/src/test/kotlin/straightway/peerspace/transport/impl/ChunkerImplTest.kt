@@ -15,7 +15,9 @@
  */
 package straightway.peerspace.transport.impl
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import straightway.koinutils.KoinLoggingDisabler
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
@@ -23,13 +25,20 @@ import straightway.peerspace.data.Key
 import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.chunker
 import straightway.peerspace.transport.createHasher
+import straightway.peerspace.transport.tracer
+import straightway.testing.TestTraceProvider
+import straightway.testing.TraceOnFailure
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal
 import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
+import straightway.utils.RealTimeProvider
+import straightway.utils.TraceLevel
+import straightway.utils.Tracer
 
-class ChunkerImplTest : KoinLoggingDisabler() {
+@ExtendWith(TraceOnFailure::class)
+class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
 
     private companion object {
         const val chunkSizeBytes = 0x20
@@ -37,17 +46,32 @@ class ChunkerImplTest : KoinLoggingDisabler() {
         const val version0PayloadSize = chunkSizeBytes - 2 * DataChunkVersion0.Header.SIZE
     }
 
+    private var testTrace: Tracer? =  null
+
     private fun test(
             cryptoBlockSize: Int = 1,
             dataToChopToChunkGetter: ChunkEnvironmentValues.() -> ByteArray
     ) =
             Given {
-                ChunkingTestEnvironment(
+                val env = ChunkingTestEnvironment(
                         chunkSizeBytes,
                         maxReferences,
                         cryptoBlockSize,
-                        dataToChopToChunkGetter)
+                        dataToChopToChunkGetter,
+                        tracerFactory = { val invoke = Tracer.invoke(RealTimeProvider()) { true }
+                            invoke
+                        })
+                testTrace = env.env.context.tracer
+                env
             }
+
+    override val traces: Collection<String> get() = testTrace!!.traces
+            .map { it.toString().replace("straightway.peerspace.transport.impl.", "") }
+
+    @AfterEach
+    fun tearDown() {
+        testTrace = null
+    }
 
     @Test
     fun `small plain data results in single chunk version 2`() {
@@ -201,15 +225,88 @@ class ChunkerImplTest : KoinLoggingDisabler() {
                 assertExpectedChunks(it.result)
             }
 
-    /*@Test
-    fun `asymmetric encryption creates content key`() =
-            test{
-                byteArrayOf(1, 2, 3)
+    @Test
+    fun `asymmetric encryption of small data creates single v0 chunk wrapped in v3 chunk`() =
+            test {
+                ByteArray(chunkSizeBytes -
+                        DataChunkVersion3.Header.MIN_SIZE -
+                        ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size -
+                        DataChunkVersion0.Header.SIZE
+                ) { it.toByte() }
+            } while_ {
+                cryptor = negatingEncryptor
+                encryptorProperties.maxClearTextBytes = 8
+                data.createEncryptedPlainDataChunkVersion0(newSymmetricCryptor).end()
             } when_ {
-
+                chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(cryptor))
             } then {
+                assertExpectedChunks(it.result)
+            }
 
-            }*/
+    @Test
+    fun `asymmetric encryption of small data creates single v1 chunk wrapped in v3 chunk`() =
+            test {
+                ByteArray(chunkSizeBytes -
+                        DataChunkVersion3.Header.MIN_SIZE -
+                        ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size -
+                        DataChunkVersion1.Header.SIZE -
+                        1
+                ) { it.toByte() }
+            } while_ {
+                cryptor = negatingEncryptor
+                encryptorProperties.maxClearTextBytes = 8
+                data.createEncryptedPlainDataChunkVersion1(newSymmetricCryptor, 1).end()
+            } when_ {
+                chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(cryptor))
+            } then {
+                assertExpectedChunks(it.result)
+            }
+
+    @Test
+    fun `asymmetric encryption of small data creates single v2 chunk wrapped in v3 chunk`() =
+            test {
+                ByteArray(12) { it.toByte() }
+            } while_ {
+                cryptor = negatingEncryptor
+                encryptorProperties.maxClearTextBytes = 8
+                data.createEncryptedPlainDataChunkVersion2(newSymmetricCryptor).end()
+            } when_ {
+                chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(cryptor))
+            } then {
+                assertExpectedChunks(it.result)
+            }
+
+    @Test
+    fun `asymmetric encryption of data not fitting into one chunk`() =
+            test {
+                ByteArray(chunkSizeBytes) { it.toByte() }
+            } while_ {
+                cryptor = negatingEncryptor
+                encryptorProperties.maxClearTextBytes = 8
+                //isCreatingHashOnTheFly = true
+                trace.trace(TraceLevel.Debug) {
+                    "\nchunk size bytes: $chunkSizeBytes\n" +
+                    "DataChunkVersion3.Header.MIN_SIZE: ${DataChunkVersion3.Header.MIN_SIZE}\n" +
+                    "ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size: ${ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size}\n" +
+                    "referenceBlockSize: ${referenceBlockSize}"
+                }
+
+                data
+                        .reserveForDirectory(
+                                chunkSizeBytes -
+                                DataChunkVersion3.Header.MIN_SIZE -
+                                ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size -
+                                DataChunkVersion2.Header.MIN_SIZE -
+                                referenceBlockSize)
+                        .createPlainDataChunkVersion2(newSymmetricCryptor)
+                        .createEncryptedDirectoryDataChunkWithNumberOfReferences(
+                                newSymmetricCryptor, 1)
+                        .end()
+            } when_ {
+                chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(cryptor))
+            } then {
+                assertExpectedChunks(it.result)
+            }
 
     //region Private
 

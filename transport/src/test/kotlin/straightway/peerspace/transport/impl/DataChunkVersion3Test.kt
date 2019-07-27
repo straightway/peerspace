@@ -124,4 +124,12 @@ class DataChunkVersion3Test : DataChunkStructureBaseTest<DataChunkVersion3>() {
                         payload.toHexBlocks(32).indent(4) + "\n" +
                         "}")
             }
+
+    @Test
+    fun `MAX_CONTENT_KEY_SIZE is 16 bit`() =
+            expect(DataChunkVersion3.Header.MAX_CONTENT_KEY_SIZE is_ Equal to_ 0xFFFF)
+
+    @Test
+    fun `minimum header size is 3 bytes`() =
+            expect(DataChunkVersion3.Header.MIN_SIZE is_ Equal to_ 3)
 }

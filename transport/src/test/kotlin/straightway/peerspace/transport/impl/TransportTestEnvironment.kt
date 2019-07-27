@@ -43,9 +43,7 @@ import straightway.testing.flow.expect
 import straightway.units.Time
 import straightway.units.UnitValue
 import straightway.units.absolute
-import straightway.utils.TimeProvider
-import straightway.utils.deserializeTo
-import straightway.utils.serializeToByteArray
+import straightway.utils.*
 import java.io.EOFException
 import java.time.LocalDateTime
 
@@ -71,6 +69,7 @@ open class TransportTestEnvironment(
                 { _, _, _ -> mock() },
         cryptoFactory: TransportTestEnvironment.() -> CryptoFactory = { mock() },
         randomBytesFactory: TransportTestEnvironment.() -> Iterator<Byte> = { mock() },
+        tracerFactory: TransportTestEnvironment.() -> Tracer = { BufferTracer(RealTimeProvider()) },
         additionalInitialization: Context.() -> Unit = {}
 ) {
 
@@ -116,7 +115,8 @@ open class TransportTestEnvironment(
                 listItemQueryTrackerFactory(initialChunk, crypto, callbacks) },
             dataQueryTrackerFactory = { queriedId, crypto, setup ->
                 dataQueryTrackerFactory(queriedId, crypto, setup) },
-            randomBytesFactory = { randomBytesFactory() }
+            randomBytesFactory = { randomBytesFactory() },
+            tracer = { tracerFactory() }
     ) {
         additionalInitialization()
     }

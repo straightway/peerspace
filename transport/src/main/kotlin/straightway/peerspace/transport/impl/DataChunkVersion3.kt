@@ -55,6 +55,7 @@ class DataChunkVersion3 constructor(
 
     object Header {
         const val MAX_CONTENT_KEY_SIZE = 0xFFFF
+        const val MIN_SIZE = 3
     }
 
     companion object {

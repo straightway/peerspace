@@ -25,6 +25,7 @@ import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.transport.impl.ListQueryCallbackInstances
 import straightway.utils.TimeProvider
+import straightway.utils.Tracer
 
 /**
  * Base class for alltransport components that can be retrieved via koin.
@@ -57,6 +58,7 @@ interface TransportComponent : KoinModuleComponent {
                         DataQueryCallback.() -> Unit) -> DataQueryCallback,
                 cryptoFactory: () -> CryptoFactory,
                 randomBytesFactory: () -> Iterator<Byte>,
+                tracer: () -> Tracer,
                 additionalInitialization: Context.() -> Unit = {}
         ) = withContext {
             bean { transportFactory() }
@@ -66,6 +68,7 @@ interface TransportComponent : KoinModuleComponent {
             bean { timeProviderFactory() }
             bean { cryptoFactory() }
             bean { randomBytesFactory() }
+            bean { tracer() }
             factory { args ->
                 listQueryTrackerFactory(args["listQuery"], args["crypto"], args["querySetup"])
             }
@@ -88,6 +91,7 @@ val TransportComponent.cryptoFactory get() = get<CryptoFactory>()
 fun TransportComponent.createHasher() = cryptoFactory.createHasher()
 val TransportComponent.timeProvider get() = get<TimeProvider>()
 val TransportComponent.randomBytes get() = get<Iterator<Byte>>()
+val TransportComponent.tracer get() = get<Tracer>()
 
 @Suppress("LongParameterList")
 fun TransportComponent.createListQueryTracker(

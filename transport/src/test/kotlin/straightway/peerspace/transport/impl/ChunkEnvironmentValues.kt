@@ -40,6 +40,6 @@ open class ChunkEnvironmentValues(
                     DataChunkVersion2.Header.MIN_SIZE -
                     numberOfReferences * referenceBlockSize
 
-    private val referenceBlockSize get() =
+    val referenceBlockSize get() =
             DataChunkControlBlock.NON_CONTENT_SIZE + (HASH_BITS - 1) / Byte.SIZE_BITS + 1
 }

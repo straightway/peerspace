@@ -29,6 +29,9 @@ class ChunkerCrypto private constructor(
         val signatureChecker: SignatureChecker? = null,
         val encryptor: Encryptor
 ) {
+    @Suppress("UNUSED_PARAMETER")
+    fun withContentCryptor(c: Encryptor) = ChunkerCrypto(signMode, signer, signatureChecker, c)
+
     companion object {
         fun forPlainChunk(encryptor: Encryptor) =
                 ChunkerCrypto(encryptor = encryptor)

@@ -176,7 +176,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
     @Test
     fun `tryCombining with multiply referenced chunk`() =
             test { byteArrayOf() } when_ {
-                val plainChunk = DataChunkVersion2(listOf(), byteArrayOf(1)).encrypted
+                val plainChunk = DataChunkVersion2(listOf(), byteArrayOf(1)).encrypted(cryptor)
                 val plainChunkHash = addHash(plainChunk.binary)
                 val directory = DataChunkVersion2(
                         listOf(
@@ -188,7 +188,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                                         DataChunkControlBlockType.ReferencedChunk,
                                         0x0,
                                         plainChunkHash)),
-                        byteArrayOf(2)).encrypted
+                        byteArrayOf(2)).encrypted(cryptor)
                 addHash(directory.binary)
 
                 deChunker.tryCombining(
@@ -266,7 +266,7 @@ class DeChunkerImplTest : KoinLoggingDisabler() {
                                 DataChunkControlBlockType.ReferencedChunk,
                                 0x0,
                                 byteArrayOf(1, 2, 3))),
-                        byteArrayOf(7, 8, 9)).encrypted
+                        byteArrayOf(7, 8, 9)).encrypted(cryptor)
                 addHash(directory.binary)
                 deChunker.tryCombining(
                         listOf(directory.createChunk()),

@@ -19,7 +19,9 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import org.junit.jupiter.api.Test
+import straightway.error.Panic
 import straightway.testing.bdd.Given
+import straightway.testing.flow.*
 import straightway.utils.serializeToByteArray
 import straightway.utils.toByteArray
 import java.io.Serializable
@@ -54,6 +56,66 @@ class HasherTest {
                 getHash("string" as Serializable)
             } then {
                 verify(this).getHash(eq("string".toByteArray()))
+            }
+
+    @Test
+    fun `hashBytes for hasher with 0 hashBits panics`() =
+            Given {
+                mock<Hasher> { on { hashBits }.thenReturn(0) }
+            } when_ {
+                hashBytes
+            } then {
+                expect({ it.result } does Throw.type<Panic>())
+            }
+
+    @Test
+    fun `hashBytes for hasher with 1 hashBits is 1`() =
+            Given {
+                mock<Hasher> { on { hashBits }.thenReturn(1) }
+            } when_ {
+                hashBytes
+            } then {
+                expect(it.result is_ Equal to_ 1)
+            }
+
+    @Test
+    fun `hashBytes for hasher with 9 hashBits is 2`() =
+            Given {
+                mock<Hasher> { on { hashBits }.thenReturn(9) }
+            } when_ {
+                hashBytes
+            } then {
+                expect(it.result is_ Equal to_ 2)
+            }
+
+    @Test
+    fun `hashBytes for hasher with 8 hashBits is 1`() =
+            Given {
+                mock<Hasher> { on { hashBits }.thenReturn(8) }
+            } when_ {
+                hashBytes
+            } then {
+                expect(it.result is_ Equal to_ 1)
+            }
+
+    @Test
+    fun `hashBytes for hasher with 16 hashBits is 2`() =
+            Given {
+                mock<Hasher> { on { hashBits }.thenReturn(16) }
+            } when_ {
+                hashBytes
+            } then {
+                expect(it.result is_ Equal to_ 2)
+            }
+
+    @Test
+    fun `hashBytes for hasher with 17 hashBits is 3`() =
+            Given {
+                mock<Hasher> { on { hashBits }.thenReturn(17) }
+            } when_ {
+                hashBytes
+            } then {
+                expect(it.result is_ Equal to_ 3)
             }
 
     private data class TestSerializable(val i: Int) : Serializable {

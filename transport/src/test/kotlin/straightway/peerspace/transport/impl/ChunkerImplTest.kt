@@ -288,7 +288,7 @@ class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
                     "\nchunk size bytes: $chunkSizeBytes\n" +
                     "DataChunkVersion3.Header.MIN_SIZE: ${DataChunkVersion3.Header.MIN_SIZE}\n" +
                     "ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size: ${ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size}\n" +
-                    "referenceBlockSize: ${referenceBlockSize}"
+                    "referenceBlockSizeBytes: ${referenceBlockSize}"
                 }
 
                 data

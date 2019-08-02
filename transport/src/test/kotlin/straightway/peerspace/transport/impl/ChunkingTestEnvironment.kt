@@ -46,7 +46,7 @@ class ChunkingTestEnvironment(
         maxReferences: Int,
         cryptoBlockSize: Int,
         val data: ByteArray,
-        tracerFactory: TransportTestEnvironment.() -> Tracer = { BufferTracer(RealTimeProvider()) }
+        tracerFactory: TransportTestEnvironment.() -> Tracer = { Tracer { true } }
 ) : ChunkEnvironmentValues(chunkSizeBytes, cryptoBlockSize) {
 
     constructor(chunkSizeBytes: Int,

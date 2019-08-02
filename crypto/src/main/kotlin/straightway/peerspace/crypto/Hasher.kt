@@ -15,6 +15,7 @@
  */
 package straightway.peerspace.crypto
 
+import straightway.error.Panic
 import straightway.utils.toByteArray
 import java.io.Serializable
 
@@ -28,3 +29,6 @@ interface Hasher {
 }
 
 fun Hasher.getHash(obj: Serializable) = getHash(obj.toByteArray())
+val Hasher.hashBytes get() =
+    if (hashBits <= 0) throw Panic("hashBits must be positive (got: $hashBits)")
+    else (hashBits - 1) / Byte.SIZE_BITS + 1

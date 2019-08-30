@@ -13,17 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport.impl
+package straightway.peerspace.transport
 
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.transport.ListDataItem
-import straightway.peerspace.transport.ListDataKey
-import straightway.peerspace.transport.DataQueryControl
 
-/**
- * Callbacks for querying peerspace lists.
- */
-data class ListQueryCallbackInstances(
-        val onReceived: (ListDataItem) -> Unit = {},
-        val onTimeout: DataQueryControl.(ListDataKey) -> Unit = {},
-        val onIncomplete: DataQueryControl.(ListDataKey, List<DataChunk>) -> Unit = { _, _ -> })
+interface ChunkTreeCreator {
+    val chunks: Set<DataChunk>
+}

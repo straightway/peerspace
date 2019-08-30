@@ -30,6 +30,7 @@ import straightway.peerspace.transport.ListDataKey
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.DataQueryControl
 import straightway.peerspace.transport.DeChunkerCrypto
+import straightway.peerspace.transport.ListQueryCallbackInstances
 import straightway.peerspace.transport.createListQueryTracker
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Equal

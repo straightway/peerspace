@@ -26,6 +26,7 @@ import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.ListQueryCallback
 import straightway.peerspace.transport.DataQueryControl
 import straightway.peerspace.transport.DeChunkerCrypto
+import straightway.peerspace.transport.ListQueryCallbackInstances
 import straightway.peerspace.transport.ListQueryControl
 import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.createListItemQueryTracker

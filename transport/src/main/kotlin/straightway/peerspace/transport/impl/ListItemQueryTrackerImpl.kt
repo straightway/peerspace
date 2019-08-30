@@ -19,6 +19,7 @@ import straightway.peerspace.data.DataChunk
 import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListDataItem
 import straightway.peerspace.transport.ListItemQueryTracker
+import straightway.peerspace.transport.ListQueryCallbackInstances
 import straightway.peerspace.transport.toListDataKey
 
 /**

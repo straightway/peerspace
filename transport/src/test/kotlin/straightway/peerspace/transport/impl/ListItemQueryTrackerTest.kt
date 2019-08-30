@@ -28,6 +28,7 @@ import straightway.peerspace.data.DataChunkQuery
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
 import straightway.peerspace.transport.DeChunkerCrypto
+import straightway.peerspace.transport.ListQueryCallbackInstances
 import straightway.peerspace.transport.createListItemQueryTracker
 import straightway.testing.bdd.Given
 import straightway.testing.flow.expect

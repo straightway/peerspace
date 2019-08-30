@@ -27,13 +27,18 @@ import straightway.peerspace.data.isUntimed
 import straightway.peerspace.data.toTimestamp
 import straightway.peerspace.net.PeerClient
 import straightway.peerspace.net.ChunkQueryControl
+import straightway.peerspace.transport.ChunkProperties
+import straightway.peerspace.transport.ChunkTreeCreator
+import straightway.peerspace.transport.ChunkTreeInfo
 import straightway.peerspace.transport.Chunker
+import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.DataQueryCallback
 import straightway.peerspace.transport.DeChunker
 import straightway.peerspace.transport.DeChunkerCrypto
 import straightway.peerspace.transport.ListItemQueryTracker
 import straightway.peerspace.transport.ListQuery
 import straightway.peerspace.transport.ListQueryCallback
+import straightway.peerspace.transport.ListQueryCallbackInstances
 import straightway.peerspace.transport.Transport
 import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.chunker
@@ -69,6 +74,11 @@ open class TransportTestEnvironment(
                 { _, _, _ -> mock() },
         cryptoFactory: TransportTestEnvironment.() -> CryptoFactory = { mock() },
         randomBytesFactory: TransportTestEnvironment.() -> Iterator<Byte> = { mock() },
+        treeInfoFactory: TransportTestEnvironment.(ChunkProperties, Int) -> ChunkTreeInfo =
+                { chunkProperties, dataSizeBytes -> chunkProperties.getChunkTreeInfoFor(dataSizeBytes) },
+        chunkTreeCreatorFactory:
+                TransportTestEnvironment.(ByteArray, ChunkerCrypto, ChunkProperties) -> ChunkTreeCreator =
+                { data, crypto, props -> ChunkTreeCreatorImpl(data, crypto, props) },
         tracerFactory: TransportTestEnvironment.() -> Tracer = { BufferTracer(RealTimeProvider()) },
         additionalInitialization: Context.() -> Unit = {}
 ) {
@@ -116,6 +126,8 @@ open class TransportTestEnvironment(
             dataQueryTrackerFactory = { queriedId, crypto, setup ->
                 dataQueryTrackerFactory(queriedId, crypto, setup) },
             randomBytesFactory = { randomBytesFactory() },
+            treeInfoFactory = { chunkProperties, size -> treeInfoFactory(chunkProperties, size) },
+            chunkTreeCreatorFactory = { data, crypto, props -> chunkTreeCreatorFactory(data, crypto, props) },
             tracer = { tracerFactory() }
     ) {
         additionalInitialization()

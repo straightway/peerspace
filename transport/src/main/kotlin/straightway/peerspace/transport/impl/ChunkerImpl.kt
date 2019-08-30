@@ -15,14 +15,15 @@
  */
 package straightway.peerspace.transport.impl
 
-import straightway.koinutils.withOwnContext
 import straightway.peerspace.crypto.Hasher
 import straightway.peerspace.crypto.hashBytes
+import straightway.peerspace.transport.ChunkProperties
 import straightway.peerspace.transport.Chunker
 import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.TransportComponent
+import straightway.peerspace.transport.createChunkTreeCreator
 import straightway.peerspace.transport.createHasher
-import straightway.peerspace.transport.tracer
+import straightway.peerspace.transport.trace
 
 /**
  * Default implementation of the Chunker interface.
@@ -32,17 +33,15 @@ class ChunkerImpl(
         private val maxReferences: Int
 ) : Chunker, TransportComponent by TransportComponent() {
 
-    override fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto) = tracer(data, crypto) {
-        val hasher = createHasher()
+    override fun chopToChunks(data: ByteArray, crypto: ChunkerCrypto) = trace(data, crypto) {
         val chunkProperties =
-            ChunkProperties(
-                chunkSizeBytes,
-                maxReferences,
-                hasher.referenceBlockSize,
-                crypto.encryptor.encryptorProperties.blockBytes)
-        val chopper = withOwnContext { ChunkTreeCreator(data, crypto, hasher, chunkProperties) }
+                ChunkProperties(
+                        chunkSizeBytes,
+                        maxReferences,
+                        0,
+                        crypto.encryptor.encryptorProperties.blockBytes,
+                        DataChunkVersion0.Header.SIZE)
+        val chopper = createChunkTreeCreator(data, crypto, chunkProperties)
         chopper.chunks
     }
 }
-
-private val Hasher.referenceBlockSize get() = DataChunkControlBlock.NON_CONTENT_SIZE + hashBytes

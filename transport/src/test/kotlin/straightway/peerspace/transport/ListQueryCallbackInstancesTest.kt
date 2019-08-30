@@ -13,16 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package straightway.peerspace.transport.impl
+package straightway.peerspace.transport
 
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Test
 import straightway.expr.minus
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
-import straightway.peerspace.transport.ListDataItem
-import straightway.peerspace.transport.ListDataKey
-import straightway.peerspace.transport.DataQueryControl
 import straightway.testing.bdd.Given
 import straightway.testing.flow.Not
 import straightway.testing.flow.Same

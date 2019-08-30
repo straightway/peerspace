@@ -24,9 +24,14 @@ import straightway.peerspace.crypto.Cryptor
 import straightway.peerspace.crypto.DecryptorProperties
 import straightway.peerspace.crypto.EncryptorProperties
 import straightway.peerspace.crypto.Hasher
+import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.data.Key
-import straightway.peerspace.transport.tracer
+import straightway.peerspace.transport.ChunkProperties
+import straightway.peerspace.transport.ChunkTreeCreator
+import straightway.peerspace.transport.ChunkTreeInfo
+import straightway.peerspace.transport.ChunkerCrypto
+import straightway.peerspace.transport.trace
 import straightway.testing.flow.Empty
 import straightway.testing.flow.Equal
 import straightway.testing.flow.Less
@@ -46,6 +51,10 @@ class ChunkingTestEnvironment(
         maxReferences: Int,
         cryptoBlockSize: Int,
         val data: ByteArray,
+        treeInfoFactory: TransportTestEnvironment.(ChunkProperties, Int) -> ChunkTreeInfo =
+                { props, size -> props.getChunkTreeInfoFor(size) },
+        chunkTreeCreatorFactory: TransportTestEnvironment.(ByteArray, ChunkerCrypto, ChunkProperties) -> ChunkTreeCreator =
+                { bytes, crypto, props -> ChunkTreeCreatorImpl(bytes, crypto, props) },
         tracerFactory: TransportTestEnvironment.() -> Tracer = { Tracer { true } }
 ) : ChunkEnvironmentValues(chunkSizeBytes, cryptoBlockSize) {
 
@@ -63,13 +72,19 @@ class ChunkingTestEnvironment(
                 maxReferences: Int,
                 cryptoBlockSize: Int,
                 dataGetter: ChunkEnvironmentValues.() -> ByteArray,
-                tracerFactory: TransportTestEnvironment.() -> Tracer)
+                treeInfoFactory: TransportTestEnvironment.(ChunkProperties, Int) -> ChunkTreeInfo =
+                        { props, size -> props.getChunkTreeInfoFor(size) },
+                chunkTreeCreatorFactory: TransportTestEnvironment.(ByteArray, ChunkerCrypto, ChunkProperties) -> ChunkTreeCreator =
+                        { bytes, crypto, props -> ChunkTreeCreatorImpl(bytes, crypto, props) },
+                tracerFactory: TransportTestEnvironment.() -> Tracer = { Tracer { true } })
             : this(
             chunkSizeBytes,
             maxReferences,
             cryptoBlockSize,
             ChunkEnvironmentValues(chunkSizeBytes, cryptoBlockSize).dataGetter(),
-            tracerFactory)
+            treeInfoFactory,
+            chunkTreeCreatorFactory,
+            tracerFactory = tracerFactory)
 
     companion object {
 
@@ -93,9 +108,11 @@ class ChunkingTestEnvironment(
                     on { hasNext() }.thenAnswer { randomBytes.hasNext() }
                 }
             },
+            treeInfoFactory = treeInfoFactory,
+            chunkTreeCreatorFactory = chunkTreeCreatorFactory,
             tracerFactory = tracerFactory)
 
-    val trace = env.context.tracer
+    val trace: Tracer = env.context.trace
 
     val setUpChunks: Set<DataChunkStructure> get() = _setUpChunks
 
@@ -133,9 +150,9 @@ class ChunkingTestEnvironment(
             decryptorProperties: DecryptorProperties? = null
     ) = mock<Cryptor> {
         on { this.encrypt(any()) }
-                .thenAnswer { encrypt(it.getArgument<ByteArray>(0)).filledToBlockSize }
+                .thenAnswer { encrypt(it.getArgument(0)).filledToBlockSize }
         on { this.decrypt(any()) }
-                .thenAnswer { decrypt(it.getArgument<ByteArray>(0)).cutToBlockSize }
+                .thenAnswer { decrypt(it.getArgument(0)).cutToBlockSize }
         on { this.encryptionKey }.thenAnswer { encryptionKey }
         on { this.decryptionKey }.thenAnswer { decryptionKey }
         on { this.encryptorProperties }.thenAnswer {
@@ -272,7 +289,7 @@ class ChunkingTestEnvironment(
     fun ByteArray.createEncryptedDirectoryDataChunkWithNumberOfReferences(
             contentEncryptor: Cryptor,
             numberOfReferences: Int
-    ): ByteArray = trace(this, contentEncryptor, numberOfReferences) {
+    ): ByteArray = trace(this, contentEncryptor, numberOfReferences) { tracer ->
         val contentEncryptorKey = contentEncryptor.encryptionKey
         val encryptedContentEncryptorKey = cryptor.encrypt(contentEncryptorKey)
         val availableSpace =
@@ -280,7 +297,7 @@ class ChunkingTestEnvironment(
         with(DataChunkVersion2Builder(availableSpace)) {
             addReferences(numberOfReferences)
             addDirectoryPayload()
-            trace(TraceLevel.Debug) { "Created $chunkStructure" }
+            tracer.traceMessage(TraceLevel.Debug) { "Created $chunkStructure" }
             val encryptedChunk = contentEncryptor.encrypt(chunkStructure.binary)
             addSetUpChunk(DataChunkVersion3(
                     encryptedContentEncryptorKey,
@@ -294,6 +311,12 @@ class ChunkingTestEnvironment(
         expect(this@end is_ Empty)
         expect(chunksReferencesToAddToDirectory has Size of 1)
         resetRandomStream()
+    }
+
+    fun assertExpectedChunks(actualChunks: Set<DataChunk>) {
+        expect(actualChunks.map { it.key } is_ Equal to_ keys(setUpChunks))
+        expect(actualChunks.map { DataChunkStructure.fromBinary(it.data) } is_ Equal
+                to_ setUpChunks)
     }
 
     fun addHash(data: ByteArray): ByteArray = trace(data) {
@@ -314,7 +337,16 @@ class ChunkingTestEnvironment(
         randomBytes = randomStream.iterator()
     }
 
+    fun hashKey(chunk: DataChunkStructure) =
+            Key(Id(hash(chunk)))
+
     //region Private
+
+    private fun keys(chunks: Iterable<DataChunkStructure>) =
+            chunks.map { hashKey(it) }.toSet()
+
+    private fun hash(chunk: DataChunkStructure) =
+            hasher.getHash(chunk.binary)
 
     private fun DataChunkStructure.encrypt(theCryptor: Cryptor) =
             theCryptor.encrypt(binary.filled).let {
@@ -369,7 +401,7 @@ class ChunkingTestEnvironment(
     private fun createChunkVersion2(action: DataChunkVersion2Builder.() -> ByteArray): ByteArray =
             with(DataChunkVersion2Builder(unencryptedChunkSizeBytes), action)
 
-    private val hasher: Hasher = mock<Hasher> {
+    private val hasher = mock<Hasher> {
         on { getHash(any()) }.thenAnswer {
             val toHash = it.getArgument<ByteArray>(0)
             trace(toHash) { getHash(toHash) }

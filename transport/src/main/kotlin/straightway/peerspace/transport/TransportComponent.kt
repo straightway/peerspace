@@ -23,7 +23,6 @@ import straightway.peerspace.crypto.CryptoFactory
 import straightway.peerspace.data.DataChunk
 import straightway.peerspace.data.Id
 import straightway.peerspace.net.PeerClient
-import straightway.peerspace.transport.impl.ListQueryCallbackInstances
 import straightway.utils.TimeProvider
 import straightway.utils.Tracer
 
@@ -59,6 +58,8 @@ interface TransportComponent : KoinModuleComponent {
                 cryptoFactory: () -> CryptoFactory,
                 randomBytesFactory: () -> Iterator<Byte>,
                 tracer: () -> Tracer,
+                treeInfoFactory: (ChunkProperties, Int) -> ChunkTreeInfo,
+                chunkTreeCreatorFactory: (ByteArray, ChunkerCrypto, ChunkProperties) -> ChunkTreeCreator,
                 additionalInitialization: Context.() -> Unit = {}
         ) = withContext {
             bean { transportFactory() }
@@ -78,6 +79,12 @@ interface TransportComponent : KoinModuleComponent {
             factory { args ->
                 dataQueryTrackerFactory(args["queriedId"], args["crypto"], args["querySetup"])
             }
+            factory { args ->
+                treeInfoFactory(args["chunkProperties"], args["dataSizeBytes"])
+            }
+            factory { args ->
+                chunkTreeCreatorFactory(args["data"], args["crypto"], args["chunkProperties"])
+            }
             additionalInitialization()
         } make { TransportComponent() }
     }
@@ -91,7 +98,7 @@ val TransportComponent.cryptoFactory get() = get<CryptoFactory>()
 fun TransportComponent.createHasher() = cryptoFactory.createHasher()
 val TransportComponent.timeProvider get() = get<TimeProvider>()
 val TransportComponent.randomBytes get() = get<Iterator<Byte>>()
-val TransportComponent.tracer get() = get<Tracer>()
+val TransportComponent.trace get() = get<Tracer>()
 
 @Suppress("LongParameterList")
 fun TransportComponent.createListQueryTracker(
@@ -118,4 +125,16 @@ fun TransportComponent.createDataQueryTracker(
         querySetup: DataQueryCallback.() -> Unit
 ) = get<DataQueryCallback> {
     mapOf("queriedId" to queriedId, "crypto" to crypto, "querySetup" to querySetup)
+}
+
+fun TransportComponent.getTreeInfo(chunkProperties: ChunkProperties, dataSizeBytes: Int) = get<ChunkTreeInfo> {
+    mapOf("chunkProperties" to chunkProperties, "dataSizeBytes" to dataSizeBytes)
+}
+
+fun TransportComponent.createChunkTreeCreator(
+        data: ByteArray,
+        crypto: ChunkerCrypto,
+        chunkProperties: ChunkProperties
+) = get<ChunkTreeCreator> {
+    mapOf("data" to data, "crypto" to crypto, "chunkProperties" to chunkProperties)
 }

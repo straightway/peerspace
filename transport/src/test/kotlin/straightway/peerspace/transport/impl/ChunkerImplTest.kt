@@ -15,17 +15,13 @@
  */
 package straightway.peerspace.transport.impl
 
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import straightway.koinutils.KoinLoggingDisabler
-import straightway.peerspace.data.DataChunk
-import straightway.peerspace.data.Id
-import straightway.peerspace.data.Key
 import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.chunker
-import straightway.peerspace.transport.createHasher
-import straightway.peerspace.transport.tracer
+import straightway.peerspace.transport.trace
 import straightway.testing.TestTraceProvider
 import straightway.testing.TraceOnFailure
 import straightway.testing.bdd.Given
@@ -34,7 +30,6 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.utils.RealTimeProvider
-import straightway.utils.TraceLevel
 import straightway.utils.Tracer
 
 @ExtendWith(TraceOnFailure::class)
@@ -58,18 +53,18 @@ class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
                         maxReferences,
                         cryptoBlockSize,
                         dataToChopToChunkGetter,
-                        tracerFactory = { val invoke = Tracer.invoke(RealTimeProvider()) { true }
-                            invoke
+                        tracerFactory = {
+                            Tracer.invoke(RealTimeProvider()) { true }
                         })
-                testTrace = env.env.context.tracer
+                testTrace = env.env.context.trace
                 env
             }
 
     override val traces: Collection<String> get() = testTrace!!.traces
             .map { it.toString().replace("straightway.peerspace.transport.impl.", "") }
 
-    @AfterEach
-    fun tearDown() {
+    @BeforeEach
+    fun setUp() {
         testTrace = null
     }
 
@@ -87,7 +82,6 @@ class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
     @Test
     fun `data is encrypted using passed encryptor`() {
         test { byteArrayOf() } while_ {
-            cryptor = negatingEncryptor
             data.createPlainDataChunkVersion2().end()
         } when_ {
             chunker.chopToChunks(data, ChunkerCrypto.forPlainChunk(cryptor))
@@ -283,14 +277,6 @@ class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
             } while_ {
                 cryptor = negatingEncryptor
                 encryptorProperties.maxClearTextBytes = 8
-                //isCreatingHashOnTheFly = true
-                trace.trace(TraceLevel.Debug) {
-                    "\nchunk size bytes: $chunkSizeBytes\n" +
-                    "DataChunkVersion3.Header.MIN_SIZE: ${DataChunkVersion3.Header.MIN_SIZE}\n" +
-                    "ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size: ${ChunkingTestEnvironment.newSymmetricEncryptorDefaultKey.size}\n" +
-                    "referenceBlockSizeBytes: ${referenceBlockSize}"
-                }
-
                 data
                         .reserveForDirectory(
                                 chunkSizeBytes -
@@ -311,22 +297,6 @@ class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
     //region Private
 
     private val ChunkingTestEnvironment.chunker get() = env.context.chunker
-    private val ChunkingTestEnvironment.hasher get() = env.context.createHasher()
-
-    private fun ChunkingTestEnvironment.keys(chunks: Iterable<DataChunkStructure>) =
-            chunks.map { hashKey(it) }.toSet()
-
-    private fun ChunkingTestEnvironment.hashKey(chunk: DataChunkStructure) =
-            Key(Id(hash(chunk)))
-
-    private fun ChunkingTestEnvironment.hash(chunk: DataChunkStructure) =
-            hasher.getHash(chunk.binary)
-
-    private fun ChunkingTestEnvironment.assertExpectedChunks(actualChunks: Set<DataChunk>) {
-        expect(actualChunks.map { it.key } is_ Equal to_ keys(setUpChunks))
-        expect(actualChunks.map { DataChunkStructure.fromBinary(it.data) } is_ Equal
-                to_ setUpChunks)
-    }
 
     //endregion
 }

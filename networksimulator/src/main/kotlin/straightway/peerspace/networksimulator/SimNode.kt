@@ -62,7 +62,6 @@ class SimNode : Node, KoinModuleComponent by KoinModuleComponent() {
                     to = simNodes[id]!!)
 
     override fun notifySuccess(receiver: Node) {}
-
     override fun notifyFailure(receiver: Node) {}
 
     init {

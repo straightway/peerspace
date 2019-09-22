@@ -36,6 +36,7 @@ import straightway.utils.toChunksOfSize
 /**
  * Create a chunk tree from a given data array.
  */
+@Suppress("LargeClass")
 class ChunkTreeCreatorImpl private constructor(
         val crypto: ChunkerCrypto,
         chunkPropertiesParameter: ChunkProperties,
@@ -44,7 +45,8 @@ class ChunkTreeCreatorImpl private constructor(
 
     private val hasher = cryptoFactory.createHasher()
 
-    private val chunkProperties = chunkPropertiesParameter.copy(referenceBlockSizeBytes = hasher.referenceBlockSize)
+    private val chunkProperties = chunkPropertiesParameter
+            .copy(referenceBlockSizeBytes = hasher.referenceBlockSize)
 
     constructor(data: ByteArray,
                 crypto: ChunkerCrypto,
@@ -79,23 +81,29 @@ class ChunkTreeCreatorImpl private constructor(
         }
     }
 
-    private fun ByteArray.createEncryptedChunkWithOwnKey(encryptedContentCryptorKey: ByteArray): DataChunkStructure =
+    private fun ByteArray.createEncryptedChunkWithOwnKey(
+            encryptedContentCryptorKey: ByteArray
+    ): DataChunkStructure =
             trace(this, encryptedContentCryptorKey) {
                 val result = createEncryptedChunkPayloadWithOwnKey(this)
                 val encryptedResult = crypto.encryptor.encrypt(result.binary).filled
                 DataChunkVersion3(encryptedContentCryptorKey, encryptedResult)
             }
 
-    private fun createEncryptedChunkPayloadWithOwnKey(data: ByteArray): DataChunkStructure = trace(data) {
-        when {
-            chunkProperties.version0PayloadSizeInCryptoContainerBytes < data.size -> data.createChunkTree()
-            else -> data.createPlainChunkStructure()
-        }
-    }
+    private fun createEncryptedChunkPayloadWithOwnKey(data: ByteArray): DataChunkStructure =
+            trace(data) {
+                when {
+                    chunkProperties.version0PayloadSizeInCryptoContainerBytes < data.size ->
+                        data.createChunkTree()
+                    else ->
+                        data.createPlainChunkStructure()
+                }
+            }
 
-    private fun Encryptor.getEncryptedKey(contentCryptor: Encryptor): ByteArray = trace(contentCryptor) {
-        encrypt(contentCryptor.encryptionKey)
-    }
+    private fun Encryptor.getEncryptedKey(contentCryptor: Encryptor): ByteArray =
+            trace(contentCryptor) {
+                encrypt(contentCryptor.encryptionKey)
+            }
 
     private fun ByteArray.createPlainChunkStructure(): DataChunkStructure = trace(this) {
         when {
@@ -117,17 +125,23 @@ class ChunkTreeCreatorImpl private constructor(
     }
 
     private fun ByteArray.createPlainVersion2Chunk(): DataChunkVersion2 = trace(this) {
-        DataChunkVersion2Builder(chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes).also {
+        DataChunkVersion2Builder(
+                chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes
+        ).also {
             it.payload = this
         }.chunkStructure
     }
 
     private val ByteArray.additionalVersion1PayloadBytes: Int get() = trace(this) {
-        chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes - DataChunkVersion1.Header.SIZE - size
+        chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes -
+                DataChunkVersion1.Header.SIZE -
+                size
     }
 
     private fun ByteArray.createChunkTree(): DataChunkVersion2 = trace(this) {
-        DataChunkVersion2Builder(chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes).apply {
+        DataChunkVersion2Builder(
+                chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes
+        ).apply {
             references = recursiveSubChunks.hashes
             setPayloadPart(this@createChunkTree)
         }.chunkStructure
@@ -146,12 +160,15 @@ class ChunkTreeCreatorImpl private constructor(
         }
     }
 
-    private fun createSubInstance(crypto: ChunkerCrypto, cryptoContainerHeaderSizeBytes: Int): ChunkTreeCreatorImpl =
+    private fun createSubInstance(
+            crypto: ChunkerCrypto, cryptoContainerHeaderSizeBytes: Int
+    ): ChunkTreeCreatorImpl =
             trace(crypto, cryptoContainerHeaderSizeBytes) {
                 withOwnContext {
                     ChunkTreeCreatorImpl(
                             crypto,
-                            chunkProperties.copy(cryptoContainerHeaderSizeBytes = cryptoContainerHeaderSizeBytes),
+                            chunkProperties.copy(
+                                cryptoContainerHeaderSizeBytes = cryptoContainerHeaderSizeBytes),
                             resultCollector)
                 }
             }
@@ -163,10 +180,11 @@ class ChunkTreeCreatorImpl private constructor(
     }
 
     private fun DataChunkStructure.createChunk(): DataChunk = trace(this) {
-        if (version == 3.toByte())
+        if (version == DataChunkVersion3.VERSION)
             createChunk(Key(Id(hasher.getHash(binary))))
         else {
-            val crytoContainerChunk = encryptedChunkForCryptoContainer.inCryptoContainerWithoutOwnKey
+            val crytoContainerChunk =
+                    encryptedChunkForCryptoContainer.inCryptoContainerWithoutOwnKey
             crytoContainerChunk.createChunk(Key(Id(hasher.getHash(crytoContainerChunk.binary))))
         }
         .also {
@@ -193,9 +211,9 @@ class ChunkTreeCreatorImpl private constructor(
     }
 
     private val ByteArray.filled: ByteArray get() = trace(this) {
-        this + ByteArray(chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes - size) {
-            randomBytes.next()
-        }
+        this + ByteArray(
+                chunkProperties.cryptoContainerPayloadSizeRespectingBlockSizeBytes - size
+        ) { randomBytes.next() }
     }
 
     private val Hasher.referenceBlockSize get() = trace(this) {

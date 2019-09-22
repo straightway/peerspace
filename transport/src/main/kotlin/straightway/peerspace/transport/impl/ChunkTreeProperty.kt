@@ -50,7 +50,9 @@ private class ChunkTreeProperty(
                    getNumberOfReferences(dataSizeBytes))
 
    private fun getNumberOfReferences(dataSizeBytes: Int) =
-           (0..chunkProperties.maxReferences).first { dataSizeBytes <= getSizeBytesForReferences(it) }
+           (0..chunkProperties.maxReferences).first {
+               dataSizeBytes <= getSizeBytesForReferences(it)
+           }
 
    private fun getSizeBytesForReferences(references: Int): Int =
            references * maxSubTreeSizeBytes +

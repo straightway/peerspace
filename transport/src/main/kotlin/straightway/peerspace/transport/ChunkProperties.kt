@@ -21,6 +21,6 @@ package straightway.peerspace.transport
 data class ChunkProperties(
         val chunkSizeBytes: Int,
         val maxReferences: Int,
-        val referenceBlockSizeBytes: Int, // TODO: Check if needed.
+        val referenceBlockSizeBytes: Int,
         val dataBlockSizeBytes: Int,
         val cryptoContainerHeaderSizeBytes: Int)

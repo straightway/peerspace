@@ -27,6 +27,7 @@ import straightway.peerspace.transport.trace
 import straightway.testing.TestTraceProvider
 import straightway.testing.TraceOnFailure
 import straightway.testing.bdd.Given
+import straightway.utils.TraceProvider
 import straightway.utils.Tracer
 
 @ExtendWith(TraceOnFailure::class)
@@ -71,7 +72,7 @@ class ChunkTreeCreatorImplTest : KoinLoggingDisabler(), TestTraceProvider {
                 result
             }
 
-    override val traces: Collection<String> get() = testTrace!!.traces
+    override val traces: Collection<String> get() = (testTrace as TraceProvider).traces
             .map { it.toString().replace("straightway.peerspace.transport.impl.", "") }
 
     @BeforeEach

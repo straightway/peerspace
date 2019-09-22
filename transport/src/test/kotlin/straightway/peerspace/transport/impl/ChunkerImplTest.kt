@@ -30,6 +30,7 @@ import straightway.testing.flow.expect
 import straightway.testing.flow.is_
 import straightway.testing.flow.to_
 import straightway.utils.RealTimeProvider
+import straightway.utils.TraceProvider
 import straightway.utils.Tracer
 
 @ExtendWith(TraceOnFailure::class)
@@ -60,7 +61,7 @@ class ChunkerImplTest : KoinLoggingDisabler(), TestTraceProvider {
                 env
             }
 
-    override val traces: Collection<String> get() = testTrace!!.traces
+    override val traces: Collection<String> get() = (testTrace as TraceProvider).traces
             .map { it.toString().replace("straightway.peerspace.transport.impl.", "") }
 
     @BeforeEach

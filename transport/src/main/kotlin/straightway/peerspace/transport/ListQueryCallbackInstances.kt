@@ -16,9 +16,6 @@
 package straightway.peerspace.transport
 
 import straightway.peerspace.data.DataChunk
-import straightway.peerspace.transport.ListDataItem
-import straightway.peerspace.transport.ListDataKey
-import straightway.peerspace.transport.DataQueryControl
 
 /**
  * Callbacks for querying peerspace lists.

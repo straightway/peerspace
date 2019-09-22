@@ -29,6 +29,7 @@ val ChunkProperties.maxVersion2PayloadSizeInCryptoContainerBytes get() =
 val ChunkProperties.version0PayloadSizeInCryptoContainerBytes get() =
     cryptoContainerPayloadSizeRespectingBlockSizeBytes - DataChunkVersion0.Header.SIZE
 
-fun ChunkProperties.getMaxVersion2PayloadSizeWithReferencesInCryptoContainerBytes(numberOfReferences: Int) =
-        cryptoContainerPayloadSizeRespectingBlockSizeBytes - DataChunkVersion2.Header.MIN_SIZE -
-                numberOfReferences * referenceBlockSizeBytes
+fun ChunkProperties.getMaxVersion2PayloadSizeWithReferencesInCryptoContainerBytes(
+        numberOfReferences: Int
+) = cryptoContainerPayloadSizeRespectingBlockSizeBytes - DataChunkVersion2.Header.MIN_SIZE -
+        numberOfReferences * referenceBlockSizeBytes

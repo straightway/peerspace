@@ -36,7 +36,7 @@ interface TransportComponent : KoinModuleComponent {
 
         class Impl : TransportComponent, KoinModuleComponent by KoinModuleComponent()
 
-        @Suppress("LongParameterList")
+        @Suppress("LongParameterList", "LongMethod")
         fun createEnvironment(
                 transportFactory: () -> Transport,
                 peerClientFactory: () -> PeerClient,
@@ -59,7 +59,10 @@ interface TransportComponent : KoinModuleComponent {
                 randomBytesFactory: () -> Iterator<Byte>,
                 tracer: () -> Tracer,
                 treeInfoFactory: (ChunkProperties, Int) -> ChunkTreeInfo,
-                chunkTreeCreatorFactory: (ByteArray, ChunkerCrypto, ChunkProperties) -> ChunkTreeCreator,
+                chunkTreeCreatorFactory: (
+                        ByteArray,
+                        ChunkerCrypto,
+                        ChunkProperties) -> ChunkTreeCreator,
                 additionalInitialization: Context.() -> Unit = {}
         ) = withContext {
             bean { transportFactory() }
@@ -127,10 +130,12 @@ fun TransportComponent.createDataQueryTracker(
     mapOf("queriedId" to queriedId, "crypto" to crypto, "querySetup" to querySetup)
 }
 
-fun TransportComponent.getTreeInfo(chunkProperties: ChunkProperties, dataSizeBytes: Int) = get<ChunkTreeInfo> {
-    mapOf("chunkProperties" to chunkProperties, "dataSizeBytes" to dataSizeBytes)
-}
+fun TransportComponent.getTreeInfo(chunkProperties: ChunkProperties, dataSizeBytes: Int) =
+        get<ChunkTreeInfo> {
+            mapOf("chunkProperties" to chunkProperties, "dataSizeBytes" to dataSizeBytes)
+        }
 
+@Suppress("LongParameterList")
 fun TransportComponent.createChunkTreeCreator(
         data: ByteArray,
         crypto: ChunkerCrypto,

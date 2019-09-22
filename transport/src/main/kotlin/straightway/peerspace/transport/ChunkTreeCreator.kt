@@ -17,6 +17,9 @@ package straightway.peerspace.transport
 
 import straightway.peerspace.data.DataChunk
 
+/**
+ * Create a tree of chunks from given binary data.
+ */
 interface ChunkTreeCreator {
     val chunks: Set<DataChunk>
 }

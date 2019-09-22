@@ -15,14 +15,11 @@
  */
 package straightway.peerspace.transport.impl
 
-import straightway.peerspace.crypto.Hasher
-import straightway.peerspace.crypto.hashBytes
 import straightway.peerspace.transport.ChunkProperties
 import straightway.peerspace.transport.Chunker
 import straightway.peerspace.transport.ChunkerCrypto
 import straightway.peerspace.transport.TransportComponent
 import straightway.peerspace.transport.createChunkTreeCreator
-import straightway.peerspace.transport.createHasher
 import straightway.peerspace.transport.trace
 
 /**
